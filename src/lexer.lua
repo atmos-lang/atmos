@@ -3,7 +3,7 @@ require "aux"
 
 local match = string.match
 
-local fixs = { '{', '}', '(', ')', '[', ']', ',', '.' }
+local syms = { '{', '}', '(', ')', '[', ']', ',', '.' }
 
 local function _lexer_ (str)
     str = str .. '\0'
@@ -50,7 +50,12 @@ local function _lexer_ (str)
 
     while i <= #str do
         local c = read()
+
+        -- spaces
         if match(c, "%s") then
+            -- ignore
+
+        -- comments
         elseif c == ';' then
             local c2 = read()
             if c2 ~= ';' then
@@ -79,32 +84,54 @@ local function _lexer_ (str)
                     end
                 end
             end
-        elseif contains(fixs, c) then
-            coroutine.yield({ tag="fix", str=c })
+
+        -- symbols:  {  (  ,  ;
+        elseif contains(syms, c) then
+            coroutine.yield { tag="sym", str=c }
+
+        -- operators:  +  >=  #
         elseif contains(OPS.cs, c) then
             local op = read_while(c, function (c) return contains(OPS.cs,c) end)
             if not contains(OPS.vs,op) then
                 error("invalid operator : " .. op)
             end
-            coroutine.yield({ tag="op", str=op })
+            coroutine.yield { tag="op", str=op }
+
+        -- tags:  :X  :a:b:c
+        elseif c == ':' then
+            local tag = read_while(":", M"[%w_:]")
+            local hier = {}
+            for x in string.gmatch(tag, ":([^:]*)") do
+                hier[#hier+1] = x
+            end
+            coroutine.yield { tag="tag", str=tag, hier=hier }
+
+        -- keywords:  await  if
+        -- variables:  x  a_10
         elseif match(c, "[%a_]") then
             local id = read_while(c, M"[%w_]")
             if contains(KEYS, id) then
-                coroutine.yield({ tag="key", str=id })
+                coroutine.yield { tag="key", str=id }
             else
-                coroutine.yield({ tag="var", str=id })
+                coroutine.yield { tag="var", str=id }
             end
+
+        -- numbers:  0xFF  10.1
         elseif match(c, "%d") then
             local num = read_while(c, M"[%w]")
             if not tonumber(num) then
                 error("invalid number : " .. num)
             else
-                coroutine.yield({ tag="num", str=num })
+                coroutine.yield { tag="num", str=num }
             end
+
+        -- eof
         elseif c == '\0' then
-            coroutine.yield({ tag="eof", str=c })
+            coroutine.yield { tag="eof", str=c }
+
+        -- error
         else
-            error(c)
+            error("invalid character : " .. c)
         end
     end
 end

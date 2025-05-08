@@ -15,7 +15,7 @@ function xtostring (v)
         local vs = ""
         local t = {}
         for k,x in pairs(v) do
-            assert(type(k) == "string")
+            assert(type(k)=="number" or type(k)=="string")
             t[#t+1] = { k, x }
         end
         table.sort(t, function (x, y) return (x[1] <= y[1]) end)
@@ -24,7 +24,11 @@ function xtostring (v)
             if not fst then
                 vs = vs .. ', '
             end
-            vs = vs .. k .. '=' .. xtostring(x)
+            if type(k) == 'number' then
+                vs = vs .. xtostring(x)
+            else
+                vs = vs .. k .. '=' .. xtostring(x)
+            end
             fst = false
         end
         return "{ " .. vs .. " }"
