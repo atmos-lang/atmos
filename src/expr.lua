@@ -1,4 +1,4 @@
-require "accept"
+require "parser"
 
 function parser_expr_prim_1 ()
     if accept_key("nil") then
