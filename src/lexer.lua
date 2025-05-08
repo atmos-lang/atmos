@@ -127,7 +127,7 @@ local function _lexer_ (str)
 
         -- eof
         elseif c == '\0' then
-            coroutine.yield { tag="eof", str=c }
+            coroutine.yield { tag="eof", str="<eof>" }
 
         -- error
         else
