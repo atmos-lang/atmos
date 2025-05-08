@@ -81,6 +81,35 @@ do
     assert(xtostring(e2) == "{ tag=bool, tk={ str=true, tag=key } }")
     assert(check_tag("eof"))
 
+    local src = ":x :1:_"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local e1 = parser_expr()
+    assert(xtostring(e1) == "{ tag=tag, tk={ hier={ x }, str=:x, tag=tag } }")
+    local e2 = parser_expr()
+    assert(xtostring(e2) == "{ tag=tag, tk={ hier={ 1, _ }, str=:1:_, tag=tag } }")
+    assert(check_tag("eof"))
+end
+
+-- EXPR UNO
+
+do
+    local src = "#v"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local e = parser_expr()
+    assert(xtostring(e) == "{ e={ tag=var, tk={ str=v, tag=var } }, op={ str=#, tag=op }, tag=uno }")
+    assert(check_tag("eof"))
+
+    local src = "! - x"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local e = parser_expr()
+    assert(expr_tocode(e) == "(!(-x))")
+    assert(check_tag("eof"))
 end
 
 -- EXPR BIN
@@ -107,6 +136,14 @@ do
     parser_lexer(tks)
     local e = parser_expr()
     assert(expr_tocode(e) == "(2 * (a - 1))")
+    assert(check_tag("eof"))
+
+    local src = "2 == -1"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local e = parser_expr()
+    assert(expr_tocode(e) == "(2 == (-1))")
     assert(check_tag("eof"))
 end
 
