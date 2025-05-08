@@ -1,8 +1,6 @@
-dofile "../src/lexer.lua"
+-- LUA_PATH="/x/atmos/src/?.lua;" lua5.4 lexer.lua
 
-for x in lexer_string("abc") do
-    print(x)
-end
+require "lexer"
 
 -- SYMBOLS
 
@@ -12,7 +10,8 @@ do
     assert(tks().str == "}")
     assert(tks().str == "(")
     assert(tks().str == "<")
-    assert(tks().str == "{{")
+    assert(tks().str == "{")
+    assert(tks().str == "{")
     assert(tks().str == ">")
     assert(tks().str == "(")
     assert(tks().str == "=")
@@ -23,8 +22,10 @@ do
     assert(tks().str == ",")
     assert(tks().str == "]")
     assert(tks().str == "[")
-    assert(tks().str == "#[")
-    assert(tks().str == "##")
+    assert(tks().str == "#")
+    assert(tks().str == "[")
+    assert(tks().str == "#")
+    assert(tks().str == "#")
     assert(tks().str == "/")
     assert(tks().str == "*")
     assert(tks().str == "+")
