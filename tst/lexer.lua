@@ -91,3 +91,74 @@ do
     assert(tks().str == "-")
     assert(tks().str == "abc")
 end
+
+-- COMMENTS
+
+do
+    local src = [[
+        x - y ;;
+        var ;;x
+        ;;
+        val ;; x
+        ;; -
+        -
+    ]]
+    print("Testing...", "comments 1")
+    local tks = lexer_string(src)
+    assert(tks().str == "x")
+    assert(tks().str == "-")
+    assert(tks().str == "y")
+    assert(tks().str == "var")
+    assert(tks().str == "val")
+    assert(tks().str == "-")
+end
+
+do
+    local src = [[
+        x ;;;
+        var ;;x
+        val ;;; y
+        z
+    ]]
+    print("Testing...", "comments 2")
+    local tks = lexer_string(src)
+    assert(tks().str == "x")
+    assert(tks().str == "y")
+    assert(tks().str == "z")
+end
+
+do
+    local src = [[
+        x
+        ;;;
+        ;;;;
+        ;;;
+        ;;
+        ;;;;
+        ;;;;
+        ;;;
+        ;;;;
+        ;;;
+        y
+    ]]
+end
+
+do
+    local src = [[
+        x
+        ;;;
+        ;;;;
+        ;;;
+        y
+    ]]
+end
+
+do
+    local src = [[
+        x
+        ;;;;
+        ;;;
+        ;;;;
+        y
+    ]]
+end

@@ -35,11 +35,32 @@ local function _lexer_ (str)
     local function read_until (pre, f)
         return read_while(pre, function (c) return not f(c) end)
     end
+    local function C (x)
+        return function (c)
+            return (x == c)
+        end
+    end
+    local function M (m)
+        return function (c)
+            return match(c, m)
+        end
+    end
 
     while i <= #str do
         local c = read()
-        if c == ' ' then
+        if match(c, "%s") then
         elseif c == ';' then
+            local c2 = read()
+            if c2 ~= ';' then
+                unread()
+            else
+                local s = read_while(";;", C(';'))
+                if s == ";;" then
+                    read_until(s, M("[\n\0]"))
+                else
+                    error("TODO")
+                end
+            end
         elseif contains(fixs, c) then
             coroutine.yield({ tag="fix", str=c })
         elseif contains(OPS.cs, c) then
@@ -49,14 +70,14 @@ local function _lexer_ (str)
             end
             coroutine.yield({ tag="op", str=op })
         elseif match(c, "[%a_]") then
-            local id = read_while(c, function (c) return match(c, "[%w_]") end)
+            local id = read_while(c, M("[%w_]"))
             if contains(KEYS, id) then
                 coroutine.yield({ tag="key", str=id })
             else
                 coroutine.yield({ tag="var", str=id })
             end
         elseif match(c, "%d") then
-            local num = read_while(c, function (c) return match(c, "[%w]") end)
+            local num = read_while(c, M("[%w]"))
             if not tonumber(num) then
                 error("invalid number : " .. num)
             else
