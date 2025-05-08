@@ -1,16 +1,4 @@
-tk0 = nil
-tk1 = nil
-tks = nil
-
 require "accept"
-
-function parser_lexer (f)
-    if f then
-        tks = f
-    end
-    tk0 = tk1
-    tk1 = tks()
-end
 
 function parser_list (sep, clo, f)
     local l = {}

@@ -1,3 +1,15 @@
+tk0 = nil
+tk1 = nil
+tks = nil
+
+function parser (f)
+    if f then
+        tks = f
+    end
+    tk0 = tk1
+    tk1 = tks()
+end
+
 function check_str (str)
     return tk1.str==str and tk1
 end
@@ -10,13 +22,13 @@ end
 function accept_str (str)
     local ret = check_str(str)
     if ret then
-        parser_lexer()
+        parser()
     end
     return ret
 end
 function accept_str_err (str)
     local tk = check_str_err(str)
-    parser_lexer()
+    parser()
     return tk
 end
 
@@ -33,13 +45,13 @@ end
 function accept_sym (sym)
     local tk = check_sym(sym)
     if tk then
-        parser_lexer()
+        parser()
     end
     return tk
 end
 function accept_sym_err (sym)
     local tk = check_sym_err(sym)
-    parser_lexer()
+    parser()
     return tk
 end
 
@@ -56,13 +68,13 @@ end
 function accept_key (key)
     local tk = check_key(key)
     if tk then
-        parser_lexer()
+        parser()
     end
     return tk
 end
 function accept_key_err (key)
     local tk = check_key_err(key)
-    parser_lexer()
+    parser()
     return tk
 end
 
@@ -79,12 +91,12 @@ end
 function accept_tag (tag)
     local tk = check_tag(tag)
     if tk then
-        parser_lexer()
+        parser()
     end
     return tk
 end
 function accept_tag_err (tag)
     local tk = check_tag_err(tag)
-    parser_lexer()
+    parser()
     return tk
 end
