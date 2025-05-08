@@ -141,6 +141,10 @@ do
         ;;;
         y
     ]]
+    print("Testing...", "comments 3")
+    local tks = lexer_string(src)
+    assert(tks().str == "x")
+    assert(tks().str == "y")
 end
 
 do
@@ -151,6 +155,11 @@ do
         ;;;
         y
     ]]
+    print("Testing...", "comments 4")
+    local tks = lexer_string(src)
+    assert(tks().str == "x")
+    local ok, err = pcall(tks)
+    assert(not ok and match(err, "unterminated comment"))
 end
 
 do
@@ -161,4 +170,9 @@ do
         ;;;;
         y
     ]]
+    print("Testing...", "comments 4")
+    local tks = lexer_string(src)
+    assert(tks().str == "x")
+    assert(tks().str == "y")
+    assert(tks().tag == "eof")
 end

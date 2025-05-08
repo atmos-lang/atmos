@@ -25,7 +25,9 @@ local function _lexer_ (str)
         local ret = pre
         local c = read()
         while f(c) do
-            assert(c ~= '\0')
+            if c == '\0' then
+                return nil
+            end
             ret = ret .. c
             c = read()
         end
@@ -54,11 +56,27 @@ local function _lexer_ (str)
             if c2 ~= ';' then
                 unread()
             else
-                local s = read_while(";;", C(';'))
+                local s = read_while(";;", C';')
                 if s == ";;" then
-                    read_until(s, M("[\n\0]"))
+                    read_until(s, M"[\n\0]")
                 else
-                    error("TODO")
+                    local stk = {}
+                    while true do
+                        if stk[#stk] == s then
+                            stk[#stk] = nil
+                            if #stk == 0 then
+                                break
+                            end
+                        else
+                            stk[#stk+1] = s
+                        end
+                        repeat
+                            if not read_until("", C';') then
+                                error("unterminated comment")
+                            end
+                            s = read_while("", C';')
+                        until #s>2 and #s>=#stk[#stk]
+                    end
                 end
             end
         elseif contains(fixs, c) then
@@ -70,14 +88,14 @@ local function _lexer_ (str)
             end
             coroutine.yield({ tag="op", str=op })
         elseif match(c, "[%a_]") then
-            local id = read_while(c, M("[%w_]"))
+            local id = read_while(c, M"[%w_]")
             if contains(KEYS, id) then
                 coroutine.yield({ tag="key", str=id })
             else
                 coroutine.yield({ tag="var", str=id })
             end
         elseif match(c, "%d") then
-            local num = read_while(c, M("[%w]"))
+            local num = read_while(c, M"[%w]")
             if not tonumber(num) then
                 error("invalid number : " .. num)
             else
