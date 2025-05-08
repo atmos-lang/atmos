@@ -17,12 +17,12 @@ do
     assert(xtostring(e) == "{ tag=var, tk={ str=a, tag=var } }")
     assert(check_tag("eof"))
 
-    local src = "10"
+    local src = "1.5"
     print("Testing...", src)
     local tks = lexer_string(src)
     parser_lexer(tks)
     local e = parser_expr()
-    assert(xtostring(e) == "{ tag=num, tk={ str=10, tag=num } }")
+    assert(xtostring(e) == "{ tag=num, tk={ str=1.5, tag=num } }")
     assert(check_tag("eof"))
 
     local src = "{"
@@ -62,6 +62,25 @@ do
     parser_lexer(tks)
     local ok, err = pcall(parser_expr)
     assert(not ok and match(err, "expected '%)' : have <eof>$"))
+
+    local src = "nil"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local e = parser_expr()
+    assert(xtostring(e) == "{ tag=nil, tk={ str=nil, tag=key } }")
+    assert(check_tag("eof"))
+
+    local src = "false true"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local e1 = parser_expr()
+    assert(xtostring(e1) == "{ tag=bool, tk={ str=false, tag=key } }")
+    local e2 = parser_expr()
+    assert(xtostring(e2) == "{ tag=bool, tk={ str=true, tag=key } }")
+    assert(check_tag("eof"))
+
 end
 
 -- EXPR BIN

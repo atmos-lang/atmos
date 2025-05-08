@@ -68,11 +68,12 @@ end
 -- NUMS
 
 do
-    local src = "10 0xF12 0b12"
+    local src = "10 0xF12 1.5 0b12"
     print("Testing...", src)
     local tks = lexer_string(src)
     assert(xtostring(tks()) == "{ str=10, tag=num }")
     assert(xtostring(tks()) == "{ str=0xF12, tag=num }")
+    assert(xtostring(tks()) == "{ str=1.5, tag=num }")
     local ok, err = pcall(tks)
     assert(not ok and match(err, "invalid number : 0b12"))
 end

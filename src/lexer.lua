@@ -118,7 +118,7 @@ local function _lexer_ (str)
 
         -- numbers:  0xFF  10.1
         elseif match(c, "%d") then
-            local num = read_while(c, M"[%w]")
+            local num = read_while(c, M"[%w%.]")
             if not tonumber(num) then
                 error("invalid number : " .. num)
             else
