@@ -2,6 +2,7 @@
 
 require "lexer"
 require "parser"
+require "tocode"
 
 local match = string.match
 
@@ -14,6 +15,14 @@ do
     parser_lexer(tks)
     local e = parser_expr()
     assert(xtostring(e) == "{ tag=var, tk={ str=a, tag=var } }")
+    assert(check_tag("eof"))
+
+    local src = "10"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local e = parser_expr()
+    assert(xtostring(e) == "{ tag=num, tk={ str=10, tag=num } }")
     assert(check_tag("eof"))
 
     local src = "{"
@@ -54,3 +63,32 @@ do
     local ok, err = pcall(parser_expr)
     assert(not ok and match(err, "expected '%)' : have <eof>$"))
 end
+
+-- EXPR BIN
+
+do
+    local src = "a + 10"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local e = parser_expr()
+    assert(xtostring(e) == "{ e1={ tag=var, tk={ str=a, tag=var } }, e2={ tag=num, tk={ str=10, tag=num } }, op={ str=+, tag=op }, tag=bin }")
+    assert(check_tag("eof"))
+
+    local src = "2 + 3 - 1"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local ok, err = pcall(parser_expr)
+    assert(not ok and match(err, "binary operation error : use parentheses to disambiguate$"))
+
+    local src = "2 * (a - 1)"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local e = parser_expr()
+    assert(expr_tocode(e) == "(2 * (a - 1))")
+    assert(check_tag("eof"))
+end
+
+--xdump(parser_expr())
