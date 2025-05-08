@@ -100,3 +100,24 @@ function accept_tag_err (tag)
     parser()
     return tk
 end
+
+function parser_list (sep, clo, f)
+    local l = {}
+    if check_str(clo) then
+        return l
+    end
+    l[#l+1] = f()
+    while true do
+        if check_str(clo) then
+            return l
+        end
+        if sep then
+            accept_str_err(sep)
+            if check_str(clo) then
+                return l
+            end
+        end
+        l[#l+1] = f()
+    end
+    return l
+end
