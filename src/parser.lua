@@ -61,8 +61,7 @@ function parser_expr_suf_2 (pre)
         return e
     end
 
-    accept_tag_err("sym")
-    local sym = tk0
+    local sym = accept_tag_err("sym")
 
     if sym.str == '(' then
         local args = parser_list(",", ")", function () return parser_expr() end)
@@ -78,8 +77,7 @@ function parser_expr_pre_3 ()
     if not ok then
         return parser_expr_suf_2()
     end
-    accept_tag_err("op")
-    local op = tk0
+    local op = accept_tag_err("op")
     local e = parser_expr_pre_3()
     return { tag="uno", op=op, e=e }
 end
@@ -90,8 +88,7 @@ function parser_expr_bin_4 (pre)
     if not ok then
         return e1
     end
-    accept_tag_err("op")
-    local op = tk0
+    local op = accept_tag_err("op")
     if pre and pre.op.str ~= op.str then
         error("binary operation error : use parentheses to disambiguate")
     end
