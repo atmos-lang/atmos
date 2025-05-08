@@ -57,13 +57,37 @@ do
     assert(not ok and match(err, "invalid operator : ##$"))
 end
 
--- KEYWORDS, IDS
+-- NUMS
+
+do
+    local src = "10 0xF12 0b12"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    assert(xtostring(tks()) == "{ str=10, tag=num }")
+    assert(xtostring(tks()) == "{ str=0xF12, tag=num }")
+    local ok, err = pcall(tks)
+    assert(not ok and match(err, "invalid number : 0b12"))
+end
+
+-- KEYWORDS, VAR
 
 do
     local src = "x X await"
     print("Testing...", src)
     local tks = lexer_string(src)
-    assert(xtostring(tks()) == "{ str=x, tag=id }")
-    assert(xtostring(tks()) == "{ str=X, tag=id }")
+    assert(xtostring(tks()) == "{ str=x, tag=var }")
+    assert(xtostring(tks()) == "{ str=X, tag=var }")
     assert(xtostring(tks()) == "{ str=await, tag=key }")
+end
+
+do
+    local src = "x-1 10-abc"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    assert(tks().str == "x")
+    assert(tks().str == "-")
+    assert(tks().str == "1")
+    assert(tks().str == "10")
+    assert(tks().str == "-")
+    assert(tks().str == "abc")
 end

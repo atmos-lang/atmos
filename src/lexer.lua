@@ -9,18 +9,19 @@ local function _lexer_ (str)
     str = str .. '\0'
     local i = 1
 
-    function read ()
+    local function read ()
         local c = string.sub(str,i,i)
         i = i + 1
         return c
     end
-    function unread ()
+    local function unread (n)
+        n = n or 1
         local c = string.sub(str,i,i)
-        i = i - 1
+        i = i - n
         return c
     end
 
-    function read_while (pre, f)
+    local function read_while (pre, f)
         local ret = pre
         local c = read()
         while f(c) do
@@ -30,6 +31,9 @@ local function _lexer_ (str)
         end
         unread()
         return ret
+    end
+    local function read_until (pre, f)
+        return read_while(pre, function (c) return not f(c) end)
     end
 
     while i <= #str do
@@ -49,7 +53,14 @@ local function _lexer_ (str)
             if contains(KEYS, id) then
                 coroutine.yield({ tag="key", str=id })
             else
-                coroutine.yield({ tag="id", str=id })
+                coroutine.yield({ tag="var", str=id })
+            end
+        elseif match(c, "%d") then
+            local num = read_while(c, function (c) return match(c, "[%w]") end)
+            if not tonumber(num) then
+                error("invalid number : " .. num)
+            else
+                coroutine.yield({ tag="num", str=num })
             end
         elseif c == '\0' then
             coroutine.yield({ tag="eof", str=c })
