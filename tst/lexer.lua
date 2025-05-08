@@ -193,5 +193,3 @@ do
     assert(tks().str == "(")
     assert(tks().str == ")")
 end
-
---xdump(tks())

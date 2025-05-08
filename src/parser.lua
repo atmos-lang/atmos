@@ -12,6 +12,27 @@ function parser_lexer (f)
     tk1 = tks()
 end
 
+function parser_list (sep, clo, f)
+    local l = {}
+    if check_str(clo) then
+        return l
+    end
+    l[#l+1] = f()
+    while true do
+        if check_str(clo) then
+            return l
+        end
+        if sep then
+            accept_str_err(sep)
+            if check_str(clo) then
+                return l
+            end
+        end
+        l[#l+1] = f()
+    end
+    return l
+end
+
 function parser_expr_prim_1 ()
     if accept_key("nil") then
         return { tag="nil", tk=tk0 }
@@ -32,19 +53,39 @@ function parser_expr_prim_1 ()
     end
 end
 
-function parser_expr_pre_2 ()
+function parser_expr_suf_2 (pre)
+    local e = pre or parser_expr_prim_1()
+    local ok = check_tag("sym") and contains(OPS.sufs, tk1.str)
+                -- TODO: same line
+    if not ok then
+        return e
+    end
+
+    accept_tag_err("sym")
+    local sym = tk0
+
+    if sym.str == '(' then
+        local args = parser_list(",", ")", function () return parser_expr() end)
+        accept_sym_err(')')
+        return { tag="call", f=e, args=args }
+    else
+        error("TODO")
+    end
+end
+
+function parser_expr_pre_3 ()
     local ok = check_tag("op") and contains(OPS.unos, tk1.str)
     if not ok then
-        return parser_expr_prim_1()
+        return parser_expr_suf_2()
     end
     accept_tag_err("op")
     local op = tk0
-    local e = parser_expr_pre_2()
+    local e = parser_expr_pre_3()
     return { tag="uno", op=op, e=e }
 end
 
-function parser_expr_bin_3 (pre)
-    local e1 = pre or parser_expr_pre_2()
+function parser_expr_bin_4 (pre)
+    local e1 = pre or parser_expr_pre_3()
     local ok = check_tag("op") and contains(OPS.bins, tk1.str)
     if not ok then
         return e1
@@ -54,8 +95,8 @@ function parser_expr_bin_3 (pre)
     if pre and pre.op.str ~= op.str then
         error("binary operation error : use parentheses to disambiguate")
     end
-    local e2 = parser_expr_pre_2()
-    return parser_expr_bin_3 { tag="bin", op=op, e1=e1, e2=e2 }
+    local e2 = parser_expr_pre_3()
+    return parser_expr_bin_4 { tag="bin", op=op, e1=e1, e2=e2 }
 end
 
-parser_expr = parser_expr_bin_3
+parser_expr = parser_expr_bin_4

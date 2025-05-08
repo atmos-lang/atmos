@@ -43,3 +43,22 @@ function xdump (...)
     print(table.unpack(ret))
     return table.unpack(ret)
 end
+
+function map (t, f)
+    local ret = {}
+    for _,v in ipairs(t) do
+        ret[#ret+1] = f(v)
+    end
+    return ret
+end
+
+function concat (t, sep)
+    local ret = ""
+    for i,v in ipairs(t) do
+        if i > 1 then
+            ret = ret .. sep
+        end
+        ret = ret .. v
+    end
+    return ret
+end

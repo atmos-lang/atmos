@@ -1,3 +1,25 @@
+function check_str (str)
+    return tk1.str==str
+end
+function check_str_err (str)
+    if not check_str(str) then
+        error("expected '"..str.."' : have "..tk1.str)
+    end
+    return true
+end
+function accept_str (str)
+    local ret = check_str(str)
+    if ret then
+        parser_lexer()
+    end
+    return ret
+end
+function accept_str_err (str)
+    check_str_err(str)
+    parser_lexer()
+    return true
+end
+
 function check_sym (sym)
     return tk1.tag=="sym" and tk1.str==sym
 end

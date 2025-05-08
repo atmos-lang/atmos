@@ -147,4 +147,15 @@ do
     assert(check_tag("eof"))
 end
 
---xdump(parser_expr())
+-- EXPR CALL
+
+do
+    local src = "f(x,y)"
+    print("Testing...", src)
+    local tks = lexer_string(src)
+    parser_lexer(tks)
+    local e = parser_expr()
+    assert(xtostring(e) == "{ args={ { tag=var, tk={ str=x, tag=var } }, { tag=var, tk={ str=y, tag=var } } }, f={ tag=var, tk={ str=f, tag=var } }, tag=call }")
+    assert(expr_tocode(e) == "f(x, y)")
+    assert(check_tag("eof"))
+end
