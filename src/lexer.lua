@@ -22,11 +22,11 @@ local function _lexer_ (str)
         return c
     end
     local function unread ()
+        i = i - 1
         local c = string.sub(str,i,i)
         if c == '\n' then
             LIN = LIN - 1
         end
-        i = i - 1
         return c
     end
 
