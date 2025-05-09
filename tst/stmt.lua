@@ -16,7 +16,7 @@ do
     assert(xtostring(s) == "{ e={ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }, tag=expr }")
 end
 
--- BLOCK
+-- BLOCK / DO
 
 do
     local src = "do {}"
@@ -25,6 +25,17 @@ do
     parser()
     local s = parser_stmt()
     assert(xtostring(s) == "{ ss={  }, tag=block }")
+
+    local src = "do { var x }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(tostr_stmt(s) == trim [[
+        do {
+        var x
+        }
+    ]])
 
     local src = "do :X { escape(:X) }"
     print("Testing...", src)

@@ -6,7 +6,7 @@ require "tostr"
 require "coder"
 require "exec"
 
-local match = string.match
+local match = string.find
 
 -- BLOCK / DO / ESCAPE
 
@@ -56,6 +56,27 @@ do
     print("Testing...", "block 4")
     local out = exec_string("anon.atm", src)
     assert(match(out, "no visible label 'Y' for %<goto%> at line 2"))
+
+    local src = [[
+        val a = 1
+        do :X {
+            val b = 2
+            print(a+b)
+        }
+    ]]
+    print("Testing...", "block 4")
+    local out = exec_string("anon.atm", src)
+
+    local src = [[
+        val a = 1
+        do :X {
+            val b = 2
+        }
+        print(a+b)
+    ]]
+    print("Testing...", "block 5")
+    local out = exec_string("anon.atm", src)
+    assert(match(out, "attempt to perform arithmetic on a nil value %(global 'b'%)"))
 end
 
 -- DCL / VAL / VAR / SET
