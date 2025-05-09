@@ -2,8 +2,6 @@
 
 require "lexer"
 
-local match = string.match
-
 -- SYMBOLS
 
 do

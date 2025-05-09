@@ -4,8 +4,6 @@ require "lexer"
 require "expr"
 require "tocode"
 
-local match = string.match
-
 -- EXPR PRIM
 
 do
