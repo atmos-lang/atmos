@@ -39,6 +39,25 @@ do
     ]])
 end
 
+-- DCL / VAL / VAR
+
+do
+    local src = "val x"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(xtostring(s) == "{ e={ tag=tag, tk={ hier={ X }, lin=1, str=:X, tag=tag } }, tag=throw }")
+
+    local src = "var y = 10"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check_tag("eof"))
+    assert(xtostring(s) == "{ blk={ ss={  }, tag=block }, esc={ hier={ X }, lin=1, str=:X, tag=tag }, tag=catch }")
+end
+
 -- THROW / CATCH
 
 do
