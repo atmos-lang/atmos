@@ -49,6 +49,29 @@ function accept_sym_err (sym)
     return tk
 end
 
+function check_op (op)
+    return TK1.tag=="op" and TK1.str==op and TK1 or nil
+end
+function check_op_err (op)
+    local tk = check_op(op)
+    if not tk then
+        err(TK1, "expected '"..op.."'")
+    end
+    return tk
+end
+function accept_op (op)
+    local tk = check_op(op)
+    if tk then
+        parser()
+    end
+    return tk
+end
+function accept_op_err (op)
+    local tk = check_op_err(op)
+    parser()
+    return tk
+end
+
 function check_key (key)
     return TK1.tag=="key" and TK1.str==key and TK1 or nil
 end

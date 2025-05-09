@@ -10,16 +10,6 @@ end
 
 function coder_stmt (s)
     if false then
-    elseif accept_key("val") or accept_key("var") then
-        local id = accept_enu_err("var")
-        local set = accept_op("=") and parser_expr() or nil
-        local dcl = { tag="dcl", tk=id, id=id }
-        if set then
-            error("TODO")
-        else
-            return dcl
-        end
-
     elseif s.tag == "block" then
         return "do\n" ..
             coder_stmts(s.ss) ..

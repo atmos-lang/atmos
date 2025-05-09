@@ -47,7 +47,7 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    assert(xtostring(s) == "{ e={ tag=tag, tk={ hier={ X }, lin=1, str=:X, tag=tag } }, tag=throw }")
+    assert(xtostring(s) == "{ id={ lin=1, str=x, tag=var }, tag=dcl, tk={ lin=1, str=x, tag=var } }")
 
     local src = "var y = 10"
     print("Testing...", src)
