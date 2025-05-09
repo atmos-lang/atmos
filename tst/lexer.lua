@@ -9,21 +9,21 @@ local match = string.match
 do
     local src = "{ } ( ; {{ () ) , ][ ."
     print("Testing...", src)
-    local tks = lexer_string(src)
-    assert(xtostring(tks()) == "{ str={, tag=sym }")
-    assert(tks().str == "}")
-    assert(tks().str == "(")
-    assert(tks().str == "{")
-    assert(tks().str == "{")
-    assert(tks().str == "(")
-    assert(tks().str == ")")
-    assert(tks().str == ")")
-    assert(tks().str == ",")
-    assert(tks().str == "]")
-    assert(tks().str == "[")
-    assert(tks().str == ".")
-    assert(tks().tag == "eof")
-    assert(tks() == nil)
+    lexer_string(src)
+    assert(xtostring(LEX()) == "{ str={, tag=sym }")
+    assert(LEX().str == "}")
+    assert(LEX().str == "(")
+    assert(LEX().str == "{")
+    assert(LEX().str == "{")
+    assert(LEX().str == "(")
+    assert(LEX().str == ")")
+    assert(LEX().str == ")")
+    assert(LEX().str == ",")
+    assert(LEX().str == "]")
+    assert(LEX().str == "[")
+    assert(LEX().str == ".")
+    assert(LEX().tag == "eof")
+    assert(LEX() == nil)
 end
 
 -- OPERATORS
@@ -31,37 +31,37 @@ end
 do
     local src = "< > = # - == ! != #[ # >= # / || * +"
     print("Testing...", src)
-    local tks = lexer_string(src)
-    assert(tks().str == "<")
-    assert(tks().str == ">")
-    assert(tks().str == "=")
-    assert(tks().str == "#")
-    assert(tks().str == "-")
-    assert(tks().str == "==")
-    assert(tks().str == "!")
-    assert(tks().str == "!=")
-    assert(tks().str == "#")
-    assert(tks().str == "[")
-    assert(tks().str == "#")
-    assert(tks().str == ">=")
-    assert(tks().str == "#")
-    assert(tks().str == "/")
-    assert(tks().str == "||")
-    assert(tks().str == "*")
-    assert(tks().str == "+")
-    assert(tks().tag == "eof")
-    assert(tks() == nil)
+    lexer_string(src)
+    assert(LEX().str == "<")
+    assert(LEX().str == ">")
+    assert(LEX().str == "=")
+    assert(LEX().str == "#")
+    assert(LEX().str == "-")
+    assert(LEX().str == "==")
+    assert(LEX().str == "!")
+    assert(LEX().str == "!=")
+    assert(LEX().str == "#")
+    assert(LEX().str == "[")
+    assert(LEX().str == "#")
+    assert(LEX().str == ">=")
+    assert(LEX().str == "#")
+    assert(LEX().str == "/")
+    assert(LEX().str == "||")
+    assert(LEX().str == "*")
+    assert(LEX().str == "+")
+    assert(LEX().tag == "eof")
+    assert(LEX() == nil)
 
     local src = "##"
     print("Testing...", src)
-    local tks = lexer_string(src)
-    local ok, err = pcall(tks)
+    lexer_string(src)
+    local ok, err = pcall(LEX)
     assert(not ok and match(err, "invalid operator : ##$"))
 
     local src = "!!"
     print("Testing...", src)
-    local tks = lexer_string(src)
-    local ok, err = pcall(tks)
+    lexer_string(src)
+    local ok, err = pcall(LEX)
     assert(not ok and match(err, "invalid operator : !!$"))
 end
 
@@ -70,11 +70,11 @@ end
 do
     local src = "10 0xF12 1.5 0b12"
     print("Testing...", src)
-    local tks = lexer_string(src)
-    assert(xtostring(tks()) == "{ str=10, tag=num }")
-    assert(xtostring(tks()) == "{ str=0xF12, tag=num }")
-    assert(xtostring(tks()) == "{ str=1.5, tag=num }")
-    local ok, err = pcall(tks)
+    lexer_string(src)
+    assert(xtostring(LEX()) == "{ str=10, tag=num }")
+    assert(xtostring(LEX()) == "{ str=0xF12, tag=num }")
+    assert(xtostring(LEX()) == "{ str=1.5, tag=num }")
+    local ok, err = pcall(LEX)
     assert(not ok and match(err, "invalid number : 0b12"))
 end
 
@@ -83,20 +83,20 @@ end
 do
     local src = "x X await"
     print("Testing...", src)
-    local tks = lexer_string(src)
-    assert(xtostring(tks()) == "{ str=x, tag=var }")
-    assert(xtostring(tks()) == "{ str=X, tag=var }")
-    assert(xtostring(tks()) == "{ str=await, tag=key }")
+    lexer_string(src)
+    assert(xtostring(LEX()) == "{ str=x, tag=var }")
+    assert(xtostring(LEX()) == "{ str=X, tag=var }")
+    assert(xtostring(LEX()) == "{ str=await, tag=key }")
 
     local src = "x-1 10-abc"
     print("Testing...", src)
-    local tks = lexer_string(src)
-    assert(tks().str == "x")
-    assert(tks().str == "-")
-    assert(tks().str == "1")
-    assert(tks().str == "10")
-    assert(tks().str == "-")
-    assert(tks().str == "abc")
+    lexer_string(src)
+    assert(LEX().str == "x")
+    assert(LEX().str == "-")
+    assert(LEX().str == "1")
+    assert(LEX().str == "10")
+    assert(LEX().str == "-")
+    assert(LEX().str == "abc")
 end
 
 -- COMMENTS
@@ -111,13 +111,13 @@ do
         -
     ]]
     print("Testing...", "comments 1")
-    local tks = lexer_string(src)
-    assert(tks().str == "x")
-    assert(tks().str == "-")
-    assert(tks().str == "y")
-    assert(tks().str == "var")
-    assert(tks().str == "val")
-    assert(tks().str == "-")
+    lexer_string(src)
+    assert(LEX().str == "x")
+    assert(LEX().str == "-")
+    assert(LEX().str == "y")
+    assert(LEX().str == "var")
+    assert(LEX().str == "val")
+    assert(LEX().str == "-")
 
     local src = [[
         x ;;;
@@ -126,10 +126,10 @@ do
         z
     ]]
     print("Testing...", "comments 2")
-    local tks = lexer_string(src)
-    assert(tks().str == "x")
-    assert(tks().str == "y")
-    assert(tks().str == "z")
+    lexer_string(src)
+    assert(LEX().str == "x")
+    assert(LEX().str == "y")
+    assert(LEX().str == "z")
 
     local src = [[
         x
@@ -145,9 +145,9 @@ do
         y
     ]]
     print("Testing...", "comments 3")
-    local tks = lexer_string(src)
-    assert(tks().str == "x")
-    assert(tks().str == "y")
+    lexer_string(src)
+    assert(LEX().str == "x")
+    assert(LEX().str == "y")
 
     local src = [[
         x
@@ -157,9 +157,9 @@ do
         y
     ]]
     print("Testing...", "comments 4")
-    local tks = lexer_string(src)
-    assert(tks().str == "x")
-    local ok, err = pcall(tks)
+    lexer_string(src)
+    assert(LEX().str == "x")
+    local ok, err = pcall(LEX)
     assert(not ok and match(err, "unterminated comment"))
 
     local src = [[
@@ -170,10 +170,10 @@ do
         y
     ]]
     print("Testing...", "comments 4")
-    local tks = lexer_string(src)
-    assert(tks().str == "x")
-    assert(tks().str == "y")
-    assert(tks().tag == "eof")
+    lexer_string(src)
+    assert(LEX().str == "x")
+    assert(LEX().str == "y")
+    assert(LEX().tag == "eof")
 end
 
 -- TAGS
@@ -181,15 +181,15 @@ end
 do
     local src = ":X :a:X:1 ::"
     print("Testing...", src)
-    local tks = lexer_string(src)
-    assert(xtostring(tks()) == "{ hier={ X }, str=:X, tag=tag }")
-    assert(xtostring(tks()) == "{ hier={ a, X, 1 }, str=:a:X:1, tag=tag }")
-    assert(xtostring(tks()) == "{ hier={ ,  }, str=::, tag=tag }")
+    lexer_string(src)
+    assert(xtostring(LEX()) == "{ hier={ X }, str=:X, tag=tag }")
+    assert(xtostring(LEX()) == "{ hier={ a, X, 1 }, str=:a:X:1, tag=tag }")
+    assert(xtostring(LEX()) == "{ hier={ ,  }, str=::, tag=tag }")
 
     local src = ":()"
     print("Testing...", src)
-    local tks = lexer_string(src)
-    assert(tks().str == ":")
-    assert(tks().str == "(")
-    assert(tks().str == ")")
+    lexer_string(src)
+    assert(LEX().str == ":")
+    assert(LEX().str == "(")
+    assert(LEX().str == ")")
 end

@@ -137,7 +137,7 @@ local function _lexer_ (str)
 end
 
 function lexer_string (str)
-    return coroutine.wrap (
+    LEX = coroutine.wrap (
         function ()
             _lexer_(str, 1)
         end
