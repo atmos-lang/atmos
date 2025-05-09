@@ -3,7 +3,7 @@
 require "lexer"
 require "stmt"
 require "tostr"
-require "code"
+require "coder"
 require "exec"
 
 -- CALL
@@ -16,7 +16,7 @@ do
     local s = parser_stmt()
 
     local f = assert(io.open("/tmp/anon.lua", "w"))
-    f:write(expr_tostr(s.e))
+    f:write(tostr_expr(s.e))
     f:close()
 
     local exe = assert(io.popen("lua5.4 /tmp/anon.lua", "r"))
@@ -37,7 +37,7 @@ do
     parser()
     local s = parser_stmt()
     local f = assert(io.open("/tmp/anon.lua", "w"))
-    f:write(stmt_code(s))
+    f:write(coder_stmt(s))
     f:close()
     local exe = assert(io.popen("lua5.4 /tmp/anon.lua", "r"))
     local out = exe:read("a")

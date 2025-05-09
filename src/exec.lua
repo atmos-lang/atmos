@@ -4,7 +4,7 @@ function exec_string (file, src)
     local ss = parser_list(null, "<eof>", parser_stmt)
 
     local f = assert(io.open(file..".lua", "w"))
-    f:write(stmts_code(ss))
+    f:write(coder_stmts(ss))
     f:close()
 
     local exe = assert(io.popen("lua5.4 "..file..".lua", "r"))

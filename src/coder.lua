@@ -1,29 +1,29 @@
-function stmts_code (ss)
-    return concat('\n', map(ss,stmt_code)) .. "\n"
+function coder_stmts (ss)
+    return concat('\n', map(ss,coder_stmt)) .. "\n"
 end
 
-function stmt_code (s)
+function coder_stmt (s)
     if false then
     elseif s.tag == "block" then
         return "do\n" ..
-            stmts_code(s.ss) ..
+            coder_stmts(s.ss) ..
             (s.esc and (":"..s.esc.str.."::\n") or "")..
         "end"
     elseif s.tag == "escape" then
         return "goto " .. s.e.tk.str:sub(2)
     elseif s.tag == "expr" then
-        return expr_code(s.e)
+        return coder_expr(s.e)
     else
-        return stmt_tostr(s)
+        return tostr_stmt(s)
     end
 end
 
-function expr_code (e)
+function coder_expr (e)
     if e.tag == "tag" then
         return '"'..e.tk.str..'"'
     elseif e.tag == "call" then
-        return expr_code(e.f)..'('..concat(", ", map(e.args, expr_code))..')'
+        return coder_expr(e.f)..'('..concat(", ", map(e.args, coder_expr))..')'
     else
-        return expr_tostr(e)
+        return tostr_expr(e)
     end
 end

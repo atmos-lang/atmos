@@ -32,7 +32,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check_tag("eof"))
-    assert(stmt_tostr(s) == trim [[
+    assert(tostr_stmt(s) == trim [[
         do :X {
         escape(:X)
         }

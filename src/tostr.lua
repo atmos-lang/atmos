@@ -1,25 +1,25 @@
-function stmt_tostr (s)
+function tostr_stmt (s)
     if false then
     elseif s.tag == "block" then
         return "do " .. (s.esc and s.esc.str.." " or "") .. "{\n" ..
-            concat('\n', map(s.ss,stmt_tostr)) ..'\n' ..
+            concat('\n', map(s.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == "escape" then
-        return "escape(" .. expr_tostr(s.e) .. ")"
+        return "escape(" .. tostr_expr(s.e) .. ")"
     elseif s.tag == "expr" then
-        return expr_tostr(s.e)
+        return tostr_expr(s.e)
     else
         error("TODO")
     end
 end
 
-function expr_tostr (e)
+function tostr_expr (e)
     if e.tag == "uno" then
-        return '('..e.op.str..expr_tostr(e.e)..')'
+        return '('..e.op.str..tostr_expr(e.e)..')'
     elseif e.tag == "bin" then
-        return '('..expr_tostr(e.e1)..' '..e.op.str..' '..expr_tostr(e.e2)..')'
+        return '('..tostr_expr(e.e1)..' '..e.op.str..' '..tostr_expr(e.e2)..')'
     elseif e.tag == "call" then
-        return expr_tostr(e.f)..'('..concat(", ", map(e.args, expr_tostr))..')'
+        return tostr_expr(e.f)..'('..concat(", ", map(e.args, tostr_expr))..')'
     else
         return e.tk.str
     end

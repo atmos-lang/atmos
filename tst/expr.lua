@@ -107,7 +107,7 @@ do
     parser()
     local e = parser_expr()
     assert(check_tag("eof"))
-    assert(expr_tostr(e) == "(!(-x))")
+    assert(tostr_expr(e) == "(!(-x))")
 end
 
 -- BIN
@@ -134,7 +134,7 @@ do
     parser()
     local e = parser_expr()
     assert(check_tag("eof"))
-    assert(expr_tostr(e) == "(2 * (a - 1))")
+    assert(tostr_expr(e) == "(2 * (a - 1))")
 
     local src = "2 == -1"
     print("Testing...", src)
@@ -142,7 +142,7 @@ do
     parser()
     local e = parser_expr()
     assert(check_tag("eof"))
-    assert(expr_tostr(e) == "(2 == (-1))")
+    assert(tostr_expr(e) == "(2 == (-1))")
 end
 
 -- CALL
@@ -155,5 +155,5 @@ do
     local e = parser_expr()
     assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }")
     assert(check_tag("eof"))
-    assert(expr_tostr(e) == "f(x, y)")
+    assert(tostr_expr(e) == "f(x, y)")
 end
