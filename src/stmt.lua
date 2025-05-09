@@ -27,11 +27,14 @@ function parser_stmt ()
         local src = parser_expr()
         return { tag="set", dst=dst, src=src }
 
-    -- do { ... }
+    -- do { ... }, defer { ... }
     elseif accept("key","do") then
         local tag = accept("tag")
         local ss  = parser_curly()
         return { tag="block", esc=tag, ss=ss }
+    elseif accept("key","defer") then
+        local ss = parser_curly()
+        return { tag="defer", blk={tag="block",ss=ss} }
 
     -- escape(:X), return(10)
     elseif accept("key","escape") then

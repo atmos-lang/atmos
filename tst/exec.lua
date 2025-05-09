@@ -8,7 +8,7 @@ require "exec"
 
 local match = string.find
 
--- BLOCK / DO / ESCAPE
+-- BLOCK / DO / ESCAPE / DEFER
 
 do
     local src = [[
@@ -77,6 +77,17 @@ do
     print("Testing...", "block 5")
     local out = exec_string("anon.atm", src)
     assert(match(out, "attempt to perform arithmetic on a nil value %(global 'b'%)"))
+
+    local src = [[
+        print(:1)
+        defer {
+            print(:2)
+        }
+        print(:3)
+    ]]
+    print("Testing...", "defer 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\n:3\n:2\n")
 end
 
 -- DCL / VAL / VAR / SET

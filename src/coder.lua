@@ -21,6 +21,16 @@ function coder_stmt (s)
             coder_stmts(s.ss) ..
             (s.esc and (":"..s.esc.str.."::\n") or "")..
         "end"
+    elseif s.tag == "defer" then
+        local n = N()
+        local def = "atm_"..n
+        return [[
+            local ]] .. def .. [[ <close> = setmetatable({}, {__close=
+                function () ]]..
+                    concat('\n', map(s.blk.ss,coder_stmt)) ..'\n' .. [[
+                end
+            })
+        ]]
     elseif s.tag == "escape" then
         return "goto " .. s.e.tk.str:sub(2)
     elseif s.tag == "return" then

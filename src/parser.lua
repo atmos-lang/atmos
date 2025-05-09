@@ -9,7 +9,7 @@ end
 function check_err (tag, str)
     local tk = check(tag, str)
     if not tk then
-        err(TK1, "expected '"..str.."'")
+        err(TK1, "expected "..((str and "'"..str.."'") or (tag and '<'..tag..'>')))
     end
     return tk
 end

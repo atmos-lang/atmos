@@ -8,6 +8,10 @@ function tostr_stmt (s)
         return "do " .. (s.esc and s.esc.str.." " or "") .. "{\n" ..
             concat('\n', map(s.ss,tostr_stmt)) ..'\n' ..
         "}"
+    elseif s.tag == "defer" then
+        return "defer {\n" ..
+            concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
+        "}"
     elseif s.tag == "escape" then
         return "escape(" .. tostr_expr(s.e) .. ")"
     elseif s.tag == "return" then

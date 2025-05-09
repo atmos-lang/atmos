@@ -16,7 +16,7 @@ do
     assert(xtostring(s) == "{ e={ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }, tag=expr }")
 end
 
--- BLOCK / DO
+-- BLOCK / DO / DEFER
 
 do
     local src = "do {}"
@@ -46,6 +46,19 @@ do
     assert(tostr_stmt(s) == trim [[
         do :X {
         escape(:X)
+        }
+    ]])
+
+    local src = "defer { var x ; f(1) }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("eof"))
+    assert(tostr_stmt(s) == trim [[
+        defer {
+        var x
+        f(1)
         }
     ]])
 end
