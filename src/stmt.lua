@@ -19,6 +19,15 @@ function parser_stmt ()
         local e = parser_expr()
         accept_sym_err(')')
         return { tag="escape", e=e }
+    elseif accept_key("catch") then
+        local tag = accept_tag_err("tag")
+        local ss  = parser_curly()
+        return { tag="catch", esc=tag, blk={tag="block",ss=ss} }
+    elseif accept_key("throw") then
+        accept_sym_err('(')
+        local e = parser_expr()
+        accept_sym_err(')')
+        return { tag="throw", e=e }
     else
         local tk = TK1
         local e = parser_expr()

@@ -7,6 +7,6 @@ function exec_string (file, src)
     f:write(coder_stmts(ss))
     f:close()
 
-    local exe = assert(io.popen("lua5.4 "..file..".lua", "r"))
+    local exe = assert(io.popen("lua5.4 "..file..".lua 2>&1", "r"))
     return exe:read("a")
 end

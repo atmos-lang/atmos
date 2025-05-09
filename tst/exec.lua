@@ -6,6 +6,8 @@ require "tostr"
 require "coder"
 require "exec"
 
+local match = string.match
+
 -- CALL
 
 do
@@ -63,4 +65,48 @@ do
     print("Testing...", "block 3")
     local out = exec_string("anon.atm", src)
     assert(out == ":1\n:2\n:4\n")
+
+    local src = [[
+        do :X {
+            escape(:Y)
+        }
+    ]]
+    print("Testing...", "block 4")
+    local out = exec_string("anon.atm", src)
+    assert(match(out, "no visible label 'Y' for %<goto%> at line 2"))
+end
+
+-- CATCH / THROW
+
+do
+    local src = [[
+        print(:1)
+        catch :X {
+            print(:2)
+            throw(:X)
+            print(:3)
+        }
+        print(:4)
+    ]]
+    print("Testing...", "catch 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\n:2\n:4\n")
+
+    local src = [[
+        print(:1)
+        catch :Y {
+            print(:2)
+            catch :X {
+                print(:3)
+                throw(:Y)
+                print(:4)
+            }
+            print(:5)
+        }
+        print(:6)
+    ]]
+    print("Testing...", "catch 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\n:2\n:3\n:6\n")
+
 end
