@@ -4,20 +4,21 @@ function parser ()
 end
 
 function check_str (str)
-    return TK1.str==str and TK1
+    return TK1.str==str and TK1 or nil
 end
 function check_str_err (str)
-    if not check_str(str) then
+    local tk = check_str(str)
+    if not tk then
         err(TK1, "expected '"..str.."'")
     end
-    return true
+    return tk
 end
 function accept_str (str)
-    local ret = check_str(str)
-    if ret then
+    local tk = check_str(str)
+    if tk then
         parser()
     end
-    return ret
+    return tk
 end
 function accept_str_err (str)
     local tk = check_str_err(str)
@@ -26,7 +27,7 @@ function accept_str_err (str)
 end
 
 function check_sym (sym)
-    return TK1.tag=="sym" and TK1.str==sym and TK1
+    return TK1.tag=="sym" and TK1.str==sym and TK1 or nil
 end
 function check_sym_err (sym)
     local tk = check_sym(sym)
@@ -49,7 +50,7 @@ function accept_sym_err (sym)
 end
 
 function check_key (key)
-    return TK1.tag=="key" and TK1.str==key and TK1
+    return TK1.tag=="key" and TK1.str==key and TK1 or nil
 end
 function check_key_err (key)
     local tk = check_key(key)
@@ -72,7 +73,7 @@ function accept_key_err (key)
 end
 
 function check_tag (tag)
-    return TK1.tag==tag and TK1
+    return TK1.tag==tag and TK1 or nil
 end
 function check_tag_err (tag)
     local tk = check_tag(tag)

@@ -1,3 +1,8 @@
+function trim (s)
+    local spc = string.match(s, "^(%s*)")
+    return s:gsub("^"..spc,""):gsub("\n"..spc,"\n"):gsub("%s*$","")
+end
+
 function catch (f, ...)
     local ok, msg = pcall(f, ...)
     if not ok then
