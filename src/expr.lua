@@ -16,7 +16,7 @@ function parser_expr_prim_1 ()
         accept_sym_err(")")
         return e
     else
-        error("expected expression : have "..TK1.str)
+        err("expected expression : have "..TK1.str)
     end
 end
 
@@ -57,7 +57,7 @@ function parser_expr_bin_4 (pre)
     end
     local op = accept_tag_err("op")
     if pre and pre.op.str ~= op.str then
-        error("binary operation error : use parentheses to disambiguate")
+        err("binary operation error : use parentheses to disambiguate")
     end
     local e2 = parser_expr_pre_3()
     return parser_expr_bin_4 { tag="bin", op=op, e1=e1, e2=e2 }

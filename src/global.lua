@@ -1,6 +1,7 @@
-LEX = nil
-TK0 = nil
-TK1 = nil
+FILE = nil
+LEX  = nil
+TK0  = nil
+TK1  = nil
 
 OPS = {
     cs = { '+', '-', '*', '/', '%', '>', '<', '=', '|', '&', '?', '!' ,'#' },

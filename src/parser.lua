@@ -8,7 +8,7 @@ function check_str (str)
 end
 function check_str_err (str)
     if not check_str(str) then
-        error("expected '"..str.."' : have "..TK1.str)
+        err("expected '"..str.."' : have "..TK1.str)
     end
     return true
 end
@@ -31,7 +31,7 @@ end
 function check_sym_err (sym)
     local tk = check_sym(sym)
     if not tk then
-        error("expected '"..sym.."' : have "..TK1.str)
+        err("expected '"..sym.."' : have "..TK1.str)
     end
     return tk
 end
@@ -54,7 +54,7 @@ end
 function check_key_err (key)
     local tk = check_key(key)
     if not tk then
-        error("expected '"..key.."' : have "..TK1.str)
+        err("expected '"..key.."' : have "..TK1.str)
     end
     return tk
 end
@@ -77,7 +77,7 @@ end
 function check_tag_err (tag)
     local tk = check_tag(tag)
     if not tk then
-        error("expected "..tag.." : have "..TK1.str)
+        err("expected "..tag.." : have "..TK1.str)
     end
     return tk
 end
