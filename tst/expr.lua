@@ -2,9 +2,9 @@
 
 require "lexer"
 require "expr"
-require "tocode"
+require "tostr"
 
--- EXPR PRIM
+-- PRIM
 
 do
     local src = " a "
@@ -90,7 +90,7 @@ do
     assert(xtostring(e2) == "{ tag=tag, tk={ hier={ 1, _ }, lin=1, str=:1:_, tag=tag } }")
 end
 
--- EXPR UNO
+-- UNO
 
 do
     local src = "#v"
@@ -107,10 +107,10 @@ do
     parser()
     local e = parser_expr()
     assert(check_tag("eof"))
-    assert(expr_tocode(e) == "(!(-x))")
+    assert(expr_tostr(e) == "(!(-x))")
 end
 
--- EXPR BIN
+-- BIN
 
 do
     local src = "a + 10"
@@ -134,7 +134,7 @@ do
     parser()
     local e = parser_expr()
     assert(check_tag("eof"))
-    assert(expr_tocode(e) == "(2 * (a - 1))")
+    assert(expr_tostr(e) == "(2 * (a - 1))")
 
     local src = "2 == -1"
     print("Testing...", src)
@@ -142,10 +142,10 @@ do
     parser()
     local e = parser_expr()
     assert(check_tag("eof"))
-    assert(expr_tocode(e) == "(2 == (-1))")
+    assert(expr_tostr(e) == "(2 == (-1))")
 end
 
--- EXPR CALL
+-- CALL
 
 do
     local src = "f(x,y)"
@@ -155,5 +155,5 @@ do
     local e = parser_expr()
     assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }")
     assert(check_tag("eof"))
-    assert(expr_tocode(e) == "f(x, y)")
+    assert(expr_tostr(e) == "f(x, y)")
 end

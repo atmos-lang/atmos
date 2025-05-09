@@ -2,9 +2,9 @@
 
 require "lexer"
 require "stmt"
-require "tocode"
+require "tostr"
 
--- STMT CALL
+-- CALL
 
 do
     local src = "f(x,y)"
@@ -16,7 +16,7 @@ do
     assert(xtostring(s) == "{ e={ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }, tag=expr }")
 end
 
--- STMT BLOCK
+-- BLOCK
 
 do
     local src = "do {}"
@@ -32,7 +32,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check_tag("eof"))
-    assert(stmt_tocode(s) == trim [[
+    assert(stmt_tostr(s) == trim [[
         do :X {
         }
     ]])
