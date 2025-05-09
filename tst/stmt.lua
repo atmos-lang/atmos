@@ -12,7 +12,7 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    assert(check_tag("eof"))
+    assert(check("eof"))
     assert(xtostring(s) == "{ e={ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }, tag=expr }")
 end
 
@@ -31,7 +31,7 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    assert(check_tag("eof"))
+    assert(check("eof"))
     assert(tostr_stmt(s) == trim [[
         do :X {
         escape(:X)
@@ -39,7 +39,7 @@ do
     ]])
 end
 
--- DCL / VAL / VAR
+-- DCL / VAL / VAR / SET
 
 do
     local src = "val x"
@@ -54,7 +54,15 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    assert(check_tag("eof"))
+    assert(check("eof"))
+    assert(xtostring(s) == "{ blk={ ss={  }, tag=block }, esc={ hier={ X }, lin=1, str=:X, tag=tag }, tag=catch }")
+
+    local src = "set y = 10"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("eof"))
     assert(xtostring(s) == "{ blk={ ss={  }, tag=block }, esc={ hier={ X }, lin=1, str=:X, tag=tag }, tag=catch }")
 end
 
@@ -73,6 +81,6 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    assert(check_tag("eof"))
+    assert(check("eof"))
     assert(xtostring(s) == "{ blk={ ss={  }, tag=block }, esc={ hier={ X }, lin=1, str=:X, tag=tag }, tag=catch }")
 end

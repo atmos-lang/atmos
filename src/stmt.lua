@@ -2,40 +2,40 @@ require "parser"
 require "expr"
 
 function parser_curly ()
-    accept_sym_err("{")
+    accept_err("sym","{")
     local ss = parser_list(null, "}", parser_stmt)
-    accept_sym_err("}")
+    accept_err("sym","}")
     return ss
 end
 
 function parser_stmt ()
     if false then
-    elseif accept_key("val") or accept_key("var") then
-        local id = accept_tag_err("var")
-        local set = accept_op("=") and parser_expr() or nil
+    elseif accept("key","val") or accept("key","var") then
+        local id = accept_err("var")
+        local set = accept("op","=") and parser_expr() or nil
         local dcl = { tag="dcl", tk=id, id=id }
         if set then
             error("TODO")
         else
             return dcl
         end
-    elseif accept_key("do") then
-        local tag = accept_tag("tag")
+    elseif accept("key","do") then
+        local tag = accept("tag")
         local ss  = parser_curly()
         return { tag="block", esc=tag, ss=ss }
-    elseif accept_key("escape") then
-        accept_sym_err('(')
+    elseif accept("key","escape") then
+        accept_err("sym",'(')
         local e = parser_expr()
-        accept_sym_err(')')
+        accept_err("sym",')')
         return { tag="escape", e=e }
-    elseif accept_key("catch") then
-        local tag = accept_tag_err("tag")
+    elseif accept("key","catch") then
+        local tag = accept_err("tag")
         local ss  = parser_curly()
         return { tag="catch", esc=tag, blk={tag="block",ss=ss} }
-    elseif accept_key("throw") then
-        accept_sym_err('(')
+    elseif accept("key","throw") then
+        accept_err("sym",'(')
         local e = parser_expr()
-        accept_sym_err(')')
+        accept_err("sym",')')
         return { tag="throw", e=e }
     else
         local tk = TK1
