@@ -3,8 +3,9 @@
 require "lexer"
 require "stmt"
 require "tostr"
+require "code"
 
--- STMT CALL
+-- CALL
 
 do
     local src = "print(10, nil, false, 2+2)"
@@ -30,13 +31,13 @@ do
             print(:ok)
         }
     ]]
-    print("Testing...", src)
+    print("Testing...", "block 1")
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
 
     local f = assert(io.open("/tmp/anon.lua", "w"))
-    f:write(stmt_tostr(s))
+    f:write(stmt_code(s))
     f:close()
 
     local exe = assert(io.popen("lua5.4 /tmp/anon.lua", "r"))

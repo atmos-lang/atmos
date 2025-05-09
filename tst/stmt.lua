@@ -34,6 +34,7 @@ do
     assert(check_tag("eof"))
     assert(stmt_tostr(s) == trim [[
         do :X {
+        f()
         }
     ]])
 end

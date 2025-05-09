@@ -1,0 +1,8 @@
+print "-=- LEXER -=-"
+dofile "lexer.lua"
+print "-=- EXPR -=-"
+dofile "expr.lua"
+print "-=- STMT -=-"
+dofile "stmt.lua"
+print "-=- EXEC -=-"
+dofile "exec.lua"

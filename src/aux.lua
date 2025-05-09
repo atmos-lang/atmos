@@ -54,7 +54,6 @@ function xdump (...)
         ret[#ret+1] = xtostring(select(i, ...))
     end
     print(table.unpack(ret))
-    return table.unpack(ret)
 end
 
 function map (t, f)
@@ -65,7 +64,7 @@ function map (t, f)
     return ret
 end
 
-function concat (t, sep)
+function concat (sep, t)
     local ret = ""
     for i,v in ipairs(t) do
         if i > 1 then
