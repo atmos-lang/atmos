@@ -3,14 +3,6 @@ function trim (s)
     return s:gsub("^"..spc,""):gsub("\n"..spc,"\n"):gsub("%s*$","")
 end
 
-function catch (f, ...)
-    local ok, msg = pcall(f, ...)
-    if not ok then
-        msg = string.match(msg, '.-:%d+: (.*)$')
-    end
-    return ok, msg
-end
-
 function contains (t, v)
     for _,x in ipairs(t) do
         if x == v then
