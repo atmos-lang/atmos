@@ -145,7 +145,7 @@ do
     assert(tostr_expr(e) == "(2 == (-1))")
 end
 
--- CALL
+-- CALL / FUNC
 
 do
     local src = "f(x,y)"
@@ -153,7 +153,23 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }")
     assert(check("eof"))
+    assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }")
     assert(tostr_expr(e) == "f(x, y)")
+
+    local src = [[
+        (func (x,y) {
+            return (x + y)
+        })(1,2)
+    ]]
+    print("Testing...", "func 1")
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("eof"))
+    assert(tostr_expr(e) == trim [[
+        func (x, y) {
+        return((x + y))
+        }(1, 2)
+    ]])
 end

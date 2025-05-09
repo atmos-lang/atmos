@@ -10,6 +10,8 @@ function tostr_stmt (s)
         "}"
     elseif s.tag == "escape" then
         return "escape(" .. tostr_expr(s.e) .. ")"
+    elseif s.tag == "return" then
+        return "return(" .. tostr_expr(s.e) .. ")"
     elseif s.tag == "catch" then
         return "catch " .. s.esc.str .. " {\n" ..
             concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
@@ -19,6 +21,7 @@ function tostr_stmt (s)
     elseif s.tag == "expr" then
         return tostr_expr(s.e)
     else
+        print(s.tag)
         error("TODO")
     end
 end
@@ -30,7 +33,14 @@ function tostr_expr (e)
         return '('..tostr_expr(e.e1)..' '..e.op.str..' '..tostr_expr(e.e2)..')'
     elseif e.tag == "call" then
         return tostr_expr(e.f)..'('..concat(", ", map(e.args, tostr_expr))..')'
+    elseif e.tag == "func" then
+        local pars = concat(', ', map(e.pars, function (id) return id.str end))
+        local ss = concat('\n', map(e.blk.ss,tostr_stmt))
+        return "func (" .. pars .. ") {\n" ..
+            ss ..'\n' ..
+        "}"
     else
+        --print(e.tag)
         return e.tk.str
     end
 end

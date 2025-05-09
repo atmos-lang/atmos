@@ -76,7 +76,7 @@ do
     assert(match(out, "no visible label 'Y' for %<goto%> at line 2"))
 end
 
--- VAL / VAR / SET
+-- DCL / VAL / VAR / SET
 
 do
     local src = [[

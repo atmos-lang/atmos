@@ -1,20 +1,43 @@
+Expr = {}   -- solves mutual require with stmt.lua
+
 require "parser"
+_ = Stmt or require "stmt"
 
 function parser_expr_prim_1 ()
+    -- nil
     if accept("key","nil") then
         return { tag="nil", tk=TK0 }
+
+    -- true, false
     elseif accept("key","true") or accept("key","false") then
         return { tag="bool", tk=TK0 }
+
+    -- :tag
     elseif accept("tag") then
         return { tag="tag", tk=TK0 }
+
+    -- 10, 0xFF
     elseif accept("num") then
         return { tag="num", tk=TK0 }
+
+    -- x, __v
     elseif accept("var") then
         return { tag="var", tk=TK0 }
+
+    -- (...)
     elseif accept("sym","(") then
         local e = parser_expr()
         accept_err("sym",")")
         return e
+
+    -- func () { ... }
+    elseif accept("key","func") then
+        accept_err("sym","(")
+        local pars = parser_list(",", ")", function () return accept_err("var") end)
+        accept_err("sym",")")
+        local ss = parser_curly()
+        return { tag="func", pars=pars, blk={tag="block",ss=ss} }
+
     else
         err(TK1, "expected expression")
     end
