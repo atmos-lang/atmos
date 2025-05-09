@@ -54,13 +54,13 @@ do
     print("Testing...", src)
     lexer_string("anon", src)
     local ok, msg = pcall(LEX)
-    assert(not ok and msg=="anon : lin 1 : near '##' : invalid operator")
+    assert(not ok and msg=="anon : line 1 : near '##' : invalid operator")
 
     local src = "!!"
     print("Testing...", src)
     lexer_string("anon", src)
     local ok, msg = pcall(LEX)
-    assert(not ok and msg=="anon : lin 1 : near '!!' : invalid operator")
+    assert(not ok and msg=="anon : line 1 : near '!!' : invalid operator")
 end
 
 -- NUMS
@@ -73,7 +73,7 @@ do
     assert(xtostring(LEX()) == "{ lin=1, str=0xF12, tag=num }")
     assert(xtostring(LEX()) == "{ lin=1, str=1.5, tag=num }")
     local ok, msg = pcall(LEX)
-    assert(not ok and msg=="anon : lin 1 : near '0b12' : invalid number")
+    assert(not ok and msg=="anon : line 1 : near '0b12' : invalid number")
 end
 
 -- KEYWORDS, VAR
@@ -158,7 +158,7 @@ do
     lexer_string("anon", src)
     assert(LEX().str == "x")
     local ok, msg = pcall(LEX)
-    assert(not ok and msg=="anon : lin 6 : near '<eof>' : unterminated comment")
+    assert(not ok and msg=="anon : line 6 : near '<eof>' : unterminated comment")
 
     local src = [[
         x

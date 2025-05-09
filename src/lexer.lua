@@ -6,7 +6,7 @@ local match = string.match
 local syms = { '{', '}', '(', ')', '[', ']', ',', '.' }
 
 function err (tk, msg)
-    error(FILE .. " : lin " .. tk.lin .. " : near '" .. tk.str .."' : " .. msg, 0)
+    error(FILE .. " : line " .. tk.lin .. " : near '" .. tk.str .."' : " .. msg, 0)
 end
 
 local function _lexer_ (str)

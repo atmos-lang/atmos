@@ -28,14 +28,14 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : lin 1 : near '{' : expected expression")
+    assert(not ok and msg=="anon : line 1 : near '{' : expected expression")
 
     local src = ""
     print("Testing...", "eof")
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : lin 1 : near '<eof>' : expected expression")
+    assert(not ok and msg=="anon : line 1 : near '<eof>' : expected expression")
 
     local src = [[
 
@@ -44,7 +44,7 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : lin 2 : near '<eof>' : expected expression")
+    assert(not ok and msg=="anon : line 2 : near '<eof>' : expected expression")
 
     local src = " ( a ) "
     print("Testing...", src)
@@ -59,7 +59,7 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : lin 1 : near '<eof>' : expected ')'")
+    assert(not ok and msg=="anon : line 1 : near '<eof>' : expected ')'")
 
     local src = "nil"
     print("Testing...", src)
@@ -126,7 +126,7 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : lin 1 : near '-' : binary operation error : use parentheses to disambiguate")
+    assert(not ok and msg=="anon : line 1 : near '-' : binary operation error : use parentheses to disambiguate")
 
     local src = "2 * (a - 1)"
     print("Testing...", src)
@@ -157,12 +157,19 @@ do
     assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }")
     assert(tostr_expr(e) == "f(x, y)")
 
+    local src = "f({"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near '{' : expected expression")
+
     local src = "f(10"
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : lin 1 : near '<eof>' : expected ','")
+    assert(not ok and msg=="anon : line 1 : near '<eof>' : expected ','")
 
     local src = [[
         (func (x,y) {
