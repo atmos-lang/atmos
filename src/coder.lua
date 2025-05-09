@@ -23,6 +23,8 @@ function coder_stmt (s)
         "end"
     elseif s.tag == "escape" then
         return "goto " .. s.e.tk.str:sub(2)
+    elseif s.tag == "return" then
+        return "return " .. coder_expr(s.e)
     elseif s.tag == "catch" then
         local n = N()
         local ok, esc = "atm_ok_"..n, "atm_esc_"..n
@@ -52,7 +54,7 @@ function coder_expr (e)
         return coder_expr(e.f)..'('..concat(", ", map(e.args, coder_expr))..')'
     elseif e.tag == "func" then
         local pars = concat(', ', map(e.pars, function (id) return id.str end))
-        local ss = concat('\n', map(e.blk.ss,tostr_stmt))
+        local ss = concat('\n', map(e.blk.ss,coder_stmt))
         return "function (" .. pars .. ")\n" ..
             ss ..'\n' ..
         "end"

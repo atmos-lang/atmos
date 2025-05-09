@@ -135,6 +135,18 @@ do
     print("Testing...", "func 1")
     local out = exec_string("anon.atm", src)
     assert(out == "30\n")
+
+    local src = [[
+        val f = func (x) {
+            return (func (y) {
+                return (x + y)
+            })
+        }
+        print(f(10)(20))
+    ]]
+    print("Testing...", "func 2")
+    local out = exec_string("anon.atm", src)
+    assert(out == "30\n")
 end
 
 -- CATCH / THROW

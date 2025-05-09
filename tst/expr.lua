@@ -186,4 +186,14 @@ do
         return((x + y))
         }(1, 2)
     ]])
+
+    local src = [[
+        f()()
+    ]]
+    print("Testing...", "func 1")
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("eof"))
+    assert(xtostring(e) == "{ args={  }, f={ args={  }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }, tag=call }")
 end

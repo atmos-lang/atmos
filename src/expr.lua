@@ -53,13 +53,16 @@ function parser_expr_suf_2 (pre)
 
     local sym = accept_err("sym")
 
+    local ret = nil
     if sym.str == '(' then
         local args = parser_list(",", ")", function () return parser_expr() end)
         accept_err("sym",')')
-        return { tag="call", f=e, args=args }
+        ret = { tag="call", f=e, args=args }
     else
         error("TODO")
     end
+
+    return parser_expr_suf_2(ret)
 end
 
 function parser_expr_pre_3 ()
