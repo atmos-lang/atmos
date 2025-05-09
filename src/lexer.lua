@@ -5,8 +5,12 @@ local match = string.match
 
 local syms = { '{', '}', '(', ')', '[', ']', ',', '.' }
 
-function err (msg)
-    error(FILE .. " : " .. msg)
+function err (tk, msg)
+    if tk then
+        error(FILE .. " : near '" .. tk.str .."' : " .. msg)
+    else
+        error(FILE .. " : " .. msg)
+    end
 end
 
 local function _lexer_ (str)
@@ -81,7 +85,7 @@ local function _lexer_ (str)
                         end
                         repeat
                             if not read_until("", C';') then
-                                err("unterminated comment")
+                                err(nil, "unterminated comment")
                             end
                             s = read_while("", C';')
                         until #s>2 and #s>=#stk[#stk]
@@ -97,7 +101,7 @@ local function _lexer_ (str)
         elseif contains(OPS.cs, c) then
             local op = read_while(c, function (c) return contains(OPS.cs,c) end)
             if not contains(OPS.vs,op) then
-                err("invalid operator : " .. op)
+                err({str=op}, "invalid operator")
             end
             coroutine.yield { tag="op", str=op }
 
@@ -124,7 +128,7 @@ local function _lexer_ (str)
         elseif match(c, "%d") then
             local num = read_while(c, M"[%w%.]")
             if not tonumber(num) then
-                err("invalid number : " .. num)
+                err({str=num}, "invalid number")
             else
                 coroutine.yield { tag="num", str=num }
             end
@@ -135,7 +139,7 @@ local function _lexer_ (str)
 
         -- error
         else
-            err("invalid character : " .. c)
+            err({str=c}, "invalid character")
         end
     end
 end

@@ -30,14 +30,14 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = catch(parser_expr)
-    assert(not ok and msg=="anon : expected expression : have {")
+    assert(not ok and msg=="anon : near '{' : expected expression")
 
     local src = ""
     print("Testing...", "eof")
     lexer_string("anon", src)
     parser()
     local ok, msg = catch(parser_expr)
-    assert(not ok and msg=="anon : expected expression : have <eof>")
+    assert(not ok and msg=="anon : near '<eof>' : expected expression")
 
     local src = [[
 
@@ -46,7 +46,7 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = catch(parser_expr)
-    assert(not ok and msg=="anon : expected expression : have <eof>")
+    assert(not ok and msg=="anon : near '<eof>' : expected expression")
 
     local src = " ( a ) "
     print("Testing...", src)
@@ -61,7 +61,7 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = catch(parser_expr)
-    assert(not ok and msg=="anon : expected ')' : have <eof>")
+    assert(not ok and msg=="anon : near '<eof>' : expected ')'")
 
     local src = "nil"
     print("Testing...", src)
@@ -128,7 +128,7 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = catch(parser_expr)
-    assert(not ok and msg=="anon : binary operation error : use parentheses to disambiguate")
+    assert(not ok and msg=="anon : near '-' : binary operation error : use parentheses to disambiguate")
 
     local src = "2 * (a - 1)"
     print("Testing...", src)

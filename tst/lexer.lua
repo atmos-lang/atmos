@@ -56,13 +56,13 @@ do
     print("Testing...", src)
     lexer_string("anon", src)
     local ok, msg = catch(LEX)
-    assert(not ok and msg=="anon : invalid operator : ##")
+    assert(not ok and msg=="anon : near '##' : invalid operator")
 
     local src = "!!"
     print("Testing...", src)
     lexer_string("anon", src)
     local ok, msg = catch(LEX)
-    assert(not ok and msg=="anon : invalid operator : !!")
+    assert(not ok and msg=="anon : near '!!' : invalid operator")
 end
 
 -- NUMS
@@ -75,7 +75,7 @@ do
     assert(xtostring(LEX()) == "{ str=0xF12, tag=num }")
     assert(xtostring(LEX()) == "{ str=1.5, tag=num }")
     local ok, msg = catch(LEX)
-    assert(not ok and msg=="anon : invalid number : 0b12")
+    assert(not ok and msg=="anon : near '0b12' : invalid number")
 end
 
 -- KEYWORDS, VAR
