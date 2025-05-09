@@ -145,7 +145,7 @@ do
     assert(tostr_expr(e) == "(2 == (-1))")
 end
 
--- CALL / FUNC
+-- CALL / FUNC / RETURN
 
 do
     local src = "f(x,y)"

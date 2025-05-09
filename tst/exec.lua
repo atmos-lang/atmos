@@ -8,24 +8,6 @@ require "exec"
 
 local match = string.match
 
--- CALL
-
-do
-    local src = "print(10, nil, false, 2+2)"
-    print("Testing...", src)
-    lexer_string("anon", src)
-    parser()
-    local s = parser_stmt()
-
-    local f = assert(io.open("/tmp/anon.lua", "w"))
-    f:write(tostr_expr(s.e))
-    f:close()
-
-    local exe = assert(io.popen("lua5.4 /tmp/anon.lua", "r"))
-    local out = exe:read("a")
-    assert(out == "10\tnil\tfalse\t4\n")
-end
-
 -- BLOCK / DO / ESCAPE
 
 do
@@ -106,6 +88,34 @@ do
     assert(match(out, "attempt to assign to const variable 'x'"))
 end
 
+-- CALL / FUNC / RETURN
+
+do
+    local src = "print(10, nil, false, 2+2)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+
+    local f = assert(io.open("/tmp/anon.lua", "w"))
+    f:write(tostr_expr(s.e))
+    f:close()
+
+    local exe = assert(io.popen("lua5.4 /tmp/anon.lua", "r"))
+    local out = exe:read("a")
+    assert(out == "10\tnil\tfalse\t4\n")
+
+    local src = [[
+        val f = func (x, y) {
+            return (x + y)
+        }
+        print(f(10,20))
+    ]]
+    print("Testing...", "func 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == "30\n")
+end
+
 -- CATCH / THROW
 
 do
@@ -138,5 +148,4 @@ do
     print("Testing...", "catch 1")
     local out = exec_string("anon.atm", src)
     assert(out == ":1\n:2\n:3\n:6\n")
-
 end

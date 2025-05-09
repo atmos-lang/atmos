@@ -50,6 +50,12 @@ function coder_expr (e)
         return '"'..e.tk.str..'"'
     elseif e.tag == "call" then
         return coder_expr(e.f)..'('..concat(", ", map(e.args, coder_expr))..')'
+    elseif e.tag == "func" then
+        local pars = concat(', ', map(e.pars, function (id) return id.str end))
+        local ss = concat('\n', map(e.blk.ss,tostr_stmt))
+        return "function (" .. pars .. ")\n" ..
+            ss ..'\n' ..
+        "end"
     else
         return tostr_expr(e)
     end
