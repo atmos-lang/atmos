@@ -10,7 +10,7 @@ do
     local src = "{ } ( ; {{ () ) , ][ ."
     print("Testing...", src)
     lexer_string("anon", src)
-    assert(xtostring(LEX()) == "{ str={, tag=sym }")
+    assert(xtostring(LEX()) == "{ lin=1, str={, tag=sym }")
     assert(LEX().str == "}")
     assert(LEX().str == "(")
     assert(LEX().str == "{")
@@ -56,13 +56,13 @@ do
     print("Testing...", src)
     lexer_string("anon", src)
     local ok, msg = catch(LEX)
-    assert(not ok and msg=="anon : near '##' : invalid operator")
+    assert(not ok and msg=="anon : lin 1 : near '##' : invalid operator")
 
     local src = "!!"
     print("Testing...", src)
     lexer_string("anon", src)
     local ok, msg = catch(LEX)
-    assert(not ok and msg=="anon : near '!!' : invalid operator")
+    assert(not ok and msg=="anon : lin 1 : near '!!' : invalid operator")
 end
 
 -- NUMS
@@ -71,11 +71,11 @@ do
     local src = "10 0xF12 1.5 0b12"
     print("Testing...", src)
     lexer_string("anon", src)
-    assert(xtostring(LEX()) == "{ str=10, tag=num }")
-    assert(xtostring(LEX()) == "{ str=0xF12, tag=num }")
-    assert(xtostring(LEX()) == "{ str=1.5, tag=num }")
+    assert(xtostring(LEX()) == "{ lin=1, str=10, tag=num }")
+    assert(xtostring(LEX()) == "{ lin=1, str=0xF12, tag=num }")
+    assert(xtostring(LEX()) == "{ lin=1, str=1.5, tag=num }")
     local ok, msg = catch(LEX)
-    assert(not ok and msg=="anon : near '0b12' : invalid number")
+    assert(not ok and msg=="anon : lin 1 : near '0b12' : invalid number")
 end
 
 -- KEYWORDS, VAR
@@ -84,9 +84,9 @@ do
     local src = "x X await"
     print("Testing...", src)
     lexer_string("anon", src)
-    assert(xtostring(LEX()) == "{ str=x, tag=var }")
-    assert(xtostring(LEX()) == "{ str=X, tag=var }")
-    assert(xtostring(LEX()) == "{ str=await, tag=key }")
+    assert(xtostring(LEX()) == "{ lin=1, str=x, tag=var }")
+    assert(xtostring(LEX()) == "{ lin=1, str=X, tag=var }")
+    assert(xtostring(LEX()) == "{ lin=1, str=await, tag=key }")
 
     local src = "x-1 10-abc"
     print("Testing...", src)
@@ -160,7 +160,7 @@ do
     lexer_string("anon", src)
     assert(LEX().str == "x")
     local ok, msg = catch(LEX)
-    assert(not ok and msg=="anon : unterminated comment")
+    assert(not ok and msg=="anon : lin 10 : unterminated comment")
 
     local src = [[
         x
@@ -182,9 +182,9 @@ do
     local src = ":X :a:X:1 ::"
     print("Testing...", src)
     lexer_string("anon", src)
-    assert(xtostring(LEX()) == "{ hier={ X }, str=:X, tag=tag }")
-    assert(xtostring(LEX()) == "{ hier={ a, X, 1 }, str=:a:X:1, tag=tag }")
-    assert(xtostring(LEX()) == "{ hier={ ,  }, str=::, tag=tag }")
+    assert(xtostring(LEX()) == "{ hier={ X }, lin=1, str=:X, tag=tag }")
+    assert(xtostring(LEX()) == "{ hier={ a, X, 1 }, lin=1, str=:a:X:1, tag=tag }")
+    assert(xtostring(LEX()) == "{ hier={ ,  }, lin=1, str=::, tag=tag }")
 
     local src = ":()"
     print("Testing...", src)

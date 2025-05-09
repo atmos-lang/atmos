@@ -2,6 +2,7 @@ FILE = nil
 LEX  = nil
 TK0  = nil
 TK1  = nil
+LIN  = nil
 
 OPS = {
     cs = { '+', '-', '*', '/', '%', '>', '<', '=', '|', '&', '?', '!' ,'#' },

@@ -14,7 +14,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(xtostring(e) == "{ tag=var, tk={ str=a, tag=var } }")
+    assert(xtostring(e) == "{ tag=var, tk={ lin=1, str=a, tag=var } }")
     assert(check_tag("eof"))
 
     local src = "1.5"
@@ -22,7 +22,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(xtostring(e) == "{ tag=num, tk={ str=1.5, tag=num } }")
+    assert(xtostring(e) == "{ tag=num, tk={ lin=1, str=1.5, tag=num } }")
     assert(check_tag("eof"))
 
     local src = "{"
@@ -30,14 +30,14 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = catch(parser_expr)
-    assert(not ok and msg=="anon : near '{' : expected expression")
+    assert(not ok and msg=="anon : lin 1 : near '{' : expected expression")
 
     local src = ""
     print("Testing...", "eof")
     lexer_string("anon", src)
     parser()
     local ok, msg = catch(parser_expr)
-    assert(not ok and msg=="anon : near '<eof>' : expected expression")
+    assert(not ok and msg=="anon : lin 1 : near '<eof>' : expected expression")
 
     local src = [[
 
@@ -46,14 +46,14 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = catch(parser_expr)
-    assert(not ok and msg=="anon : near '<eof>' : expected expression")
+    assert(not ok and msg=="anon : lin 2 : near '<eof>' : expected expression")
 
     local src = " ( a ) "
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(xtostring(e) == "{ tag=var, tk={ str=a, tag=var } }")
+    assert(xtostring(e) == "{ tag=var, tk={ lin=1, str=a, tag=var } }")
     assert(check_tag("eof"))
 
     local src = " ( a "
@@ -61,14 +61,14 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = catch(parser_expr)
-    assert(not ok and msg=="anon : near '<eof>' : expected ')'")
+    assert(not ok and msg=="anon : lin 1 : near '<eof>' : expected ')'")
 
     local src = "nil"
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(xtostring(e) == "{ tag=nil, tk={ str=nil, tag=key } }")
+    assert(xtostring(e) == "{ tag=nil, tk={ lin=1, str=nil, tag=key } }")
     assert(check_tag("eof"))
 
     local src = "false true"
@@ -76,9 +76,9 @@ do
     lexer_string("anon", src)
     parser()
     local e1 = parser_expr()
-    assert(xtostring(e1) == "{ tag=bool, tk={ str=false, tag=key } }")
+    assert(xtostring(e1) == "{ tag=bool, tk={ lin=1, str=false, tag=key } }")
     local e2 = parser_expr()
-    assert(xtostring(e2) == "{ tag=bool, tk={ str=true, tag=key } }")
+    assert(xtostring(e2) == "{ tag=bool, tk={ lin=1, str=true, tag=key } }")
     assert(check_tag("eof"))
 
     local src = ":x :1:_"
@@ -86,9 +86,9 @@ do
     lexer_string("anon", src)
     parser()
     local e1 = parser_expr()
-    assert(xtostring(e1) == "{ tag=tag, tk={ hier={ x }, str=:x, tag=tag } }")
+    assert(xtostring(e1) == "{ tag=tag, tk={ hier={ x }, lin=1, str=:x, tag=tag } }")
     local e2 = parser_expr()
-    assert(xtostring(e2) == "{ tag=tag, tk={ hier={ 1, _ }, str=:1:_, tag=tag } }")
+    assert(xtostring(e2) == "{ tag=tag, tk={ hier={ 1, _ }, lin=1, str=:1:_, tag=tag } }")
     assert(check_tag("eof"))
 end
 
@@ -100,7 +100,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(xtostring(e) == "{ e={ tag=var, tk={ str=v, tag=var } }, op={ str=#, tag=op }, tag=uno }")
+    assert(xtostring(e) == "{ e={ tag=var, tk={ lin=1, str=v, tag=var } }, op={ lin=1, str=#, tag=op }, tag=uno }")
     assert(check_tag("eof"))
 
     local src = "! - x"
@@ -120,7 +120,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(xtostring(e) == "{ e1={ tag=var, tk={ str=a, tag=var } }, e2={ tag=num, tk={ str=10, tag=num } }, op={ str=+, tag=op }, tag=bin }")
+    assert(xtostring(e) == "{ e1={ tag=var, tk={ lin=1, str=a, tag=var } }, e2={ tag=num, tk={ lin=1, str=10, tag=num } }, op={ lin=1, str=+, tag=op }, tag=bin }")
     assert(check_tag("eof"))
 
     local src = "2 + 3 - 1"
@@ -128,7 +128,7 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = catch(parser_expr)
-    assert(not ok and msg=="anon : near '-' : binary operation error : use parentheses to disambiguate")
+    assert(not ok and msg=="anon : lin 1 : near '-' : binary operation error : use parentheses to disambiguate")
 
     local src = "2 * (a - 1)"
     print("Testing...", src)
@@ -155,7 +155,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(xtostring(e) == "{ args={ { tag=var, tk={ str=x, tag=var } }, { tag=var, tk={ str=y, tag=var } } }, f={ tag=var, tk={ str=f, tag=var } }, tag=call }")
+    assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }")
     assert(expr_tocode(e) == "f(x, y)")
     assert(check_tag("eof"))
 end

@@ -6,11 +6,7 @@ local match = string.match
 local syms = { '{', '}', '(', ')', '[', ']', ',', '.' }
 
 function err (tk, msg)
-    if tk then
-        error(FILE .. " : near '" .. tk.str .."' : " .. msg)
-    else
-        error(FILE .. " : " .. msg)
-    end
+    error(FILE .. " : lin " .. tk.lin .. " : near '" .. tk.str .."' : " .. msg)
 end
 
 local function _lexer_ (str)
@@ -19,13 +15,18 @@ local function _lexer_ (str)
 
     local function read ()
         local c = string.sub(str,i,i)
+        if c == '\n' then
+            LIN = LIN + 1
+        end
         i = i + 1
         return c
     end
-    local function unread (n)
-        n = n or 1
+    local function unread ()
         local c = string.sub(str,i,i)
-        i = i - n
+        if c == '\n' then
+            LIN = LIN - 1
+        end
+        i = i - 1
         return c
     end
 
@@ -85,7 +86,7 @@ local function _lexer_ (str)
                         end
                         repeat
                             if not read_until("", C';') then
-                                err(nil, "unterminated comment")
+                                err({str="<eof>",lin=LIN}, "unterminated comment")
                             end
                             s = read_while("", C';')
                         until #s>2 and #s>=#stk[#stk]
@@ -95,15 +96,15 @@ local function _lexer_ (str)
 
         -- symbols:  {  (  ,  ;
         elseif contains(syms, c) then
-            coroutine.yield { tag="sym", str=c }
+            coroutine.yield { tag="sym", str=c, lin=LIN }
 
         -- operators:  +  >=  #
         elseif contains(OPS.cs, c) then
             local op = read_while(c, function (c) return contains(OPS.cs,c) end)
             if not contains(OPS.vs,op) then
-                err({str=op}, "invalid operator")
+                err({str=op,lin=LIN}, "invalid operator")
             end
-            coroutine.yield { tag="op", str=op }
+            coroutine.yield { tag="op", str=op, lin=LIN }
 
         -- tags:  :X  :a:b:c
         elseif c == ':' then
@@ -112,40 +113,41 @@ local function _lexer_ (str)
             for x in string.gmatch(tag, ":([^:]*)") do
                 hier[#hier+1] = x
             end
-            coroutine.yield { tag="tag", str=tag, hier=hier }
+            coroutine.yield { tag="tag", str=tag, hier=hier, lin=LIN }
 
         -- keywords:  await  if
         -- variables:  x  a_10
         elseif match(c, "[%a_]") then
             local id = read_while(c, M"[%w_]")
             if contains(KEYS, id) then
-                coroutine.yield { tag="key", str=id }
+                coroutine.yield { tag="key", str=id, lin=LIN }
             else
-                coroutine.yield { tag="var", str=id }
+                coroutine.yield { tag="var", str=id, lin=LIN }
             end
 
         -- numbers:  0xFF  10.1
         elseif match(c, "%d") then
             local num = read_while(c, M"[%w%.]")
             if not tonumber(num) then
-                err({str=num}, "invalid number")
+                err({str=num,lin=LIN}, "invalid number")
             else
-                coroutine.yield { tag="num", str=num }
+                coroutine.yield { tag="num", str=num, lin=LIN }
             end
 
         -- eof
         elseif c == '\0' then
-            coroutine.yield { tag="eof", str="<eof>" }
+            coroutine.yield { tag="eof", str="<eof>", lin=LIN }
 
         -- error
         else
-            err({str=c}, "invalid character")
+            err({str=c,lin=LIN}, "invalid character")
         end
     end
 end
 
 function lexer_string (file, str)
     FILE = file
+    LIN = 1
     LEX = coroutine.wrap (
         function ()
             _lexer_(str, 1)
