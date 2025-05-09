@@ -10,6 +10,12 @@ end
 
 function coder_stmt (s)
     if false then
+    elseif s.tag == "dcl" then
+        local cst = s.tk.str=="val" and " <const>" or ''
+        local set = s.set and (' = '..coder_expr(s.set)) or ''
+        return 'local ' .. s.id.str .. cst .. set
+    elseif s.tag == "set" then
+        return coder_expr(s.dst)..' = '..coder_expr(s.src)
     elseif s.tag == "block" then
         return "do\n" ..
             coder_stmts(s.ss) ..

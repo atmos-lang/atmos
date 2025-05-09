@@ -31,7 +31,7 @@ function xtostring (v)
             assert(type(k)=="number" or type(k)=="string")
             t[#t+1] = { k, x }
         end
-        table.sort(t, function (x, y) return (x[1] < y[1]) end)
+        table.sort(t, function (x, y) return (tostring(x[1]) < tostring(y[1])) end)
         for _,kx in ipairs(t) do
             local k,x = table.unpack(kx)
             if not fst then

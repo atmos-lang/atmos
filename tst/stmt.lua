@@ -47,15 +47,7 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    assert(xtostring(s) == "{ id={ lin=1, str=x, tag=var }, tag=dcl, tk={ lin=1, str=x, tag=var } }")
-
-    local src = "var y = 10"
-    print("Testing...", src)
-    lexer_string("anon", src)
-    parser()
-    local s = parser_stmt()
-    assert(check("eof"))
-    assert(xtostring(s) == "{ blk={ ss={  }, tag=block }, esc={ hier={ X }, lin=1, str=:X, tag=tag }, tag=catch }")
+    assert(xtostring(s) == "{ id={ lin=1, str=x, tag=var }, tag=dcl, tk={ lin=1, str=val, tag=key } }")
 
     local src = "set y = 10"
     print("Testing...", src)
@@ -63,7 +55,15 @@ do
     parser()
     local s = parser_stmt()
     assert(check("eof"))
-    assert(xtostring(s) == "{ blk={ ss={  }, tag=block }, esc={ hier={ X }, lin=1, str=:X, tag=tag }, tag=catch }")
+    assert(xtostring(s) == "{ dst={ tag=var, tk={ lin=1, str=y, tag=var } }, src={ tag=num, tk={ lin=1, str=10, tag=num } }, tag=set }")
+
+    local src = "var y = 10"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("eof"))
+    assert(xtostring(s) == "{ id={ lin=1, str=y, tag=var }, set={ tag=num, tk={ lin=1, str=10, tag=num } }, tag=dcl, tk={ lin=1, str=var, tag=key } }")
 end
 
 -- THROW / CATCH

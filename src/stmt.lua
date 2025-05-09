@@ -11,14 +11,15 @@ end
 function parser_stmt ()
     if false then
     elseif accept("key","val") or accept("key","var") then
+        local tk = TK0
         local id = accept_err("var")
         local set = accept("op","=") and parser_expr() or nil
-        local dcl = { tag="dcl", tk=id, id=id }
-        if set then
-            error("TODO")
-        else
-            return dcl
-        end
+        return { tag="dcl", tk=tk, id=id, set=set }
+    elseif accept("key","set") then
+        local dst = parser_expr()
+        accept_err("op", "=")
+        local src = parser_expr()
+        return { tag="set", dst=dst, src=src }
     elseif accept("key","do") then
         local tag = accept("tag")
         local ss  = parser_curly()
@@ -47,5 +48,3 @@ function parser_stmt ()
         end
     end
 end
-
-

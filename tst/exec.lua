@@ -76,6 +76,36 @@ do
     assert(match(out, "no visible label 'Y' for %<goto%> at line 2"))
 end
 
+-- VAL / VAR / SET
+
+do
+    local src = [[
+        var x
+        set x = 10
+        print(x)
+    ]]
+    print("Testing...", "var 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == "10\n")
+
+    local src = [[
+        val x = :1
+        print(x)
+    ]]
+    print("Testing...", "var 2")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\n")
+
+    local src = [[
+        val x
+        set x = :1
+        print(x)
+    ]]
+    print("Testing...", "var 2")
+    local out = exec_string("anon.atm", src)
+    assert(match(out, "attempt to assign to const variable 'x'"))
+end
+
 -- CATCH / THROW
 
 do
