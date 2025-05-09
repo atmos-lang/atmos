@@ -26,7 +26,7 @@ do
     local s = parser_stmt()
     assert(xtostring(s) == "{ ss={  }, tag=block }")
 
-    local src = "do :X { f() }"
+    local src = "do :X { escape(:X) }"
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
@@ -34,7 +34,7 @@ do
     assert(check_tag("eof"))
     assert(stmt_tostr(s) == trim [[
         do :X {
-        f()
+        escape(:X)
         }
     ]])
 end

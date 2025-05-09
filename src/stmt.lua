@@ -8,13 +8,17 @@ function parser_curly ()
     return ss
 end
 
-
 function parser_stmt ()
     if false then
     elseif accept_key("do") then
         local tag = accept_tag("tag")
         local ss  = parser_curly()
         return { tag="block", esc=tag, ss=ss }
+    elseif accept_key("escape") then
+        accept_sym_err('(')
+        local e = parser_expr()
+        accept_sym_err(')')
+        return { tag="escape", e=e }
     else
         local tk = TK1
         local e = parser_expr()
