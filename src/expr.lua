@@ -31,14 +31,33 @@ function parser_expr_prim_1 ()
         return e
 
     -- [ ... ]
---[[
     elseif accept("[") then
+        local idx = 1
         local vs = parser_list(",", "]", function ()
-            field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
+            local key
+            if accept("[") then
+                key = parser_expr()
+                accept_err("]")
+                accept_err("=")
+                val = parser_expr()
+            elseif accept(nil,"var") then
+                if accept("=") then
+                    key = { tag="str", tk=TK0 }
+                    val = parser_expr()
+                else
+                    key = { tag="num", tk={tag="num",str=tostring(idx)} }
+                    idx = idx + 1
+                    val = { tag="var", tk=TK0 }
+                end
+            else
+                key = { tag="num", tk={tag="num",str=tostring(idx)} }
+                idx = idx + 1
+                val = parser_expr()
+            end
+            return { k=key, v=val }
         end)
         accept_err("]")
         return { tag="table", vs=vs }
-]]
 
     -- coro(f), task(T), tasks(n)
     elseif accept("coro") or accept("task") or accept("tasks") then

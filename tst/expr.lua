@@ -88,6 +88,35 @@ do
     local e2 = parser_expr()
     assert(check("<eof>"))
     assert(xtostring(e2) == "{ tag=tag, tk={ lin=1, str=:1:_, tag=tag } }")
+
+--[[
+    local src = "[ v1, k2=v2, [k3]=v3 ]"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e1 = parser_expr()
+xdump(e1)
+    assert(xtostring(e1) == "{ tag=tag, tk={ lin=1, str=:x, tag=tag } }")
+    local e2 = parser_expr()
+    assert(check("<eof>"))
+    assert(xtostring(e2) == "{ tag=tag, tk={ lin=1, str=:1:_, tag=tag } }")
+]]    
+end
+
+-- TABLE
+
+do
+    local src = "await(:X, x+10)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("<eof>"))
+    assert(tostr_expr(e) == trim [[
+        await(:X, func (it) {
+            return((x + 10))
+        })
+    ]])
 end
 
 -- UNO
