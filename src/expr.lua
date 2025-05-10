@@ -35,11 +35,11 @@ function parser_expr_prim_1 ()
         local idx = 1
         local ps = parser_list(",", "]", function ()
             local key
-            if accept("[") then
+            if accept("(") then
                 key = parser_expr()
-                accept_err("]")
-                accept_err("=")
+                accept_err(",")
                 val = parser_expr()
+                accept_err(")")
             elseif accept(nil,"var") then
                 local id = TK0
                 if accept("=") then

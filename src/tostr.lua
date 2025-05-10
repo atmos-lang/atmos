@@ -37,9 +37,9 @@ function tostr_expr (e)
         return '"' .. e.tk.str .. '"'
     elseif e.tag == "table" then
         local ps = concat(", ", map(e.ps, function (t)
-            return '['..tostr_expr(t.k)..']='..tostr_expr(t.v)
+            return '('..tostr_expr(t.k)..','..tostr_expr(t.v)..')'
         end))
-        return '[ ' .. ps .. ' ]'
+        return '[' .. ps .. ']'
     elseif e.tag == "uno" then
         return '('..e.op.str..tostr_expr(e.e)..')'
     elseif e.tag == "bin" then

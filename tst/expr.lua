@@ -97,13 +97,29 @@ do
     assert(check("<eof>"))
     assert(xtostring(e) == "{ ps={ { k={ tag=num, tk={ str=1, tag=num } }, v={ tag=var, tk={ lin=1, str=a, tag=var } } } }, tag=table }")
 
-    local src = "[ v1, k2=v2, [k3]=v3, v4 ]"
+    local src = "[ v1, k2=v2, (k3,v3), v4 ]"
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(tostr_expr(e) == '[ [1]=v1, ["k2"]=v2, [k3]=v3, [2]=v4 ]')
+    assert(tostr_expr(e) == '[(1,v1), ("k2",v2), (k3,v3), (2,v4)]')
+
+    local src = "[ ]"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("<eof>"))
+    assert(tostr_expr(e) == '[]')
+
+    local src = "[ [], k2=[1,2,3], ([1],v3) ]"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("<eof>"))
+    assert(tostr_expr(e) == '[(1,[]), ("k2",[(1,1), (2,2), (3,3)]), ([(1,1)],v3)]')
 end
 
 -- UNO
