@@ -32,7 +32,7 @@ function parser_expr_prim_1 ()
 
     -- coro(f), task(T), tasks(n)
     elseif accept("coro") or accept("task") or accept("tasks") then
-        local f = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
+        local f = { tag="var", tk={tag="var", str=TK0.str} }
         accept_err("(")
         local e = parser_expr()
         accept_err(")")
@@ -40,7 +40,7 @@ function parser_expr_prim_1 ()
 
     -- yield(...), emit(...)
     elseif accept("yield") or accept("emit") then
-        local f = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
+        local f = { tag="var", tk={tag="var", str=TK0.str} }
         accept_err("(")
         local args = parser_list(",", ")", function () return parser_expr() end)
         accept_err(")")
@@ -48,12 +48,12 @@ function parser_expr_prim_1 ()
 
     -- await(...)
     elseif accept("await") then
-        local f = { tag="var", tk={tag="var", str="await", lin=TK0.lin} }
+        local f = { tag="var", tk={tag="var", str="await"} }
         accept_err("(")
-        local cnd = nil
         local e = parser_expr()
+        local cnd = nil
         if accept(",") then
-            local it = { tag="var", str="it", lin=TK0.lin }
+            local it = { tag="var", str="it" }
             local e = parser_expr()
             local ret = { tag="return", e=e }
             cnd = { tag="func", pars={it}, blk={tag="block",ss={ret}} }
@@ -64,7 +64,7 @@ function parser_expr_prim_1 ()
     -- resume co(...), spawn T(...)
     elseif accept("resume") or accept("spawn") then
         local tk = TK0
-        local cmd = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
+        local cmd = { tag="var", tk={tag="var", str=TK0.str} }
         local call = parser_expr()
         if call.tag ~= "call" then
             err(tk, "expected call")

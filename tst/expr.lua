@@ -229,7 +229,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=f, tag=var } } }, f={ tag=var, tk={ lin=1, str=coro, tag=var } }, tag=call }")
+    assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=f, tag=var } } }, f={ tag=var, tk={ str=coro, tag=var } }, tag=call }")
 
     local src = "task(T)"
     print("Testing...", src)

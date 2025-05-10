@@ -213,4 +213,31 @@ do
     print("Testing...", "coro 1")
     local out = exec_string("anon.atm", src)
     assert(out == "1\tnil\t2\ntrue\ttrue\ttrue\n")
+
+    local src = [[
+        val T = func (a) {
+            print(a)
+            val b = await(:X)
+            print(b)
+        }
+        val t = task(T)
+        spawn t(10)
+        emit(:X)
+    ]]
+    print("Testing...", "task 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == "10\n:X\n")
+
+    local src = [[
+        val T = func (a) {
+            print(a)
+            val b = await(:X)
+            print(b)
+        }
+        spawn T(10)
+        emit(:X)
+    ]]
+    print("Testing...", "task 2")
+    local out = exec_string("anon.atm", src)
+    assert(out == "10\n:X\n")
 end
