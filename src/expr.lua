@@ -5,64 +5,64 @@ _ = Stmt or require "stmt"
 
 function parser_expr_prim_1 ()
     -- nil
-    if accept("key","nil") then
+    if accept("nil") then
         return { tag="nil", tk=TK0 }
 
     -- true, false
-    elseif accept("key","true") or accept("key","false") then
+    elseif accept("true") or accept("false") then
         return { tag="bool", tk=TK0 }
 
     -- :tag
-    elseif accept("tag") then
+    elseif accept(nil,"tag") then
         return { tag="tag", tk=TK0 }
 
     -- 10, 0xFF
-    elseif accept("num") then
+    elseif accept(nil,"num") then
         return { tag="num", tk=TK0 }
 
     -- x, __v
-    elseif accept("var") then
+    elseif accept(nil,"var") then
         return { tag="var", tk=TK0 }
 
     -- (...)
-    elseif accept("sym","(") then
+    elseif accept("(") then
         local e = parser_expr()
-        accept_err("sym",")")
+        accept_err(")")
         return e
 
     -- coro(f), task(T), tasks(n)
-    elseif accept("key","coro") or accept("key","task") or accept("key","tasks") then
+    elseif accept("coro") or accept("task") or accept("tasks") then
         local f = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
-        accept_err("sym","(")
+        accept_err("(")
         local e = parser_expr()
-        accept_err("sym",")")
+        accept_err(")")
         return { tag="call", f=f, args={e} }
 
     -- yield(...), emit(...)
-    elseif accept("key","yield") or accept("key","emit") then
+    elseif accept("yield") or accept("emit") then
         local f = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
-        accept_err("sym","(")
+        accept_err("(")
         local args = parser_list(",", ")", function () return parser_expr() end)
-        accept_err("sym",")")
+        accept_err(")")
         return { tag="call", f=f, args=args }
 
     -- await(...)
-    elseif accept("key","await") then
+    elseif accept("await") then
         local f = { tag="var", tk={tag="var", str="await", lin=TK0.lin} }
-        accept_err("sym","(")
+        accept_err("(")
         local cnd = nil
         local e = parser_expr()
-        if accept("sym",",") then
+        if accept(",") then
             local it = { tag="var", str="it", lin=TK0.lin }
             local e = parser_expr()
             local ret = { tag="return", e=e }
             cnd = { tag="func", pars={it}, blk={tag="block",ss={ret}} }
         end
-        accept_err("sym",")")
+        accept_err(")")
         return { tag="call", f=f, args={e,cnd} }
 
     -- resume co(...), spawn T(...)
-    elseif accept("key","resume") or accept("key","spawn") then
+    elseif accept("resume") or accept("spawn") then
         local tk = TK0
         local cmd = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
         local call = parser_expr()
@@ -73,10 +73,10 @@ function parser_expr_prim_1 ()
         return { tag="call", f=cmd, args=call.args }
 
     -- func () { ... }
-    elseif accept("key","func") then
-        accept_err("sym","(")
-        local pars = parser_list(",", ")", function () return accept_err("var") end)
-        accept_err("sym",")")
+    elseif accept("func") then
+        accept_err("(")
+        local pars = parser_list(",", ")", function () return accept_err(nil,"var") end)
+        accept_err(")")
         local ss = parser_curly()
         return { tag="func", pars=pars, blk={tag="block",ss=ss} }
 
@@ -87,18 +87,18 @@ end
 
 function parser_expr_suf_2 (pre)
     local e = pre or parser_expr_prim_1()
-    local ok = check("sym") and contains(OPS.sufs, TK1.str)
+    local ok = check(nil,"sym") and contains(OPS.sufs, TK1.str)
                 -- TODO: same line
     if not ok then
         return e
     end
 
-    local sym = accept_err("sym")
+    local sym = accept_err(nil,"sym")
 
     local ret = nil
     if sym.str == '(' then
         local args = parser_list(",", ")", function () return parser_expr() end)
-        accept_err("sym",')')
+        accept_err(')')
         ret = { tag="call", f=e, args=args }
     else
         error("TODO")
@@ -108,22 +108,22 @@ function parser_expr_suf_2 (pre)
 end
 
 function parser_expr_pre_3 ()
-    local ok = check("op") and contains(OPS.unos, TK1.str)
+    local ok = check(nil,"op") and contains(OPS.unos, TK1.str)
     if not ok then
         return parser_expr_suf_2()
     end
-    local op = accept_err("op")
+    local op = accept_err(nil,"op")
     local e = parser_expr_pre_3()
     return { tag="uno", op=op, e=e }
 end
 
 function parser_expr_bin_4 (pre)
     local e1 = pre or parser_expr_pre_3()
-    local ok = check("op") and contains(OPS.bins, TK1.str)
+    local ok = check(nil,"op") and contains(OPS.bins, TK1.str)
     if not ok then
         return e1
     end
-    local op = accept_err("op")
+    local op = accept_err(nil,"op")
     if pre and pre.op.str ~= op.str then
         err(op, "binary operation error : use parentheses to disambiguate")
     end

@@ -4,9 +4,9 @@ require "parser"
 _ = Expr or require "expr"
 
 function parser_curly ()
-    accept_err("sym","{")
+    accept_err("{")
     local ss = parser_list(null, "}", parser_stmt)
-    accept_err("sym","}")
+    accept_err("}")
     return ss
 end
 
@@ -14,49 +14,49 @@ function parser_stmt ()
     if false then
 
     -- var x = 10
-    elseif accept("key","val") or accept("key","var") then
+    elseif accept("val") or accept("var") then
         local tk = TK0
-        local id = accept_err("var")
-        local set = accept("op","=") and parser_expr() or nil
+        local id = accept_err(nil,"var")
+        local set = accept("=") and parser_expr() or nil
         return { tag="dcl", tk=tk, id=id, set=set }
 
     -- set x = 10
-    elseif accept("key","set") then
+    elseif accept("set") then
         local dst = parser_expr()
-        accept_err("op", "=")
+        accept_err("=")
         local src = parser_expr()
         return { tag="set", dst=dst, src=src }
 
     -- do { ... }, defer { ... }
-    elseif accept("key","do") then
-        local tag = accept("tag")
+    elseif accept("do") then
+        local tag = accept(nil,"tag")
         local ss  = parser_curly()
         return { tag="block", esc=tag, ss=ss }
-    elseif accept("key","defer") then
+    elseif accept("defer") then
         local ss = parser_curly()
         return { tag="defer", blk={tag="block",ss=ss} }
 
     -- escape(:X), return(10)
-    elseif accept("key","escape") then
-        accept_err("sym",'(')
+    elseif accept("escape") then
+        accept_err('(')
         local e = parser_expr()
-        accept_err("sym",')')
+        accept_err(')')
         return { tag="escape", e=e }
-    elseif accept("key","return") then
-        accept_err("sym",'(')
+    elseif accept("return") then
+        accept_err('(')
         local e = parser_expr()
-        accept_err("sym",')')
+        accept_err(')')
         return { tag="return", e=e }
 
     -- catch, throw
-    elseif accept("key","catch") then
-        local tag = accept_err("tag")
+    elseif accept("catch") then
+        local tag = accept_err(nil,"tag")
         local ss  = parser_curly()
         return { tag="catch", esc=tag, blk={tag="block",ss=ss} }
-    elseif accept("key","throw") then
-        accept_err("sym",'(')
+    elseif accept("throw") then
+        accept_err('(')
         local e = parser_expr()
-        accept_err("sym",')')
+        accept_err(')')
         return { tag="throw", e=e }
 
     -- call: f()

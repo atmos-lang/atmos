@@ -3,42 +3,42 @@ function parser ()
     TK1 = LEX()
 end
 
-function check (tag, str)
+function check (str, tag)
     return (tag==nil or TK1.tag==tag) and (str==nil or TK1.str==str) and TK1 or nil
 end
-function check_err (tag, str)
-    local tk = check(tag, str)
+function check_err (str, tag)
+    local tk = check(str, tag)
     if not tk then
         err(TK1, "expected "..((str and "'"..str.."'") or (tag and '<'..tag..'>')))
     end
     return tk
 end
-function accept (tag, str)
-    local tk = check(tag, str)
+function accept (str, tag)
+    local tk = check(str, tag)
     if tk then
         parser()
     end
     return tk
 end
-function accept_err (tag, str)
-    local tk = check_err(tag, str)
+function accept_err (str, tag)
+    local tk = check_err(str, tag)
     parser()
     return tk
 end
 
 function parser_list (sep, clo, f)
     local l = {}
-    if check(nil,clo) then
+    if check(clo) then
         return l
     end
     l[#l+1] = f()
     while true do
-        if check(nil,clo) then
+        if check(clo) then
             return l
         end
         if sep then
-            local x = accept_err(nil, sep)
-            if check(nil,clo) then
+            local x = accept_err(sep)
+            if check(clo) then
                 return l
             end
         end
