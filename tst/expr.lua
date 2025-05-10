@@ -84,10 +84,10 @@ do
     lexer_string("anon", src)
     parser()
     local e1 = parser_expr()
-    assert(xtostring(e1) == "{ tag=tag, tk={ hier={ x }, lin=1, str=:x, tag=tag } }")
+    assert(xtostring(e1) == "{ tag=tag, tk={ lin=1, str=:x, tag=tag } }")
     local e2 = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e2) == "{ tag=tag, tk={ hier={ 1, _ }, lin=1, str=:1:_, tag=tag } }")
+    assert(xtostring(e2) == "{ tag=tag, tk={ lin=1, str=:1:_, tag=tag } }")
 end
 
 -- UNO

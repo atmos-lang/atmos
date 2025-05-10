@@ -109,11 +109,13 @@ local function _lexer_ (str)
         -- tags:  :X  :a:b:c
         elseif c == ':' then
             local tag = read_while(":", M"[%w_:]")
+            --[[
             local hier = {}
             for x in string.gmatch(tag, ":([^:]*)") do
                 hier[#hier+1] = x
             end
-            coroutine.yield { tag="tag", str=tag, hier=hier, lin=LIN }
+            ]]
+            coroutine.yield { tag="tag", str=tag, lin=LIN }
 
         -- keywords:  await  if
         -- variables:  x  a_10

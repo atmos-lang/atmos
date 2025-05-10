@@ -30,6 +30,16 @@ function parser_expr_prim_1 ()
         accept_err(")")
         return e
 
+    -- [ ... ]
+--[[
+    elseif accept("[") then
+        local vs = parser_list(",", "]", function ()
+            field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
+        end)
+        accept_err("]")
+        return { tag="table", vs=vs }
+]]
+
     -- coro(f), task(T), tasks(n)
     elseif accept("coro") or accept("task") or accept("tasks") then
         local f = { tag="var", tk={tag="var", str=TK0.str} }
@@ -42,7 +52,7 @@ function parser_expr_prim_1 ()
     elseif accept("yield") or accept("emit") then
         local f = { tag="var", tk={tag="var", str=TK0.str} }
         accept_err("(")
-        local args = parser_list(",", ")", function () return parser_expr() end)
+        local args = parser_list(",", ")", parser_expr)
         accept_err(")")
         return { tag="call", f=f, args=args }
 
@@ -97,7 +107,7 @@ function parser_expr_suf_2 (pre)
 
     local ret = nil
     if sym.str == '(' then
-        local args = parser_list(",", ")", function () return parser_expr() end)
+        local args = parser_list(",", ")", parser_expr)
         accept_err(')')
         ret = { tag="call", f=e, args=args }
     else

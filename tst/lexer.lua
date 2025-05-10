@@ -180,9 +180,9 @@ do
     local src = ":X :a:X:1 ::"
     print("Testing...", src)
     lexer_string("anon", src)
-    assert(xtostring(LEX()) == "{ hier={ X }, lin=1, str=:X, tag=tag }")
-    assert(xtostring(LEX()) == "{ hier={ a, X, 1 }, lin=1, str=:a:X:1, tag=tag }")
-    assert(xtostring(LEX()) == "{ hier={ ,  }, lin=1, str=::, tag=tag }")
+    assert(xtostring(LEX()) == "{ lin=1, str=:X, tag=tag }")
+    assert(xtostring(LEX()) == "{ lin=1, str=:a:X:1, tag=tag }")
+    assert(xtostring(LEX()) == "{ lin=1, str=::, tag=tag }")
 
     local src = ":()"
     print("Testing...", src)
