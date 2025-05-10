@@ -219,3 +219,31 @@ do
     local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near '1' : expected <var>")
 end
+
+-- EXEC / CORO / TASK / TASKS
+
+do
+    local src = "coro(f)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("eof"))
+    assert(xtostring(e) == "{ e={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=exec, tk={ lin=1, str=coro, tag=key } }")
+
+    local src = "task(T)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("eof"))
+    assert(tostr_expr(e) == "task(T)")
+
+    local src = "tasks(10)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("eof"))
+    assert(tostr_expr(e) == "tasks(10)")
+end

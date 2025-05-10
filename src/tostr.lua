@@ -43,6 +43,8 @@ function tostr_expr (e)
         return "func (" .. pars .. ") {\n" ..
             ss ..'\n' ..
         "}"
+    elseif e.tag == "exec" then
+        return e.tk.str .. "(" .. tostr_expr(e.e) .. ")"
     else
         --print(e.tag)
         return e.tk.str

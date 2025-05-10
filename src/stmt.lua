@@ -58,6 +58,8 @@ function parser_stmt ()
         local e = parser_expr()
         accept_err("sym",')')
         return { tag="throw", e=e }
+
+    -- call: f()
     else
         local tk = TK1
         local e = parser_expr()

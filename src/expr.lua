@@ -30,6 +30,14 @@ function parser_expr_prim_1 ()
         accept_err("sym",")")
         return e
 
+    -- coro(f), task(T), tasks(n)
+    elseif accept("key","coro") or accept("key","task") or accept("key","tasks") then
+        local tk = TK0
+        accept_err("sym","(")
+        local e = parser_expr()
+        accept_err("sym",")")
+        return { tag="exec", tk=tk, e=e }
+
     -- func () { ... }
     elseif accept("key","func") then
         accept_err("sym","(")
