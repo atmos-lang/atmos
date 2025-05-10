@@ -88,7 +88,10 @@ do
     local e2 = parser_expr()
     assert(check("<eof>"))
     assert(xtostring(e2) == "{ tag=tag, tk={ lin=1, str=:1:_, tag=tag } }")
+end
 
+-- TABLE
+do
     local src = "[a]"
     print("Testing...", src)
     lexer_string("anon", src)
@@ -97,13 +100,13 @@ do
     assert(check("<eof>"))
     assert(xtostring(e) == "{ ps={ { k={ tag=num, tk={ str=1, tag=num } }, v={ tag=var, tk={ lin=1, str=a, tag=var } } } }, tag=table }")
 
-    local src = "[ v1, k2=v2, (k3,v3), v4 ]"
+    local src = "[ v1, k2=v2, (:k3,v3), v4 ]"
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(tostr_expr(e) == '[(1,v1), ("k2",v2), (k3,v3), (2,v4)]')
+    assert(tostr_expr(e) == '[(1,v1), ("k2",v2), (:k3,v3), (2,v4)]')
 
     local src = "[ ]"
     print("Testing...", src)
@@ -120,6 +123,42 @@ do
     local e = parser_expr()
     assert(check("<eof>"))
     assert(tostr_expr(e) == '[(1,[]), ("k2",[(1,1), (2,2), (3,3)]), ([(1,1)],v3)]')
+
+    local src = "[1,]"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("<eof>"))
+    assert(tostr_expr(e) == '[(1,1)]')
+
+    local src = "[{"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near '{' : expected expression")
+
+    local src = "[({"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near '{' : expected expression")
+
+    local src = "[("
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near '<eof>' : expected expression")
+
+    local src = "[(1,2]"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near ']' : expected ')'")
 end
 
 -- UNO
