@@ -220,7 +220,7 @@ do
     assert(not ok and msg=="anon : line 1 : near '1' : expected <var>")
 end
 
--- EXEC / CORO / TASK / TASKS
+-- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME
 
 do
     local src = "coro(f)"
@@ -229,7 +229,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("eof"))
-    assert(xtostring(e) == "{ e={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=exec, tk={ lin=1, str=coro, tag=key } }")
+    assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=f, tag=var } } }, f={ tag=var, tk={ lin=1, str=coro, tag=var } }, tag=call }")
 
     local src = "task(T)"
     print("Testing...", src)
@@ -246,4 +246,35 @@ do
     local e = parser_expr()
     assert(check("eof"))
     assert(tostr_expr(e) == "tasks(10)")
+
+    local src = "yield(x,10)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("eof"))
+    assert(tostr_expr(e) == "yield(x, 10)")
+
+    local src = "resume co()"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("eof"))
+    assert(tostr_expr(e) == "resume(co)")
+
+    local src = "spawn T(1,2,3)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("eof"))
+    assert(tostr_expr(e) == "spawn(T, 1, 2, 3)")
+
+    local src = "spawn (x+10)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near 'spawn' : expected call")
 end

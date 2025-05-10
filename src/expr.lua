@@ -32,11 +32,30 @@ function parser_expr_prim_1 ()
 
     -- coro(f), task(T), tasks(n)
     elseif accept("key","coro") or accept("key","task") or accept("key","tasks") then
-        local tk = TK0
+        local f = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
         accept_err("sym","(")
         local e = parser_expr()
         accept_err("sym",")")
-        return { tag="exec", tk=tk, e=e }
+        return { tag="call", f=f, args={e} }
+
+    -- yield(...)
+    elseif accept("key","yield") then
+        local f = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
+        accept_err("sym","(")
+        local args = parser_list(",", ")", function () return parser_expr() end)
+        accept_err("sym",")")
+        return { tag="call", f=f, args=args }
+
+    -- resume co(...), spawn T(...)
+    elseif accept("key","resume") or accept("key","spawn") then
+        local tk = TK0
+        local cmd = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
+        local call = parser_expr()
+        if call.tag ~= "call" then
+            err(tk, "expected call")
+        end
+        table.insert(call.args, 1, call.f)
+        return { tag="call", f=cmd, args=call.args }
 
     -- func () { ... }
     elseif accept("key","func") then
