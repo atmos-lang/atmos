@@ -198,7 +198,7 @@ do
     assert(check("eof"))
     assert(tostr_expr(e) == trim [[
         func (x, y) {
-        return((x + y))
+            return((x + y))
         }(1, 2)
     ]])
 
@@ -277,4 +277,16 @@ do
     parser()
     local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near 'spawn' : expected call")
+
+    local src = "await(:X, x+10)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("eof"))
+    assert(tostr_expr(e) == trim [[
+        await(:X, func (it) {
+            return((x + 10))
+        })
+    ]])
 end

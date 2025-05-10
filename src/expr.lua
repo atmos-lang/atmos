@@ -40,11 +40,28 @@ function parser_expr_prim_1 ()
 
     -- yield(...)
     elseif accept("key","yield") then
-        local f = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
+        local f = { tag="var", tk={tag="var", str="yield", lin=TK0.lin} }
         accept_err("sym","(")
         local args = parser_list(",", ")", function () return parser_expr() end)
         accept_err("sym",")")
         return { tag="call", f=f, args=args }
+
+    -- await(...)
+    elseif accept("key","await") then
+        local f = { tag="var", tk={tag="var", str="await", lin=TK0.lin} }
+        accept_err("sym","(")
+        local e, cnd = nil, nil
+        if not check("sym",")") then
+            e = parser_expr()
+            if accept("sym",",") then
+                local it = { tag="var", str="it", lin=TK0.lin }
+                local e = parser_expr()
+                local ret = { tag="return", e=e }
+                cnd = { tag="func", pars={it}, blk={tag="block",ss={ret}} }
+            end
+        end
+        accept_err("sym",")")
+        return { tag="call", f=f, args={e,cnd} }
 
     -- resume co(...), spawn T(...)
     elseif accept("key","resume") or accept("key","spawn") then

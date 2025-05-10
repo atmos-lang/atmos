@@ -1,6 +1,5 @@
 function trim (s)
-    local spc = string.match(s, "^(%s*)")
-    return s:gsub("^"..spc,""):gsub("\n"..spc,"\n"):gsub("%s*$","")
+    return s:gsub("^%s*",""):gsub("\n%s*","\n"):gsub("%s*$","")
 end
 
 function contains (t, v)

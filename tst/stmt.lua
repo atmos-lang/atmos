@@ -33,7 +33,7 @@ do
     local s = parser_stmt()
     assert(tostr_stmt(s) == trim [[
         do {
-        var x
+            var x
         }
     ]])
 
@@ -45,7 +45,7 @@ do
     assert(check("eof"))
     assert(tostr_stmt(s) == trim [[
         do :X {
-        escape(:X)
+            escape(:X)
         }
     ]])
 
@@ -57,8 +57,8 @@ do
     assert(check("eof"))
     assert(tostr_stmt(s) == trim [[
         defer {
-        var x
-        f(1)
+            var x
+            f(1)
         }
     ]])
 end
