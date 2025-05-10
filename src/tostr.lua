@@ -31,7 +31,16 @@ function tostr_stmt (s)
 end
 
 function tostr_expr (e)
-    if e.tag == "uno" then
+    if e.tag=="nil" or e.tag=="bool" or e.tag=="tag" or e.tag=="num" or e.tag=="var" then
+        return e.tk.str
+    elseif e.tag == "str" then
+        return '"' .. e.tk.str .. '"'
+    elseif e.tag == "table" then
+        local ps = concat(", ", map(e.ps, function (t)
+            return '['..tostr_expr(t.k)..']='..tostr_expr(t.v)
+        end))
+        return '[ ' .. ps .. ' ]'
+    elseif e.tag == "uno" then
         return '('..e.op.str..tostr_expr(e.e)..')'
     elseif e.tag == "bin" then
         return '('..tostr_expr(e.e1)..' '..e.op.str..' '..tostr_expr(e.e2)..')'
@@ -46,7 +55,7 @@ function tostr_expr (e)
     elseif e.tag == "exec" then
         return e.tk.str .. "(" .. tostr_expr(e.e) .. ")"
     else
-        --print(e.tag)
-        return e.tk.str
+        print(e.tag)
+        error("TODO")
     end
 end

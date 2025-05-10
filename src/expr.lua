@@ -33,7 +33,7 @@ function parser_expr_prim_1 ()
     -- [ ... ]
     elseif accept("[") then
         local idx = 1
-        local vs = parser_list(",", "]", function ()
+        local ps = parser_list(",", "]", function ()
             local key
             if accept("[") then
                 key = parser_expr()
@@ -41,13 +41,14 @@ function parser_expr_prim_1 ()
                 accept_err("=")
                 val = parser_expr()
             elseif accept(nil,"var") then
+                local id = TK0
                 if accept("=") then
-                    key = { tag="str", tk=TK0 }
+                    key = { tag="str", tk=id }
                     val = parser_expr()
                 else
                     key = { tag="num", tk={tag="num",str=tostring(idx)} }
                     idx = idx + 1
-                    val = { tag="var", tk=TK0 }
+                    val = { tag="var", tk=id }
                 end
             else
                 key = { tag="num", tk={tag="num",str=tostring(idx)} }
@@ -57,7 +58,7 @@ function parser_expr_prim_1 ()
             return { k=key, v=val }
         end)
         accept_err("]")
-        return { tag="table", vs=vs }
+        return { tag="table", ps=ps }
 
     -- coro(f), task(T), tasks(n)
     elseif accept("coro") or accept("task") or accept("tasks") then
