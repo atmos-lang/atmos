@@ -55,7 +55,7 @@ do
     ]]
     print("Testing...", "block 4")
     local out = exec_string("anon.atm", src)
-    assert(match(out, "no visible label 'Y' for %<goto%> at line 2"))
+    assert(match(out, "no visible label 'Y' for %<goto%> at line"))
 
     local src = [[
         val a = 1
@@ -192,4 +192,25 @@ do
     print("Testing...", "catch 1")
     local out = exec_string("anon.atm", src)
     assert(out == ":1\n:2\n:3\n:6\n")
+end
+
+-- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME
+
+do
+    local src = [[
+        val F = func (a) {
+            val b = yield(10)
+            val c = yield()
+            print(a, b, c)
+            return(20)
+        }
+        val f = coro(F)
+        val a = resume f(1)
+        val b = resume f(nil)
+        val c = resume f(2)
+        print(a, b, c)
+    ]]
+    print("Testing...", "coro 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == "1\tnil\t2\ntrue\ttrue\ttrue\n")
 end

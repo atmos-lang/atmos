@@ -4,6 +4,7 @@ function exec_string (file, src)
     local ss = parser_list(null, "<eof>", parser_stmt)
 
     local f = assert(io.open(file..".lua", "w"))
+    f:write("require 'prelude'\n")
     f:write(coder_stmts(ss))
     f:close()
 
