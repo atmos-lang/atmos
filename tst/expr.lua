@@ -290,3 +290,5 @@ do
         })
     ]])
 end
+
+error "TODO - emit"
