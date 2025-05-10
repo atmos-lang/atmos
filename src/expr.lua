@@ -50,15 +50,13 @@ function parser_expr_prim_1 ()
     elseif accept("key","await") then
         local f = { tag="var", tk={tag="var", str="await", lin=TK0.lin} }
         accept_err("sym","(")
-        local e, cnd = nil, nil
-        if not check("sym",")") then
-            e = parser_expr()
-            if accept("sym",",") then
-                local it = { tag="var", str="it", lin=TK0.lin }
-                local e = parser_expr()
-                local ret = { tag="return", e=e }
-                cnd = { tag="func", pars={it}, blk={tag="block",ss={ret}} }
-            end
+        local cnd = nil
+        local e = parser_expr()
+        if accept("sym",",") then
+            local it = { tag="var", str="it", lin=TK0.lin }
+            local e = parser_expr()
+            local ret = { tag="return", e=e }
+            cnd = { tag="func", pars={it}, blk={tag="block",ss={ret}} }
         end
         accept_err("sym",")")
         return { tag="call", f=f, args={e,cnd} }
