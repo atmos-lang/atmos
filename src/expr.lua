@@ -38,9 +38,9 @@ function parser_expr_prim_1 ()
         accept_err("sym",")")
         return { tag="call", f=f, args={e} }
 
-    -- yield(...)
-    elseif accept("key","yield") then
-        local f = { tag="var", tk={tag="var", str="yield", lin=TK0.lin} }
+    -- yield(...), emit(...)
+    elseif accept("key","yield") or accept("key","emit") then
+        local f = { tag="var", tk={tag="var", str=TK0.str, lin=TK0.lin} }
         accept_err("sym","(")
         local args = parser_list(",", ")", function () return parser_expr() end)
         accept_err("sym",")")

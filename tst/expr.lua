@@ -255,6 +255,14 @@ do
     assert(check("eof"))
     assert(tostr_expr(e) == "yield(x, 10)")
 
+    local src = "emit(:X,10)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("eof"))
+    assert(tostr_expr(e) == "emit(:X, 10)")
+
     local src = "resume co()"
     print("Testing...", src)
     lexer_string("anon", src)
@@ -290,5 +298,3 @@ do
         })
     ]])
 end
-
-error "TODO - emit"
