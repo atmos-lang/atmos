@@ -44,6 +44,8 @@ function tostr_expr (e)
         return '('..e.op.str..tostr_expr(e.e)..')'
     elseif e.tag == "bin" then
         return '('..tostr_expr(e.e1)..' '..e.op.str..' '..tostr_expr(e.e2)..')'
+    elseif e.tag == "index" then
+        return tostr_expr(e.t)..'['..tostr_expr(e.idx)..']'
     elseif e.tag == "call" then
         return tostr_expr(e.f)..'('..concat(", ", map(e.args, tostr_expr))..')'
     elseif e.tag == "func" then

@@ -130,6 +130,14 @@ function parser_expr_suf_2 (pre)
         local args = parser_list(",", ")", parser_expr)
         accept_err(')')
         ret = { tag="call", f=e, args=args }
+    elseif sym.str == '[' then
+        local idx = parser_expr()
+        accept_err("]")
+        ret = { tag="index", t=e, idx=idx }
+    elseif sym.str == '.' then
+        local id = accept_err(nil,"var")
+        local idx = { tag="str", tk=id }
+        ret = { tag="index", t=e, idx=idx }
     else
         error("TODO")
     end

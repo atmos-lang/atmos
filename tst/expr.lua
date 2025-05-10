@@ -159,6 +159,22 @@ do
     parser()
     local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near ']' : expected ')'")
+
+    local src = "x[1]"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("<eof>"))
+    assert(xtostring(e) == "{ idx={ tag=num, tk={ lin=1, str=1, tag=num } }, t={ tag=var, tk={ lin=1, str=x, tag=var } }, tag=index }")
+
+    local src = "x.a"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check("<eof>"))
+    assert(tostr_expr(e) == 'x["a"]')
 end
 
 -- UNO
