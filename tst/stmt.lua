@@ -296,4 +296,15 @@ do
     local s = parser_stmt()
     assert(check('<eof>'))
     assert(xtostring(s) == "{ blk={ ss={  }, tag=block }, esc={ lin=1, str=:X, tag=tag }, tag=catch }")
+
+    local src = "catch { }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check('<eof>'))
+    assert(trim(tostr_stmt(s)) == trim [[
+        catch {
+        }
+    ]])
 end

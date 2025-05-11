@@ -105,7 +105,7 @@ function parser_stmt ()
 
     -- catch, throw
     elseif accept('catch') then
-        local tag = accept_err(nil,'tag')
+        local tag = accept(nil,'tag')
         local ss  = parser_curly()
         return { tag='catch', esc=tag, blk={tag='block',ss=ss} }
     elseif accept('throw') then

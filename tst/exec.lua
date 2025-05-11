@@ -326,6 +326,19 @@ do
 
     local src = [[
         print(:1)
+        catch {
+            print(:2)
+            throw(:X)
+            print(:3)
+        }
+        print(:4)
+    ]]
+    print("Testing...", "catch 2")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\n:2\n:4\n")
+
+    local src = [[
+        print(:1)
         catch :Y {
             print(:2)
             catch :X {
@@ -337,7 +350,7 @@ do
         }
         print(:6)
     ]]
-    print("Testing...", "catch 2")
+    print("Testing...", "catch 3")
     local out = exec_string("anon.atm", src)
     assert(out == ":1\n:2\n:3\n:6\n")
 end

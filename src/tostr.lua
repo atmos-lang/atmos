@@ -33,7 +33,8 @@ function tostr_stmt (s)
     elseif s.tag == 'break' then
         return "break"
     elseif s.tag == 'catch' then
-        return "catch " .. s.esc.str .. " {\n" ..
+        local esc = s.esc and (s.esc.str..' ') or ''
+        return "catch " .. esc .. "{\n" ..
             concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == 'throw' then

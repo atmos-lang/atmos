@@ -53,13 +53,14 @@ function coder_stmt (s)
     elseif s.tag == 'catch' then
         local n = N()
         local ok, esc = "atm_ok_"..n, "atm_esc_"..n
+        local cnd = s.esc and (esc..' ~= "'..s.esc.str..'"') or "false"
         return [[
             local ]]..ok..','..esc..[[ = pcall(
                 function () ]]..
                     concat('\n', map(s.blk.ss,coder_stmt)) ..'\n' .. [[
                 end
             )
-            if not ]]..ok..' and '..esc..' ~= "'..s.esc.str..[[" then
+            if not ]] .. ok .. " and " .. cnd .. [[ then
                 error(]]..esc..[[, 0)
             end
         ]]
