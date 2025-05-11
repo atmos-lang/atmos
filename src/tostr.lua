@@ -16,6 +16,12 @@ function tostr_stmt (s)
         return "escape(" .. tostr_expr(s.e) .. ")"
     elseif s.tag == "return" then
         return "return(" .. tostr_expr(s.e) .. ")"
+    elseif s.tag == "if" then
+        return "if " .. tostr_expr(s.cnd) .. " {\n" ..
+            concat('\n', map(s.t.ss,tostr_stmt)) ..'\n' ..
+        "} else {\n" ..
+            concat('\n', map(s.f.ss,tostr_stmt)) ..'\n' ..
+        "}"
     elseif s.tag == "catch" then
         return "catch " .. s.esc.str .. " {\n" ..
             concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..

@@ -131,6 +131,44 @@ do
     assert(not ok and msg=="anon : line 1 : near '[' : expected <var>")
 end
 
+-- IF-ELSE
+
+do
+    local src = "if cnd { } else { val f }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(xtostring(s) == "{ cnd={ tag=var, tk={ lin=1, str=cnd, tag=var } }, f={ ss={ { id={ lin=1, str=f, tag=var }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, t={ ss={  }, tag=block }, tag=if }")
+
+    local src = "if true { }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(xtostring(s) == "{ cnd={ tag=bool, tk={ lin=1, str=true, tag=key } }, f={ ss={  }, tag=block }, t={ ss={  }, tag=block }, tag=if }")
+
+    local src = "if f() { if (cnd) { val x } else { val y } }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(trim(tostr_stmt(s)) == trim [[
+        if f() {
+            if cnd {
+                val x
+            } else {
+                val y
+            }
+        } else {
+
+        }
+    ]])
+end
+
 -- THROW / CATCH
 
 do

@@ -173,6 +173,23 @@ do
     assert(out == "30\n")
 end
 
+-- IF-ELSE
+
+do
+    local src = [[
+        if true {
+            print(:t)
+        }
+        if false {
+        } else {
+            print(:f)
+        }
+    ]]
+    print("Testing...", "if 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":t\n:f\n")
+end
+
 -- CATCH / THROW
 
 do

@@ -35,6 +35,12 @@ function coder_stmt (s)
         return "goto " .. s.e.tk.str:sub(2)
     elseif s.tag == "return" then
         return "return " .. coder_expr(s.e)
+    elseif s.tag == "if" then
+        return "if " .. coder_expr(s.cnd) .. " then\n" ..
+            concat('\n', map(s.t.ss,coder_stmt)) ..'\n' ..
+        "else\n" ..
+            concat('\n', map(s.f.ss,coder_stmt)) ..'\n' ..
+        "end"
     elseif s.tag == "catch" then
         local n = N()
         local ok, esc = "atm_ok_"..n, "atm_esc_"..n

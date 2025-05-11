@@ -48,6 +48,19 @@ function parser_stmt ()
         accept_err(')')
         return { tag="return", e=e }
 
+    -- if-else
+    elseif accept("if") then
+        local cnd = parser_expr()
+        local t = parser_curly()
+        local f; do
+            if accept("else") then
+                f = parser_curly()
+            else
+                f = {}
+            end
+        end
+        return { tag="if", cnd=cnd, t={tag="block",ss=t}, f={tag="block",ss=f} }
+
     -- catch, throw
     elseif accept("catch") then
         local tag = accept_err(nil,"tag")
