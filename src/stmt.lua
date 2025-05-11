@@ -79,9 +79,19 @@ function parser_stmt ()
         end
         local ss = parser_curly()
         return { tag="loop", ids=ids, itr=itr, blk={tag="block",ss=ss} }
-    -- break
+
+    -- break, until, while
     elseif accept("break") then
         return { tag="break" }
+    elseif accept("until") or accept("while") then
+        local whi = (TK0.str == "while")
+        local cnd = parser_expr()
+        local t = { tag="block", ss={{tag="break"}} }
+        local f = { tag="block", ss={} }
+        if whi then
+            t, f = f, t
+        end
+        return { tag="if", cnd=cnd, t=t, f=f }
 
     -- catch, throw
     elseif accept("catch") then

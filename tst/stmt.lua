@@ -238,6 +238,36 @@ do
         loop x {
         }
     ]])
+
+    local src = "loop { until x }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(trim(tostr_stmt(s)) == trim [[
+        loop {
+            if x {
+                break
+            } else {
+            }
+        }
+    ]])
+
+    local src = "loop { while x }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(trim(tostr_stmt(s)) == trim [[
+        loop {
+            if x {
+            } else {
+                break
+            }
+        }
+    ]])
 end
 
 -- THROW / CATCH
