@@ -4,7 +4,7 @@ require "lexer"
 require "stmt"
 require "tostr"
 
--- CALL
+-- CALL / FUNC
 
 do
     local src = "f(x,y)"
@@ -14,6 +14,15 @@ do
     local s = parser_stmt()
     assert(check("<eof>"))
     assert(xtostring(s) == "{ e={ args={ { tag=acc, tk={ lin=1, str=x, tag=id } }, { tag=acc, tk={ lin=1, str=y, tag=id } } }, f={ tag=acc, tk={ lin=1, str=f, tag=id } }, tag=call }, tag=expr }")
+
+    local src = "func f (v) { val x }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+xdump(s)
+    assert(check("<eof>"))
+    assert(xtostring(s) == "{ ids={ { lin=1, str=f, tag=id } }, sets={ { blk={ ss={ { ids={ { lin=1, str=x, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, pars={ { lin=1, str=v, tag=id } }, tag=func } }, tag=dcl, tk={ str=val, tag=key } }")
 end
 
 -- BLOCK / DO / DEFER / SEQ / ; / MAIN

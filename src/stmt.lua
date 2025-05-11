@@ -36,6 +36,16 @@ function parser_stmt ()
         local srcs = parser_list(',', nil, parser_expr)
         return { tag="set", dsts=dsts, srcs=srcs }
 
+    -- func () { ... }
+    elseif accept("func") then
+        local id = accept_err(nil,'id')
+        accept_err("(")
+        local pars = parser_ids(")")
+        accept_err(")")
+        local ss = parser_curly()
+        local f = { tag="func", pars=pars, blk={tag="block",ss=ss} }
+        return { tag='dcl', tk={tag='key',str='val'}, ids={id}, sets={f} }
+
     -- do { ... }, defer { ... }
     elseif accept("do") then
         local tag = accept(nil,"tag")
