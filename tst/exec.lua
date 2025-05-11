@@ -20,11 +20,11 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    local f = assert(io.open("/tmp/anon.lua", "w"))
+    local f = assert(io.open("/tmp/anon.lua", 'w'))
     f:write(coder_stmt(s))
     f:close()
-    local exe = assert(io.popen("lua5.4 /tmp/anon.lua", "r"))
-    local out = exe:read("a")
+    local exe = assert(io.popen("lua5.4 /tmp/anon.lua", 'r'))
+    local out = exe:read('a')
     assert(out == ":ok\n")
 
     local src = [[

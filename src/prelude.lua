@@ -50,14 +50,14 @@ function iter (v)
 end
 
 function task (f)
-    local t = { tag="task", coro=coro(f) }
+    local t = { tag='task', coro=coro(f) }
     TASKS[#TASKS+1] = t
     TASKS[t.coro] = t
     return t
 end
 
 function spawn (t, ...)
-    if type(t) == "function" then
+    if type(t) == 'function' then
         return spawn(task(t), ...)
     end
     assert(resume(t.coro, ...))

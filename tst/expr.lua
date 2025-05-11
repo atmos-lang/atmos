@@ -12,7 +12,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ tag=acc, tk={ lin=1, str=a, tag=id } }")
 
     local src = "1.5"
@@ -20,7 +20,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ tag=num, tk={ lin=1, str=1.5, tag=num } }")
 
     local src = "{"
@@ -51,7 +51,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ tag=acc, tk={ lin=1, str=a, tag=id } }")
 
     local src = " ( a "
@@ -66,7 +66,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ tag=nil, tk={ lin=1, str=nil, tag=key } }")
 
     local src = "false true"
@@ -76,7 +76,7 @@ do
     local e1 = parser_expr()
     assert(xtostring(e1) == "{ tag=bool, tk={ lin=1, str=false, tag=key } }")
     local e2 = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e2) == "{ tag=bool, tk={ lin=1, str=true, tag=key } }")
 
     local src = ":x :1:_"
@@ -86,7 +86,7 @@ do
     local e1 = parser_expr()
     assert(xtostring(e1) == "{ tag=tag, tk={ lin=1, str=:x, tag=tag } }")
     local e2 = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e2) == "{ tag=tag, tk={ lin=1, str=:1:_, tag=tag } }")
 end
 
@@ -97,7 +97,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ ps={ { k={ tag=num, tk={ str=1, tag=num } }, v={ tag=acc, tk={ lin=1, str=a, tag=id } } } }, tag=table }")
 
     local src = "[ v1, k2=v2, (:k3,v3), v4 ]"
@@ -105,7 +105,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == '[(1,v1), ("k2",v2), (:k3,v3), (2,v4)]')
 
     local src = "[ ]"
@@ -113,7 +113,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == '[]')
 
     local src = "[ [], k2=[1,2,3], ([1],v3) ]"
@@ -121,7 +121,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == '[(1,[]), ("k2",[(1,1), (2,2), (3,3)]), ([(1,1)],v3)]')
 
     local src = "[1,]"
@@ -129,7 +129,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == '[(1,1)]')
 
     local src = "[{"
@@ -165,7 +165,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ idx={ tag=num, tk={ lin=1, str=1, tag=num } }, t={ tag=acc, tk={ lin=1, str=x, tag=id } }, tag=index }")
 
     local src = "x.a"
@@ -173,7 +173,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == 'x["a"]')
 
     local src = "t[1"
@@ -202,7 +202,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == 'x[1]()["a"]')
 
     local src = "#t"
@@ -210,7 +210,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ e={ tag=acc, tk={ lin=1, str=t, tag=id } }, op={ lin=1, str=#, tag=op }, tag=uno }")
 end
 
@@ -222,7 +222,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ e={ tag=acc, tk={ lin=1, str=v, tag=id } }, op={ lin=1, str=#, tag=op }, tag=uno }")
 
     local src = "! - x"
@@ -230,7 +230,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == "(!(-x))")
 end
 
@@ -242,7 +242,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ e1={ tag=acc, tk={ lin=1, str=a, tag=id } }, e2={ tag=num, tk={ lin=1, str=10, tag=num } }, op={ lin=1, str=+, tag=op }, tag=bin }")
 
     local src = "2 + 3 - 1"
@@ -257,7 +257,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == "(2 * (a - 1))")
 
     local src = "2 == -1"
@@ -265,7 +265,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == "(2 == (-1))")
 
     local src = "- -1"
@@ -273,7 +273,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == "(-(-1))")
 
     local src = "(10+)"
@@ -292,7 +292,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ args={ { tag=acc, tk={ lin=1, str=x, tag=id } }, { tag=acc, tk={ lin=1, str=y, tag=id } } }, f={ tag=acc, tk={ lin=1, str=f, tag=id } }, tag=call }")
     assert(tostr_expr(e) == "f(x, y)")
 
@@ -319,7 +319,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == trim [[
         func (x, y) {
             return((x + y))
@@ -333,7 +333,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ args={  }, f={ args={  }, f={ tag=acc, tk={ lin=1, str=f, tag=id } }, tag=call }, tag=call }")
 
     local src = "func (1) {}"
@@ -352,7 +352,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(xtostring(e) == "{ args={ { tag=acc, tk={ lin=1, str=f, tag=id } } }, f={ tag=acc, tk={ str=coro, tag=id } }, tag=call }")
 
     local src = "task(T)"
@@ -360,7 +360,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == "task(T)")
 
     local src = "tasks(10)"
@@ -368,7 +368,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == "tasks(10)")
 
     local src = "yield(x,10)"
@@ -376,7 +376,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == "yield(x, 10)")
 
     local src = "emit(:X,10)"
@@ -384,7 +384,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == "emit(:X, 10)")
 
     local src = "resume co()"
@@ -392,7 +392,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == "resume(co)")
 
     local src = "spawn T(1,2,3)"
@@ -400,7 +400,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == "spawn(T, 1, 2, 3)")
 
     local src = "spawn (x+10)"
@@ -415,7 +415,7 @@ do
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
-    assert(check("<eof>"))
+    assert(check('<eof>'))
     assert(tostr_expr(e) == trim [[
         await(:X, func (it) {
             return((x + 10))

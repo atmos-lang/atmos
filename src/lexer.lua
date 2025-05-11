@@ -86,7 +86,7 @@ local function _lexer_ (str)
                         end
                         repeat
                             if not read_until("", C';') then
-                                err({str="<eof>",lin=LIN}, "unterminated comment")
+                                err({str='<eof>',lin=LIN}, "unterminated comment")
                             end
                             s = read_while("", C';')
                         until #s>2 and #s>=#stk[#stk]
@@ -138,7 +138,7 @@ local function _lexer_ (str)
 
         -- eof
         elseif c == '\0' then
-            coroutine.yield { tag="eof", str="<eof>", lin=LIN }
+            coroutine.yield { tag="eof", str='<eof>', lin=LIN }
 
         -- error
         else

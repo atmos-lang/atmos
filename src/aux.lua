@@ -12,14 +12,14 @@ function contains (t, v)
 end
 
 function xtostring (v)
-    if type(v) ~= "table" then
+    if type(v) ~= 'table' then
         return tostring(v)
     else
         local fst = true
         local vs = ""
         local t = {}
         for k,x in pairs(v) do
-            assert(type(k)=="number" or type(k)=="string")
+            assert(type(k)=='number' or type(k)=='string')
             t[#t+1] = { k, x }
         end
         table.sort(t, function (x, y) return (tostring(x[1]) < tostring(y[1])) end)
@@ -41,7 +41,7 @@ end
 
 function xdump (...)
     local ret = {}
-    for i=1, select("#", ...) do
+    for i=1, select('#', ...) do
         ret[#ret+1] = xtostring(select(i, ...))
     end
     print(table.unpack(ret))
