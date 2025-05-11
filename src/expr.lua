@@ -102,6 +102,20 @@ function parser_expr_prim_1 ()
         table.insert(call.args, 1, call.f)
         return { tag='call', f=cmd, args=call.args }
 
+    -- throw(err)
+    elseif accept('throw') then
+        local f = { tag='acc', tk={tag='id', str="error"} }
+        accept_err('(')
+        local e; do
+            if check(')') then
+                e = { tag='nil', tk={tag='key',str='nil'} }
+            else
+                e = parser_expr()
+            end
+        end
+        accept_err(')')
+        return { tag='call', f=f, args={e, {tag='num',tk={str="0"}}} }
+
     -- func () { ... }
     elseif accept('func') then
         accept_err('(')

@@ -103,22 +103,11 @@ function parser_stmt ()
         end
         return { tag='if', cnd=cnd, t=t, f=f }
 
-    -- catch, throw
+    -- catch
     elseif accept('catch') then
         local tag = accept(nil,'tag')
         local ss  = parser_curly()
         return { tag='catch', esc=tag, blk={tag='block',ss=ss} }
-    elseif accept('throw') then
-        accept_err('(')
-        local e; do
-            if check(')') then
-                e = { tag='nil', tk={tag='key',str='nil'} }
-            else
-                e = parser_expr()
-            end
-        end
-        accept_err(')')
-        return { tag='throw', e=e }
 
     -- call: f()
     else

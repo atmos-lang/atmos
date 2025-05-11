@@ -284,7 +284,7 @@ do
     assert(not ok and msg=="anon : line 1 : near ')' : expected expression")
 end
 
--- CALL / FUNC / RETURN
+-- CALL / FUNC / RETURN / THROW
 
 do
     local src = "f(x,y)"
@@ -342,6 +342,14 @@ do
     parser()
     local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near '1' : expected <id>")
+
+    local src = "throw(:X)"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_expr()
+    assert(xtostring(s) == "{ args={ { tag=tag, tk={ lin=1, str=:X, tag=tag } }, { tag=num, tk={ str=0 } } }, f={ tag=acc, tk={ str=error, tag=id } }, tag=call }")
+
 end
 
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME

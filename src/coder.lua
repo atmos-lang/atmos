@@ -64,8 +64,6 @@ function coder_stmt (s)
                 error(]]..esc..[[, 0)
             end
         ]]
-    elseif s.tag == 'throw' then
-        return "error(" .. coder_expr(s.e) .. ", 0)"
     elseif s.tag == 'expr' then
         return coder_expr(s.e)
     else

@@ -279,16 +279,9 @@ do
     ]])
 end
 
--- THROW / CATCH
+-- CATCH
 
 do
-    local src = "throw(:X)"
-    print("Testing...", src)
-    lexer_string("anon", src)
-    parser()
-    local s = parser_stmt()
-    assert(xtostring(s) == "{ e={ tag=tag, tk={ lin=1, str=:X, tag=tag } }, tag=throw }")
-
     local src = "catch :X { }"
     print("Testing...", src)
     lexer_string("anon", src)

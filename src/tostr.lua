@@ -37,8 +37,6 @@ function tostr_stmt (s)
         return "catch " .. esc .. "{\n" ..
             concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
         "}"
-    elseif s.tag == 'throw' then
-        return "throw(" .. tostr_expr(s.e) .. ")"
     elseif s.tag == 'expr' then
         return tostr_expr(s.e)
     else
