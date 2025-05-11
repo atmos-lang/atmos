@@ -4,6 +4,13 @@ yield  = coroutine.yield
 
 local TASKS = {}
 
+function atm_idx (idx)
+    if type(idx) == 'number' then
+        idx = idx + 1
+    end
+    return idx
+end
+
 function task (f)
     local t = { tag="task", coro=coro(f) }
     TASKS[#TASKS+1] = t

@@ -35,17 +35,17 @@ function tostr_expr (e)
         return e.tk.str
     elseif e.tag == "str" then
         return '"' .. e.tk.str .. '"'
-    elseif e.tag == "table" then
-        local ps = concat(", ", map(e.ps, function (t)
-            return '('..tostr_expr(t.k)..','..tostr_expr(t.v)..')'
-        end))
-        return '[' .. ps .. ']'
     elseif e.tag == "uno" then
         return '('..e.op.str..tostr_expr(e.e)..')'
     elseif e.tag == "bin" then
         return '('..tostr_expr(e.e1)..' '..e.op.str..' '..tostr_expr(e.e2)..')'
     elseif e.tag == "index" then
         return tostr_expr(e.t)..'['..tostr_expr(e.idx)..']'
+    elseif e.tag == "table" then
+        local ps = concat(", ", map(e.ps, function (t)
+            return '('..tostr_expr(t.k)..','..tostr_expr(t.v)..')'
+        end))
+        return '[' .. ps .. ']'
     elseif e.tag == "call" then
         return tostr_expr(e.f)..'('..concat(", ", map(e.args, tostr_expr))..')'
     elseif e.tag == "func" then

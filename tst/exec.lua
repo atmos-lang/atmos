@@ -120,6 +120,19 @@ do
     assert(match(out, "attempt to assign to const variable 'x'"))
 end
 
+-- TABLE / INDEX
+
+do
+    local src = [[
+        val t = [1, x=10, (:y,20)]
+        print(t[0], t.x, t[:y])
+    ]]
+    print("Testing...", "table 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == "1\t10\t20\n")
+
+end
+
 -- CALL / FUNC / RETURN
 
 do

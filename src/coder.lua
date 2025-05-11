@@ -60,6 +60,13 @@ end
 function coder_expr (e)
     if e.tag == "tag" then
         return '"'..e.tk.str..'"'
+    elseif e.tag == "index" then
+        return coder_expr(e.t) .. '[atm_idx(' .. coder_expr(e.idx) .. ')]'
+    elseif e.tag == "table" then
+        local ps = concat(", ", map(e.ps, function (t)
+            return '['..coder_expr(t.k)..'] = '..coder_expr(t.v)
+        end))
+        return '{' .. ps .. '}'
     elseif e.tag == "call" then
         return coder_expr(e.f)..'('..concat(", ", map(e.args, coder_expr))..')'
     elseif e.tag == "func" then
