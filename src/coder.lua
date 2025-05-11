@@ -43,7 +43,9 @@ function coder_stmt (s)
             concat('\n', map(s.f.ss,coder_stmt)) ..'\n' ..
         "end"
     elseif s.tag == "loop" then
-        return "while true do\n" ..
+        local ids = concat(', ', map(s.ids or {{str="_"}}, function(id) return id.str end))
+        local itr = s.itr and coder_expr(s.itr) or ''
+        return "for " .. ids .. " in iter(" .. itr .. ") do\n" ..
             concat('\n', map(s.blk.ss,coder_stmt)) ..'\n' ..
         "end"
     elseif s.tag == "break" then

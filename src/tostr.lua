@@ -25,7 +25,9 @@ function tostr_stmt (s)
             concat('\n', map(s.f.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == "loop" then
-        return "loop {\n" ..
+        local ids = s.ids and (' '..concat(', ', map(s.ids, function(id) return id.str end))) or ''
+        local itr = s.itr and ' in '..tostr_expr(s.itr) or ''
+        return "loop" .. ids .. itr .. " {\n" ..
             concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == "break" then

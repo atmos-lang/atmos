@@ -16,9 +16,7 @@ function parser_stmt ()
     -- var x = 10
     elseif accept("val") or accept("var") then
         local tk = TK0
-        local ids = parser_list(',', '=', function ()
-            return accept_err(nil,"id")
-        end)
+        local ids = parser_ids('=')
         local sets = accept("=") and parser_list(',', nil, parser_expr)
         return { tag="dcl", tk=tk, ids=ids, sets=sets }
 
@@ -74,8 +72,13 @@ function parser_stmt ()
 
     -- loop
     elseif accept("loop") then
+        local ids = check(nil,"id") and parser_ids('=') or nil
+        local itr = nil
+        if accept('in') then
+            itr = parser_expr()
+        end
         local ss = parser_curly()
-        return { tag="loop", blk={tag="block",ss=ss} }
+        return { tag="loop", ids=ids, itr=itr, blk={tag="block",ss=ss} }
     -- break
     elseif accept("break") then
         return { tag="break" }

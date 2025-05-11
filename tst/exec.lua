@@ -147,6 +147,15 @@ do
     print("Testing...", "set 1: multi")
     local out = exec_string("anon.atm", src)
     assert(out == "10\t20\tnil\n")
+
+    local src = [[
+        val x, y, z = 10, 20
+        set x, y = y, x, z
+        print(x, y, z)
+    ]]
+    print("Testing...", "set 1: multi")
+    local out = exec_string("anon.atm", src)
+    assert(out == "20\t10\tnil\n")
 end
 
 -- TABLE / INDEX
@@ -247,6 +256,56 @@ do
     print("Testing...", "loop 1")
     local out = exec_string("anon.atm", src)
     assert(out == ":1\n:2\n:4\n")
+
+    local src = [[
+        loop x {
+            print(x)
+            if x == 2 {
+                break
+            }
+        }
+    ]]
+    print("Testing...", "loop 2")
+    local out = exec_string("anon.atm", src)
+    assert(out == "0\n1\n2\n")
+
+    local src = [[
+        loop x in 2 {
+            print(x)
+        }
+    ]]
+    print("Testing...", "loop 3")
+    local out = exec_string("anon.atm", src)
+    assert(out == "0\n1\n")
+
+    local src = [[
+        print(:1)
+        loop x in (func () { return(nil) }) {
+            print(x)
+        }
+        print(:2)
+    ]]
+    print("Testing...", "loop 4")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\n:2\n")
+
+    local src = [[
+        loop i,v in [1,2,3] {
+            print(i,v)
+        }
+    ]]
+    print("Testing...", "loop 5")
+    local out = exec_string("anon.atm", src)
+    assert(out == "0\t1\n1\t2\n2\t3\n")
+
+    local src = [[
+        loop k,v in [x=1,y=2] {
+            print(k,v)
+        }
+    ]]
+    print("Testing...", "loop 6")
+    local out = exec_string("anon.atm", src)
+    assert(out=="x\t1\ny\t2\n" or "y\t2\nx\t1\n")
 end
 
 -- CATCH / THROW

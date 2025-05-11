@@ -205,6 +205,39 @@ do
     local s = parser_stmt()
     assert(check("<eof>"))
     assert(xtostring(s) == "{ blk={ ss={ { tag=break } }, tag=block }, tag=loop }")
+
+    local src = "loop x in f() {}"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(trim(tostr_stmt(s)) == trim [[
+        loop x in f() {
+        }
+    ]])
+
+    local src = "loop in f() {}"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(trim(tostr_stmt(s)) == trim [[
+        loop in f() {
+        }
+    ]])
+
+    local src = "loop x {}"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(trim(tostr_stmt(s)) == trim [[
+        loop x {
+        }
+    ]])
 end
 
 -- THROW / CATCH
