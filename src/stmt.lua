@@ -70,3 +70,9 @@ function parser_stmt ()
         end
     end
 end
+
+function parser_main ()
+    local ss = parser_list(null, "<eof>", parser_stmt)
+    accept_err("<eof>")
+    return { tag="block", ss=ss }
+end

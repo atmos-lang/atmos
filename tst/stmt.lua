@@ -16,7 +16,7 @@ do
     assert(xtostring(s) == "{ e={ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }, tag=expr }")
 end
 
--- BLOCK / DO / DEFER
+-- BLOCK / DO / DEFER / SEQ / ; / MAIN
 
 do
     local src = "do {}"
@@ -61,6 +61,40 @@ do
             f(1)
         }
     ]])
+
+    local src = "defer { var x ; f(1) }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(tostr_stmt(s) == trim [[
+        defer {
+            var x
+            f(1)
+        }
+    ]])
+
+    local src = "; f () ; g () h()\ni() ;\n;"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_main()
+    assert(tostr_stmt(s) == trim [[
+        do {
+            f()
+            g()
+            h()
+            i()
+        }
+    ]])
+
+    local src = "var v2 ; [tp,v1,v2]"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_main)
+    assert(not ok and msg=="anon : line 1 : near '[' : expected statement")
 end
 
 -- DCL / VAL / VAR / SET
@@ -88,6 +122,13 @@ do
     local s = parser_stmt()
     assert(check("<eof>"))
     assert(xtostring(s) == "{ id={ lin=1, str=y, tag=var }, set={ tag=num, tk={ lin=1, str=10, tag=num } }, tag=dcl, tk={ lin=1, str=var, tag=key } }")
+
+    local src = "val [10]"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_stmt)
+    assert(not ok and msg=="anon : line 1 : near '[' : expected <var>")
 end
 
 -- THROW / CATCH
