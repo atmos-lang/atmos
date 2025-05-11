@@ -129,6 +129,20 @@ do
     parser()
     local ok, msg = pcall(parser_stmt)
     assert(not ok and msg=="anon : line 1 : near '[' : expected <id>")
+
+    local src = "set 1 = 1"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_stmt)
+    assert(not ok and msg=="anon : line 1 : near '1' : expected assignable expression")
+
+    local src = "set [1] = 1"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_stmt)
+    assert(not ok and msg=="anon : line 1 : near '[' : expected assignable expression")
 end
 
 -- IF-ELSE
