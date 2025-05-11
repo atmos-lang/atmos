@@ -21,8 +21,8 @@ function parser_expr_prim_1 ()
         return { tag="num", tk=TK0 }
 
     -- x, __v
-    elseif accept(nil,"var") then
-        return { tag="var", tk=TK0 }
+    elseif accept(nil,"id") then
+        return { tag="acc", tk=TK0 }
 
     -- (...)
     elseif accept("(") then
@@ -40,7 +40,7 @@ function parser_expr_prim_1 ()
                 accept_err(",")
                 val = parser_expr()
                 accept_err(")")
-            elseif accept(nil,"var") then
+            elseif accept(nil,"id") then
                 local id = TK0
                 if accept("=") then
                     key = { tag="str", tk=id }
@@ -48,7 +48,7 @@ function parser_expr_prim_1 ()
                 else
                     key = { tag="num", tk={tag="num",str=tostring(idx)} }
                     idx = idx + 1
-                    val = { tag="var", tk=id }
+                    val = { tag="acc", tk=id }
                 end
             else
                 key = { tag="num", tk={tag="num",str=tostring(idx)} }
@@ -62,7 +62,7 @@ function parser_expr_prim_1 ()
 
     -- coro(f), task(T), tasks(n)
     elseif accept("coro") or accept("task") or accept("tasks") then
-        local f = { tag="var", tk={tag="var", str=TK0.str} }
+        local f = { tag="acc", tk={tag="id", str=TK0.str} }
         accept_err("(")
         local e = parser_expr()
         accept_err(")")
@@ -70,7 +70,7 @@ function parser_expr_prim_1 ()
 
     -- yield(...), emit(...)
     elseif accept("yield") or accept("emit") then
-        local f = { tag="var", tk={tag="var", str=TK0.str} }
+        local f = { tag="acc", tk={tag="id", str=TK0.str} }
         accept_err("(")
         local args = parser_list(",", ")", parser_expr)
         accept_err(")")
@@ -78,12 +78,12 @@ function parser_expr_prim_1 ()
 
     -- await(...)
     elseif accept("await") then
-        local f = { tag="var", tk={tag="var", str="await"} }
+        local f = { tag="acc", tk={tag="id", str="await"} }
         accept_err("(")
         local e = parser_expr()
         local cnd = nil
         if accept(",") then
-            local it = { tag="var", str="it" }
+            local it = { tag="id", str="it" }
             local e = parser_expr()
             local ret = { tag="return", e=e }
             cnd = { tag="func", pars={it}, blk={tag="block",ss={ret}} }
@@ -94,7 +94,7 @@ function parser_expr_prim_1 ()
     -- resume co(...), spawn T(...)
     elseif accept("resume") or accept("spawn") then
         local tk = TK0
-        local cmd = { tag="var", tk={tag="var", str=TK0.str} }
+        local cmd = { tag="acc", tk={tag="id", str=TK0.str} }
         local call = parser_expr()
         if call.tag ~= "call" then
             err(tk, "expected call")
@@ -105,7 +105,7 @@ function parser_expr_prim_1 ()
     -- func () { ... }
     elseif accept("func") then
         accept_err("(")
-        local pars = parser_list(",", ")", function () return accept_err(nil,"var") end)
+        local pars = parser_ids(")")
         accept_err(")")
         local ss = parser_curly()
         return { tag="func", pars=pars, blk={tag="block",ss=ss} }
@@ -135,7 +135,7 @@ function parser_expr_suf_2 (pre)
         accept_err("]")
         ret = { tag="index", t=e, idx=idx }
     elseif sym.str == '.' then
-        local id = accept_err(nil,"var")
+        local id = accept_err(nil,"id")
         local idx = { tag="str", tk=id }
         ret = { tag="index", t=e, idx=idx }
     else

@@ -124,7 +124,7 @@ local function _lexer_ (str)
             if contains(KEYS, id) then
                 coroutine.yield { tag="key", str=id, lin=LIN }
             else
-                coroutine.yield { tag="var", str=id, lin=LIN }
+                coroutine.yield { tag="id", str=id, lin=LIN }
             end
 
         -- numbers:  0xFF  10.1

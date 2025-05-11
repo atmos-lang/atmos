@@ -43,7 +43,7 @@ function tostr_stmt (s)
 end
 
 function tostr_expr (e)
-    if e.tag=="nil" or e.tag=="bool" or e.tag=="tag" or e.tag=="num" or e.tag=="var" then
+    if e.tag=="nil" or e.tag=="bool" or e.tag=="tag" or e.tag=="num" or e.tag=="acc" then
         return e.tk.str
     elseif e.tag == "str" then
         return '"' .. e.tk.str .. '"'

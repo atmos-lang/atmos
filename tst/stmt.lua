@@ -13,7 +13,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check("<eof>"))
-    assert(xtostring(s) == "{ e={ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }, tag=expr }")
+    assert(xtostring(s) == "{ e={ args={ { tag=acc, tk={ lin=1, str=x, tag=id } }, { tag=acc, tk={ lin=1, str=y, tag=id } } }, f={ tag=acc, tk={ lin=1, str=f, tag=id } }, tag=call }, tag=expr }")
 end
 
 -- BLOCK / DO / DEFER / SEQ / ; / MAIN
@@ -76,7 +76,7 @@ do
     ]])
 
     local src = "; f () ; g () h()\ni() ;\n;"
-    print("Testing...", src)
+    print("Testing...", "seq 1")
     lexer_string("anon", src)
     parser()
     local s = parser_main()
@@ -105,7 +105,7 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    assert(xtostring(s) == "{ id={ lin=1, str=x, tag=var }, tag=dcl, tk={ lin=1, str=val, tag=key } }")
+    assert(xtostring(s) == "{ id={ lin=1, str=x, tag=id }, tag=dcl, tk={ lin=1, str=val, tag=key } }")
 
     local src = "set y = 10"
     print("Testing...", src)
@@ -113,7 +113,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check("<eof>"))
-    assert(xtostring(s) == "{ dst={ tag=var, tk={ lin=1, str=y, tag=var } }, src={ tag=num, tk={ lin=1, str=10, tag=num } }, tag=set }")
+    assert(xtostring(s) == "{ dst={ tag=acc, tk={ lin=1, str=y, tag=id } }, src={ tag=num, tk={ lin=1, str=10, tag=num } }, tag=set }")
 
     local src = "var y = 10"
     print("Testing...", src)
@@ -121,14 +121,14 @@ do
     parser()
     local s = parser_stmt()
     assert(check("<eof>"))
-    assert(xtostring(s) == "{ id={ lin=1, str=y, tag=var }, set={ tag=num, tk={ lin=1, str=10, tag=num } }, tag=dcl, tk={ lin=1, str=var, tag=key } }")
+    assert(xtostring(s) == "{ id={ lin=1, str=y, tag=id }, set={ tag=num, tk={ lin=1, str=10, tag=num } }, tag=dcl, tk={ lin=1, str=var, tag=key } }")
 
     local src = "val [10]"
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_stmt)
-    assert(not ok and msg=="anon : line 1 : near '[' : expected <var>")
+    assert(not ok and msg=="anon : line 1 : near '[' : expected <id>")
 end
 
 -- IF-ELSE
@@ -140,7 +140,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check("<eof>"))
-    assert(xtostring(s) == "{ cnd={ tag=var, tk={ lin=1, str=cnd, tag=var } }, f={ ss={ { id={ lin=1, str=f, tag=var }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, t={ ss={  }, tag=block }, tag=if }")
+    assert(xtostring(s) == "{ cnd={ tag=acc, tk={ lin=1, str=cnd, tag=id } }, f={ ss={ { id={ lin=1, str=f, tag=id }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, t={ ss={  }, tag=block }, tag=if }")
 
     local src = "if true { }"
     print("Testing...", src)
@@ -174,7 +174,6 @@ do
     parser()
     local s = parser_stmt()
     assert(check("<eof>"))
-print(xtostring(s))
     assert(xtostring(s) == "{ blk={ ss={ { tag=break } }, tag=block }, tag=loop }")
 end
 

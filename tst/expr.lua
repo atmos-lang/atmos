@@ -13,7 +13,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ tag=var, tk={ lin=1, str=a, tag=var } }")
+    assert(xtostring(e) == "{ tag=acc, tk={ lin=1, str=a, tag=id } }")
 
     local src = "1.5"
     print("Testing...", src)
@@ -52,7 +52,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ tag=var, tk={ lin=1, str=a, tag=var } }")
+    assert(xtostring(e) == "{ tag=acc, tk={ lin=1, str=a, tag=id } }")
 
     local src = " ( a "
     print("Testing...", src)
@@ -98,7 +98,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ ps={ { k={ tag=num, tk={ str=1, tag=num } }, v={ tag=var, tk={ lin=1, str=a, tag=var } } } }, tag=table }")
+    assert(xtostring(e) == "{ ps={ { k={ tag=num, tk={ str=1, tag=num } }, v={ tag=acc, tk={ lin=1, str=a, tag=id } } } }, tag=table }")
 
     local src = "[ v1, k2=v2, (:k3,v3), v4 ]"
     print("Testing...", src)
@@ -166,7 +166,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ idx={ tag=num, tk={ lin=1, str=1, tag=num } }, t={ tag=var, tk={ lin=1, str=x, tag=var } }, tag=index }")
+    assert(xtostring(e) == "{ idx={ tag=num, tk={ lin=1, str=1, tag=num } }, t={ tag=acc, tk={ lin=1, str=x, tag=id } }, tag=index }")
 
     local src = "x.a"
     print("Testing...", src)
@@ -188,14 +188,14 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : line 1 : near '.' : expected <var>")
+    assert(not ok and msg=="anon : line 1 : near '.' : expected <id>")
 
     local src = "x . 2"
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : line 1 : near '2' : expected <var>")
+    assert(not ok and msg=="anon : line 1 : near '2' : expected <id>")
 
     local src = "x[1]().a"
     print("Testing...", src)
@@ -211,7 +211,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ e={ tag=var, tk={ lin=1, str=t, tag=var } }, op={ lin=1, str=#, tag=op }, tag=uno }")
+    assert(xtostring(e) == "{ e={ tag=acc, tk={ lin=1, str=t, tag=id } }, op={ lin=1, str=#, tag=op }, tag=uno }")
 end
 
 -- UNO
@@ -223,7 +223,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ e={ tag=var, tk={ lin=1, str=v, tag=var } }, op={ lin=1, str=#, tag=op }, tag=uno }")
+    assert(xtostring(e) == "{ e={ tag=acc, tk={ lin=1, str=v, tag=id } }, op={ lin=1, str=#, tag=op }, tag=uno }")
 
     local src = "! - x"
     print("Testing...", src)
@@ -243,7 +243,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ e1={ tag=var, tk={ lin=1, str=a, tag=var } }, e2={ tag=num, tk={ lin=1, str=10, tag=num } }, op={ lin=1, str=+, tag=op }, tag=bin }")
+    assert(xtostring(e) == "{ e1={ tag=acc, tk={ lin=1, str=a, tag=id } }, e2={ tag=num, tk={ lin=1, str=10, tag=num } }, op={ lin=1, str=+, tag=op }, tag=bin }")
 
     local src = "2 + 3 - 1"
     print("Testing...", src)
@@ -293,7 +293,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=x, tag=var } }, { tag=var, tk={ lin=1, str=y, tag=var } } }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }")
+    assert(xtostring(e) == "{ args={ { tag=acc, tk={ lin=1, str=x, tag=id } }, { tag=acc, tk={ lin=1, str=y, tag=id } } }, f={ tag=acc, tk={ lin=1, str=f, tag=id } }, tag=call }")
     assert(tostr_expr(e) == "f(x, y)")
 
     local src = "f({"
@@ -334,14 +334,14 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ args={  }, f={ args={  }, f={ tag=var, tk={ lin=1, str=f, tag=var } }, tag=call }, tag=call }")
+    assert(xtostring(e) == "{ args={  }, f={ args={  }, f={ tag=acc, tk={ lin=1, str=f, tag=id } }, tag=call }, tag=call }")
 
     local src = "func (1) {}"
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : line 1 : near '1' : expected <var>")
+    assert(not ok and msg=="anon : line 1 : near '1' : expected <id>")
 end
 
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME
@@ -353,7 +353,7 @@ do
     parser()
     local e = parser_expr()
     assert(check("<eof>"))
-    assert(xtostring(e) == "{ args={ { tag=var, tk={ lin=1, str=f, tag=var } } }, f={ tag=var, tk={ str=coro, tag=var } }, tag=call }")
+    assert(xtostring(e) == "{ args={ { tag=acc, tk={ lin=1, str=f, tag=id } } }, f={ tag=acc, tk={ str=coro, tag=id } }, tag=call }")
 
     local src = "task(T)"
     print("Testing...", src)

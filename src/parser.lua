@@ -61,3 +61,7 @@ function parser_list (sep, clo, f)
     end
     return l
 end
+
+function parser_ids (clo)
+    return parser_list(",", clo, function () return accept_err(nil,"id") end)
+end
