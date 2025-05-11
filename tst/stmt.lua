@@ -105,7 +105,7 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    assert(xtostring(s) == "{ id={ lin=1, str=x, tag=id }, tag=dcl, tk={ lin=1, str=val, tag=key } }")
+    assert(xtostring(s) == "{ ids={ { lin=1, str=x, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } }")
 
     local src = "set y = 10"
     print("Testing...", src)
@@ -121,7 +121,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check("<eof>"))
-    assert(xtostring(s) == "{ id={ lin=1, str=y, tag=id }, set={ tag=num, tk={ lin=1, str=10, tag=num } }, tag=dcl, tk={ lin=1, str=var, tag=key } }")
+    assert(xtostring(s) == "{ ids={ { lin=1, str=y, tag=id } }, sets={ { tag=num, tk={ lin=1, str=10, tag=num } } }, tag=dcl, tk={ lin=1, str=var, tag=key } }")
 
     local src = "val [10]"
     print("Testing...", src)
@@ -143,6 +143,22 @@ do
     parser()
     local ok, msg = pcall(parser_stmt)
     assert(not ok and msg=="anon : line 1 : near '[' : expected assignable expression")
+
+    local src = "set x, y, z = 10, 20"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(tostr_stmt(s) == "set x, y, z = 10, 20")
+
+    local src = "val x, y = 10, 20, 30"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+    assert(tostr_stmt(s) == "val x, y = 10, 20, 30")
 end
 
 -- IF-ELSE
@@ -154,7 +170,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check("<eof>"))
-    assert(xtostring(s) == "{ cnd={ tag=acc, tk={ lin=1, str=cnd, tag=id } }, f={ ss={ { id={ lin=1, str=f, tag=id }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, t={ ss={  }, tag=block }, tag=if }")
+    assert(xtostring(s) == "{ cnd={ tag=acc, tk={ lin=1, str=cnd, tag=id } }, f={ ss={ { ids={ { lin=1, str=f, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, t={ ss={  }, tag=block }, tag=if }")
 
     local src = "if true { }"
     print("Testing...", src)

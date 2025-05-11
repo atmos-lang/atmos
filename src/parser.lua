@@ -40,7 +40,7 @@ function parser_list (sep, clo, f)
         if sep then
             if check(sep) then
                 local x = accept_err(sep)
-                if check(clo) then
+                if clo and check(clo) then
                     return l
                 end
             else

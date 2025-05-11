@@ -12,8 +12,9 @@ function coder_stmt (s)
     if false then
     elseif s.tag == "dcl" then
         local cst = s.tk.str=="val" and " <const>" or ''
-        local set = s.set and (' = '..coder_expr(s.set)) or ''
-        return 'local ' .. s.id.str .. cst .. set
+        local ids = concat(', ', map(s.ids,  function(id) return id.str end))
+        local sets = s.sets and (' = '..concat(', ',map(s.sets,coder_expr))) or ''
+        return 'local ' .. ids .. cst .. sets
     elseif s.tag == "set" then
         return concat(',', map(s.dsts,coder_expr))..' = '..concat(',', map(s.srcs,coder_expr))
     elseif s.tag == "block" then

@@ -139,6 +139,14 @@ do
     print("Testing...", "block 1")
     local out = exec_string("anon.atm", src)
     assert(out == "10\n20\n10\n")
+
+    local src = [[
+        val x, y, z = 10, 20
+        print(x, y, z)
+    ]]
+    print("Testing...", "set 1: multi")
+    local out = exec_string("anon.atm", src)
+    assert(out == "10\t20\tnil\n")
 end
 
 -- TABLE / INDEX

@@ -16,9 +16,11 @@ function parser_stmt ()
     -- var x = 10
     elseif accept("val") or accept("var") then
         local tk = TK0
-        local id = accept_err(nil,"id")
-        local set = accept("=") and parser_expr() or nil
-        return { tag="dcl", tk=tk, id=id, set=set }
+        local ids = parser_list(',', '=', function ()
+            return accept_err(nil,"id")
+        end)
+        local sets = accept("=") and parser_list(',', nil, parser_expr)
+        return { tag="dcl", tk=tk, ids=ids, sets=sets }
 
     -- set x = 10
     elseif accept("set") then

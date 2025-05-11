@@ -1,9 +1,11 @@
 function tostr_stmt (s)
     if false then
     elseif s.tag == "dcl" then
-        return s.tk.str.." "..s.id.str
+        local ids = concat(', ', map(s.ids,  function(id) return id.str end))
+        local sets = s.sets and (' = '..concat(', ',map(s.sets,tostr_expr))) or ''
+        return s.tk.str .. " " .. ids .. sets
     elseif s.tag == "set" then
-        return "set "..concat(',',map(s.dsts,tostr_expr)).." = "..concat(',',map(s.srcs,tostr_expr))
+        return "set "..concat(', ',map(s.dsts,tostr_expr)).." = "..concat(', ',map(s.srcs,tostr_expr))
     elseif s.tag == "block" then
         return "do " .. (s.esc and s.esc.str.." " or "") .. "{\n" ..
             concat('\n', map(s.ss,tostr_stmt)) ..'\n' ..
