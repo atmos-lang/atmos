@@ -22,10 +22,19 @@ function parser_stmt ()
 
     -- set x = 10
     elseif accept("set") then
-        local dst = parser_expr()
+        local dsts = parser_list(',', '=', function ()
+            local tk = TK1
+            local e = parser_expr()
+            if e.tag=="acc" or e.tag=="index" then
+                -- ok
+            else
+                err(tk, "expected assignable expression")
+            end
+            return e
+        end)
         accept_err("=")
-        local src = parser_expr()
-        return { tag="set", dst=dst, src=src }
+        local srcs = parser_list(',', nil, parser_expr)
+        return { tag="set", dsts=dsts, srcs=srcs }
 
     -- do { ... }, defer { ... }
     elseif accept("do") then

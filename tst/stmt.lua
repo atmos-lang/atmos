@@ -113,7 +113,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check("<eof>"))
-    assert(xtostring(s) == "{ dst={ tag=acc, tk={ lin=1, str=y, tag=id } }, src={ tag=num, tk={ lin=1, str=10, tag=num } }, tag=set }")
+    assert(xtostring(s) == "{ dsts={ { tag=acc, tk={ lin=1, str=y, tag=id } } }, srcs={ { tag=num, tk={ lin=1, str=10, tag=num } } }, tag=set }")
 
     local src = "var y = 10"
     print("Testing...", src)

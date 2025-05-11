@@ -308,7 +308,7 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : line 1 : near '<eof>' : expected ','")
+    assert(not ok and msg=="anon : line 1 : near '<eof>' : expected ')'")
 
     local src = [[
         (func (x,y) {

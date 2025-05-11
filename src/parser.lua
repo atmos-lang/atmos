@@ -27,18 +27,23 @@ function accept_err (str, tag)
 end
 
 function parser_list (sep, clo, f)
+    assert(sep or clo)
     local l = {}
-    if check(clo) then
+    if clo and check(clo) then
         return l
     end
     l[#l+1] = f()
     while true do
-        if check(clo) then
+        if clo and check(clo) then
             return l
         end
         if sep then
-            local x = accept_err(sep)
-            if check(clo) then
+            if check(sep) then
+                local x = accept_err(sep)
+                if check(clo) then
+                    return l
+                end
+            else
                 return l
             end
         end

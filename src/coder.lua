@@ -15,7 +15,7 @@ function coder_stmt (s)
         local set = s.set and (' = '..coder_expr(s.set)) or ''
         return 'local ' .. s.id.str .. cst .. set
     elseif s.tag == "set" then
-        return coder_expr(s.dst)..' = '..coder_expr(s.src)
+        return concat(',', map(s.dsts,coder_expr))..' = '..concat(',', map(s.srcs,coder_expr))
     elseif s.tag == "block" then
         return "do\n" ..
             coder_stmts(s.ss) ..
