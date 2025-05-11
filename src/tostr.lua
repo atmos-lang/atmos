@@ -22,6 +22,12 @@ function tostr_stmt (s)
         "} else {\n" ..
             concat('\n', map(s.f.ss,tostr_stmt)) ..'\n' ..
         "}"
+    elseif s.tag == "loop" then
+        return "loop {\n" ..
+            concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
+        "}"
+    elseif s.tag == "break" then
+        return "break"
     elseif s.tag == "catch" then
         return "catch " .. s.esc.str .. " {\n" ..
             concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..

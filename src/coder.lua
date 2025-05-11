@@ -41,6 +41,12 @@ function coder_stmt (s)
         "else\n" ..
             concat('\n', map(s.f.ss,coder_stmt)) ..'\n' ..
         "end"
+    elseif s.tag == "loop" then
+        return "while true do\n" ..
+            concat('\n', map(s.blk.ss,coder_stmt)) ..'\n' ..
+        "end"
+    elseif s.tag == "break" then
+        return "break"
     elseif s.tag == "catch" then
         local n = N()
         local ok, esc = "atm_ok_"..n, "atm_esc_"..n

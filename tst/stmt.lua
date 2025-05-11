@@ -167,6 +167,15 @@ do
 
         }
     ]])
+
+    local src = "loop { break }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check("<eof>"))
+print(xtostring(s))
+    assert(xtostring(s) == "{ blk={ ss={ { tag=break } }, tag=block }, tag=loop }")
 end
 
 -- THROW / CATCH

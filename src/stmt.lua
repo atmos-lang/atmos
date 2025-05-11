@@ -61,6 +61,14 @@ function parser_stmt ()
         end
         return { tag="if", cnd=cnd, t={tag="block",ss=t}, f={tag="block",ss=f} }
 
+    -- loop
+    elseif accept("loop") then
+        local ss = parser_curly()
+        return { tag="loop", blk={tag="block",ss=ss} }
+    -- break
+    elseif accept("break") then
+        return { tag="break" }
+
     -- catch, throw
     elseif accept("catch") then
         local tag = accept_err(nil,"tag")

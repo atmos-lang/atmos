@@ -173,7 +173,7 @@ do
     assert(out == "30\n")
 end
 
--- IF-ELSE
+-- IF-ELSE / LOOP
 
 do
     local src = [[
@@ -188,6 +188,19 @@ do
     print("Testing...", "if 1")
     local out = exec_string("anon.atm", src)
     assert(out == ":t\n:f\n")
+
+    local src = [[
+        print(:1)
+        loop {
+            print(:2)
+            break
+            print(:3)
+        }
+        print(:4)
+    ]]
+    print("Testing...", "loop 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\n:2\n:4\n")
 end
 
 -- CATCH / THROW
@@ -219,7 +232,7 @@ do
         }
         print(:6)
     ]]
-    print("Testing...", "catch 1")
+    print("Testing...", "catch 2")
     local out = exec_string("anon.atm", src)
     assert(out == ":1\n:2\n:3\n:6\n")
 end
