@@ -118,6 +118,27 @@ do
     print("Testing...", "var 2")
     local out = exec_string("anon.atm", src)
     assert(match(out, "attempt to assign to const variable 'x'"))
+
+    local src = [[
+        val _ = 10
+        print(_)
+    ]]
+    print("Testing...", "var 3: _")
+    local out = exec_string("anon.atm", src)
+    assert(out == "10\n")
+
+    local src = [[
+        val x = 10
+        print(x)
+        do {
+            val x = 20
+            print(x)
+        }
+        print(x)
+    ]]
+    print("Testing...", "block 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == "10\n20\n10\n")
 end
 
 -- TABLE / INDEX
@@ -171,6 +192,23 @@ do
     print("Testing...", "func 2")
     local out = exec_string("anon.atm", src)
     assert(out == "30\n")
+
+    local src = "print(func () {})"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(match(out, "function: 0x"))
+
+    local src = [[
+        val f = func (x) {
+            print(v)
+        }
+        val v = 10
+        print(v)
+        f()
+    ]]
+    print("Testing...", "func 2")
+    local out = exec_string("anon.atm", src)
+    assert(out == "10\nnil\n")
 end
 
 -- IF-ELSE / LOOP
