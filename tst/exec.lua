@@ -328,7 +328,7 @@ do
         print(:1)
         catch {
             print(:2)
-            throw(:X)
+            throw()
             print(:3)
         }
         print(:4)

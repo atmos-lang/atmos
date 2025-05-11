@@ -110,7 +110,13 @@ function parser_stmt ()
         return { tag='catch', esc=tag, blk={tag='block',ss=ss} }
     elseif accept('throw') then
         accept_err('(')
-        local e = parser_expr()
+        local e; do
+            if check(')') then
+                e = { tag='nil', tk={tag='key',str='nil'} }
+            else
+                e = parser_expr()
+            end
+        end
         accept_err(')')
         return { tag='throw', e=e }
 
