@@ -6,6 +6,7 @@ function exec_string (file, src)
 
     local f = assert(io.open(file..".lua", "w"))
     f:write([[
+        require 'aux'
         require 'prelude'
         local f, msg = load (]] ..
             string.format('%q', coder_stmts(blk.ss))

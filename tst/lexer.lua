@@ -8,7 +8,7 @@ do
     local src = "{ } ( ; {{ () ) , ][ ."
     print("Testing...", src)
     lexer_string("anon", src)
-    assert(xtostring(LEX()) == "{ lin=1, str={, tag=sym }")
+    assert(stringify(LEX()) == "{ lin=1, str={, tag=sym }")
     assert(LEX().str == '}')
     assert(LEX().str == '(')
     assert(LEX().str == '{')
@@ -69,9 +69,9 @@ do
     local src = "10 0xF12 1.5 0b12"
     print("Testing...", src)
     lexer_string("anon", src)
-    assert(xtostring(LEX()) == "{ lin=1, str=10, tag=num }")
-    assert(xtostring(LEX()) == "{ lin=1, str=0xF12, tag=num }")
-    assert(xtostring(LEX()) == "{ lin=1, str=1.5, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=10, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=0xF12, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=1.5, tag=num }")
     local ok, msg = pcall(LEX)
     assert(not ok and msg=="anon : line 1 : near '0b12' : invalid number")
 end
@@ -82,9 +82,9 @@ do
     local src = "x X await"
     print("Testing...", src)
     lexer_string("anon", src)
-    assert(xtostring(LEX()) == "{ lin=1, str=x, tag=id }")
-    assert(xtostring(LEX()) == "{ lin=1, str=X, tag=id }")
-    assert(xtostring(LEX()) == "{ lin=1, str=await, tag=key }")
+    assert(stringify(LEX()) == "{ lin=1, str=x, tag=id }")
+    assert(stringify(LEX()) == "{ lin=1, str=X, tag=id }")
+    assert(stringify(LEX()) == "{ lin=1, str=await, tag=key }")
 
     local src = "x-1 10-abc"
     print("Testing...", src)
@@ -180,9 +180,9 @@ do
     local src = ":X :a:X:1 ::"
     print("Testing...", src)
     lexer_string("anon", src)
-    assert(xtostring(LEX()) == "{ lin=1, str=:X, tag=tag }")
-    assert(xtostring(LEX()) == "{ lin=1, str=:a:X:1, tag=tag }")
-    assert(xtostring(LEX()) == "{ lin=1, str=::, tag=tag }")
+    assert(stringify(LEX()) == "{ lin=1, str=:X, tag=tag }")
+    assert(stringify(LEX()) == "{ lin=1, str=:a:X:1, tag=tag }")
+    assert(stringify(LEX()) == "{ lin=1, str=::, tag=tag }")
 
     local src = ":()"
     print("Testing...", src)

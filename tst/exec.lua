@@ -174,6 +174,21 @@ do
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assert(out == "anon.atm : line 1 : attempt to index a number value\n")
+
+    local src = "print(([1])[[]])"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out == "nil\n")
+
+    local src = "print(([[1]])[([0])[0]][0])"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out == "1\n")
+
+    local src = "dump(([[1]])[([0])[0]])"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out == "{ 1 }\n")
 end
 
 -- CALL / FUNC / RETURN

@@ -18,7 +18,7 @@ function contains (t, v)
     return false
 end
 
-function xtostring (v)
+function stringify (v)
     if type(v) ~= 'table' then
         return tostring(v)
     else
@@ -36,9 +36,9 @@ function xtostring (v)
                 vs = vs .. ', '
             end
             if type(k) == 'number' then
-                vs = vs .. xtostring(x)
+                vs = vs .. stringify(x)
             else
-                vs = vs .. k .. '=' .. xtostring(x)
+                vs = vs .. k .. '=' .. stringify(x)
             end
             fst = false
         end
@@ -46,10 +46,10 @@ function xtostring (v)
     end
 end
 
-function xdump (...)
+function dump (...)
     local ret = {}
     for i=1, select('#', ...) do
-        ret[#ret+1] = xtostring(select(i, ...))
+        ret[#ret+1] = stringify(select(i, ...))
     end
     print(table.unpack(ret))
 end

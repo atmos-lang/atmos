@@ -14,7 +14,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(xtostring(s) == "{ e={ args={ { tag=acc, tk={ lin=1, str=x, tag=id } }, { tag=acc, tk={ lin=1, str=y, tag=id } } }, f={ tag=acc, tk={ lin=1, str=f, tag=id } }, tag=call }, tag=expr }")
+    assert(stringify(s) == "{ e={ args={ { tag=acc, tk={ lin=1, str=x, tag=id } }, { tag=acc, tk={ lin=1, str=y, tag=id } } }, f={ tag=acc, tk={ lin=1, str=f, tag=id } }, tag=call }, tag=expr }")
 
     local src = "func f (v) { val x }"
     print("Testing...", src)
@@ -23,7 +23,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(xtostring(s) == "{ ids={ { lin=1, str=f, tag=id } }, sets={ { blk={ ss={ { ids={ { lin=1, str=x, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, pars={ { lin=1, str=v, tag=id } }, tag=func } }, tag=dcl, tk={ str=val, tag=key } }")
+    assert(stringify(s) == "{ ids={ { lin=1, str=f, tag=id } }, sets={ { blk={ ss={ { ids={ { lin=1, str=x, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, pars={ { lin=1, str=v, tag=id } }, tag=func } }, tag=dcl, tk={ str=val, tag=key } }")
 end
 
 -- BLOCK / DO / DEFER / SEQ / ; / MAIN
@@ -35,7 +35,7 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    assert(xtostring(s) == "{ ss={  }, tag=block }")
+    assert(stringify(s) == "{ ss={  }, tag=block }")
 
     local src = "do { var x }"
     print("Testing...", src)
@@ -123,7 +123,7 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-    assert(xtostring(s) == "{ ids={ { lin=1, str=x, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } }")
+    assert(stringify(s) == "{ ids={ { lin=1, str=x, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } }")
 
     local src = "set y = 10"
     print("Testing...", src)
@@ -132,7 +132,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(xtostring(s) == "{ dsts={ { tag=acc, tk={ lin=1, str=y, tag=id } } }, srcs={ { tag=num, tk={ lin=1, str=10, tag=num } } }, tag=set }")
+    assert(stringify(s) == "{ dsts={ { tag=acc, tk={ lin=1, str=y, tag=id } } }, srcs={ { tag=num, tk={ lin=1, str=10, tag=num } } }, tag=set }")
 
     local src = "var y = 10"
     print("Testing...", src)
@@ -141,7 +141,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(xtostring(s) == "{ ids={ { lin=1, str=y, tag=id } }, sets={ { tag=num, tk={ lin=1, str=10, tag=num } } }, tag=dcl, tk={ lin=1, str=var, tag=key } }")
+    assert(stringify(s) == "{ ids={ { lin=1, str=y, tag=id } }, sets={ { tag=num, tk={ lin=1, str=10, tag=num } } }, tag=dcl, tk={ lin=1, str=var, tag=key } }")
 
     local src = "val [10]"
     print("Testing...", src)
@@ -196,7 +196,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(xtostring(s) == "{ cnd={ tag=acc, tk={ lin=1, str=cnd, tag=id } }, f={ ss={ { ids={ { lin=1, str=f, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, t={ ss={  }, tag=block }, tag=if }")
+    assert(stringify(s) == "{ cnd={ tag=acc, tk={ lin=1, str=cnd, tag=id } }, f={ ss={ { ids={ { lin=1, str=f, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, t={ ss={  }, tag=block }, tag=if }")
 
     local src = "if true { }"
     print("Testing...", src)
@@ -205,7 +205,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(xtostring(s) == "{ cnd={ tag=bool, tk={ lin=1, str=true, tag=key } }, f={ ss={  }, tag=block }, t={ ss={  }, tag=block }, tag=if }")
+    assert(stringify(s) == "{ cnd={ tag=bool, tk={ lin=1, str=true, tag=key } }, f={ ss={  }, tag=block }, t={ ss={  }, tag=block }, tag=if }")
 
     local src = "if f() { if (cnd) { val x } else { val y } }"
     print("Testing...", src)
@@ -233,7 +233,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(xtostring(s) == "{ blk={ ss={ { tag=break } }, tag=block }, tag=loop }")
+    assert(stringify(s) == "{ blk={ ss={ { tag=break } }, tag=block }, tag=loop }")
 
     local src = "loop x in f() {}"
     print("Testing...", src)
@@ -313,7 +313,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(xtostring(s) == "{ blk={ ss={  }, tag=block }, cnd={ e={ tag=tag, tk={ lin=1, str=:X, tag=tag } } }, tag=catch }")
+    assert(stringify(s) == "{ blk={ ss={  }, tag=block }, cnd={ e={ tag=tag, tk={ lin=1, str=:X, tag=tag } } }, tag=catch }")
 
     local src = "catch { }"
     print("Testing...", src)
