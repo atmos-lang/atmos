@@ -40,7 +40,7 @@ do
         print(:1)
         do :X {
             print(:2)
-            escape(:X)
+            escape:X()
             print(:3)
         }
         print(:4)
@@ -51,7 +51,7 @@ do
 
     local src = [[
         do :X {
-            escape(:Y)
+            escape :Y()
         }
     ]]
     print("Testing...", "block 4")

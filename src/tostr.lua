@@ -15,7 +15,7 @@ function tostr_stmt (s)
             concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == 'escape' then
-        return "escape(" .. tostr_expr(s.e) .. ")"
+        return "escape " .. s.esc.str .. '(' .. tostr_expr(s.e) .. ')'
     elseif s.tag == 'return' then
         return "return(" .. concat(',',map(s.es,tostr_expr)) .. ")"
     elseif s.tag == 'if' then

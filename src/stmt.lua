@@ -57,10 +57,14 @@ function parser_stmt ()
 
     -- escape(:X), return(...)
     elseif accept('escape') then
+        local esc = accept_err(nil,'tag')
         accept_err('(')
-        local e = parser_expr()
+        local e = { tag='nil', tk={tag='key',str='nil'} }
+        if not check(')') then
+            e = parser_expr()
+        end
         accept_err(')')
-        return { tag='escape', e=e }
+        return { tag='escape', esc=esc, e=e }
     elseif accept('return') then
         accept_err('(')
         local es = parser_list(',', ')', parser_expr)

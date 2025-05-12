@@ -33,10 +33,12 @@ function coder_stmt (s)
     elseif s.tag == 'set' then
         return concat(',', map(s.dsts,coder_expr))..' = '..concat(',', map(s.srcs,coder_expr))
     elseif s.tag == 'block' then
+        local str = s.esc and s.esc.str:sub(2)
         return "do " ..
-            coder_stmts(s.ss) ..
-            (s.esc and (":"..s.esc.str.."::") or "")..
-        " end"
+            (s.esc and ("local atm_"..str) or "") .. ' ' ..
+            coder_stmts(s.ss) .. ' ' ..
+            (s.esc and ("::"..str.."::") or "") .. ' ' ..
+        "end"
     elseif s.tag == 'defer' then
         local n = N()
         local def = "atm_"..n
@@ -48,7 +50,10 @@ function coder_stmt (s)
             })
         ]]
     elseif s.tag == 'escape' then
-        return L(s.e.tk) .. "goto " .. s.e.tk.str:sub(2)
+        local str = s.esc.str:sub(2)
+        return L(s.esc) .. [[
+            atm_]] .. str .. ' = ' .. coder_expr(s.e) .. [[
+            goto ]] .. str
     elseif s.tag == 'return' then
         return "return " .. concat(',', map(s.es,coder_expr))
     elseif s.tag == 'if' then

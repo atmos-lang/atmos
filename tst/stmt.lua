@@ -26,7 +26,7 @@ do
     assert(stringify(s) == "{ ids={ { lin=1, str=f, tag=id } }, sets={ { blk={ ss={ { ids={ { lin=1, str=x, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, pars={ { lin=1, str=v, tag=id } }, tag=func } }, tag=dcl, tk={ str=val, tag=key } }")
 end
 
--- BLOCK / DO / DEFER / SEQ / ; / MAIN
+-- BLOCK / DO / ESCAPE / DEFER / SEQ / ; / MAIN
 
 do
     local src = "do {}"
@@ -49,7 +49,7 @@ do
         }
     ]])
 
-    local src = "do :X { escape(:X) }"
+    local src = "do :X { escape:X() }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
@@ -58,7 +58,7 @@ do
     assert(check('<eof>'))
     assert(tostr_stmt(s) == trim [[
         do :X {
-            escape(:X)
+            escape :X(nil)
         }
     ]])
 
@@ -112,6 +112,21 @@ do
     parser()
     local ok, msg = pcall(parser_main)
     assert(not ok and msg=="anon : line 1 : near '[' : expected statement")
+
+    local src = "val x = do :X { escape:X(10) }"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+--[=[
+    local s = parser_stmt()
+    assert(check('<eof>'))
+    assert(tostr_stmt(s) == trim [[
+        val x = do :X {
+            escape :X (10)
+        }
+    ]])
+]=]
 end
 
 -- DCL / VAL / VAR / SET
