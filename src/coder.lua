@@ -14,7 +14,11 @@ function coder_stmt (s)
         local cst = s.tk.str=='val' and " <const>" or ''
         local ids = concat(', ', map(s.ids,  function(id) return id.str end))
         local sets = s.sets and (' = '..concat(', ',map(s.sets,coder_expr))) or ''
-        return 'local ' .. ids .. cst .. sets
+        if s.sets and #s.sets==1 and s.sets[1].tag=='func' then
+            return 'local ' .. ids .. '\n' .. ids .. sets
+        else
+            return 'local ' .. ids .. cst .. sets
+        end
     elseif s.tag == 'set' then
         return concat(',', map(s.dsts,coder_expr))..' = '..concat(',', map(s.srcs,coder_expr))
     elseif s.tag == 'block' then

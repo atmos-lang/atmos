@@ -226,6 +226,42 @@ do
     print("Testing...", "func 2")
     local out = exec_string("anon.atm", src)
     assert(out == "10\nnil\n")
+
+    local src = [[
+        func f (v) {
+            if v == 0 {
+                return (0)
+            } else {
+                return (v + f(v - 1))
+            }
+        }
+        print(f(4))
+    ]]
+    print("Testing...", "func 3: recursive")
+    local out = exec_string("anon.atm", src)
+    assert(out == "10\n")
+
+    local src = [[
+        var f, g
+        set f = func (v) {
+            if v == 0 {
+                return (0)
+            } else {
+                return (v + g(v - 1))
+            }
+        }
+        set g = func (v) {
+            if v == 0 {
+                return (0)
+            } else {
+                return (v + f(v - 1))
+            }
+        }
+        print(f(4))
+    ]]
+    print("Testing...", "func 4: mutual recursive")
+    local out = exec_string("anon.atm", src)
+    assert(out == "10\n")
 end
 
 -- IF-ELSE / LOOP
