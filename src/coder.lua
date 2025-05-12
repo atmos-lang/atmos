@@ -5,7 +5,7 @@ function N ()
 end
 
 function coder_stmts (ss)
-    return concat('\n', map(ss,coder_stmt)) .. "\n"
+    return concat(';\n', map(ss,coder_stmt)) .. ";\n"
 end
 
 function coder_stmt (s)
@@ -32,7 +32,7 @@ function coder_stmt (s)
         return [[
             local ]] .. def .. [[ <close> = setmetatable({}, {__close=
                 function () ]]..
-                    concat('\n', map(s.blk.ss,coder_stmt)) ..'\n' .. [[
+                    coder_stmts(s.blk.ss) .. [[
                 end
             })
         ]]
@@ -42,15 +42,15 @@ function coder_stmt (s)
         return "return " .. concat(',', map(s.es,coder_expr))
     elseif s.tag == 'if' then
         return "if " .. coder_expr(s.cnd) .. " then\n" ..
-            concat('\n', map(s.t.ss,coder_stmt)) ..'\n' ..
+            coder_stmts(s.t.ss) ..
         "else\n" ..
-            concat('\n', map(s.f.ss,coder_stmt)) ..'\n' ..
+            coder_stmts(s.f.ss) ..
         "end"
     elseif s.tag == 'loop' then
         local ids = concat(', ', map(s.ids or {{str="_"}}, function(id) return id.str end))
         local itr = s.itr and coder_expr(s.itr) or ''
         return "for " .. ids .. " in iter(" .. itr .. ") do\n" ..
-            concat('\n', map(s.blk.ss,coder_stmt)) ..'\n' ..
+            coder_stmts(s.blk.ss) ..
         "end"
     elseif s.tag == 'break' then
         return "break"
@@ -61,7 +61,7 @@ function coder_stmt (s)
         return [[
             local ]]..ok..','..esc..[[ = pcall(
                 function () ]]..
-                    concat('\n', map(s.blk.ss,coder_stmt)) ..'\n' .. [[
+                    coder_stmts(s.blk.ss) .. [[
                 end
             )
             if ]] .. ok .. " or atm_catch("..esc..','..coder_expr(s.cnd.e)..','..(s.cnd.f and coder_expr(s.cnd.f) or 'nil')..[[) then
@@ -81,7 +81,7 @@ function coder_expr (e)
     if e.tag == 'tag' then
         return '"'..e.tk.str..'"'
     elseif e.tag == 'index' then
-        return coder_expr(e.t) .. '[atm_idx(' .. coder_expr(e.idx) .. ')]'
+        return '(' .. coder_expr(e.t) .. ")[atm_idx(" .. coder_expr(e.idx) .. ')]'
     elseif e.tag == 'table' then
         local ps = concat(", ", map(e.ps, function (t)
             return '['..coder_expr(t.k)..'] = '..coder_expr(t.v)
@@ -90,12 +90,11 @@ function coder_expr (e)
     elseif e.tag == 'bin' then
         return '('..tostr_expr(e.e1)..' '..(OPS.lua[e.op.str] or e.op.str)..' '..tostr_expr(e.e2)..')'
     elseif e.tag == 'call' then
-        return coder_expr(e.f)..'('..concat(", ", map(e.args, coder_expr))..')'
+        return '('..coder_expr(e.f)..')('..concat(", ", map(e.args, coder_expr))..')'
     elseif e.tag == 'func' then
         local pars = concat(', ', map(e.pars, function (id) return id.str end))
-        local ss = concat('\n', map(e.blk.ss,coder_stmt))
         return "function (" .. pars .. ")\n" ..
-            ss ..'\n' ..
+            coder_stmts(e.blk.ss) ..'\n' ..
         "end"
     else
         return tostr_expr(e)

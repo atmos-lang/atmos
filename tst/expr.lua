@@ -90,7 +90,7 @@ do
     assert(xtostring(e2) == "{ tag=tag, tk={ lin=1, str=:1:_, tag=tag } }")
 end
 
--- TABLE
+-- TABLE / INDEX
 do
     local src = "[a]"
     print("Testing...", src)
@@ -212,6 +212,20 @@ do
     local e = parser_expr()
     assert(check('<eof>'))
     assert(xtostring(e) == "{ e={ tag=acc, tk={ lin=1, str=t, tag=id } }, op={ lin=1, str=#, tag=op }, tag=uno }")
+
+    local src = "1[1]"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near '[' : index error : expected prefix expression")
+
+    local src = "nil.1"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near '.' : field error : expected prefix expression")
 end
 
 -- UNO

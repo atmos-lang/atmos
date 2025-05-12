@@ -138,12 +138,36 @@ function parser_expr_prim_1 ()
     end
 end
 
+local function is_prefix (e)
+    return (
+        e.tag == 'call'  or
+        e.tag == 'acc'   or
+        e.tag == 'index' or
+        TK0.str == ')'
+    )
+end
+
 function parser_expr_suf_2 (pre)
     local e = pre or parser_expr_prim_1()
     local ok = check(nil,'sym') and contains(OPS.sufs, TK1.str)
                 -- TODO: same line
     if not ok then
         return e
+    end
+
+    if not is_prefix(e) then
+        local op; do
+            if TK1.str == '(' then
+                op = "call"
+            elseif TK1.str == '[' then
+                op = "index"
+            elseif TK1.str == '.' then
+                op = "field"
+            else
+                error("TODO")
+            end
+        end
+        err(TK1, op.." error : expected prefix expression")
     end
 
     local sym = accept_err(nil,'sym')

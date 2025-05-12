@@ -169,6 +169,10 @@ do
     local out = exec_string("anon.atm", src)
     assert(out == "1\t10\t20\n")
 
+    local src = "print((1)[1])"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out == "anon.atm : line 2 : attempt to index a number value\n")
 end
 
 -- CALL / FUNC / RETURN
