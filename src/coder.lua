@@ -6,7 +6,7 @@ end
 local function L (tk)
     local ls = ''
     if tk and tk.lin then
-        --assert(tk.lin >= _l_)
+        assert(tk.lin >= _l_)
         while tk.lin > _l_ do
             ls = ls .. '\n'
             _l_ = _l_ + 1
@@ -77,14 +77,16 @@ function coder_stmt (s)
     elseif s.tag == 'catch' then
         local n = N()
         local ok, esc = "atm_ok_"..n, "atm_esc_"..n
-        local cnd = s.esc and (esc..' ~= "'..s.esc.str..'"') or "false"
+        local xe  = coder_expr(s.cnd.e)
+        local xf  = s.cnd.f and coder_expr(s.cnd.f) or 'nil'
+        local blk = coder_stmts(s.blk.ss)
         return [[
             local ]]..ok..','..esc..[[ = pcall(
                 function () ]]..
-                    coder_stmts(s.blk.ss) .. [[
+                    blk .. [[
                 end
             )
-            if ]] .. ok .. " or atm_catch("..esc..','..coder_expr(s.cnd.e)..','..(s.cnd.f and coder_expr(s.cnd.f) or 'nil')..[[) then
+            if ]] .. ok .. " or atm_catch("..esc..','..xe..','..xf..[[) then
                 -- ok
             else
                 error(]]..esc..[[, 0)
