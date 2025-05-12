@@ -401,4 +401,18 @@ do
     print("Testing...", "task 2")
     local out = exec_string("anon.atm", src)
     assert(out == "10\n:X\n")
+
+    local src = [[
+        val F = func (a,b) {
+            val c,d = yield(a+1,b*2)
+            return(c+1, d*2)
+        }
+        val f = coro(F)
+        val _,a,b = resume f(1,2)
+        val _,c,d = resume f(a+1,b*2)
+        print(c, d)
+    ]]
+    print("Testing...", "coro 2: multi")
+    local out = exec_string("anon.atm", src)
+    assert(out == "4\t16\n")
 end

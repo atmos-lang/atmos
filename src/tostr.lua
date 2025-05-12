@@ -17,7 +17,7 @@ function tostr_stmt (s)
     elseif s.tag == 'escape' then
         return "escape(" .. tostr_expr(s.e) .. ")"
     elseif s.tag == 'return' then
-        return "return(" .. tostr_expr(s.e) .. ")"
+        return "return(" .. concat(',',map(s.es,tostr_expr)) .. ")"
     elseif s.tag == 'if' then
         return "if " .. tostr_expr(s.cnd) .. " {\n" ..
             concat('\n', map(s.t.ss,tostr_stmt)) ..'\n' ..

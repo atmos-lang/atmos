@@ -35,7 +35,7 @@ function coder_stmt (s)
     elseif s.tag == 'escape' then
         return "goto " .. s.e.tk.str:sub(2)
     elseif s.tag == 'return' then
-        return "return " .. coder_expr(s.e)
+        return "return " .. concat(',', map(s.es,coder_expr))
     elseif s.tag == 'if' then
         return "if " .. coder_expr(s.cnd) .. " then\n" ..
             concat('\n', map(s.t.ss,coder_stmt)) ..'\n' ..

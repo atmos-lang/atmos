@@ -63,9 +63,9 @@ function parser_stmt ()
         return { tag='escape', e=e }
     elseif accept('return') then
         accept_err('(')
-        local e = parser_expr()
+        local es = parser_list(',', ')', parser_expr)
         accept_err(')')
-        return { tag='return', e=e }
+        return { tag='return', es=es }
 
     -- if-else
     elseif accept('if') then

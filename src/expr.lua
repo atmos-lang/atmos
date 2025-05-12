@@ -85,7 +85,7 @@ function parser_expr_prim_1 ()
         if accept(',') then
             local it = { tag='id', str="it" }
             local e = parser_expr()
-            local ret = { tag='return', e=e }
+            local ret = { tag='return', es={e} }
             cnd = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
         end
         accept_err(')')
