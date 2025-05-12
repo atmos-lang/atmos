@@ -17,8 +17,22 @@ function parser_stmt ()
     elseif accept('val') or accept('var') then
         local tk = TK0
         local ids = parser_ids('=')
-        local sets = accept('=') and parser_list(',', nil, parser_expr)
-        return { tag='dcl', tk=tk, ids=ids, sets=sets }
+        local sets
+        local custom
+        if accept('=') then
+            if check('do') then
+                local tk = TK1
+                local blk = parser_stmt()
+                if blk.esc == nil then
+                    err(tk, "expected tagged block")
+                end
+                custom = 'block'
+                sets = { blk }
+            else
+                sets = parser_list(',', nil, parser_expr)
+            end
+        end
+        return { tag='dcl', tk=tk, ids=ids, sets=sets, custom=custom }
 
     -- set x = 10
     elseif accept('set') then
@@ -44,7 +58,7 @@ function parser_stmt ()
         accept_err(')')
         local ss = parser_curly()
         local f = { tag='func', pars=pars, blk={tag='block',ss=ss} }
-        return { tag='dcl', tk={tag='key',str='val'}, ids={id}, sets={f} }
+        return { tag='dcl', tk={tag='key',str='var'}, ids={id}, sets={f}, custom='func' }
 
     -- do { ... }, defer { ... }
     elseif accept('do') then

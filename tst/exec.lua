@@ -89,6 +89,18 @@ do
     print("Testing...", "defer 1")
     local out = exec_string("anon.atm", src)
     assert(out == ":1\n:3\n:2\n")
+
+    local src = [[
+        val x = do :X {
+            do :Y {
+                escape:X(10)
+            }
+        }
+        print(x)
+    ]]
+    print("Testing...", "do-escape 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == "10\n")
 end
 
 -- DCL / VAL / VAR / SET
