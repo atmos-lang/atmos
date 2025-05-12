@@ -282,6 +282,14 @@ do
     parser()
     local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near ')' : expected expression")
+
+    local src = "if x => 10 => 20"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assert(tostr_expr(e) == "((x and 10) or 20)")
 end
 
 -- CALL / FUNC / RETURN / THROW

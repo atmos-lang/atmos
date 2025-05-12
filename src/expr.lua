@@ -124,6 +124,15 @@ function parser_expr_prim_1 ()
         local ss = parser_curly()
         return { tag='func', pars=pars, blk={tag='block',ss=ss} }
 
+    -- if x => y => z
+    elseif accept('if') then
+        local cnd = parser_expr()
+        accept_err('=>')
+        local t = parser_expr()
+        accept_err('=>')
+        local f = parser_expr()
+        return { tag='bin', op={str='or'}, e1={tag='bin',op={str='and'},e1=cnd,e2=t}, e2=f }
+
     else
         err(TK1, "expected expression")
     end
