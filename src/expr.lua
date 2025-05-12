@@ -80,16 +80,16 @@ function parser_expr_prim_1 ()
     elseif accept('await') then
         local f = { tag='acc', tk={tag='id', str='await'} }
         accept_err('(')
-        local e = parser_expr()
-        local cnd = nil
+        local xe = parser_expr()
+        local xf = nil
         if accept(',') then
             local it = { tag='id', str="it" }
-            local e = parser_expr()
-            local ret = { tag='return', es={e} }
-            cnd = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
+            local xe = parser_expr()
+            local ret = { tag='return', es={xe} }
+            xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
         end
         accept_err(')')
-        return { tag='call', f=f, args={e,cnd} }
+        return { tag='call', f=f, args={xe,xf} }
 
     -- resume co(...), spawn T(...)
     elseif accept('resume') or accept('spawn') then

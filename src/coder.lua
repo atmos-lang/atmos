@@ -60,7 +60,9 @@ function coder_stmt (s)
                     concat('\n', map(s.blk.ss,coder_stmt)) ..'\n' .. [[
                 end
             )
-            if not ]] .. ok .. " and " .. cnd .. [[ then
+            if ]] .. ok .. " or atm_catch("..esc..','..coder_expr(s.cnd.e)..','..(s.cnd.f and coder_expr(s.cnd.f) or 'nil')..[[) then
+                -- ok
+            else
                 error(]]..esc..[[, 0)
             end
         ]]
@@ -81,6 +83,8 @@ function coder_expr (e)
             return '['..coder_expr(t.k)..'] = '..coder_expr(t.v)
         end))
         return '{' .. ps .. '}'
+    elseif e.tag == 'bin' then
+        return '('..tostr_expr(e.e1)..' '..(OPS.lua[e.op.str] or e.op.str)..' '..tostr_expr(e.e2)..')'
     elseif e.tag == 'call' then
         return coder_expr(e.f)..'('..concat(", ", map(e.args, coder_expr))..')'
     elseif e.tag == 'func' then

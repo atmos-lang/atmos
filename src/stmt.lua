@@ -55,7 +55,7 @@ function parser_stmt ()
         local ss = parser_curly()
         return { tag='defer', blk={tag='block',ss=ss} }
 
-    -- escape(:X), return(10)
+    -- escape(:X), return(...)
     elseif accept('escape') then
         accept_err('(')
         local e = parser_expr()
@@ -105,9 +105,16 @@ function parser_stmt ()
 
     -- catch
     elseif accept('catch') then
-        local tag = accept(nil,'tag')
+        local xe = parser_expr()
+        local xf = nil
+        if accept(',') then
+            local it = { tag='id', str="it" }
+            local e = parser_expr()
+            local ret = { tag='return', es={e} }
+            xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
+        end
         local ss  = parser_curly()
-        return { tag='catch', esc=tag, blk={tag='block',ss=ss} }
+        return { tag='catch', cnd={e=xe,f=xf}, blk={tag='block',ss=ss} }
 
     -- call: f()
     else

@@ -34,7 +34,8 @@ function tostr_stmt (s)
         return "break"
     elseif s.tag == 'catch' then
         local esc = s.esc and (s.esc.str..' ') or ''
-        return "catch " .. esc .. "{\n" ..
+        local xf = s.cnd.f and (', '..tostr_expr(s.cnd.f)) or ''
+        return "catch " .. tostr_expr(s.cnd.e) .. xf .. " {\n" ..
             concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == 'expr' then

@@ -20,7 +20,6 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
-xdump(s)
     assert(check('<eof>'))
     assert(xtostring(s) == "{ ids={ { lin=1, str=f, tag=id } }, sets={ { blk={ ss={ { ids={ { lin=1, str=x, tag=id } }, tag=dcl, tk={ lin=1, str=val, tag=key } } }, tag=block }, pars={ { lin=1, str=v, tag=id } }, tag=func } }, tag=dcl, tk={ str=val, tag=key } }")
 end
@@ -288,16 +287,25 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(xtostring(s) == "{ blk={ ss={  }, tag=block }, esc={ lin=1, str=:X, tag=tag }, tag=catch }")
+    assert(xtostring(s) == "{ blk={ ss={  }, tag=block }, cnd={ e={ tag=tag, tk={ lin=1, str=:X, tag=tag } } }, tag=catch }")
 
     local src = "catch { }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_main)
+    assert(not ok and msg=="anon : line 1 : near '{' : expected expression")
+
+    local src = "catch true, it>0 { }"
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
     assert(trim(tostr_stmt(s)) == trim [[
-        catch {
+        catch true, func (it) {
+            return((it > 0))
+        } {
         }
     ]])
 end

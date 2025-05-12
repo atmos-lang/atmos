@@ -11,6 +11,10 @@ function atm_idx (idx)
     return idx
 end
 
+function atm_catch (v, e, f)
+    return (e==true or v==e) and (f==nil or f(v))
+end
+
 function iter (v)
     local f
     if v == nil then
