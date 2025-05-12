@@ -9,6 +9,7 @@ require "tostr"
 do
     local src = "f(x,y)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -17,6 +18,7 @@ do
 
     local src = "func f (v) { val x }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -29,6 +31,7 @@ end
 do
     local src = "do {}"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -36,6 +39,7 @@ do
 
     local src = "do { var x }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -47,6 +51,7 @@ do
 
     local src = "do :X { escape(:X) }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -59,6 +64,7 @@ do
 
     local src = "defer { var x ; f(1) }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -72,6 +78,7 @@ do
 
     local src = "defer { var x ; f(1) }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -85,6 +92,7 @@ do
 
     local src = "; f () ; g () h()\ni() ;\n;"
     print("Testing...", "seq 1")
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_main()
@@ -99,6 +107,7 @@ do
 
     local src = "var v2 ; [tp,v1,v2]"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_main)
@@ -110,6 +119,7 @@ end
 do
     local src = "val x"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -117,6 +127,7 @@ do
 
     local src = "set y = 10"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -125,6 +136,7 @@ do
 
     local src = "var y = 10"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -133,6 +145,7 @@ do
 
     local src = "val [10]"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_stmt)
@@ -140,6 +153,7 @@ do
 
     local src = "set 1 = 1"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_stmt)
@@ -147,6 +161,7 @@ do
 
     local src = "set [1] = 1"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_stmt)
@@ -154,6 +169,7 @@ do
 
     local src = "set x, y, z = 10, 20"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -162,6 +178,7 @@ do
 
     local src = "val x, y = 10, 20, 30"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -174,6 +191,7 @@ end
 do
     local src = "if cnd { } else { val f }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -182,6 +200,7 @@ do
 
     local src = "if true { }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -190,6 +209,7 @@ do
 
     local src = "if f() { if (cnd) { val x } else { val y } }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -208,6 +228,7 @@ do
 
     local src = "loop { break }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -216,6 +237,7 @@ do
 
     local src = "loop x in f() {}"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -227,6 +249,7 @@ do
 
     local src = "loop in f() {}"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -238,6 +261,7 @@ do
 
     local src = "loop x {}"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -249,6 +273,7 @@ do
 
     local src = "loop { until x }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -264,6 +289,7 @@ do
 
     local src = "loop { while x }"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()

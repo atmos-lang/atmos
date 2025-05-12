@@ -17,6 +17,7 @@ do
         }
     ]]
     print("Testing...", "block 1")
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -55,7 +56,7 @@ do
     ]]
     print("Testing...", "block 4")
     local out = exec_string("anon.atm", src)
-    assert(match(out, "no visible label 'Y' for %<goto%> at line"))
+    assert(out == "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
 
     local src = [[
         val a = 1
@@ -64,7 +65,7 @@ do
             print(a+b)
         }
     ]]
-    print("Testing...", "block 4")
+    print("Testing...", "block 5")
     local out = exec_string("anon.atm", src)
 
     local src = [[
@@ -74,9 +75,9 @@ do
         }
         print(a+b)
     ]]
-    print("Testing...", "block 5")
+    print("Testing...", "block 6")
     local out = exec_string("anon.atm", src)
-    assert(match(out, "attempt to perform arithmetic on a nil value %(global 'b'%)"))
+    assert(out == "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')\n")
 
     local src = [[
         print(:1)
@@ -115,9 +116,9 @@ do
         set x = :1
         print(x)
     ]]
-    print("Testing...", "var 2")
+    print("Testing...", "var 3")
     local out = exec_string("anon.atm", src)
-    assert(match(out, "attempt to assign to const variable 'x'"))
+    assert(out == "anon.atm : line 2 : attempt to assign to const variable 'x'\n")
 
     local src = [[
         val _ = 10
@@ -172,7 +173,7 @@ do
     local src = "print((1)[1])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assert(out == "anon.atm : line 2 : attempt to index a number value\n")
+    assert(out == "anon.atm : line 1 : attempt to index a number value\n")
 end
 
 -- CALL / FUNC / RETURN
@@ -180,6 +181,7 @@ end
 do
     local src = "print(10, nil, false, 2+2)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
@@ -227,7 +229,7 @@ do
         print(v)
         f()
     ]]
-    print("Testing...", "func 2")
+    print("Testing...", "func 3")
     local out = exec_string("anon.atm", src)
     assert(out == "10\nnil\n")
 
@@ -472,4 +474,20 @@ do
     print("Testing...", "coro 2: multi")
     local out = exec_string("anon.atm", src)
     assert(out == "4\t16\n")
+end
+
+-- ERROR / LINE NUMBER
+
+do
+    local src = [[
+        val f = func (x) {
+            return (func (y) {
+                return(x+nil)
+            })
+        }
+        print(f(10)(20))
+    ]]
+    print("Testing...", "func 4")
+    local out = exec_string("anon.atm", src)
+    assert(out == "anon.atm : line 3 : attempt to perform arithmetic on a nil value\n")
 end

@@ -9,6 +9,7 @@ require "tostr"
 do
     local src = " a "
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -17,6 +18,7 @@ do
 
     local src = "1.5"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -25,6 +27,7 @@ do
 
     local src = "{"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -32,6 +35,7 @@ do
 
     local src = ""
     print("Testing...", "eof")
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -41,6 +45,7 @@ do
 
     ]]
     print("Testing...", "blanks")
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -48,6 +53,7 @@ do
 
     local src = " ( a ) "
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -56,6 +62,7 @@ do
 
     local src = " ( a "
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -63,6 +70,7 @@ do
 
     local src = "nil"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -71,6 +79,7 @@ do
 
     local src = "false true"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e1 = parser_expr()
@@ -81,6 +90,7 @@ do
 
     local src = ":x :1:_"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e1 = parser_expr()
@@ -94,6 +104,7 @@ end
 do
     local src = "[a]"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -102,6 +113,7 @@ do
 
     local src = "[ v1, k2=v2, (:k3,v3), v4 ]"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -110,6 +122,7 @@ do
 
     local src = "[ ]"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -118,6 +131,7 @@ do
 
     local src = "[ [], k2=[1,2,3], ([1],v3) ]"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -126,6 +140,7 @@ do
 
     local src = "[1,]"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -134,6 +149,7 @@ do
 
     local src = "[{"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -141,6 +157,7 @@ do
 
     local src = "[({"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -148,6 +165,7 @@ do
 
     local src = "[("
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -155,6 +173,7 @@ do
 
     local src = "[(1,2]"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -162,6 +181,7 @@ do
 
     local src = "x[1]"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -170,6 +190,7 @@ do
 
     local src = "x.a"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -178,6 +199,7 @@ do
 
     local src = "t[1"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -185,6 +207,7 @@ do
 
     local src = "x . ."
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -192,6 +215,7 @@ do
 
     local src = "x . 2"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -199,6 +223,7 @@ do
 
     local src = "x[1]().a"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -207,6 +232,7 @@ do
 
     local src = "#t"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -215,6 +241,7 @@ do
 
     local src = "1[1]"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -222,6 +249,7 @@ do
 
     local src = "nil.1"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -233,6 +261,7 @@ end
 do
     local src = "#v"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -241,6 +270,7 @@ do
 
     local src = "! - x"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -253,6 +283,7 @@ end
 do
     local src = "a + 10"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -261,6 +292,7 @@ do
 
     local src = "2 + 3 - 1"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -268,6 +300,7 @@ do
 
     local src = "2 * (a - 1)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -276,6 +309,7 @@ do
 
     local src = "2 == -1"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -284,6 +318,7 @@ do
 
     local src = "- -1"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -292,6 +327,7 @@ do
 
     local src = "(10+)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -299,6 +335,7 @@ do
 
     local src = "if x => 10 => 20"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -311,6 +348,7 @@ end
 do
     local src = "f(x,y)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -320,6 +358,7 @@ do
 
     local src = "f({"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -327,6 +366,7 @@ do
 
     local src = "f(10"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -338,6 +378,7 @@ do
         })(1,2)
     ]]
     print("Testing...", "func 1")
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -352,6 +393,7 @@ do
         f()()
     ]]
     print("Testing...", "func 1")
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -360,6 +402,7 @@ do
 
     local src = "func (1) {}"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -367,6 +410,7 @@ do
 
     local src = "throw(:X)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local s = parser_expr()
@@ -379,6 +423,7 @@ end
 do
     local src = "coro(f)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -387,6 +432,7 @@ do
 
     local src = "task(T)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -395,6 +441,7 @@ do
 
     local src = "tasks(10)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -403,6 +450,7 @@ do
 
     local src = "yield(x,10)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -411,6 +459,7 @@ do
 
     local src = "emit(:X,10)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -419,6 +468,7 @@ do
 
     local src = "resume co()"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -427,6 +477,7 @@ do
 
     local src = "spawn T(1,2,3)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
@@ -435,6 +486,7 @@ do
 
     local src = "spawn (x+10)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
@@ -442,6 +494,7 @@ do
 
     local src = "await(:X, x+10)"
     print("Testing...", src)
+    init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()

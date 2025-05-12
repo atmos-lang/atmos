@@ -3,6 +3,13 @@ LEX  = nil
 TK0  = nil
 TK1  = nil
 LIN  = nil
+_n_  = nil
+_l_  = nil
+
+function init ()
+    _n_ = 0
+    _l_ = 1
+end
 
 OPS = {
     cs = { '+', '-', '*', '/', '%', '>', '<', '=', '|', '&', '?', '!' ,'#' },

@@ -1,3 +1,10 @@
+function warn (ok, msg)
+    if not ok then
+        msg = "WARNING: "..(msg or "<warning message>")
+        io.stderr:write(msg..'\n')
+    end
+end
+
 function trim (s)
     return s:gsub("^%s*",""):gsub("\n%s*","\n"):gsub("%s*$","")
 end
