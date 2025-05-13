@@ -201,7 +201,7 @@ do
     lexer_string("anon", src)
     assert(LEX().str == "x")
     local ok, msg = pcall(LEX)
-    assert(not ok and msg=="anon : line 6 : near '<eof>' : unterminated comment")
+    assert(not ok and msg=="anon : line 2 : near ';;;' : unterminated comment")
 
     local src = [[
         x

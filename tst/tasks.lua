@@ -121,6 +121,5 @@ do
     ]]
     print("Testing...", "spawn 1")
     local out = exec_string("anon.atm", src)
-print(out)
-    assert(string.find(out, "table: 0x"))
+    assert(out == "anon.atm : line 3 : bad argument #1 to 'resume' (thread expected, got table)\n")
 end

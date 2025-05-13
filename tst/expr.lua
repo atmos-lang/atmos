@@ -441,7 +441,7 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_expr()
-    assert(stringify(s) == "{ args={ { tag=tag, tk={ lin=1, str=:X, tag=tag } }, { tag=num, tk={ str=0 } } }, f={ tag=acc, tk={ str=error, tag=id } }, tag=call }")
+    assert(stringify(s) == "{ args={ { tag=tag, tk={ lin=1, str=:X, tag=tag } }, { tag=num, tk={ str=0 } } }, f={ tag=acc, tk={ lin=1, str=error, tag=id } }, tag=call }")
 
 end
 
@@ -455,7 +455,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(stringify(e) == "{ args={ { tag=acc, tk={ lin=1, str=f, tag=id } } }, f={ tag=acc, tk={ str=coro, tag=id } }, tag=call }")
+    assert(stringify(e) == "{ args={ { tag=acc, tk={ lin=1, str=f, tag=id } } }, f={ tag=acc, tk={ lin=1, str=coro, tag=id } }, tag=call }")
 
     local src = "task(T)"
     print("Testing...", src)

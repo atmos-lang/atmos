@@ -74,6 +74,7 @@ local function _lexer_ (str)
                 if s == ";;" then
                     read_until(s, M"[\n\0]")
                 else
+                    local lin = LIN
                     local stk = {}
                     while true do
                         if stk[#stk] == s then
@@ -86,7 +87,7 @@ local function _lexer_ (str)
                         end
                         repeat
                             if not read_until("", C';') then
-                                err({str='<eof>',lin=LIN}, "unterminated comment")
+                                err({str=s,lin=lin}, "unterminated comment")
                             end
                             s = read_while("", C';')
                         until #s>2 and #s>=#stk[#stk]
