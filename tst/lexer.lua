@@ -227,10 +227,11 @@ do
     assert(stringify(LEX()) == "{ lin=1, str=:a:X:1, tag=tag }")
     assert(stringify(LEX()) == "{ lin=1, str=::, tag=tag }")
 
-    local src = ":()"
+    local src = ":() :"
     print("Testing...", src)
     lexer_string("anon", src)
     assert(LEX().str == ':')
     assert(LEX().str == '(')
     assert(LEX().str == ')')
+    assert(LEX().str == ':')
 end

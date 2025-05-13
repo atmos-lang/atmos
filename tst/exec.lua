@@ -6,8 +6,6 @@ require "tostr"
 require "coder"
 require "exec"
 
-local match = string.find
-
 -- EXPR / STRING / TAG
 
 do
@@ -276,7 +274,7 @@ do
     local src = "print(func () {})"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assert(match(out, "function: 0x"))
+    assert(string.find(out, "function: 0x"))
 
     local src = [[
         val f = func (x) {

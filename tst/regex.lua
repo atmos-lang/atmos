@@ -28,7 +28,6 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_expr)
-print(msg)
     assert(not ok and msg=="line 1 : near 'b' : expected '/'")
 
     local src = "x ~~ /y/"
