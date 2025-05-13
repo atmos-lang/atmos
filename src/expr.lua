@@ -44,9 +44,10 @@ function parser_expr_prim_1 ()
                 accept_err(',')
                 val = parser_expr()
                 accept_err(')')
-            elseif accept(nil,'tag') then
+            elseif accept(nil,'id') then
                 local id = TK0
                 if accept('=') then
+                    id.str = ':'..id.str
                     key = { tag='tag', tk=id }
                     val = parser_expr()
                 else

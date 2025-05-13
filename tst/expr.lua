@@ -121,7 +121,7 @@ do
     assert(check('<eof>'))
     assert(stringify(e) == "{ ps={ { k={ tag=num, tk={ str=1, tag=num } }, v={ tag=acc, tk={ lin=1, str=a, tag=id } } } }, tag=table }")
 
-    local src = "[x=10]"
+    local src = "[:x=10]"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
@@ -129,7 +129,7 @@ do
     local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near '=' : expected ']'")
 
-    local src = "[ v1, :k2=v2, (:k3,v3), v4 ]"
+    local src = "[ v1, k2=v2, (:k3,v3), v4 ]"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
@@ -147,7 +147,7 @@ do
     assert(check('<eof>'))
     assert(tostr_expr(e) == '[]')
 
-    local src = "[ [], :k2=[1,2,3], ([1],v3) ]"
+    local src = "[ [], k2=[1,2,3], ([1],v3) ]"
     print("Testing...", src)
     init()
     lexer_string("anon", src)

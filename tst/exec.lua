@@ -187,7 +187,7 @@ end
 
 do
     local src = [[
-        val t = [1, :x=10, (:y,20)]
+        val t = [1, x=10, (:y,20)]
         print(t[0], t.x, t[:y])
     ]]
     print("Testing...", "table 1")
@@ -398,7 +398,7 @@ do
     assert(out == "0\t1\n1\t2\n2\t3\n")
 
     local src = [[
-        loop k,v in [:x=1,:y=2] {
+        loop k,v in [x=1,y=2] {
             print(k,v)
         }
     ]]
