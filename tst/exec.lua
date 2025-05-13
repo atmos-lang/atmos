@@ -506,15 +506,15 @@ do
     local src = [[
         val T = func (a) {
             print(a)
-            val b = await(:X)
+            val b = await(true)
             print(b)
         }
         spawn T(10)
-        emit(:X)
+        emit()
     ]]
     print("Testing...", "task 2")
     local out = exec_string("anon.atm", src)
-    assert(out == "10\n:X\n")
+    assert(out == "10\nnil\n")
 
     local src = [[
         val F = func (a,b) {
@@ -529,6 +529,52 @@ do
     print("Testing...", "coro 2: multi")
     local out = exec_string("anon.atm", src)
     assert(out == "4\t16\n")
+
+    local src = [[
+        val t = func (v) {
+            var vx = v
+            print(vx)          ;; 1
+            set vx = yield(vx+1)
+            print(vx)          ;; 3
+            set vx = yield(vx+1)
+            print(vx)          ;; 5
+            return (vx+1)
+        }
+        val a = coro(t)
+        val _,v = resume a(1)
+        print(v)
+        val _,v = resume a(v+1)
+        print(v)              ;; 4
+        val _,v = resume a(v+1)
+        print(v)              ;; 6
+
+    ]]
+    print("Testing...", "coro 3: multi")
+    local out = exec_string("anon.atm", src)
+    assert(out == "1\n2\n3\n4\n5\n6\n")
+
+    local src = [[
+        print(emit(1))
+    ]]
+    print("Testing...", "emit 1")
+    local out = exec_string("anon.atm", src)
+
+    local src = [[
+        val tk = func (v) {
+            val e1 = await(true)
+            print(:1, e1)
+            val e2 = await(true)
+            print(:2, e2)
+        }
+        spawn tk ()
+        emit(1)
+        emit(2)
+        emit(3)
+
+    ]]
+    print("Testing...", "emit 2")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\t1\n:2\t2\n")
 end
 
 -- ERROR / LINE NUMBER

@@ -1,6 +1,6 @@
 coro   = coroutine.create
 resume = coroutine.resume
-yield  = coroutine.yield
+status = coroutine.status
 
 local TASKS = {}
 
@@ -32,6 +32,7 @@ function atm_exec (file, src)
 
     local v, msg = pcall(f)
     if not v then
+        --print('err', msg)
         local filex, lin, msg = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
         --print(file, filex, lin, msg)
         assert(file == filex)
@@ -80,33 +81,52 @@ function iter (v)
 end
 
 function task (f)
-    local t = { tag='task', coro=coro(f) }
+    local t = { tag='task', co=coro(f) }
     TASKS[#TASKS+1] = t
-    TASKS[t.coro] = t
+    TASKS[t.co] = t
     return t
+end
+
+local function task_resume (t, ...)
+    if status(t.co) == 'suspended' then
+        assert(resume(t.co, ...))
+        if status(t.co) == 'dead' then
+            emit(t)
+        end
+    end
+    return true
 end
 
 function spawn (t, ...)
     if type(t) == 'function' then
         return spawn(task(t), ...)
     end
-    if type(t)=='table' and t.coro then
+    if type(t)=='table' and t.co then
         -- ok
     else
-        error('invalid spawn : expected task', 2)
+        error('invalid spawn : expected task prototype', 2)
     end
-    assert(resume(t.coro, ...))
+    assert(task_resume(t, ...))
     return t
+end
+
+function yield (...)
+    local co = coroutine.running()
+    if TASKS[co] then
+        error('invalid yield : unexpected task instance', 2)
+    end
+    return coroutine.yield(...)
 end
 
 function await (e, cnd)
     local t = TASKS[coroutine.running()]
     t.await = { e=e, cnd=cnd }
-    return yield()
+    return coroutine.yield()
 end
 
 function emit (...)
     for _, t in ipairs(TASKS) do
-        assert(resume(t.coro, ...))
+        assert(task_resume(t, ...))
     end
+    return ...
 end
