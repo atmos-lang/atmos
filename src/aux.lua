@@ -6,7 +6,7 @@ function warn (ok, msg)
 end
 
 function trim (s)
-    return s:gsub("^%s*",""):gsub("\n%s*","\n"):gsub("%s*$","")
+    return (s:gsub("^%s*",""):gsub("\n%s*","\n"):gsub("%s*$",""))
 end
 
 function contains (t, v)

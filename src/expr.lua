@@ -20,6 +20,10 @@ function parser_expr_prim_1 ()
     elseif accept(nil,'num') then
         return { tag='num', tk=TK0 }
 
+    -- 'xxx', """xxx"""
+    elseif accept(nil,'str') then
+        return { tag='str', tk=TK0 }
+
     -- x, __v
     elseif accept(nil,'id') then
         return { tag='acc', tk=TK0 }

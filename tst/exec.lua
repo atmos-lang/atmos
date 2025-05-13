@@ -8,6 +8,18 @@ require "exec"
 
 local match = string.find
 
+-- EXPR / STRING / TAG
+
+do
+    local src = [[
+        print("xxx")
+        print(:2)
+    ]]
+    print("Testing...", "block 2")
+    local out = exec_string("anon.atm", src)
+    assert(out == "xxx\n:2\n")
+end
+
 -- BLOCK / DO / ESCAPE / DEFER
 
 do

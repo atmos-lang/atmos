@@ -63,7 +63,7 @@ do
     assert(not ok and msg=="anon : line 1 : near '!!' : invalid operator")
 end
 
--- NUMS
+-- NUMS / STRS
 
 do
     local src = "10 0xF2 1.5 35 0xff 0xEaA 3.0 1.5F"
@@ -91,6 +91,32 @@ do
     assert(stringify(LEX()) == "{ lin=1, str=0X1.9F2D8P+1, tag=num }")
     local ok, msg = pcall(LEX)
     assert(not ok and msg=="anon : line 1 : near '0b12' : invalid number")
+
+    local src = "'xx' \"zzz\" '' '\\n\\z10' \"\\d\" '\n"
+    print("Testing...", "string 1")
+    lexer_string("anon", src)
+    assert(stringify(LEX()) == "{ lin=1, str=xx, tag=str }")
+    assert(stringify(LEX()) == "{ lin=1, str=zzz, tag=str }")
+    assert(stringify(LEX()) == "{ lin=1, str=, tag=str }")
+    assert(stringify(LEX()) == "{ lin=1, str=\\n\\z10, tag=str }")
+    assert(stringify(LEX()) == "{ lin=1, str=\\d, tag=str }")
+    local ok, msg = pcall(LEX)
+    assert(not ok and msg=="anon : line 1 : near ''' : unterminated string")
+
+    local src = [[
+        """
+        x
+        """
+        """"
+        ""
+        """""
+        """""
+        """"
+    ]]
+    print("Testing...", "string 2: multi-line")
+    lexer_string("anon", src)
+    assert(trim(LEX().str) == "x")
+    assert(trim(LEX().str) == '""\n"""""\n"""""')
 end
 
 -- KEYWORDS, VAR

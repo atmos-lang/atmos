@@ -98,6 +98,16 @@ do
     local e2 = parser_expr()
     assert(check('<eof>'))
     assert(stringify(e2) == "{ tag=tag, tk={ lin=1, str=:1:_, tag=tag } }")
+
+    local src = "'xxx' '''1\n2\n'''"
+    print("Testing...", "string 1")
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e1 = parser_expr()
+    assert(stringify(e1) == "{ tag=str, tk={ lin=1, str=xxx, tag=str } }")
+    local e2 = parser_expr()
+    assert(stringify(e2) == "{ tag=str, tk={ lin=1, str=1\n2\n, tag=str } }")
 end
 
 -- TABLE / INDEX
