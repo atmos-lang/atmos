@@ -187,7 +187,7 @@ end
 
 do
     local src = [[
-        val t = [1, x=10, (:y,20)]
+        val t = [1, :x=10, (:y,20)]
         print(t[0], t.x, t[:y])
     ]]
     print("Testing...", "table 1")
@@ -213,6 +213,24 @@ do
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assert(out == "{ 1 }\n")
+
+    local src = "dump([(:key,:val)])"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out == "{ :key=:val }\n")
+
+    local src = "print(type([(:key,:val)]))"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out == "table\n")
+
+    local src = [[
+        val t = [(:x,1)]
+        print(t[:x], t.x)
+    ]]
+    print("Testing...", "table 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == "1\t1\n")
 end
 
 -- CALL / FUNC / RETURN
@@ -380,7 +398,7 @@ do
     assert(out == "0\t1\n1\t2\n2\t3\n")
 
     local src = [[
-        loop k,v in [x=1,y=2] {
+        loop k,v in [:x=1,:y=2] {
             print(k,v)
         }
     ]]

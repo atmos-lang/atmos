@@ -44,10 +44,10 @@ function parser_expr_prim_1 ()
                 accept_err(',')
                 val = parser_expr()
                 accept_err(')')
-            elseif accept(nil,'id') then
+            elseif accept(nil,'tag') then
                 local id = TK0
                 if accept('=') then
-                    key = { tag='str', tk=id }
+                    key = { tag='tag', tk=id }
                     val = parser_expr()
                 else
                     key = { tag='num', tk={tag='num',str=tostring(idx)} }
@@ -187,7 +187,8 @@ function parser_expr_suf_2 (pre)
         ret = { tag='index', t=e, idx=idx }
     elseif sym.str == '.' then
         local id = accept_err(nil,'id')
-        local idx = { tag='str', tk=id }
+        id.str = ':'..id.str
+        local idx = { tag='tag', tk=id }
         ret = { tag='index', t=e, idx=idx }
     else
         error("TODO")
