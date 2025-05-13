@@ -205,6 +205,14 @@ do
     local s = parser_stmt()
     assert(check('<eof>'))
     assert(tostr_stmt(s) == "val x, y = 10, 20, 30")
+
+    local src = "set #x = 1"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_stmt)
+    assert(not ok and msg=="anon : line 1 : near '#' : expected assignable expression")
 end
 
 -- IF-ELSE

@@ -264,6 +264,15 @@ do
     parser()
     local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near '.' : field error : expected prefix expression")
+
+    local src = "-x[0]"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assert(tostr_expr(e) == '(-x[0])')
 end
 
 -- UNO
