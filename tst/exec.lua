@@ -64,7 +64,7 @@ do
             escape :Y()
         }
     ]]
-    print("Testing...", "block 4")
+    print("Testing...", "block 4 : err : goto")
     local out = exec_string("anon.atm", src)
     assert(out == "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
 

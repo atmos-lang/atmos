@@ -61,6 +61,14 @@ do
     local s = parser_stmt()
     assert(check('<eof>'))
     assert(tostr_stmt(s) == "set x = spawn(f)")
+
+    local src = "spawn nil()"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near '(' : call error : expected prefix expression")
 end
 
 -- EXEC
@@ -119,7 +127,22 @@ do
         val t = spawn T()
         resume t()
     ]]
-    print("Testing...", "spawn 1")
+    print("Testing...", "spawn 2")
     local out = exec_string("anon.atm", src)
     assert(out == "anon.atm : line 3 : bad argument #1 to 'resume' (thread expected, got table)\n")
+
+    local src = [[
+        spawn(func () {
+            print(:ok)
+        })()
+    ]]
+    print("Testing...", "spawn 3")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":ok\n")
+
+    local src = "spawn (nil)()"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+print(out)
+    assert(out == ":ok\n")
 end

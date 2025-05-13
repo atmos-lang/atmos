@@ -15,6 +15,32 @@ function atm_catch (v, e, f)
     return (e==true or v==e) and (f==nil or f(v))
 end
 
+function atm_exec (file, src)
+    local f, msg = load(src, file)
+    --print(f, msg)
+
+    if not f then
+        local filex, lin, msg2 = string.match(msg, '%[string "(.-)"%]:(%d+): (.-) at line %d+$')
+        if not filex then
+            filex, lin, msg2 = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
+        end
+        --print('xxx', file, filex, lin, msg2)
+        assert(file == filex)
+        io.stderr:write(file..' : line '..lin..' : '..msg2..'\n')
+        return nil
+    end
+
+    local v, msg = pcall(f)
+    if not v then
+        local filex, lin, msg = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
+        --print(file, filex, lin, msg)
+        assert(file == filex)
+        io.stderr:write(file..' : line '..lin..' : '..msg..'\n')
+        return nil
+    end
+    return v
+end
+
 function iter (v)
     local f
     if v == nil then
@@ -64,6 +90,7 @@ function spawn (t, ...)
     if type(t) == 'function' then
         return spawn(task(t), ...)
     end
+    assert(type(t)=='table' and t.coro, 'invalid spawn : expected task')
     assert(resume(t.coro, ...))
     return t
 end
