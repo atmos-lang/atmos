@@ -174,7 +174,7 @@ function parser_expr_suf_2 (pre)
         err(TK1, op.." error : expected prefix expression")
     end
 
-    local sym = accept_err(nil,'sym')
+    local sym = accept('~~') or accept('!~') or accept_err(nil,'sym')
 
     local ret = nil
     if sym.str == '(' then
@@ -189,6 +189,8 @@ function parser_expr_suf_2 (pre)
         local id = accept_err(nil,'id')
         local idx = { tag='str', tk=id }
         ret = { tag='index', t=e, idx=idx }
+    elseif sym.str=='~~' or sym.str=='!~' then
+        error("TODO - regex")
     else
         error("TODO")
     end

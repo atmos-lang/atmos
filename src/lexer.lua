@@ -104,7 +104,23 @@ local function _lexer_ (str)
             if not contains(OPS.vs,op) then
                 err({str=op,lin=LIN}, "invalid operator")
             end
-            coroutine.yield { tag='op', str=op, lin=LIN }
+            if not (op=='~~' or op=='!~') then
+                coroutine.yield { tag='op', str=op, lin=LIN }
+            else
+                local lin = LIN
+                local pre = read_until('', '/')
+                local reg = read_until('', '/')
+                local sub; do
+                    if pre == 's' then
+                        sub = read_until('', '/')
+                    end
+                end
+                local pos = read_while('', '%a')
+                if not (pre and reg and sub and pos) then
+                    err({str=TK0.str,lin=lin}, "invalid regex")
+                end
+                coroutine.yield { tag='op', str=op, pre=pre, reg=reg, sub=sub, pos=pos }
+            end
 
         -- tags:  :X  :a:b:c
         elseif c == ':' then
