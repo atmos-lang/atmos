@@ -213,6 +213,24 @@ do
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assert(out == "{ 1 }\n")
+
+    local src = "dump([(:key,:val)])"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out == "{ :key=:val }\n")
+
+    local src = "print(type([(:key,:val)]))"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out == "table\n")
+
+    local src = [[
+        val t = [(:x,1)]
+        print(t[:x], t.x)
+    ]]
+    print("Testing...", "table 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == "1\t1\n")
 end
 
 -- CALL / FUNC / RETURN

@@ -121,6 +121,14 @@ do
     assert(check('<eof>'))
     assert(stringify(e) == "{ ps={ { k={ tag=num, tk={ str=1, tag=num } }, v={ tag=acc, tk={ lin=1, str=a, tag=id } } } }, tag=table }")
 
+    local src = "[:x=10]"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near '=' : expected ']'")
+
     local src = "[ v1, k2=v2, (:k3,v3), v4 ]"
     print("Testing...", src)
     init()
@@ -128,7 +136,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == '[(1,v1), ("k2",v2), (:k3,v3), (2,v4)]')
+    assert(tostr_expr(e) == '[(1,v1), (:k2,v2), (:k3,v3), (2,v4)]')
 
     local src = "[ ]"
     print("Testing...", src)
@@ -146,7 +154,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == '[(1,[]), ("k2",[(1,1), (2,2), (3,3)]), ([(1,1)],v3)]')
+    assert(tostr_expr(e) == '[(1,[]), (:k2,[(1,1), (2,2), (3,3)]), ([(1,1)],v3)]')
 
     local src = "[1,]"
     print("Testing...", src)
@@ -205,7 +213,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == 'x["a"]')
+    assert(tostr_expr(e) == 'x[:a]')
 
     local src = "t[1"
     print("Testing...", src)
@@ -238,7 +246,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == 'x[1]()["a"]')
+    assert(tostr_expr(e) == 'x[1]()[:a]')
 
     local src = "#t"
     print("Testing...", src)
