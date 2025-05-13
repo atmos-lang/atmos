@@ -66,12 +66,29 @@ end
 -- NUMS
 
 do
-    local src = "10 0xF12 1.5 0b12"
+    local src = "10 0xF2 1.5 35 0xff 0xEaA 3.0 1.5F"
     print("Testing...", src)
     lexer_string("anon", src)
     assert(stringify(LEX()) == "{ lin=1, str=10, tag=num }")
-    assert(stringify(LEX()) == "{ lin=1, str=0xF12, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=0xF2, tag=num }")
     assert(stringify(LEX()) == "{ lin=1, str=1.5, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=35, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=0xff, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=0xEaA, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=3.0, tag=num }")
+    local ok, msg = pcall(LEX)
+    assert(not ok and msg=="anon : line 1 : near '1.5F' : invalid number")
+
+    local src = "3.1416 3.6e-2 0.4E1 34e1 0x0.1E 0xA3p-4 0X1.9F2D8P+1 0b12"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    assert(stringify(LEX()) == "{ lin=1, str=3.1416, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=3.6e-2, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=0.4E1, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=34e1, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=0x0.1E, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=0xA3p-4, tag=num }")
+    assert(stringify(LEX()) == "{ lin=1, str=0X1.9F2D8P+1, tag=num }")
     local ok, msg = pcall(LEX)
     assert(not ok and msg=="anon : line 1 : near '0b12' : invalid number")
 end

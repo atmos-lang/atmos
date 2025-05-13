@@ -130,6 +130,9 @@ local function _lexer_ (str)
         -- numbers:  0xFF  10.1
         elseif match(c, "%d") then
             local num = read_while(c, M"[%w%.]")
+            if string.find(num, '[PpEe]') then
+                num = read_while(num, M"[%w%.%-%+]")
+            end
             if not tonumber(num) then
                 err({str=num,lin=LIN}, "invalid number")
             else
