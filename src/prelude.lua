@@ -90,7 +90,11 @@ function spawn (t, ...)
     if type(t) == 'function' then
         return spawn(task(t), ...)
     end
-    assert(type(t)=='table' and t.coro, 'invalid spawn : expected task')
+    if type(t)=='table' and t.coro then
+        -- ok
+    else
+        error('invalid spawn : expected task', 2)
+    end
     assert(resume(t.coro, ...))
     return t
 end

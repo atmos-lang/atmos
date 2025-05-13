@@ -143,6 +143,5 @@ do
     local src = "spawn (nil)()"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-print(out)
-    assert(out == ":ok\n")
+    assert(out == "anon.atm : line 1 : invalid spawn : expected task\n")
 end
