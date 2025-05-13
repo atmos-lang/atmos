@@ -96,7 +96,7 @@ local function _lexer_ (str)
 
         -- symbols:  {  (  ,  ;
         elseif contains(syms, c) then
-            coroutine.yield { tag="sym", str=c, lin=LIN }
+            coroutine.yield { tag='sym', str=c, lin=LIN }
 
         -- operators:  +  >=  #
         elseif contains(OPS.cs, c) then
@@ -104,27 +104,27 @@ local function _lexer_ (str)
             if not contains(OPS.vs,op) then
                 err({str=op,lin=LIN}, "invalid operator")
             end
-            coroutine.yield { tag="op", str=op, lin=LIN }
+            coroutine.yield { tag='op', str=op, lin=LIN }
 
         -- tags:  :X  :a:b:c
         elseif c == ':' then
-            local tag = read_while(":", M"[%w_:]")
+            local tag = read_while(':', M"[%w_:]")
             --[[
             local hier = {}
             for x in string.gmatch(tag, ":([^:]*)") do
                 hier[#hier+1] = x
             end
             ]]
-            coroutine.yield { tag="tag", str=tag, lin=LIN }
+            coroutine.yield { tag='tag', str=tag, lin=LIN }
 
         -- keywords:  await  if
         -- variables:  x  a_10
         elseif match(c, "[%a_]") then
             local id = read_while(c, M"[%w_]")
             if contains(KEYS, id) then
-                coroutine.yield { tag="key", str=id, lin=LIN }
+                coroutine.yield { tag='key', str=id, lin=LIN }
             else
-                coroutine.yield { tag="id", str=id, lin=LIN }
+                coroutine.yield { tag='id', str=id, lin=LIN }
             end
 
         -- numbers:  0xFF  10.1
@@ -133,12 +133,12 @@ local function _lexer_ (str)
             if not tonumber(num) then
                 err({str=num,lin=LIN}, "invalid number")
             else
-                coroutine.yield { tag="num", str=num, lin=LIN }
+                coroutine.yield { tag='num', str=num, lin=LIN }
             end
 
         -- eof
         elseif c == '\0' then
-            coroutine.yield { tag="eof", str='<eof>', lin=LIN }
+            coroutine.yield { tag='eof', str='<eof>', lin=LIN }
 
         -- error
         else
