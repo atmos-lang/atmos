@@ -153,9 +153,9 @@ local function is_prefix (e)
 end
 
 function parser_expr_suf_2 (pre)
+    local tk0 = TK0
     local e = pre or parser_expr_prim_1()
-    local ok = check(nil,'sym') and contains(OPS.sufs, TK1.str)
-                -- TODO: same line
+    local ok = check(nil,'sym') and contains(OPS.sufs,TK1.str) and (TK0.lin==TK1.lin)
     if not ok then
         return e
     end

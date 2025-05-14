@@ -442,7 +442,6 @@ do
     parser()
     local s = parser_expr()
     assert(stringify(s) == "{ args={ { tag=tag, tk={ lin=1, str=:X, tag=tag } }, { tag=num, tk={ str=0 } } }, f={ tag=acc, tk={ lin=1, str=error, tag=id } }, tag=call }")
-
 end
 
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME
