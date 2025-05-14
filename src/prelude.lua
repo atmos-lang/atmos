@@ -2,7 +2,7 @@ coro   = coroutine.create
 resume = coroutine.resume
 status = coroutine.status
 
-local TASKS = {}
+local TASKS = { tag='global', dns={} }
 
 function atm_idx (idx)
     if type(idx) == 'number' then
@@ -87,7 +87,7 @@ function task (f)
     if up then
         up.dns[#up.dns+1] = t
     else
-        TASKS[#TASKS+1] = t
+        TASKS.dns[#TASKS.dns+1] = t
     end
     return t
 end
@@ -112,7 +112,7 @@ local function task_resume (t, e, ...)
             if t.up then
                 t.up.gc = true
             end
-            emit(nil, t)
+            emit(t.up, t)
         end
     end
     return true
@@ -146,10 +146,12 @@ function await (e, f)
 end
 
 function emit (to, ...)
-    local function f (ts, ...)
+    local function f (t, ...)
         -- ing++
-        for _, t in ipairs(ts) do
-            f(t.dns, ...)
+        for _, dn in ipairs(t.dns) do
+            f(dn, ...)
+        end
+        if t.tag == 'task' then
             assert(task_resume(t, ...))
         end
         -- ing--
@@ -157,12 +159,10 @@ function emit (to, ...)
     end
     if to == nil then
         f(TASKS, ...)
-    elseif type(to) ~= 'table' then
-        error('invalid emit : invalid target', 2)
-    elseif not to.ts then
-        error('invalid emit : invalid target', 2)
+    elseif type(to)=='table' and (to.tag=='task' or to.tag=='tasks') then
+        f(to, ...)
     else
-        f(to.ts, ...)
+        error('invalid emit : invalid target', 2)
     end
     return ...
 end
