@@ -372,7 +372,7 @@ do
             }
         }
         spawn T ()
-        emit(2)
+        emit([2])
         print(:ok)
     ]]
     print("Testing...", "payload 1")
@@ -403,6 +403,26 @@ do
     print("Testing...", "payload 2")
     local out = exec_string("anon.atm", src)
     assert(out == ":1\n10\n10\n:2\n:e1\t20\n:e1\t20\n:3\n:e2\t30\n:e2\t30\n")
+
+    local src = [[
+        val T = func () {
+            val e1 = do :brk {
+                loop {
+                    val it = await(true)
+                    do {
+                        val x = it
+                        print(:in, it)    ;; TODO: 10
+                    }
+                    escape :brk()
+                }
+            }
+        }
+        spawn T()
+        emit(10)
+    ]]
+    print("Testing...", "payload 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":in\t10\n")
 end
 
 -- LEXICAL ORDER
@@ -420,7 +440,7 @@ do
             print(:ok)
         }) ()
         print(:2)
-        emit()
+        emit([])
         print(:4)
     ]]
     print("Testing...", "order 1")

@@ -1,3 +1,7 @@
+function assertx(cur, exp)
+    return assert(cur == exp, cur)
+end
+
 function warn (ok, msg)
     if not ok then
         msg = "WARNING: "..(msg or "<warning message>")
