@@ -81,16 +81,37 @@ function iter (v)
 end
 
 function task (f)
-    local t = { tag='task', co=coro(f) }
-    TASKS[#TASKS+1] = t
+    local up = TASKS[coroutine.running()]
+    local t = { tag='task', co=coro(f), tog=false, up=up, dns={}, ing=0,gc=false }
     TASKS[t.co] = t
+    if up then
+        up.dns[#up.dns+1] = t
+    else
+        TASKS[#TASKS+1] = t
+    end
     return t
 end
 
-local function task_resume (t, ...)
-    if status(t.co) == 'suspended' then
-        assert(resume(t.co, ...))
+local function task_resume (t, e, ...)
+    local ok = false
+    if status(t.co) ~= 'suspended' then
+        -- nothing to awake
+    elseif t.await == nil then
+        -- first awake
+        ok = true
+    elseif t.await.e == false then
+        -- never awakes
+    elseif t.await.e==true or t.await.e==e then
+        if t.await.f==nil or t.await.f(e,...) then
+            ok = true
+        end
+    end
+    if ok then
+        assert(resume(t.co, e, ...))
         if status(t.co) == 'dead' then
+            if t.up then
+                t.up.gc = true
+            end
             emit(t)
         end
     end
@@ -118,15 +139,22 @@ function yield (...)
     return coroutine.yield(...)
 end
 
-function await (e, cnd)
+function await (e, f)
     local t = TASKS[coroutine.running()]
-    t.await = { e=e, cnd=cnd }
+    t.await = { e=e, f=f }
     return coroutine.yield()
 end
 
 function emit (...)
-    for _, t in ipairs(TASKS) do
-        assert(task_resume(t, ...))
+    local function f (ts, ...)
+        -- ing++
+        for _, t in ipairs(ts) do
+            f(t.dns, ...)
+            assert(task_resume(t, ...))
+        end
+        -- ing--
+        -- TODO: gc
     end
+    f(TASKS, ...)
     return ...
 end

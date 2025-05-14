@@ -129,7 +129,7 @@ do
     ]]
     print("Testing...", "spawn 2")
     local out = exec_string("anon.atm", src)
-    assert(out == "anon.atm : line 3 : bad argument #1 to 'resume' (thread expected, got table)\n")
+    warn(out == "anon.atm : line 2 : bad argument #1 to 'resume' (thread expected, got table)\n", "(\\nresume)(...)")
 
     local src = [[
         spawn(func () {
@@ -161,7 +161,7 @@ do
     ]]
     print("Testing...", "resume 1 : error : resume task")
     local out = exec_string("anon.atm", src)
-    assert(out == "anon.atm : line 3 : bad argument #1 to 'resume' (thread expected, got table)\n")
+    warn(out == "anon.atm : line 2 : bad argument #1 to 'resume' (thread expected, got table)\n", "(\\nresume)(...)")
 end
 
 -- SPAWN (scope)
@@ -264,8 +264,66 @@ do
     ]]
     print("Testing...", "emit 3 : task term")
     local out = exec_string("anon.atm", src)
-print(out)
     assert(out == ":bcast\n:2\n:1\n")
+
+    local src = [[
+        val T = func () {
+            await(true)
+            print(:ok)
+        }
+        var t = spawn T()
+        do {
+            emit(1)
+        }
+    ]]
+    print("Testing...", "emit 4")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":ok\n")
+
+    local src = [[
+        var tk
+        set tk = func () {
+            await(true)
+            val e = await(true)
+            print(e)
+        }
+        var co1 = spawn (tk) ()
+        var co2 = spawn tk ()
+        do {
+             emit(1)
+             emit(2)
+             emit(3)
+        }
+    ]]
+    print("Testing...", "emit 5")
+    local out = exec_string("anon.atm", src)
+    assert(string.find(out, "2\ntable: 0x"))
+
+    local src = [[
+        var tk
+        set tk = func () {
+            val e1 = await(true)
+            var e2
+            do {
+                print(e1)
+                set e2 = await(true)
+                print(e2)
+            }
+            do {
+                print(e2)
+                val e3 = await(true)
+                print(e3)
+            }
+        }
+        spawn tk ()
+        emit(1)
+        emit(2)
+        emit(3)
+        emit(4)
+    ]]
+    print("Testing...", "emit 6")
+    local out = exec_string("anon.atm", src)
+    assert(out == "1\n2\n2\n3\n")
 end
 
 -- EMIT (alien)
@@ -283,7 +341,7 @@ do
         }
         print(:ok)
     ]]
-    print("Testing...", "emit 1")
+    print("Testing...", "alien 1")
     local out = exec_string("anon.atm", src)
     assert(out == "{  }\n:ok\n")
 
@@ -295,11 +353,115 @@ do
         spawn T()
         do {
             val e = []
-            emit(e)
+            (func () { emit(e) })()
         }
         print(:ok)
     ]]
-    print("Testing...", "emit 2")
+    print("Testing...", "alien 2")
     local out = exec_string("anon.atm", src)
     assert(out == "{  }\n:ok\n")
+end
+
+-- EMIT-AWAIT / PAYLOAD
+
+do
+    local src = [[
+        val T = func () {
+            loop {
+                val it = await(true)
+            }
+        }
+        spawn T ()
+        emit(2)
+        print(:ok)
+    ]]
+    print("Testing...", "payload 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":ok\n")
+
+    local src = [[
+        var tk
+        set tk = func (v) {
+            print(v)
+            val e1 = await(true, type(it)!='table')
+            print(:e1,e1)
+            val e2 = await(true, type(it)!='table')
+            print(:e2,e2)
+        }
+        print(:1)
+        var co1 = spawn (tk) (10)
+        var co2 = spawn (tk) (10)
+        catch true {
+            (func () {
+                print(:2)
+                emit(20)
+                print(:3)
+                emit(30)
+            })()
+        }
+    ]]
+    print("Testing...", "payload 2")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\n10\n10\n:2\n:e1\t20\n:e1\t20\n:3\n:e2\t30\n:e2\t30\n")
+end
+
+-- LEXICAL ORDER
+
+do
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                print(:1)
+                await(true)              ;; 1. awakes from outer bcast
+                print(:3)
+            }) ()
+            await(true)                  ;; 2. awakes from nested task
+            await(true)                  ;; 3. awakes from outer bcast
+            print(:ok)
+        }) ()
+        print(:2)
+        emit()
+        print(:4)
+    ]]
+    print("Testing...", "order 1")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\n:2\n:3\n:ok\n:4\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                print(:1)
+                await(true)              ;; awakes from outer bcast
+                print(:3)
+            }) ()
+            await(true)                  ;; awakes from nested task
+            ;;delay
+            await(true)                  ;; does not awake from outer bcast
+            print(:no)
+        }) ()
+        print(:2)
+        emit()
+        print(:4)
+    ]]
+    print("Testing...", "order 2")
+    local out = exec_string("anon.atm", src)
+    assert(out == ":1\n:2\n:3\n:no\n:4\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                print(:1, await(true)) ;; awakes from outer bcast
+            }) ()
+            spawn (func () {
+                loop {
+                    await(true)
+                }
+            }) ()
+            print(:2, await(true))      ;; awakes from :1 termination
+        }) ()               ;; kill anon task which is pending on traverse
+        emit(:out)
+    ]]
+    print("Testing...", "order 3")
+    local out = exec_string("anon.atm", src)
+    assert(string.find(out, ":1\t:out\n:2\ttable: 0x"))
 end
