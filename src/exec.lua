@@ -7,7 +7,7 @@ function exec_string (file, src)
     local f = assert(io.open(file..".lua", "w"))
     f:write([[
         require 'aux'
-        require 'prelude'
+        require 'runtime'
         return atm_exec (
             "]] .. file .. [[",
             ]] .. string.format('%q', coder_stmts(blk.ss)) .. [[
