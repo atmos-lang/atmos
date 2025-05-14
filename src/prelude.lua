@@ -112,7 +112,7 @@ local function task_resume (t, e, ...)
             if t.up then
                 t.up.gc = true
             end
-            emit(t)
+            emit(nil, t)
         end
     end
     return true
@@ -145,7 +145,7 @@ function await (e, f)
     return coroutine.yield()
 end
 
-function emit (...)
+function emit (to, ...)
     local function f (ts, ...)
         -- ing++
         for _, t in ipairs(ts) do
@@ -155,6 +155,14 @@ function emit (...)
         -- ing--
         -- TODO: gc
     end
-    f(TASKS, ...)
+    if to == nil then
+        f(TASKS, ...)
+    elseif type(to) ~= 'table' then
+        error('invalid emit : invalid target', 2)
+    elseif not to.ts then
+        error('invalid emit : invalid target', 2)
+    else
+        f(to.ts, ...)
+    end
     return ...
 end

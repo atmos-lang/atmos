@@ -501,7 +501,7 @@ do
     ]]
     print("Testing...", "task 1")
     local out = exec_string("anon.atm", src)
-    assert(out == "10\n:X\n")
+    assertx(out, "10\n:X\n")
 
     local src = [[
         val T = func (a) {

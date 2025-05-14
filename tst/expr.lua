@@ -490,7 +490,16 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "emit(:X, 10)")
+    assert(tostr_expr(e) == "emit(nil, :X, 10)")
+
+    local src = "emit(:X,10) in x"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assert(tostr_expr(e) == "emit(x, :X, 10)")
 
     local src = "resume co()"
     print("Testing...", src)

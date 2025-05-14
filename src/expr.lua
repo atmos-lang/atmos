@@ -73,12 +73,28 @@ function parser_expr_prim_1 ()
         accept_err(')')
         return { tag='call', f=f, args={e} }
 
-    -- yield(...), emit(...)
-    elseif accept('yield') or accept('emit') then
+    -- yield(...)
+    elseif accept('yield') then
         local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
         accept_err('(')
         local args = parser_list(',', ')', parser_expr)
         accept_err(')')
+        return { tag='call', f=f, args=args }
+
+    -- emit(...) in t
+    elseif accept('emit') then
+        local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
+        accept_err('(')
+        local args = parser_list(',', ')', parser_expr)
+        accept_err(')')
+        local to; do
+            if accept('in') then
+                to = parser_expr()
+            else
+                to = { tag='nil', tk={tag='key',str='nil',lin=TK0.lin} }
+            end
+        end
+        table.insert(args, 1, to)
         return { tag='call', f=f, args=args }
 
     -- await(...)

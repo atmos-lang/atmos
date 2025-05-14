@@ -324,6 +324,27 @@ do
     print("Testing...", "emit 6")
     local out = exec_string("anon.atm", src)
     assert(out == "1\n2\n2\n3\n")
+
+    local src = [[
+        spawn (func () {
+            var evt1 = await(true)
+            val evtx = evt1
+            print(evt1)
+            spawn (func () {
+                var evt2 = evtx
+                loop {
+                    print(evt2)    ;; lost reference
+                    set evt2 = await(true, type(it)!='table')
+                }
+            }) ()
+            set evt1 = await(true)
+        }) ()
+        emit (10)
+        emit (20)
+    ]]
+    print("Testing...", "emit 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n10\n20\n")
 end
 
 -- EMIT (alien)
@@ -484,4 +505,22 @@ do
     print("Testing...", "order 3")
     local out = exec_string("anon.atm", src)
     assert(string.find(out, ":1\t:out\n:2\ttable: 0x"))
+
+    local src = [[
+        var T
+        set T = func (v) {
+            spawn (func () {
+                print(v)
+                await(true)
+                print(v)
+            }) ()
+            loop { await(true) }
+        }
+        spawn T(1)
+        spawn T(2)
+        emit()
+    ]]
+    print("Testing...", "order 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n2\n1\n2\n")
 end
