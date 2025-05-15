@@ -158,14 +158,19 @@ function emit (to, ...)
         -- TODO: gc
     end
 
-    local co = coroutine.running()
-
     if to == nil then
-        to = co and TASKS[co] or TASKS
-    elseif to == ":global" then
+        to = 0
+    elseif to == ":task" then
+        to = 0
+    elseif to == ":parent" then
+        to = 1
+    end
+
+    if to == ":global" then
         to = TASKS
     elseif type(to) == 'number' then
         local n = tonumber(to)
+        local co = coroutine.running()
         to = co and TASKS[co] or TASKS
         while n > 0 do
             to = to.up

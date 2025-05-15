@@ -525,7 +525,7 @@ do
     assertx(out, "1\n2\n1\n2\n")
 end
 
--- EMIT IN
+print '-=- EMIT IN -=- '
 
 do
     local src = [[
@@ -555,7 +555,7 @@ do
             print(:ok, x)
         }) ()
         spawn (func () {
-            emit(10)
+            emit(10) in :task
             print(:no)
             emit(20) in :global
         }) ()
@@ -563,4 +563,6 @@ do
     print("Testing...", "emit-in 3")
     local out = exec_string("anon.atm", src)
     assertx(out, ":no\n:ok\t20\n")
+
+    warn(false, 'TODO :parent')
 end
