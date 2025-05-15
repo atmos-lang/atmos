@@ -2,7 +2,7 @@ coro   = coroutine.create
 resume = coroutine.resume
 status = coroutine.status
 
-local TASKS = { tag='global', dns={} }
+local TASKS = { tag='tasks', dns={} }
 
 function atm_idx (idx)
     if type(idx) == 'number' then
@@ -157,12 +157,30 @@ function emit (to, ...)
         -- ing--
         -- TODO: gc
     end
+
+    local co = coroutine.running()
+
     if to == nil then
-        f(TASKS, ...)
+        to = co and TASKS[co] or TASKS
+    elseif to == ":global" then
+        to = TASKS
+    elseif type(to) == 'number' then
+        local n = tonumber(to)
+        to = co and TASKS[co] or TASKS
+        while n > 0 do
+            to = to.up
+            if to == nil then
+                error('invalid emit : invalid target', 2)
+            end
+            n = n - 1
+        end
     elseif type(to)=='table' and (to.tag=='task' or to.tag=='tasks') then
-        f(to, ...)
+        to = to
     else
         error('invalid emit : invalid target', 2)
     end
+
+    f(to, ...)
+
     return ...
 end

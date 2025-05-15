@@ -524,3 +524,43 @@ do
     local out = exec_string("anon.atm", src)
     assertx(out, "1\n2\n1\n2\n")
 end
+
+-- EMIT IN
+
+do
+    local src = [[
+        emit() in nil
+        print(:ok)
+    ]]
+    print("Testing...", "emit-in 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\n")
+
+    local src = [[
+        spawn (func () {
+            val x = await(true)
+            print(:ok, x)
+        }) ()
+        spawn (func () {
+            emit(10) in :global
+        }) ()
+    ]]
+    print("Testing...", "emit-in 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\t10\n")
+
+    local src = [[
+        spawn (func () {
+            val x = await(true)
+            print(:ok, x)
+        }) ()
+        spawn (func () {
+            emit(10)
+            print(:no)
+            emit(20) in :global
+        }) ()
+    ]]
+    print("Testing...", "emit-in 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":no\n:ok\t20\n")
+end

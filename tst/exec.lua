@@ -575,6 +575,13 @@ do
     print("Testing...", "emit 2")
     local out = exec_string("anon.atm", src)
     assert(out == ":1\t1\n:2\t2\n")
+
+    local src = [[
+        emit(1) in false
+    ]]
+    print("Testing...", "emit 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 1 : invalid emit : invalid target\n")
 end
 
 -- ERROR / LINE NUMBER
