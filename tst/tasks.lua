@@ -152,7 +152,7 @@ do
     ]]
     print("Testing...", "yield 1 : error : yield inside task")
     local out = exec_string("anon.atm", src)
-    assert(out == "anon.atm : line 1 : invalid yield : unexpected task instance\n")
+    assertx(out, "anon.atm : line 1 : invalid yield : unexpected task instance\n")
 
     local src = [[
         val T = func () { yield() }

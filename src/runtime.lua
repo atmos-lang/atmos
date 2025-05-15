@@ -93,20 +93,20 @@ function task (f)
 end
 
 local function task_resume (t, e, ...)
-    local ok = false
+    local awk = false
     if status(t.co) ~= 'suspended' then
         -- nothing to awake
     elseif t.await == nil then
         -- first awake
-        ok = true
+        awk = true
     elseif t.await.e == false then
         -- never awakes
     elseif t.await.e==true or t.await.e==e then
         if t.await.f==nil or t.await.f(e,...) then
-            ok = true
+            awk = true
         end
     end
-    if ok then
+    if awk then
         assert(resume(t.co, e, ...))
         if status(t.co) == 'dead' then
             if t.up then
