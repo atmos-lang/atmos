@@ -457,7 +457,7 @@ do
                 emit ([20])
                 print(:3)
                 emit ([(30,30)])
-                return(true)
+                escape(true)
             }) ())
         }
         print(e)
