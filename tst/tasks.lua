@@ -476,6 +476,100 @@ do
         { 30=30 }
         true
     ]])
+
+    local src = [[
+        val f = func (v) {
+            (func (x) {
+                set x[0] = v[0]
+                dump(x[0])
+            }) ([0])
+        }
+        var T = func () {
+            f(await(true))
+        }
+        spawn T()
+        emit ([ [1] ])
+    ]]
+    print("Testing...", "emit scope 7")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 1 }\n")
+
+    local src = [[
+        val f = func (v) {
+            dump(v[0])
+        }
+        var T = func () {
+            f(await(true))
+        }
+        spawn T()
+        emit ([ [1] ])
+    ]]
+    print("Testing...", "emit scope 8")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 1 }\n")
+
+    local src = [[
+        val f = func (v) {
+            (func (x) {
+                set x[0] = v[0]
+                dump(x[0])
+            }) ([0])
+        }
+        var T = func () {
+            f(await(true))
+        }
+        spawn T()
+        emit ([ [1] ])
+    ]]
+    print("Testing...", "emit scope 9")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 1 }\n")
+
+    local src = [[
+        val f = func (v) {
+            dump(v)
+        }
+        val T = func () {
+            f(await(true))
+        }
+        spawn T()
+        do {
+            do {
+                do {
+                    do {
+                        do {
+                            emit ([])
+                        }
+                    }
+                }
+            }
+        }
+    ]]
+    print("Testing...", "emit scope 10")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
+    local src = [[
+        val f = func (v) {
+            dump(v)
+        }
+        val T = func () {
+            do {
+                f(await(true))
+            }
+        }
+        spawn T()
+        do {
+            do {
+                do {
+                    emit ([])
+                }
+            }
+        }
+    ]]
+    print("Testing...", "emit scope 11")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
 end
 
 print "-=- EMIT / ALIEN -=-"
