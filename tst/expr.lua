@@ -343,6 +343,15 @@ do
     assert(check('<eof>'))
     assert(tostr_expr(e) == "(2 == (-1))")
 
+    local src = "x || y"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assert(tostr_expr(e) == "(x || y)")
+
     local src = "- -1"
     print("Testing...", src)
     init()
