@@ -363,7 +363,111 @@ do
     assertx(out, "{  }\n")
 end
 
-print "-=- EMIT (alien) -=-"
+print "-=- EMIT / SCOPE -=-"
+
+do
+    local src = [[
+        val T = func (v) {
+            val e = await(true)
+            dump(e)
+        }
+        spawn T(10)
+        (func () {
+            emit ([])
+        }) ()
+    ]]
+    print("Testing...", "emit scope 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
+    local src = [[
+        val T = func (v) {
+            val it = await(true)
+            dump(it)
+        }
+        spawn T(10)
+        (func () {
+            emit ([])
+        }) ()
+    ]]
+    print("Testing...", "emit scope 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
+    local src = [[
+        val T = func () {
+            val e = await(true)
+            dump(e)
+            await(true)
+        }
+        spawn T()
+        spawn T()
+        emit ([])
+    ]]
+    print("Testing...", "emit scope 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n{  }\n")
+
+    local src = [[
+        val T = func (v) {
+            await(true)
+            dump(v)                
+        }
+        spawn T([])
+        emit(nil)
+    ]]
+    print("Testing...", "emit scope 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
+    local src = [[
+        val T = func () {
+            val e =
+                (func (it) {
+                    type(it)
+                    return(it)
+                }) (await(true))
+            dump(e)                
+        }
+        spawn T()
+        do {
+            emit ([20])
+        }
+        print(:ok)
+    ]]
+    print("Testing...", "emit scope 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 20 }\n:ok\n")
+
+    local src = [[
+        var tk
+        set tk = func (v) {
+            print(v)
+            val e1 = await(true)
+            print(e1)                
+            val e2 = await(true)
+            print(e2)                
+        }
+        print(:1)
+        var co1 = spawn (tk) (10)
+        var co2 = spawn (tk) (10)
+        val e = catch true {
+            (func () {
+                print(:2)
+                emit ([20])
+                print(:3)
+                emit ([(30,30)])
+                true
+            }) ()
+        }
+        print(e)
+    ]]
+    print("Testing...", "emit scope 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 20 }\n:ok\n")
+end
+
+print "-=- EMIT / ALIEN -=-"
 
 do
     local src = [[
@@ -453,7 +557,7 @@ do
             emit(e)
         }
     ]]
-    print("Testing...", "alien 4")
+    print("Testing...", "alien 5")
     local out = exec_string("anon.atm", src)
     assertx(out, "{ 10 }\n")
 end
@@ -688,7 +792,7 @@ do
     assertx(out, "1\n2\n1\n2\n")
 end
 
-print "-=- EMIT IN -=-"
+print "-=- EMIT / IN -=-"
 
 do
     local src = [[
@@ -747,4 +851,72 @@ do
     assertx(out, "2\n")
 
     warn(false, 'TODO :parent')
+end
+
+print '-=- TASK / TERMINATION -=-'
+
+do
+    local src = [[
+        spawn {
+            val e = await(true)
+            print(:ok, e)
+        }
+        val t = spawn {
+        }
+        emit(t)
+    ]]
+    print("Testing...", "task-term 1")
+    local out = exec_string("anon.atm", src)
+    assert(string.find(out, ":ok\ttable: 0x"))
+
+    local src = [[
+        spawn {
+            val x = await(true)
+            print(:ok, x)
+        }
+        val t = spawn {
+        }
+        emit(t)
+    ]]
+    print("Testing...", "task-term 2")
+    local out = exec_string("anon.atm", src)
+    assert(string.find(out, ":ok\ttable: 0x"))
+
+    local src = [[
+        spawn {
+            await(true)
+            print(:1)
+            val x = await(true)
+            print(:ok, x)
+        }
+        val t = spawn {
+            await(true)
+            print(:2)
+        }
+        emit(nil)
+        emit(t)
+    ]]
+    print("Testing...", "task-term 3")
+    local out = exec_string("anon.atm", src)
+    assert(string.find(out, ":1\n:2\n:ok\ttable: 0x"))
+
+    local src = [[
+        spawn {
+            val t = spawn {
+                val it = await(true)
+                print(:1, it)
+            }
+            print(:0)
+            (func (it) {
+                if (type(it) == 'table') {
+                    print(:2, it == t)
+                }
+            }) (await(true))
+        }
+        emit(:a)
+        emit(:b)
+    ]]
+    print("Testing...", "task-term 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":0\n:1\t:a\n:2\ttrue\n")
 end
