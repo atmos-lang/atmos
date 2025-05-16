@@ -411,7 +411,7 @@ do
     local src = [[
         val T = func (v) {
             await(true)
-            dump(v)                
+            dump(v)
         }
         spawn T([])
         emit(nil)
@@ -427,7 +427,7 @@ do
                     type(it)
                     return(it)
                 }) (await(true))
-            dump(e)                
+            dump(e)
         }
         spawn T()
         do {
@@ -443,28 +443,39 @@ do
         var tk
         set tk = func (v) {
             print(v)
-            val e1 = await(true)
-            print(e1)                
-            val e2 = await(true)
-            print(e2)                
+            val e1 = await(true, (type(it)!='table') || (it['tag']!='task'))
+            dump(e1)
+            val e2 = await(true, (type(it)!='table') || (it['tag']!='task'))
+            dump(e2)
         }
         print(:1)
         var co1 = spawn (tk) (10)
         var co2 = spawn (tk) (10)
-        val e = catch true {
-            (func () {
+        val ok,e = catch true {
+            return ((func () {
                 print(:2)
                 emit ([20])
                 print(:3)
                 emit ([(30,30)])
-                true
-            }) ()
+                return(true)
+            }) ())
         }
         print(e)
     ]]
     print("Testing...", "emit scope 6")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{ 20 }\n:ok\n")
+    assertx(trim(out), trim [[
+        :1
+        10
+        10
+        :2
+        { 20 }
+        { 20 }
+        :3
+        { 30=30 }
+        { 30=30 }
+        true
+    ]])
 end
 
 print "-=- EMIT / ALIEN -=-"

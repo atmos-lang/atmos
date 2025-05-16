@@ -26,6 +26,11 @@ function coder_stmt (s)
         if s.custom == 'block' then
             local id, blk = s.ids[1], s.sets[1]
             return coder_stmt(blk) .. [[ ; local ]] .. id.str .. cst .. ' = atm_'..blk.esc.str:sub(2)
+        elseif s.custom == 'catch' then
+            local n = _n_+1
+            local ids = concat(',', map(s.ids, function (id) return id.str end))
+            local cat = coder_stmt(s.sets[1])
+            return cat .. ' ; local ' .. ids .. ' = atm_ok_' .. n .. ', atm_esc_' .. n
         elseif s.custom == 'func' then
             local id, f = s.ids[1], s.sets[1]
             return 'local ' .. id.str .. ' ; ' .. id.str .. cst .. ' = ' .. coder_expr(f)

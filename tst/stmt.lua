@@ -379,4 +379,15 @@ do
         } {
         }
     ]])
+
+    local src = "val x = catch :X { }"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check('<eof>'))
+    assertx(trim(tostr_stmt(s)), trim [[
+        val x = catch :X {
+        }
+    ]])
 end

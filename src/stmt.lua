@@ -28,6 +28,10 @@ function parser_stmt ()
                 end
                 custom = 'block'
                 sets = { blk }
+            elseif check('catch') then
+                local cat = parser_stmt()
+                custom = 'catch'
+                sets = { cat }
             else
                 sets = parser_list(',', nil, parser_expr)
             end

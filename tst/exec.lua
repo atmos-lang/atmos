@@ -12,10 +12,11 @@ do
     local src = [[
         print("xxx")
         print(:2)
+        print(nil || 20)
     ]]
     print("Testing...", "block 2")
     local out = exec_string("anon.atm", src)
-    assert(out == "xxx\n:2\n")
+    assert(out == "xxx\n:2\n20\n")
 end
 
 -- BLOCK / DO / ESCAPE / DEFER
@@ -419,7 +420,7 @@ do
     ]]
     print("Testing...", "catch 1")
     local out = exec_string("anon.atm", src)
-    assert(out == ":1\n:2\n:4\n")
+    assertx(out, ":1\n:2\n:4\n")
 
     local src = [[
         print(:1)
@@ -467,6 +468,26 @@ do
     print("Testing...", "catch 4")
     local out = exec_string("anon.atm", src)
     assert(out == ":1\n:2\n:3\n:6\n")
+
+    local src = [[
+        val ok,v = catch true {
+            throw(10)
+        }
+        print(ok,v)
+    ]]
+    print("Testing...", "catch 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "false\t10\n")
+
+    local src = [[
+        val ok,v = catch true {
+            return(10)
+        }
+        print(ok,v)
+    ]]
+    print("Testing...", "catch 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "true\t10\n")
 end
 
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME

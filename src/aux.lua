@@ -38,12 +38,14 @@ function stringify (v)
             t[#t+1] = { k, x }
         end
         table.sort(t, function (x, y) return (tostring(x[1]) < tostring(y[1])) end)
+        local i = 1
         for _,kx in ipairs(t) do
             local k,x = table.unpack(kx)
             if not fst then
                 vs = vs .. ', '
             end
-            if type(k) == 'number' then
+            if tonumber(k) == i then
+                i = i + 1
                 vs = vs .. stringify(x)
             else
                 vs = vs .. k .. '=' .. stringify(x)

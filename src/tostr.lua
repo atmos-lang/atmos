@@ -2,7 +2,7 @@ function tostr_stmt (s)
     if false then
     elseif s.tag == 'dcl' then
         local f = function (se)
-            if se.tag == 'block' then
+            if s.custom then
                 return tostr_stmt(se)
             else
                 return tostr_expr(se)
