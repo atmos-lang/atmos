@@ -342,14 +342,40 @@ do
         emit (10)
         emit (20)
     ]]
-    print("Testing...", "emit 6")
+    print("Testing...", "emit 7")
     local out = exec_string("anon.atm", src)
     assertx(out, "10\n10\n20\n")
+
+    local src = [[
+        val T = func (v) {
+            val e = await(true)
+            dump(e)
+        }
+        spawn T(10)
+        catch true {
+            (func () {
+                emit ([])
+            }) ()
+        }
+    ]]
+    print("Testing...", "emit 8")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
 end
 
 print "-=- EMIT (alien) -=-"
 
 do
+    local src = [[
+        var x
+        set x = []
+        emit (x)
+        dump(x)
+    ]]
+    print("Testing...", "alien 0")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
     local src = [[
         spawn (func () {
             val v = await(true)
@@ -567,11 +593,20 @@ do
             }
         }
         emit([])
-
     ]]
     print("Testing...", "payload 5")
     local out = exec_string("anon.atm", src)
     assertx(out, "nil\n{  }\n")
+
+    local src = [[
+        spawn {
+            print(await(true))
+        }
+        emit(10,20)
+    ]]
+    print("Testing...", "payload 5: multi emit/await args")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\t20\n")
 end
 
 -- LEXICAL ORDER
