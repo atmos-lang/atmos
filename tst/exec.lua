@@ -186,7 +186,7 @@ end
 do
     local src = [[
         val t = [1, x=10, (:y,20)]
-        print(t[0], t.x, t[:y])
+        print(t[0], t[:x], t.y)
     ]]
     print("Testing...", "table 1")
     local out = exec_string("anon.atm", src)
@@ -582,6 +582,17 @@ do
     print("Testing...", "emit 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "anon.atm : line 1 : invalid emit : invalid target\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                throw(:X)
+            }) ()
+        }) ()
+    ]]
+    print("Testing...", "task-throw-catch 1")
+    local out = exec_string("anon.atm", src)
+    warnx(out, "anon.atm : line 1 : invalid emit : invalid target\n")
 end
 
 -- ERROR / LINE NUMBER

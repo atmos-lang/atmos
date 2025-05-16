@@ -112,10 +112,28 @@ function parser_expr_prim_1 ()
         accept_err(')')
         return { tag='call', f=f, args={xe,xf} }
 
-    -- resume co(...), spawn T(...)
-    elseif accept('resume') or accept('spawn') then
+    -- spawn T(...)
+    elseif accept('spawn') then
+        if check('{') then
+            local cmd = { tag='acc', tk={tag='id', str='spawn', lin=TK0.lin} }
+            local ss = parser_curly()
+            local f = { tag='func', pars={}, blk={tag='block',ss=ss} }
+            return { tag='call', f=cmd, args={f} }
+        else
+            local tk = TK0
+            local cmd = { tag='acc', tk={tag='id', str=TK0.str, lin=TK0.lin} }
+            local call = parser_expr()
+            if call.tag ~= 'call' then
+                err(tk, "expected call")
+            end
+            table.insert(call.args, 1, call.f)
+            return { tag='call', f=cmd, args=call.args }
+        end
+
+    -- resume co(...)
+    elseif accept('resume') then
         local tk = TK0
-        local cmd = { tag='acc', tk={tag='id', str=TK0.str, lin=TK0.lin} }
+        local cmd = { tag='acc', tk={tag='id', str='resume', lin=TK0.lin} }
         local call = parser_expr()
         if call.tag ~= 'call' then
             err(tk, "expected call")

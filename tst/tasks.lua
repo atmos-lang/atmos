@@ -347,7 +347,7 @@ do
     assertx(out, "10\n10\n20\n")
 end
 
--- EMIT (alien)
+print "-=- EMIT (alien) -=-"
 
 do
     local src = [[
@@ -381,6 +381,55 @@ do
     print("Testing...", "alien 2")
     local out = exec_string("anon.atm", src)
     assert(out == "{  }\n:ok\n")
+
+    local src = [[
+        spawn (func () {
+            val evt = await(true)
+            val x = [nil]
+            set x[0] = evt
+            dump(x)
+        }) ()
+        do {
+            val x
+            emit([10])
+        }
+    ]]
+    print("Testing...", "alien 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ { 10 } }\n")
+
+    local src = [[
+        spawn (func () {
+            val evt = await(true)
+            do {
+                val x = evt
+                dump(x)
+                await(true)
+            }
+        }) ()
+        do {
+            val x
+            emit([10])
+        }
+    ]]
+    print("Testing...", "alien 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 10 }\n")
+
+    local src = [[
+        spawn (func () {
+            val evt = await(true)
+            val x = evt[0]
+            dump(x)
+        }) ()
+        do {
+            val e = [ [10] ]
+            emit(e)
+        }
+    ]]
+    print("Testing...", "alien 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 10 }\n")
 end
 
 -- EMIT-AWAIT / PAYLOAD
@@ -444,6 +493,85 @@ do
     print("Testing...", "payload 3")
     local out = exec_string("anon.atm", src)
     assertx(out, ":in\t10\n")
+
+    local src = [[
+        spawn (func () {
+            var evt = await(true)
+            val x = evt
+            dump(x)
+            set evt = await(true)
+            dump(x)
+        }) ()
+        do {
+            val e = [10]
+            emit(e)
+        }
+        emit(nil)
+    ]]
+    print("Testing...", "payload 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 10 }\n{ 10 }\n")
+
+    local src = [[
+        var fff
+        set fff = func (x) { return(x) }
+        spawn (func () {
+            var evt = await(true)
+            do :X {
+                loop {
+                    if evt[:type]==:x {
+                        escape :X()
+                    }
+                    set evt = await(true)
+                }
+            }
+            print(99)
+        }) ()
+        print(1)
+        emit ([type=:y])
+        print(2)
+        emit ([type=:x])
+        print(3)
+    ]]
+    print("Testing...", "payload 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n2\n99\n3\n")
+
+    local src = [[
+        val fff = func (x) { return (x) }
+        spawn (func () {
+            print(1)
+            var evt
+            do {
+                print(2)
+                set evt = await(true)
+                print(3)
+            }
+            print(4)
+            fff(evt[:type])
+            print(99)
+        }) ()
+        emit ([(:type,:y)])
+        emit ([(:type,:x)])
+    ]]
+    print("Testing...", "payload 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n2\n3\n4\n99\n")
+
+    local src = [[
+        spawn {
+            var evt
+            loop {
+                dump(evt)
+                set evt = await(true)
+            }
+        }
+        emit([])
+
+    ]]
+    print("Testing...", "payload 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "nil\n{  }\n")
 end
 
 -- LEXICAL ORDER
@@ -525,7 +653,7 @@ do
     assertx(out, "1\n2\n1\n2\n")
 end
 
-print '-=- EMIT IN -=- '
+print "-=- EMIT IN -=-"
 
 do
     local src = [[
@@ -563,6 +691,25 @@ do
     print("Testing...", "emit-in 3")
     local out = exec_string("anon.atm", src)
     assertx(out, ":no\n:ok\t20\n")
+
+    local src = [[
+        var T
+        set T = func (v) {
+            await(true)
+            print(v)
+            await(true)
+        }
+        var t1
+        set t1 = spawn T (1)
+        do {
+            var t2
+            set t2 = spawn T (2)
+            emit(nil) in t2
+        }
+    ]]
+    print("Testing...", "emit-in 4: in t2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "2\n")
 
     warn(false, 'TODO :parent')
 end

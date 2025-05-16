@@ -110,7 +110,7 @@ function coder_expr (e)
         end))
         return '{' .. ps .. '}'
     elseif e.tag == 'bin' then
-        return '('..tostr_expr(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..tostr_expr(e.e2)..')'
+        return '('..coder_expr(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder_expr(e.e2)..')'
     elseif e.tag == 'call' then
         return '('..coder_expr(e.f)..')('..concat(", ", map(e.args, coder_expr))..')'
     elseif e.tag == 'func' then
