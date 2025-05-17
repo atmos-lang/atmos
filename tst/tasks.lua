@@ -1048,15 +1048,68 @@ print '-=- PUB -=-'
 
 do
     local src = [[
-        spawn {
-            val e = await(true)
-            print(:ok, e)
+        val t = func () {
+            set pub = []
+            return (pub)
         }
-        val t = spawn {
-        }
-        emit(t)
+        val a = spawn (t) ()
+        val x = a.pub
+        dump(x)
     ]]
-    print("Testing...", "task-term 1")
+    print("Testing...", "pub 1")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, ":ok\ttable: 0x"))
+    assertx(out, "{  }\n")
+
+    local src = [[
+        val T = func () {
+            print(pub)
+            await(true)
+        }
+        val t = spawn T()
+        print(t.pub)
+    ]]
+    print("Testing...", "pub 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "nil\nnil\n")
+
+    local src = [[
+        val T = func () {
+            set pub = 10
+            await(true)
+        }
+        val t = spawn T()
+        print(t.pub)
+    ]]
+    print("Testing...", "pub 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
+
+    local src = [[
+        val T = func () {
+            do {
+                val x = []
+                set pub = x
+                return(pub)
+            }
+        }
+        val t = spawn T()
+        dump(t.pub)
+    ]]
+    print("Testing...", "pub 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
+    local src = [[
+        val T = func () {
+        }
+        val t = spawn T()
+        do {
+            val x = []
+            set t.pub = x
+        }
+        dump(t.pub)
+    ]]
+    print("Testing...", "pub 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
 end
