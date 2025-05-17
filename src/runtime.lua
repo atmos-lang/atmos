@@ -39,6 +39,9 @@ function atm_exec (file, src)
         io.stderr:write(file..' : line '..lin..' : '..msg..'\n')
         return nil
     end
+
+    atm_task_close(TASKS)
+
     return v
 end
 
@@ -106,7 +109,16 @@ function task (f)
     return t
 end
 
-local function task_resume (t, e, ...)
+function atm_task_close (t)
+    for _,dn in ipairs(t.dns) do
+        atm_task_close(dn)
+    end
+    if t.tag == 'task' then
+        coroutine.close(t.co)
+    end
+end
+
+local function atm_task_resume (t, e, ...)
     local awk = false
     if status(t.co) ~= 'suspended' then
         -- nothing to awake
@@ -141,7 +153,7 @@ function spawn (t, ...)
     else
         error('invalid spawn : expected task prototype', 2)
     end
-    assert(task_resume(t, ...))
+    assert(atm_task_resume(t, ...))
     return t
 end
 
@@ -168,7 +180,7 @@ function emit (to, ...)
             f(dn, ...)
         end
         if t.tag == 'task' then
-            assert(task_resume(t, ...))
+            assert(atm_task_resume(t, ...))
         end
         -- ing--
         -- TODO: gc

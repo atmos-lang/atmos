@@ -1207,3 +1207,34 @@ do
     local out = exec_string("anon.atm", src)
     assertx(out, ":ok\n")
 end
+
+print '-=- ABORTION -=-'
+
+do
+    local src = [[
+        spawn (
+            func () {
+                defer {
+                    print(:defer)
+                }
+            }
+        ) ()
+    ]]
+    print("Testing...", "abort 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":defer\n")
+
+    local src = [[
+        spawn (
+            func () {
+                defer {
+                    print(:defer)
+                }
+                await(false)
+            }
+        ) ()
+    ]]
+    print("Testing...", "abort 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":defer\n")
+end
