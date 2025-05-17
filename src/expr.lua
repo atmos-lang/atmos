@@ -28,6 +28,12 @@ function parser_expr_prim_1 ()
     elseif accept(nil,'id') or accept('it') then
         return { tag='acc', tk=TK0 }
 
+    -- pub
+    elseif accept('pub') then
+        local t = { tag='call', f={tag='acc',tk={tag='id',str='atm_me'}}, args={} }
+        local idx = { tag='str', tk=TK0 }
+        return { tag='index', t=t, idx=idx }
+
     -- (...)
     elseif accept('(') then
         local e = parser_expr()

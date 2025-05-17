@@ -150,9 +150,18 @@ do
         val t = spawn T()
         print(t)
     ]]
-    print("Testing...", "yield 1 : error : yield inside task")
+    print("Testing...", "yield 2 : error : yield inside task")
     local out = exec_string("anon.atm", src)
-    assertx(out, "anon.atm : line 1 : invalid yield : unexpected task instance\n")
+    assertx(out, "anon.atm : line 1 : invalid yield : unexpected enclosing task instance\n")
+
+    local src = [[
+        val T = func () { await(true) }
+        val t = T()
+        print(t)
+    ]]
+    print("Testing...", "yield 3 : error : await without enclosing task")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 1 : invalid await : expected enclosing task instance\n")
 
     local src = [[
         val T = func () { yield() }

@@ -245,6 +245,15 @@ do
     parser()
     local ok, msg = pcall(parser_stmt)
     assert(not ok and msg=="anon : line 1 : near '#' : expected assignable expression")
+
+    local src = "set pub = 10"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check('<eof>'))
+    assertx(tostr_stmt(s), 'set atm_me()["pub"] = 10')
 end
 
 -- IF-ELSE

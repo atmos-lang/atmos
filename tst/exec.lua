@@ -614,6 +614,16 @@ do
     print("Testing...", "task-throw-catch 1")
     local out = exec_string("anon.atm", src)
     warnx(out, "anon.atm : line 1 : invalid emit : invalid target\n")
+
+    local src = [[
+        spawn (func () {
+            set pub = 10
+            print(pub)
+        }) ()
+    ]]
+    print("Testing...", "pub 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
 end
 
 -- ERROR / LINE NUMBER

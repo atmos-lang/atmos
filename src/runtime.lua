@@ -80,9 +80,23 @@ function iter (v)
     return coroutine.wrap(f)
 end
 
+function atm_me ()
+    local co = coroutine.running()
+    return co and TASKS[co]
+end
+
 function task (f)
-    local up = TASKS[coroutine.running()]
-    local t = { tag='task', co=coro(f), tog=false, up=up, dns={}, ing=0,gc=false }
+    local up = atm_me()
+    local t = {
+        tag = 'task',
+        co  = coro(f),
+        pub = nil,
+        up  = up,
+        dns = {},
+        tog = false,
+        ing = 0,
+        gc  = false
+    }
     TASKS[t.co] = t
     if up then
         up.dns[#up.dns+1] = t
@@ -132,15 +146,17 @@ function spawn (t, ...)
 end
 
 function yield (...)
-    local co = coroutine.running()
-    if TASKS[co] then
-        error('invalid yield : unexpected task instance', 2)
+    if atm_me() then
+        error('invalid yield : unexpected enclosing task instance', 2)
     end
     return coroutine.yield(...)
 end
 
 function await (e, f)
-    local t = TASKS[coroutine.running()]
+    local t = atm_me()
+    if not t then
+        error('invalid await : expected enclosing task instance', 2)
+    end
     t.await = { e=e, f=f }
     return coroutine.yield()
 end
@@ -170,8 +186,7 @@ function emit (to, ...)
         to = TASKS
     elseif type(to) == 'number' then
         local n = tonumber(to)
-        local co = coroutine.running()
-        to = co and TASKS[co] or TASKS
+        to = atm_me() or TASKS
         while n > 0 do
             to = to.up
             if to == nil then
