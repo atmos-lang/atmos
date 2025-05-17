@@ -69,6 +69,15 @@ do
     parser()
     local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near '(' : call error : expected prefix expression")
+
+    local src = "nil.pub"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assert(not ok and msg=="anon : line 1 : near '.' : field error : expected prefix expression")
+
 end
 
 -- EXEC
@@ -1033,4 +1042,21 @@ do
     print("Testing...", "task-term 4")
     local out = exec_string("anon.atm", src)
     assertx(out, ":0\n:1\t:a\n:2\ttrue\n")
+end
+
+print '-=- PUB -=-'
+
+do
+    local src = [[
+        spawn {
+            val e = await(true)
+            print(:ok, e)
+        }
+        val t = spawn {
+        }
+        emit(t)
+    ]]
+    print("Testing...", "task-term 1")
+    local out = exec_string("anon.atm", src)
+    assert(string.find(out, ":ok\ttable: 0x"))
 end

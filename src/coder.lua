@@ -106,7 +106,13 @@ end
 
 function coder_expr (e)
     if e.tag == 'tag' then
-        return L(e.tk)..'"'..e.tk.str..'"'
+        return L(e.tk) .. '"' .. e.tk.str .. '"'
+    elseif e.tag == 'acc' then
+        if e.tk.str == 'pub' then
+            return L(e.tk) .. "atm_me()[':pub']"
+        else
+            return L(e.tk) .. tostr_expr(e)
+        end
     elseif e.tag == 'index' then
         return '(' .. coder_expr(e.t) .. ")[atm_idx(" .. coder_expr(e.idx) .. ')]'
     elseif e.tag == 'table' then
@@ -124,6 +130,6 @@ function coder_expr (e)
             coder_stmts(e.blk.ss) ..
         " end"
     else
-        return L(e.tk)..tostr_expr(e)
+        return L(e.tk) .. tostr_expr(e)
     end
 end

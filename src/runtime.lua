@@ -90,12 +90,12 @@ function task (f)
     local t = {
         tag = 'task',
         co  = coro(f),
-        pub = nil,
         up  = up,
         dns = {},
         tog = false,
         ing = 0,
-        gc  = false
+        gc  = false,
+        [':pub'] = nil,
     }
     TASKS[t.co] = t
     if up then

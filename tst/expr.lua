@@ -449,8 +449,22 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_expr()
-    assert(stringify(s) == "{ args={ { tag=tag, tk={ lin=1, str=:X, tag=tag } }, { tag=num, tk={ str=0 } } }, f={ tag=acc, tk={ lin=1, str=error, tag=id } }, tag=call }")
+    local e = parser_expr()
+    assert(stringify(e) == "{ args={ { tag=tag, tk={ lin=1, str=:X, tag=tag } }, { tag=num, tk={ str=0 } } }, f={ tag=acc, tk={ lin=1, str=error, tag=id } }, tag=call }")
+
+    local src = "func (it) {}"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assertx(trim(tostr_expr(e)), trim [[
+        func (it) {
+        }
+    ]])
+    --local ok, msg = pcall(parser_stmt)
+    --assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
+
 end
 
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME / PUB
@@ -556,5 +570,5 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), 'atm_me()["pub"]')
+    assertx(tostr_expr(e), 'pub')
 end

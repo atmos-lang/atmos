@@ -201,16 +201,11 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_stmt)
-    assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
-
-    local src = "func f(it) {}"
-    print("Testing...", src)
-    init()
-    lexer_string("anon", src)
-    parser()
-    local ok, msg = pcall(parser_stmt)
-    assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
+    local s = parser_stmt()
+    assert(check('<eof>'))
+    assertx(tostr_stmt(s), "val it = 1")
+    --local ok, msg = pcall(parser_stmt)
+    --assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
 
     local src = "set [1] = 1"
     print("Testing...", src)
@@ -253,7 +248,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assertx(tostr_stmt(s), 'set atm_me()["pub"] = 10')
+    assertx(tostr_stmt(s), 'set pub = 10')
 end
 
 -- IF-ELSE

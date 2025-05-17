@@ -624,6 +624,16 @@ do
     print("Testing...", "pub 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "10\n")
+
+    local src = [[
+        val t = spawn (func () {
+            set pub = 10
+        }) ()
+        print(t.pub)
+    ]]
+    print("Testing...", "pub 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
 end
 
 -- ERROR / LINE NUMBER
