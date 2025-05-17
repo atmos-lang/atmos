@@ -1113,3 +1113,97 @@ do
     local out = exec_string("anon.atm", src)
     assertx(out, "{  }\n")
 end
+
+print '-=- NESTED -=-'
+
+do
+    local src = [[
+        spawn (func () {
+            val v = 10
+            spawn( func () {
+                print(v)
+            }) ()
+            await(true)
+        }) ()
+    ]]
+    print("Testing...", "nested 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
+
+    local src = [[
+        val F = func () {
+            val v = 10
+            val f = func () {
+                return(v)
+            }
+            return(f())
+        }
+        print(F())
+    ]]
+    print("Testing...", "nested 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
+
+    local src = [[
+        spawn( func () {
+            val t = []
+            spawn (func () {
+                await(true)
+                dump(t)
+            }) ()
+            await(true)
+        }) ()
+        coro(func () { })
+        emit(true)
+    ]]
+    print("Testing...", "nested 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
+    local src = [[
+        do {
+            val v = 10
+            spawn (func () {
+                print(v)
+            }) ()
+        }
+    ]]
+    print("Testing...", "nested 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
+
+    local src = [[
+        spawn (func () {
+            do {
+                spawn (func () {
+                    await(true)
+                }) ()
+                await(true)
+            }
+            emit([])
+        })()
+        emit(99)
+        print(:ok)
+    ]]
+    print("Testing...", "nested 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\n")
+
+    local src = [[
+        spawn (func () {
+            val fff = func () {
+                print(:ok)
+            }
+            val T = func () {
+                fff()
+            }
+            await(true)
+            spawn T()
+            await(true)
+        }) ()
+        emit(true)
+    ]]
+    print("Testing...", "nested 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\n")
+end
