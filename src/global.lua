@@ -11,6 +11,14 @@ function init ()
     _l_ = 1
 end
 
+KEYS = {
+    'await', 'break', 'do', 'catch', 'coro', 'defer',
+    'data', 'else', 'emit', 'escape', 'every', 'false', 'func', 'if', 'it',
+    'in', 'loop', 'match', 'nil', 'par', 'par_and', 'par_or', 'pub',
+    'resume', 'return', 'set', 'spawn', 'task', 'tasks', 'test',
+    'throw', 'true', 'until', 'val', 'var', 'yield', 'with', 'while'
+}
+
 OPS = {
     cs = { '+', '-', '*', '/', '%', '>', '<', '=', '|', '&', '?', '!' ,'#', '~' },
     vs = {
@@ -43,12 +51,4 @@ OPS = {
         ['||'] = 'or',
         ['&&'] = 'and',
     }
-}
-
-KEYS = {
-    'await', 'break', 'do', 'catch', 'coro', 'defer',
-    'data', 'else', 'emit', 'escape', 'every', 'false', 'func', 'if',
-    'in', 'loop', 'match', 'nil', 'par', 'par_and', 'par_or',
-    'resume', 'return', 'set', 'spawn', 'task', 'tasks', 'test',
-    'throw', 'true', 'until', 'val', 'var', 'yield', 'with', 'while'
 }

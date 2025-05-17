@@ -25,7 +25,7 @@ function parser_expr_prim_1 ()
         return { tag='str', tk=TK0 }
 
     -- x, __v
-    elseif accept(nil,'id') then
+    elseif accept(nil,'id') or accept('it') then
         return { tag='acc', tk=TK0 }
 
     -- (...)

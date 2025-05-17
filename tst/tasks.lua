@@ -382,8 +382,8 @@ do
 
     local src = [[
         val T = func (v) {
-            val it = await(true)
-            dump(it)
+            val x = await(true)
+            dump(x)
         }
         spawn T(10)
         (func () {
@@ -423,9 +423,9 @@ do
     local src = [[
         val T = func () {
             val e =
-                (func (it) {
-                    type(it)
-                    return(it)
+                (func (x) {
+                    type(x)
+                    return(x)
                 }) (await(true))
             dump(e)
         }
@@ -673,7 +673,7 @@ do
     local src = [[
         val T = func () {
             loop {
-                val it = await(true)
+                val e = await(true)
             }
         }
         spawn T ()
@@ -713,10 +713,10 @@ do
         val T = func () {
             val e1 = do :brk {
                 loop {
-                    val it = await(true)
+                    val e = await(true)
                     do {
-                        val x = it
-                        print(:in, it)    ;; TODO: 10
+                        val x = e
+                        print(:in, e)    ;; TODO: 10
                     }
                     escape :brk()
                 }
@@ -1008,13 +1008,13 @@ do
     local src = [[
         spawn {
             val t = spawn {
-                val it = await(true)
-                print(:1, it)
+                val e = await(true)
+                print(:1, e)
             }
             print(:0)
-            (func (it) {
-                if (type(it) == 'table') {
-                    print(:2, it == t)
+            (func (x) {
+                if (type(x) == 'table') {
+                    print(:2, x == t)
                 }
             }) (await(true))
         }

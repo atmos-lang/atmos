@@ -72,7 +72,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(tostr_stmt(s) == trim [[
+    assertx(tostr_stmt(s), trim [[
         do :X {
             escape :X(nil)
         }
@@ -195,6 +195,22 @@ do
     parser()
     local ok, msg = pcall(parser_stmt)
     assert(not ok and msg=="anon : line 1 : near '1' : expected assignable expression")
+
+    local src = "val it = 1"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_stmt)
+    assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
+
+    local src = "func f(it) {}"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_stmt)
+    assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
 
     local src = "set [1] = 1"
     print("Testing...", src)
