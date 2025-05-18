@@ -119,6 +119,7 @@ function atm_task_close (t)
     if t.tag == 'task' then
         coroutine.close(t.co)
     end
+    -- TODO: remove from up (or up traverses dead dns)
 end
 meta.__close = atm_task_close
 
