@@ -191,23 +191,43 @@ function yield (...)
     return coroutine.yield(...)
 end
 
+local function _aux_ (a, b, ...)
+    if a == 'atm_error' then
+        error(b, 0)
+    else
+        return a, b, ...
+    end
+end
+
 function await (e, f)
     local t = atm_me()
     if not t then
         error('invalid await : expected enclosing task instance', 2)
     end
     t.await = { e=e, f=f }
-    return coroutine.yield()
+    return _aux_(coroutine.yield())
 end
 
 function emit (to, ...)
     local function f (t, ...)
         -- ing++
+        local ok, err = true, nil
         for _, dn in ipairs(t.dns) do
             f(dn, ...)
+            --ok, err = pcall(f, dn, ...)
+            --if not ok then
+                --break
+            --end
+        end
+        if t.tag=='tasks' and (not ok) then
+            error 'TODO'
         end
         if t.tag == 'task' then
-            assert(atm_task_resume(t, ...))
+            if ok then
+                assert(atm_task_resume(t, ...))
+            else
+                assert(atm_task_resume(t, 'atm_error', err))
+            end
         end
         -- ing--
         -- TODO: gc
