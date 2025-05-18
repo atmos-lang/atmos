@@ -1596,4 +1596,458 @@ do
     print("Testing...", "abort 18")
     local out = exec_string("anon.atm", src)
     assertx(out, ":0\n:1\n:2\n:3\n:ok\n:4\n")
+
+    local src = [[
+        spawn (func () {
+            val T = func () {
+                await(true)
+                await(true)
+                print(:2)
+            }
+            val t = spawn T()
+            spawn( func () {
+                await(true)
+                do {
+                    defer {
+                        print(:ok)
+                    }
+                    print(:1)
+                    (func () {
+                        emit(true) in t
+                    }) ()
+                    print(:no)
+                }
+                print(:no)
+            } )()
+            await(true)
+            print(:3)
+        })()
+        print(:0)
+        emit(true)
+        print(:4)
+    ]]
+    print("Testing...", "abort 19")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":0\n:1\n:2\n:3\n:ok\n:4\n")
+
+    local src = [[
+        val f = func (t) {
+            defer {
+                print(:ok)
+            }
+            print(:1)
+            emit(true) in t
+            print(:no)
+        }
+        spawn (func () {
+            val T = func () {
+                await(true)
+                await(true)
+                print(:2)
+            }
+            var t = spawn T()
+            spawn( func () {
+                await(true)
+                do {
+                    f(t)
+                    print(:no)
+                }
+                print(:no)
+            } )()
+            await(true)
+            print(:3)
+        })()
+        print(:0)
+        emit(true)
+        print(:4)
+    ]]
+    print("Testing...", "abort 20")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":0\n:1\n:2\n:3\n:ok\n:4\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                do {
+                    defer {
+                        print(:3)
+                    }
+                    print(:1)
+                    emit(true) in :global
+                    print(:999)
+                }
+            }) ()
+            await(true)
+            print(:2)
+        }) ()
+        emit(true) in :global
+    ]]
+    print("Testing...", "abort 21")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:3\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                print(:1)
+                emit(true) in :global
+                print(:999)
+            }) ()
+            await(true)
+            print(:2)
+        }) ()
+        emit(true) in :global
+        print(:3)
+    ]]
+    print("Testing...", "abort 22")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:3\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                emit(true) in :global
+            }) ()
+            await(true)
+        }) ()
+        emit(true)
+        print(:ok)
+    ]]
+    print("Testing...", "abort 23")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\n")
+
+    local src = [[
+        val f = func () {
+            do {
+                defer {
+                    print(:4)    ;; TODO: aborted func should execute defer
+                }
+                print(:1)
+                emit(true) in :global
+                print(:999)
+            }
+        }
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                do {
+                    defer {
+                        print(:3)
+                    }
+                    f()
+                    print(:999)
+                }
+            }) ()
+            await(true)
+            print(:2)
+        }) ()
+        emit(true) in :global
+    ]]
+    print("Testing...", "abort 24")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:4\n:3\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                do {
+                    defer {
+                        print(:3)
+                    }
+                    print(:1)
+                    resume (coro (func () {
+                        ;; TODO: coro hides outer t.co and consumes the error
+                        emit(true) in :global
+                    })) ()
+                    print(:999)
+                }
+            }) ()
+            await(true)
+            print(:2)
+        }) ()
+        emit(true) in :global
+    ]]
+    print("Testing...", "abort 25")
+    local out = exec_string("anon.atm", src)
+    warnx(out, "TODO - coro - emit") --":1\n:2\n:3\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                spawn (func () {
+                    emit(true) in :global
+                }) ()
+            }) ()
+            await(true)
+        }) ()
+        emit(true) in :global
+        print(:ok)
+    ]]
+    print("Testing...", "abort 26")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                do {
+                    defer {
+                        print(:3)
+                    }
+                    print(:1)
+                    spawn (func () {
+                        emit(true) in :global
+                    }) ()
+                    print(:999)
+                }
+            }) ()
+            await(true)
+            print(:2)
+        }) ()
+        emit(true) in :global
+    ]]
+    print("Testing...", "abort 27")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:3\n")
+
+    local src = [[
+        val f = func () {
+            do {
+                defer {
+                    print(:4)    ;; TODO: aborted func should execute defer
+                }
+                print(:1)
+                ;;resume (coro(func () {
+                    emit(true) in :global
+                ;;})) ()
+                print(:y999)
+            }
+        }
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                do {
+                    defer {
+                        print(:3)
+                    }
+                    f()
+                    print(:x999)
+                }
+            }) ()
+            await(true)
+            print(:2)
+        }) ()
+        emit(true) in :global
+    ]]
+    print("Testing...", "abort 28")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:4\n:3\n")
+
+    local src = [[
+        val f = func () {
+            val x = []
+            emit(true) in :global
+        }
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                f()
+                print(:nooo)
+            }) ()
+            await(true)
+        }) ()
+        emit(true)
+        print(:ok)
+    ]]
+    print("Testing...", "abort 29")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\n")
+
+    local src = [[
+        val f = func () {
+            do {
+                defer {
+                    print(:4)    ;; TODO: aborted func' should execute defer
+                }
+                print(:1)
+                spawn (func () {
+                    emit(true) in :global
+                }) ()
+                print(:y999)
+            }
+        }
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                do {
+                    defer {
+                        print(:3)
+                    }
+                    f()
+                    print(:x999)
+                }
+            }) ()
+            await(true)
+            print(:2)
+        }) ()
+        emit(true) in :global
+    ]]
+    print("Testing...", "abort 30")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:4\n:3\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                do {
+                    ;;resume (coroutine (coro' () {
+                        do {
+                            defer {
+                                print(:3)
+                            }
+                            print(:1)
+                            emit(true) in :global
+                        }
+                    ;;})) ()
+                    print(:999)
+                }
+            }) ()
+            await(true)
+            print(:2)
+        }) ()
+        emit(true) in :global
+    ]]
+    print("Testing...", "abort 31")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:3\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                do {
+                    spawn (func () {
+                        do {
+                            defer {
+                                print(:3)
+                            }
+                            print(:1)
+                            emit(true) in :global
+                        }
+                    }) ()
+                    print(:999)
+                }
+            }) ()
+            await(true)
+            print(:2)
+        }) ()
+        emit(true) in :global
+    ]]
+    print("Testing...", "abort 32")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:3\n")
+
+    local src = [[
+        spawn (func () {
+            print(:1)
+            ;;resume (coroutine (coro' () {
+            spawn {
+                defer {
+                    print(:ok)
+                }
+                print(:2)
+                await(true)
+                print(:999)
+            }
+            ;;})) ()
+            ;; refs=0 --> :ok
+            print(:3)
+        }) ()
+    ]]
+    print("Testing...", "abort 33")
+    local out = exec_string("anon.atm", src)
+    --assertx(out, ":1\n:2\n:ok\n:3\n")
+    assertx(out, ":1\n:2\n:3\n:ok\n")
+
+    local src = [[
+        spawn (func () {
+            print(:1)
+            val co = (coro (func () {
+                defer {
+                    print(:ok)
+                }
+                print(:2)
+                yield()
+                print(:999)
+            }))
+            resume co ()
+            print(:3)
+            coroutine['close'](co)
+        }) ()
+    ]]
+    print("Testing...", "abort 34")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:3\n:ok\n")
+
+    local src = [[
+        spawn (func () {
+            print(:1)
+            ;;resume (coro (func () {
+            spawn {
+                defer {
+                    print(:ok)
+                }
+                print(:2)
+                await(true)
+            }
+            ;;})) ()
+            ;; refs=0 --> :ok
+            await(true)
+            print(:3)
+        }) ()
+        emit(true)
+        print(:4)
+    ]]
+    print("Testing...", "abort 35")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:ok\n:3\n:4\n")
+
+    local src = [[
+        spawn (func () {
+            print(:1)
+            spawn (func () {
+                print(:2)
+                await(true)
+                print(:6)
+                emit(true) in :global
+            }) ()
+            ;;resume (coro (func () {
+            spawn {
+                defer {
+                    print(:ok)
+                }
+                print(:3)
+                await(true)
+            }
+            ;;})) ()
+            print(:4)
+            await(true)
+            print(:7)
+        }) ()
+        print(:5)
+        emit(true)
+        print(:8)
+    ]]
+    print("Testing...", "abort 36")
+    local out = exec_string("anon.atm", src)
+    --assertx(out, ":1\n:2\n:3\n:ok\n:4\n:5\n:6\n:7\n:8\n")
+    assertx(out, ":1\n:2\n:3\n:4\n:5\n:6\n:ok\n:7\n:8\n")
 end
