@@ -14,7 +14,7 @@ function parser_stmt ()
     if false then
 
     -- var x = 10
-    elseif accept('val') or accept('var') then
+    elseif accept('val') or accept('var') or accept('pin') then
         local tk = TK0
         local ids = parser_ids('=')
         local sets
@@ -142,7 +142,7 @@ function parser_stmt ()
             local ret = { tag='return', es={e} }
             xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
         end
-        local ss  = parser_curly()
+        local ss = parser_curly()
         return { tag='catch', cnd={e=xe,f=xf}, blk={tag='block',ss=ss} }
 
     -- call: f()
@@ -150,7 +150,13 @@ function parser_stmt ()
         local tk = TK1
         local e = parser_expr()
         if e.tag == 'call' then
-            return { tag='expr', e=e }
+            if e.f.tag=='acc' and e.f.tk.str=='spawn' then
+                local pin = {tag='key',str='pin'}
+                local id = { tag='id',str='_' }
+                return { tag='dcl', tk=pin, ids={id}, sets={e} }
+            else
+                return { tag='expr', e=e }
+            end
         else
             err(tk, "expected statement")
         end

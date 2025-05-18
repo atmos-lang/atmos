@@ -639,7 +639,7 @@ do
         print(:1)
         do {
             print(:2)
-            spawn (func () {
+            val x = spawn (func () {
                 defer {
                     print(:defer)
                 }
@@ -657,6 +657,24 @@ do
         print(:1)
         do {
             print(:2)
+            pin x = spawn {
+                defer {
+                    print(:defer)
+                }
+                await(true)
+            }
+            print(:3)
+        }
+        print(:4)
+    ]]
+    print("Testing...", "abort 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:3\n:defer\n:4\n")
+
+    local src = [[
+        print(:1)
+        do {
+            print(:2)
             spawn {
                 defer {
                     print(:defer)
@@ -665,8 +683,9 @@ do
             }
             print(:3)
         }
+        print(:4)
     ]]
-    print("Testing...", "abort 2")
+    print("Testing...", "abort 3")
     local out = exec_string("anon.atm", src)
     assertx(out, ":1\n:2\n:3\n:defer\n:4\n")
 end

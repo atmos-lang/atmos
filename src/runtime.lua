@@ -88,6 +88,8 @@ function atm_me ()
     return co and TASKS[co]
 end
 
+local meta = { __close=nil }
+
 function task (f)
     local up = atm_me()
     local t = {
@@ -100,6 +102,7 @@ function task (f)
         gc  = false,
         [':pub'] = nil,
     }
+    setmetatable(t, meta)
     TASKS[t.co] = t
     if up then
         up.dns[#up.dns+1] = t
@@ -117,6 +120,7 @@ function atm_task_close (t)
         coroutine.close(t.co)
     end
 end
+meta.__close = atm_task_close
 
 local function atm_task_resume (t, e, ...)
     local awk = false
