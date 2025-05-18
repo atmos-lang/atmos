@@ -705,22 +705,27 @@ do
 
     local src = [[
         spawn {
-            await(true)
             catch :e {
                 spawn {
+                    print(:1)
                     await(true)
+                    print(:e)
                     throw(:e)
-                    print(:no)
+                    print(:no1)
                 }
-                print(:no)
+                print(:2)
+                await(true)
+                print(:no2)
             }
+            print(:4)
         }
+        print(:3)
         emit(true)
-        print(:ok)
+        print(:5)
     ]]
     print("Testing...", "task - catch 2")
-    --local out = exec_string("anon.atm", src)
-    --assertx(out, ":ok\n")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:3\n:e\n:4\n:5\n")
 end
 
 -- ERROR / LINE NUMBER

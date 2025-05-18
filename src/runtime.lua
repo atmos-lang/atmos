@@ -213,20 +213,17 @@ function emit (to, ...)
         -- ing++
         local ok, err = true, nil
         for _, dn in ipairs(t.dns) do
-            f(dn, ...)
-            --ok, err = pcall(f, dn, ...)
-            --if not ok then
-                --break
-            --end
-        end
-        if t.tag=='tasks' and (not ok) then
-            error 'TODO'
+            --f(dn, ...)
+            ok, err = pcall(f, dn, ...)
+            if not ok then
+                break
+            end
         end
         if t.tag == 'task' then
             if ok then
                 assert(atm_task_resume(t, ...))
             else
-                assert(atm_task_resume(t, 'atm_error', err))
+                assert(resume(t.co, 'atm_error', err))
             end
         end
         -- ing--
