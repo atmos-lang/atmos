@@ -148,7 +148,7 @@ local function atm_task_resume (t, a, b, ...)
         if ok then
             -- no error: continue normally
         elseif err == 'aborted' then
-            -- callee abrted from outside: continue normally
+            -- callee aborted from outside: continue normally
             coroutine.close(t.co)
         else
             error(err, 0)
