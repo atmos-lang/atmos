@@ -2080,11 +2080,11 @@ do
     local src = [[
         spawn (func () {
             catch :e1 ;;;(it | it==:e1);;; {
-                error(:e1)
+                throw(:e1)
             }
             print(:e1)
             await(true)
-            error(:e2)
+            throw(:e2)
         })()
         catch :e2 ;;;(it| :e2);;; {
             emit(true)
@@ -2096,4 +2096,64 @@ do
     print("Testing...", "catch 1")
     local out = exec_string("anon.atm", src)
     assertx(out, ":e1\n:e2\n")
+
+    local src = [[
+        var co
+        set co = spawn (func () {
+            catch :e1 ;;;(it| it==:e1);;; {
+                ;;resume (coroutine (coro' () {
+                    ;;await(true)
+                    throw(:e1)
+                ;;})) ()
+                loop {
+                    await(true)
+                }
+            }
+            print(:e1)
+            await(true)
+            throw(:e2)
+        })()
+        catch :e2 ;;;(it | it==:e2 );;; {
+            emit(true)
+            emit(true)
+            print(99)
+        }
+        print(:e2)
+    ]]
+    print("Testing...", "catch 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":e1\n:e2\n")
+
+    local src = [[
+        val T = func () {
+            catch :e1 ;;;(it| it==:e1 );;; {
+                spawn( func () {
+                    await(true)
+                    throw(:e1)
+                    print(:no)
+                }) ()
+                loop { await(true) } ;;thus { it => nil }
+            }
+            print(:ok1)
+            throw(:e2)
+            print(:no)
+        }
+        spawn (func () {
+            catch :e2 ;;;(it| :e2 );;; {
+                spawn T()
+                loop { await(true) } ;;thus { it => nil }
+            }
+            print(:ok2)
+            throw(:e3)
+            print(:no)
+        }) ()
+        catch :e3 ;;;(it | :e3 );;; {
+            emit(true)
+            print(:no)
+        }
+        print(:ok3)
+    ]]
+    print("Testing...", "catch 3")
+    --local out = exec_string("anon.atm", src)
+    --assertx(out, ":ok1\n:ok2\n:ok3\n")
 end

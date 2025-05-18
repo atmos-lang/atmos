@@ -688,6 +688,39 @@ do
     print("Testing...", "abort 3")
     local out = exec_string("anon.atm", src)
     assertx(out, ":1\n:2\n:3\n:defer\n:4\n")
+
+    local src = [[
+        catch :e {
+            spawn {
+                throw(:e)
+                print(:no)
+            }
+            print(:no)
+        }
+        print(:ok)
+    ]]
+    print("Testing...", "task - catch 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\n")
+
+    local src = [[
+        spawn {
+            await(true)
+            catch :e {
+                spawn {
+                    await(true)
+                    throw(:e)
+                    print(:no)
+                }
+                print(:no)
+            }
+        }
+        emit(true)
+        print(:ok)
+    ]]
+    print("Testing...", "task - catch 2")
+    --local out = exec_string("anon.atm", src)
+    --assertx(out, ":ok\n")
 end
 
 -- ERROR / LINE NUMBER
