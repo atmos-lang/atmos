@@ -97,7 +97,7 @@ function task (f)
         co  = coro(f),
         up  = up,
         dns = {},
-        tog = false,
+        status = nil, -- aborted, toggled
         ing = 0,
         gc  = false,
         [':pub'] = nil,
@@ -117,7 +117,12 @@ function atm_task_close (t)
         atm_task_close(dn)
     end
     if t.tag == 'task' then
-        coroutine.close(t.co)
+        local s = status(t.co)
+        if s == 'normal' then
+            t.status = 'aborted'
+        else
+            coroutine.close(t.co)
+        end
     end
     -- TODO: remove from up (or up traverses dead dns)
 end
@@ -139,8 +144,21 @@ local function atm_task_resume (t, a, b, ...)
         end
     end
     if awk then
-        assert(resume(t.co, b or a, a, ...))
-        if status(t.co) == 'dead' then
+        local ok, err = resume(t.co, b or a, a, ...)
+        if ok then
+            -- no error: continue normally
+        elseif err == 'aborted' then
+            -- callee abrted from outside: continue normally
+        else
+            error(err, 0)
+        end
+
+        local me = atm_me()
+        if me and me.status=='aborted' then
+            error('aborted', 0)
+        end
+
+        if t.status=='aborted' or status(t.co)=='dead' then
             if t.up then
                 t.up.gc = true
             end
