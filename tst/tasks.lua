@@ -2156,4 +2156,5 @@ do
     print("Testing...", "catch 3")
     --local out = exec_string("anon.atm", src)
     --assertx(out, ":ok1\n:ok2\n:ok3\n")
+    print 'TODO'
 end
