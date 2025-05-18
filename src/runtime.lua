@@ -147,19 +147,14 @@ local function atm_task_resume (t, a, b, ...)
         local ok, err = resume(t.co, b or a, a, ...)
         if ok then
             -- no error: continue normally
-        elseif err == 'aborted' then
+        elseif err == 'atm_aborted' then
             -- callee aborted from outside: continue normally
             coroutine.close(t.co)
         else
             error(err, 0)
         end
 
-        local me = atm_me()
-        if me and me.status=='aborted' then
-            error('aborted', 0)
-        end
-
-        if t.status=='aborted' or status(t.co)=='dead' then
+        if status(t.co) == 'dead' then
             if t.up then
                 t.up.gc = true
             end
@@ -209,6 +204,8 @@ function await (e, f)
 end
 
 function emit (to, ...)
+    local me = atm_me()
+
     local function f (t, ...)
         -- ing++
         local ok, err = true, nil
@@ -242,7 +239,7 @@ function emit (to, ...)
         to = TASKS
     elseif type(to) == 'number' then
         local n = tonumber(to)
-        to = atm_me() or TASKS
+        to = me or TASKS
         while n > 0 do
             to = to.up
             if to == nil then
@@ -257,6 +254,10 @@ function emit (to, ...)
     end
 
     f(to, ...)
+
+    if me and me.status=='aborted' then
+        error('atm_aborted', 0)
+    end
 
     return ...
 end
