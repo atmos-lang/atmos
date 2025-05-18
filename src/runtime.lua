@@ -154,6 +154,15 @@ local function atm_task_resume (t, a, b, ...)
             error(err, 0)
         end
 
+--[[
+        assert(resume(t.co, e, ...))
+        local ok, err = resume(t.co, e, ...)
+        if not ok then
+            -- TODO: close
+            return ok, {t=t,o=err}
+        end
+]]
+
         if status(t.co) == 'dead' then
             if t.up then
                 t.up.gc = true
@@ -175,6 +184,17 @@ function spawn (t, ...)
     else
         error('invalid spawn : expected task prototype', 2)
     end
+--[[
+    local dbg = debug.getinfo(2)
+    t.stk = {
+        file = dbg.short_src,
+        line = dbg.currentline,
+    }
+    local ok, t_o = atm_task_resume(t, ...)
+    if not ok then
+        return ok, t_o
+    end
+]]
     assert(atm_task_resume(t, ...))
     return t
 end
