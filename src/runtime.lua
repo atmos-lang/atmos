@@ -117,8 +117,8 @@ function atm_task_close (t)
         atm_task_close(dn)
     end
     if t.tag == 'task' then
-        local s = status(t.co)
-        if s == 'normal' then
+        if status(t.co) == 'normal' then
+            -- cannot close now (emit continuation will raise error)
             t.status = 'aborted'
         else
             coroutine.close(t.co)
@@ -149,6 +149,7 @@ local function atm_task_resume (t, a, b, ...)
             -- no error: continue normally
         elseif err == 'aborted' then
             -- callee abrted from outside: continue normally
+            coroutine.close(t.co)
         else
             error(err, 0)
         end
@@ -162,7 +163,9 @@ local function atm_task_resume (t, a, b, ...)
             if t.up then
                 t.up.gc = true
             end
-            emit(t.up, ':task', t)
+            --if t.status ~= 'aborted' then
+                emit(t.up, ':task', t)
+            --end
         end
     end
     return true
