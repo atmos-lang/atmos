@@ -807,7 +807,7 @@ do
         emit ([(:type,:y)])
         emit ([(:type,:x)])
     ]]
-    print("Testing...", "payload 5")
+    print("Testing...", "payload 6")
     local out = exec_string("anon.atm", src)
     assertx(out, "1\n2\n3\n4\n99\n")
 
@@ -821,7 +821,7 @@ do
         }
         emit([])
     ]]
-    print("Testing...", "payload 5")
+    print("Testing...", "payload 7")
     local out = exec_string("anon.atm", src)
     assertx(out, "nil\n{  }\n")
 
@@ -831,9 +831,9 @@ do
         }
         emit(10,20)
     ]]
-    print("Testing...", "payload 5: multi emit/await args")
+    print("Testing...", "payload 8: multi emit/await args")
     local out = exec_string("anon.atm", src)
-    assertx(out, "10\t20\n")
+    assertx(out, "20\t10\n")
 end
 
 -- LEXICAL ORDER
@@ -894,7 +894,8 @@ do
     ]]
     print("Testing...", "order 3")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, ":1\t:out\n:2\ttable: 0x"))
+print(out)
+    assert(string.find(out, ":1\t:out\t:out\n:2\ttable: 0x"))
 
     local src = [[
         var T
@@ -1237,4 +1238,70 @@ do
     print("Testing...", "abort 2")
     local out = exec_string("anon.atm", src)
     assertx(out, ":defer\n")
+
+    local src = [[
+        print(:1)
+        var x = 0
+        do :X {
+            loop {
+                if x == 2 {
+                    escape :X()
+                }
+                set x = x + 1
+                print(:2)
+                spawn( func () {
+                    defer {
+                        print(:defer)
+                    }
+                    await(false)
+                }) ()
+                print(:3)
+            }
+        }
+        print(:4)
+    ]]
+    print("Testing...", "abort 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:3\n:defer\n:2\n:3\n:defer\n:4\n")
+
+    local src = [[
+        spawn (func () {
+            val t = spawn( func () {
+                await(false)
+            }) ()
+            await(false)
+        } )()
+        emit(true)
+        print(:ok)
+    ]]
+    print("Testing...", "abort 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\n")
+
+    local src = [[
+        do {
+            spawn (func () {
+                do {
+                    val t1 = spawn (func () {
+                        val t2 = spawn (func () {
+                            await(true)
+                            print(:1)
+                        }) ()
+                        await(true, it==t2)
+                        print(:2)
+                    }) ()
+                    await(true, it==t1)
+                    print(:3)
+                }
+                await(:X)
+                print(:99)
+            }) ()
+            print(:0)
+            emit(true)
+            print(:4)
+        }
+    ]]
+    print("Testing...", "abort 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":0\n:1\n:2\n:3\n:4\n")
 end

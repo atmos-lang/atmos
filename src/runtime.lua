@@ -123,7 +123,8 @@ function atm_task_close (t)
 end
 meta.__close = atm_task_close
 
-local function atm_task_resume (t, e, ...)
+local function atm_task_resume (t, a, b, ...)
+    -- a=:X, b={...}, choose b on t.await.f(b) and resume(t,b)
     local awk = false
     if status(t.co) ~= 'suspended' then
         -- nothing to awake
@@ -132,18 +133,18 @@ local function atm_task_resume (t, e, ...)
         awk = true
     elseif t.await.e == false then
         -- never awakes
-    elseif t.await.e==true or t.await.e==e then
-        if t.await.f==nil or t.await.f(e,...) then
+    elseif t.await.e==true or t.await.e==a then
+        if t.await.f==nil or t.await.f(b or a, a,...) then
             awk = true
         end
     end
     if awk then
-        assert(resume(t.co, e, ...))
+        assert(resume(t.co, b or a, a, ...))
         if status(t.co) == 'dead' then
             if t.up then
                 t.up.gc = true
             end
-            emit(t.up, t)
+            emit(t.up, ':task', t)
         end
     end
     return true
