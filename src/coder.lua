@@ -126,6 +126,8 @@ function coder_expr (e)
             return '['..coder_expr(t.k)..'] = '..coder_expr(t.v)
         end))
         return '{' .. ps .. '}'
+    elseif e.tag == 'uno' then
+        return '('..(OPS.lua[e.op.str] or e.op.str)..' '..coder_expr(e.e)..')'
     elseif e.tag == 'bin' then
         return '('..coder_expr(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder_expr(e.e2)..')'
     elseif e.tag == 'call' then
