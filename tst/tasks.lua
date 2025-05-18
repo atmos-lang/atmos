@@ -1206,6 +1206,28 @@ do
     print("Testing...", "nested 5")
     local out = exec_string("anon.atm", src)
     assertx(out, ":ok\n")
+
+    local src = [[
+        spawn (func () {
+            do {
+                spawn (func () {
+                    await(true)
+                    print(:2)
+                }) ()
+                loop { await(true) } ;;thus { it => nil }
+            }
+            print(333)
+        }) ()
+        do {
+            print(:1)
+            emit(true)
+            print(:3)
+        }
+        print(:END)
+    ]]
+    print("Testing...", "nested 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":1\n:2\n:3\n:END\n")
 end
 
 print '-=- ABORTION -=-'
@@ -2050,4 +2072,28 @@ do
     local out = exec_string("anon.atm", src)
     --assertx(out, ":1\n:2\n:3\n:ok\n:4\n:5\n:6\n:7\n:8\n")
     assertx(out, ":1\n:2\n:3\n:4\n:5\n:6\n:ok\n:7\n:8\n")
+end
+
+print '-=- THROW / CATCH -=-'
+
+do
+    local src = [[
+        spawn (func () {
+            catch :e1 ;;;(it | it==:e1);;; {
+                error(:e1)
+            }
+            print(:e1)
+            await(true)
+            error(:e2)
+        })()
+        catch :e2 ;;;(it| :e2);;; {
+            emit(true)
+            emit(true)
+            print(99)
+        }
+        print(:e2)
+    ]]
+    print("Testing...", "catch 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":e1\n:e2\n")
 end
