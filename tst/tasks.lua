@@ -1397,4 +1397,44 @@ do
     print("Testing...", "abort 9")
     local out = exec_string("anon.atm", src)
     assertx(out, ":1\n:2\n:3\n:a\n:b\n:ok\n")
+
+    local src = [[
+        spawn (func () {
+            val T = func () {
+                await(true)
+                await(true)
+            }
+            val t = spawn T()
+            spawn( func () {
+                await(true)
+                emit(true) in t
+                print(999)
+            } )()
+            await(true)
+            print(:ok)
+        })()
+        emit(true)
+    ]]
+    print("Testing...", "abort 10")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\n")
+
+    local src = [[
+        val T = func () {
+            await(true)
+        }
+        val t = spawn T()
+        ;;spawn( func () {
+            spawn (func () {
+                print(:A)
+                (func (it) { print(it==t) }) (await(true))
+                print(:C)
+            }) ()
+            emit(true) in t
+        ;;})()
+        print(:ok)
+    ]]
+    print("Testing...", "abort 11")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":A\ntrue\n:C\n:ok\n")
 end
