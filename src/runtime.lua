@@ -32,7 +32,7 @@ function atm_exec (file, src)
 
     local v, msg = pcall(f)
     if not v then
-        --print('err', msg)
+--print('ERR', msg)
         local filex, lin, msg = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
         --print(file, filex, lin, msg)
         assert(file == filex)
@@ -129,12 +129,15 @@ end
 meta.__close = atm_task_close
 
 local function atm_task_resume_result (t, ok, err)
+--print('res', ok, err)
+--  print(debug.traceback())
     if ok then
         -- no error: continue normally
     elseif err == 'atm_aborted' then
         -- callee aborted from outside: continue normally
         coroutine.close(t.co)   -- needs close b/c t.co is in error state
     else
+--print'up'
         error(err, 0)
     end
 
@@ -274,7 +277,11 @@ local function femit (t, a, b, ...)
     if t.tag == 'task' then
         if not ok then
             if status(t.co) ~= 'dead' then
-                assert(resume(t.co, 'atm_error', err))
+                local ok, err = resume(t.co, 'atm_error', err)
+--print('x', ok, err)
+                if not ok then
+                    error(err, 0)
+                end
             end
         else
             if atm_task_awake_check(t,a,b) then

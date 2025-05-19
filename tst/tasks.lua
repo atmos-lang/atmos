@@ -2126,6 +2126,70 @@ do
 
     local src = [[
         val T = func () {
+            print(:ok1)
+            throw(:e2)
+            print(:no)
+        }
+        spawn {
+            catch :e2 {
+                spawn T()
+                await(false)
+                print(:no)
+            }
+            print(:ok2)
+        }
+        emit(true)
+        print(:ok3)
+    ]]
+    print("Testing...", "catch 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok1\n:ok2\n:ok3\n")
+
+    local src = [[
+        spawn {
+            await(true)
+            print(:ok1)
+            throw(:e3)
+            print(:no)
+        }
+        catch :e3 {
+            emit(true)
+            print(:no)
+        }
+        print(:ok2)
+    ]]
+    print("Testing...", "catch 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok1\n:ok2\n")
+
+    local src = [[
+        val T = func () {
+            await(true)
+            print(:ok1)
+            throw(:e2)
+            print(:no1)
+        }
+        spawn {
+            catch :e2 {
+                spawn T()
+                await(false)
+            }
+            print(:ok2)
+            throw(:e3)
+            print(:no2)
+        }
+        catch :e3 {
+            emit(true)
+            print(:no3)
+        }
+        print(:ok3)
+    ]]
+    print("Testing...", "catch 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok1\n:ok2\n:ok3\n")
+
+    local src = [[
+        val T = func () {
             catch :e1 {
                 spawn {
                     await(true)
@@ -2153,8 +2217,7 @@ do
         }
         print(:ok3)
     ]]
-    print("Testing...", "catch 3")
+    print("Testing...", "catch 6")
     local out = exec_string("anon.atm", src)
     assertx(out, ":ok1\n:ok2\n:ok3\n")
-    print 'TODO'
 end
