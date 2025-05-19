@@ -2220,4 +2220,77 @@ do
     print("Testing...", "catch 6")
     local out = exec_string("anon.atm", src)
     assertx(out, ":ok1\n:ok2\n:ok3\n")
+
+    local src = [[
+        spawn {
+            spawn {
+                await(true)
+            }
+            await(true)
+            throw(nil)
+        }
+        print(1)
+    ]]
+    print("Testing...", "catch 7")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n")
+
+    local src = [[
+        catch true {
+            spawn {
+                throw(:x)
+            }
+        }
+        print(1)
+    ]]
+    print("Testing...", "catch 8")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n")
+
+    local src = [[
+        spawn {
+            catch :or {
+                spawn {
+                    await(true)
+                    ;;print(:evt, evt)
+                    ;;print(111)
+                    throw(:or)
+                }
+                spawn {
+                    await(true)
+                    ;;print(:evt, evt)
+                    ;;print(222)
+                    throw(:or)
+                }
+                await(true)
+                ;;print(:in)
+            }
+            ;;print(:out)
+        }
+        ;;print(:bcast-in)
+        emit (true)
+        ;;print(:bcast-out)
+        print(1)
+    ]]
+    print("Testing...", "catch 9")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n")
+end
+
+print '-=- RETURN -=-'
+
+do
+    local src = [[
+        val t = spawn (func () {
+            set pub = [1]
+            await(true)
+            return([2])
+        } )()
+        print(status(t), t.pub)
+        emit(true)
+        print(status(t), t.pub)
+    ]]
+    print("Testing...", "return 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":yielded\t[1]\n:terminated\t[2]\n")
 end

@@ -1,6 +1,13 @@
 coro   = coroutine.create
 resume = coroutine.resume
-status = coroutine.status
+
+function status (t)
+    if type(t)=='table' and t.tag=='task' then
+        return coroutine.status(t.co)
+    else
+        return coroutine.status(t)
+    end
+end
 
 local TASKS = { tag='tasks', dns={} }
 
