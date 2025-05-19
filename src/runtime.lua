@@ -128,51 +128,51 @@ function atm_task_close (t)
 end
 meta.__close = atm_task_close
 
-local function atm_task_resume (t, a, b, ...)
-    -- a=:X, b={...}, choose b on t.await.f(b) and resume(t,b)
-    local awk = false
-    if status(t.co) ~= 'suspended' then
-        -- nothing to awake
-    elseif t.await == nil then
-        -- first awake
-        awk = true
-    elseif t.await.e == false then
-        -- never awakes
-    elseif t.await.e==true or t.await.e==a then
-        if t.await.f==nil or t.await.f(b or a, a,...) then
-            awk = true
-        end
+local function atm_task_resume_result (t, ...)
+    local ok, err = resume(t.co, ...)
+    if ok then
+        -- no error: continue normally
+    elseif err == 'atm_aborted' then
+        -- callee aborted from outside: continue normally
+        coroutine.close(t.co)
+    else
+        error(err, 0)
     end
-    if awk then
-        local ok, err = resume(t.co, b or a, a, ...)
-        if ok then
-            -- no error: continue normally
-        elseif err == 'atm_aborted' then
-            -- callee aborted from outside: continue normally
-            coroutine.close(t.co)
-        else
-            error(err, 0)
-        end
 
 --[[
-        assert(resume(t.co, e, ...))
-        local ok, err = resume(t.co, e, ...)
-        if not ok then
-            -- TODO: close
-            return ok, {t=t,o=err}
-        end
+    assert(resume(t.co, e, ...))
+    local ok, err = resume(t.co, e, ...)
+    if not ok then
+        -- TODO: close
+        return ok, {t=t,o=err}
+    end
 ]]
 
-        if status(t.co) == 'dead' then
-            if t.up then
-                t.up.gc = true
-            end
-            --if t.status ~= 'aborted' then
-                emit(t.up, ':task', t)
-            --end
+    if status(t.co) == 'dead' then
+        if t.up then
+            t.up.gc = true
+        end
+        --if t.status ~= 'aborted' then
+            emit(t.up, ':task', t)
+        --end
+    end
+end
+
+local function atm_task_awake_check (t, a, b)
+    if status(t.co) ~= 'suspended' then
+        -- nothing to awake
+        return false
+    elseif t.await.e == false then
+        -- never awakes
+        return false
+    elseif t.await.e==true or t.await.e==a then
+        if t.await.f==nil or t.await.f(b or a) then
+            -- a=:X, b={...}, choose b
+            return true
+        else
+            return false
         end
     end
-    return true
 end
 
 function spawn (t, ...)
@@ -195,7 +195,7 @@ function spawn (t, ...)
         return ok, t_o
     end
 ]]
-    assert(atm_task_resume(t, ...))
+    atm_task_resume_result(t, ...)
     return t
 end
 
@@ -223,30 +223,11 @@ function await (e, f)
     return _aux_(coroutine.yield())
 end
 
-function emit (to, ...)
-    local me = atm_me()
+-------------------------------------------------------------------------------
+-- EMIT
+-------------------------------------------------------------------------------
 
-    local function f (t, ...)
-        -- ing++
-        local ok, err = true, nil
-        for _, dn in ipairs(t.dns) do
-            --f(dn, ...)
-            ok, err = pcall(f, dn, ...)
-            if not ok then
-                break
-            end
-        end
-        if t.tag == 'task' then
-            if ok then
-                assert(atm_task_resume(t, ...))
-            else
-                assert(resume(t.co, 'atm_error', err))
-            end
-        end
-        -- ing--
-        -- TODO: gc
-    end
-
+local function fto (me, to)
     if to == nil then
         to = 0
     elseif to == ":task" then
@@ -263,17 +244,45 @@ function emit (to, ...)
         while n > 0 do
             to = to.up
             if to == nil then
-                error('invalid emit : invalid target', 2)
+                error('invalid emit : invalid target', 3)
             end
             n = n - 1
         end
     elseif type(to)=='table' and (to.tag=='task' or to.tag=='tasks') then
         to = to
     else
-        error('invalid emit : invalid target', 2)
+        error('invalid emit : invalid target', 3)
     end
 
-    f(to, ...)
+    return to
+end
+
+local function femit (t, a, b, ...)
+    -- ing++
+    local ok, err = true, nil
+    for _, dn in ipairs(t.dns) do
+        --f(dn, ...)
+        ok, err = pcall(femit, dn, a, b, ...)
+        if not ok then
+            break
+        end
+    end
+    if t.tag == 'task' then
+        if not ok then
+            assert(resume(t.co, 'atm_error', err))
+        elseif atm_task_awake_check(t,a,b) then
+            -- a=:X, b={...}, choose b on resume(t,b)
+            atm_task_resume_result(t, b or a, a, ...)
+        end
+    end
+    -- ing--
+    -- TODO: gc
+end
+
+function emit (to, ...)
+    local me = atm_me()
+
+    femit(fto(me,to), ...)
 
     if me and me.status=='aborted' then
         error('atm_aborted', 0)
