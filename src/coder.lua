@@ -112,10 +112,10 @@ end
 
 function coder_expr (e)
     if e.tag == 'tag' then
-        return L(e.tk) .. '"' .. e.tk.str .. '"'
+        return L(e.tk) .. '"' .. e.tk.str:sub(2) .. '"'
     elseif e.tag == 'acc' then
         if e.tk.str == 'pub' then
-            return L(e.tk) .. "atm_me()[':pub']"
+            return L(e.tk) .. "atm_me().pub"
         else
             return L(e.tk) .. tostr_expr(e)
         end

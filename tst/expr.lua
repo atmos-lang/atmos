@@ -136,7 +136,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == '[(1,v1), (:k2,v2), (:k3,v3), (2,v4)]')
+    assertx(tostr_expr(e), '[(1,v1), (:k2,v2), (:k3,v3), (2,v4)]')
 
     local src = "[ ]"
     print("Testing...", src)

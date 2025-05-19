@@ -107,7 +107,7 @@ function task (f)
         status = nil, -- aborted, toggled
         ing = 0,
         gc  = false,
-        [':pub'] = nil,
+        pub = nil,
     }
     setmetatable(t, meta)
     TASKS[t.co] = t

@@ -47,7 +47,7 @@ function parser_expr_prim_1 ()
             elseif accept(nil,'id') then
                 local id = TK0
                 if accept('=') then
-                    id.str = ':'..id.str
+                    id = { tag='tag', str=':'..id.str }
                     key = { tag='tag', tk=id }
                     val = parser_expr()
                 else
@@ -222,7 +222,7 @@ function parser_expr_suf_2 (pre)
         ret = { tag='index', t=e, idx=idx }
     elseif sym.str == '.' then
         local id = accept_err(nil,'id')
-        id.str = ':'..id.str
+        id = { tag='tag', str=':'..id.str }
         local idx = { tag='tag', tk=id }
         ret = { tag='index', t=e, idx=idx }
     elseif sym.str=='~~' or sym.str=='!~' then
