@@ -147,7 +147,7 @@ do
     ]]
     print("Testing...", "spawn 3")
     local out = exec_string("anon.atm", src)
-    assert(out == ":ok\n")
+    assert(out == "ok\n")
 
     local src = "spawn (nil)()"
     print("Testing...", src)
@@ -193,7 +193,7 @@ do
     ]]
     print("Testing...", "spawn 4")
     local out = exec_string("anon.atm", src)
-    assert(out == ":ok\n")
+    assert(out == "ok\n")
 
     local src = [[
         val t = func () {
@@ -214,7 +214,7 @@ do
     ]]
     print("Testing...", "spawn 6")
     local out = exec_string("anon.atm", src)
-    assert(out == ":ok\n")
+    assert(out == "ok\n")
 
     local src = [[
         val T = func (v) {
@@ -248,7 +248,7 @@ do
     ]]
     print("Testing...", "emit 1 : task term")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, ":1\t1\n:2\ttable: 0x"))
+    assert(string.find(out, "1\t1\n2\ttable: 0x"))
 
     local src = [[
         val tk = func (v) {
@@ -265,7 +265,7 @@ do
     ]]
     print("Testing...", "emit 2 : task term")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, ":1\t1\n:2\t1\n:1\t2\n:2\ttable: 0x"))
+    assert(string.find(out, "1\t1\n2\t1\n1\t2\n2\ttable: 0x"))
 
     local src = [[
         var co1 = spawn (func () {
@@ -282,7 +282,7 @@ do
     ]]
     print("Testing...", "emit 3 : task term")
     local out = exec_string("anon.atm", src)
-    assert(out == ":bcast\n:2\n:1\n")
+    assert(out == "bcast\n2\n1\n")
 
     local src = [[
         val T = func () {
@@ -296,7 +296,7 @@ do
     ]]
     print("Testing...", "emit 4")
     local out = exec_string("anon.atm", src)
-    assert(out == ":ok\n")
+    assert(out == "ok\n")
 
     local src = [[
         var tk
@@ -455,7 +455,7 @@ do
     ]]
     print("Testing...", "emit scope 5")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{ 20 }\n:ok\n")
+    assertx(out, "{ 20 }\nok\n")
 
     local src = [[
         var tk
@@ -483,13 +483,13 @@ do
     print("Testing...", "emit scope 6")
     local out = exec_string("anon.atm", src)
     assertx(trim(out), trim [[
-        :1
+        1
         10
         10
-        :2
+        2
         { 20 }
         { 20 }
-        :3
+        3
         { 30=30 }
         { 30=30 }
         true
@@ -617,7 +617,7 @@ do
     ]]
     print("Testing...", "alien 1")
     local out = exec_string("anon.atm", src)
-    assert(out == "{  }\n:ok\n")
+    assert(out == "{  }\nok\n")
 
     local src = [[
         val T = func () {
@@ -633,7 +633,7 @@ do
     ]]
     print("Testing...", "alien 2")
     local out = exec_string("anon.atm", src)
-    assert(out == "{  }\n:ok\n")
+    assert(out == "{  }\nok\n")
 
     local src = [[
         spawn (func () {
@@ -700,7 +700,7 @@ do
     ]]
     print("Testing...", "payload 1")
     local out = exec_string("anon.atm", src)
-    assert(out == ":ok\n")
+    assert(out == "ok\n")
 
     local src = [[
         var tk
@@ -725,7 +725,7 @@ do
     ]]
     print("Testing...", "payload 2")
     local out = exec_string("anon.atm", src)
-    assert(out == ":1\n10\n10\n:2\n:e1\t20\n:e1\t20\n:3\n:e2\t30\n:e2\t30\n")
+    assert(out == "1\n10\n10\n2\ne1\t20\ne1\t20\n3\ne2\t30\ne2\t30\n")
 
     local src = [[
         val T = func () {
@@ -745,7 +745,7 @@ do
     ]]
     print("Testing...", "payload 3")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":in\t10\n")
+    assertx(out, "in\t10\n")
 
     local src = [[
         spawn (func () {
@@ -856,7 +856,7 @@ do
     ]]
     print("Testing...", "order 1")
     local out = exec_string("anon.atm", src)
-    assert(out == ":1\n:2\n:3\n:ok\n:4\n")
+    assert(out == "1\n2\n3\nok\n4\n")
 
     local src = [[
         spawn (func () {
@@ -876,7 +876,7 @@ do
     ]]
     print("Testing...", "order 2")
     local out = exec_string("anon.atm", src)
-    assert(out == ":1\n:2\n:3\n:no\n:4\n")
+    assert(out == "1\n2\n3\nno\n4\n")
 
     local src = [[
         spawn (func () {
@@ -894,7 +894,7 @@ do
     ]]
     print("Testing...", "order 3")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, ":1\t:out\t:out\n:2\ttable: 0x"))
+    assert(string.find(out, "1\tout\tout\n2\ttable: 0x"))
 
     local src = [[
         var T
@@ -924,7 +924,7 @@ do
     ]]
     print("Testing...", "emit-in 1")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         spawn (func () {
@@ -937,7 +937,7 @@ do
     ]]
     print("Testing...", "emit-in 2")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\t10\n")
+    assertx(out, "ok\t10\n")
 
     local src = [[
         spawn (func () {
@@ -952,7 +952,7 @@ do
     ]]
     print("Testing...", "emit-in 3")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":no\n:ok\t20\n")
+    assertx(out, "no\nok\t20\n")
 
     local src = [[
         var T
@@ -990,7 +990,7 @@ do
     ]]
     print("Testing...", "task-term 1")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, ":ok\ttable: 0x"))
+    assert(string.find(out, "ok\ttable: 0x"))
 
     local src = [[
         spawn {
@@ -1003,7 +1003,7 @@ do
     ]]
     print("Testing...", "task-term 2")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, ":ok\ttable: 0x"))
+    assert(string.find(out, "ok\ttable: 0x"))
 
     local src = [[
         spawn {
@@ -1021,7 +1021,7 @@ do
     ]]
     print("Testing...", "task-term 3")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, ":1\n:2\n:ok\ttable: 0x"))
+    assert(string.find(out, "1\n2\nok\ttable: 0x"))
 
     local src = [[
         spawn {
@@ -1041,7 +1041,7 @@ do
     ]]
     print("Testing...", "task-term 4")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":0\n:1\t:a\n:2\ttrue\n")
+    assertx(out, "0\n1\ta\n2\ttrue\n")
 end
 
 print '-=- PUB -=-'
@@ -1187,7 +1187,7 @@ do
     ]]
     print("Testing...", "nested 4")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         spawn (func () {
@@ -1205,7 +1205,7 @@ do
     ]]
     print("Testing...", "nested 5")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         spawn (func () {
@@ -1227,7 +1227,7 @@ do
     ]]
     print("Testing...", "nested 6")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:3\n:END\n")
+    assertx(out, "1\n2\n3\nEND\n")
 end
 
 print '-=- ABORTION -=-'
@@ -1244,7 +1244,7 @@ do
     ]]
     print("Testing...", "abort 1")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":defer\n")
+    assertx(out, "defer\n")
 
     local src = [[
         spawn (
@@ -1258,7 +1258,7 @@ do
     ]]
     print("Testing...", "abort 2")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":defer\n")
+    assertx(out, "defer\n")
 
     local src = [[
         print(:1)
@@ -1283,7 +1283,7 @@ do
     ]]
     print("Testing...", "abort 3")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:3\n:defer\n:2\n:3\n:defer\n:4\n")
+    assertx(out, "1\n2\n3\ndefer\n2\n3\ndefer\n4\n")
 
     local src = [[
         spawn (func () {
@@ -1297,7 +1297,7 @@ do
     ]]
     print("Testing...", "abort 4")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         do {
@@ -1324,7 +1324,7 @@ do
     ]]
     print("Testing...", "abort 5")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":0\n:1\n:2\n:3\n:4\n")
+    assertx(out, "0\n1\n2\n3\n4\n")
 
     local src = [[
         spawn (func () {
@@ -1350,7 +1350,7 @@ do
     ]]
     print("Testing...", "abort 6")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         spawn (func () {
@@ -1376,7 +1376,7 @@ do
     ]]
     print("Testing...", "abort 7")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":0\n:1\n:2\n:3\n:4\n:5\n:6\n")
+    assertx(out, "0\n1\n2\n3\n4\n5\n6\n")
 
     local src = [[
         spawn (func () {
@@ -1391,7 +1391,7 @@ do
     ]]
     print("Testing...", "abort 8")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         spawn (func () {
@@ -1417,7 +1417,7 @@ do
     ]]
     print("Testing...", "abort 9")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:3\n:a\n:b\n:ok\n")
+    assertx(out, "1\n2\n3\na\nb\nok\n")
 
     local src = [[
         spawn (func () {
@@ -1438,7 +1438,7 @@ do
     ]]
     print("Testing...", "abort 10")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         val T = func () {
@@ -1457,7 +1457,7 @@ do
     ]]
     print("Testing...", "abort 11")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":A\ntrue\n:C\n:ok\n")
+    assertx(out, "A\ntrue\nC\nok\n")
 
     local src = [[
         val T = func () {
@@ -1475,7 +1475,7 @@ do
     ]]
     print("Testing...", "abort 12")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:ok\n")
+    assertx(out, "1\n2\nok\n")
 
     local src = [[
         spawn (func () {
@@ -1494,7 +1494,7 @@ do
     ]]
     print("Testing...", "abort 13")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         spawn (func () {
@@ -1513,7 +1513,7 @@ do
     ]]
     print("Testing...", "abort 14")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         spawn (func () {
@@ -1539,7 +1539,7 @@ do
     ]]
     print("Testing...", "abort 15")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:3\n:a\n:b\n:ok\n")
+    assertx(out, "1\n2\n3\na\nb\nok\n")
 
     local src = [[
         spawn (func () {
@@ -1567,7 +1567,7 @@ do
     ]]
     print("Testing...", "abort 16")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":0\n:1\n:2\n:3\n:4\n")
+    assertx(out, "0\n1\n2\n3\n4\n")
 
     local src = [[
         spawn (func () {
@@ -1586,7 +1586,7 @@ do
     ]]
     print("Testing...", "abort 17")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":0\n:1\n:2\n")
+    assertx(out, "0\n1\n2\n")
 
     local src = [[
         spawn (func () {
@@ -1617,7 +1617,7 @@ do
     ]]
     print("Testing...", "abort 18")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":0\n:1\n:2\n:3\n:ok\n:4\n")
+    assertx(out, "0\n1\n2\n3\nok\n4\n")
 
     local src = [[
         spawn (func () {
@@ -1650,7 +1650,7 @@ do
     ]]
     print("Testing...", "abort 19")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":0\n:1\n:2\n:3\n:ok\n:4\n")
+    assertx(out, "0\n1\n2\n3\nok\n4\n")
 
     local src = [[
         val f = func (t) {
@@ -1685,7 +1685,7 @@ do
     ]]
     print("Testing...", "abort 20")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":0\n:1\n:2\n:3\n:ok\n:4\n")
+    assertx(out, "0\n1\n2\n3\nok\n4\n")
 
     local src = [[
         spawn (func () {
@@ -1707,7 +1707,7 @@ do
     ]]
     print("Testing...", "abort 21")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:3\n")
+    assertx(out, "1\n2\n3\n")
 
     local src = [[
         spawn (func () {
@@ -1725,7 +1725,7 @@ do
     ]]
     print("Testing...", "abort 22")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:3\n")
+    assertx(out, "1\n2\n3\n")
 
     local src = [[
         spawn (func () {
@@ -1740,7 +1740,7 @@ do
     ]]
     print("Testing...", "abort 23")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         val f = func () {
@@ -1771,7 +1771,7 @@ do
     ]]
     print("Testing...", "abort 24")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:4\n:3\n")
+    assertx(out, "1\n2\n4\n3\n")
 
     local src = [[
         spawn (func () {
@@ -1813,7 +1813,7 @@ do
     ]]
     print("Testing...", "abort 26")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         spawn (func () {
@@ -1837,7 +1837,7 @@ do
     ]]
     print("Testing...", "abort 27")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:3\n")
+    assertx(out, "1\n2\n3\n")
 
     local src = [[
         val f = func () {
@@ -1870,7 +1870,7 @@ do
     ]]
     print("Testing...", "abort 28")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:4\n:3\n")
+    assertx(out, "1\n2\n4\n3\n")
 
     local src = [[
         val f = func () {
@@ -1890,7 +1890,7 @@ do
     ]]
     print("Testing...", "abort 29")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         val f = func () {
@@ -1923,7 +1923,7 @@ do
     ]]
     print("Testing...", "abort 30")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:4\n:3\n")
+    assertx(out, "1\n2\n4\n3\n")
 
     local src = [[
         spawn (func () {
@@ -1949,7 +1949,7 @@ do
     ]]
     print("Testing...", "abort 31")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:3\n")
+    assertx(out, "1\n2\n3\n")
 
     local src = [[
         spawn (func () {
@@ -1975,7 +1975,7 @@ do
     ]]
     print("Testing...", "abort 32")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:3\n")
+    assertx(out, "1\n2\n3\n")
 
     local src = [[
         spawn (func () {
@@ -1997,7 +1997,7 @@ do
     print("Testing...", "abort 33")
     local out = exec_string("anon.atm", src)
     --assertx(out, ":1\n:2\n:ok\n:3\n")
-    assertx(out, ":1\n:2\n:3\n:ok\n")
+    assertx(out, "1\n2\n3\nok\n")
 
     local src = [[
         spawn (func () {
@@ -2017,7 +2017,7 @@ do
     ]]
     print("Testing...", "abort 34")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:3\n:ok\n")
+    assertx(out, "1\n2\n3\nok\n")
 
     local src = [[
         spawn (func () {
@@ -2040,7 +2040,7 @@ do
     ]]
     print("Testing...", "abort 35")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":1\n:2\n:ok\n:3\n:4\n")
+    assertx(out, "1\n2\nok\n3\n4\n")
 
     local src = [[
         spawn (func () {
@@ -2071,7 +2071,7 @@ do
     print("Testing...", "abort 36")
     local out = exec_string("anon.atm", src)
     --assertx(out, ":1\n:2\n:3\n:ok\n:4\n:5\n:6\n:7\n:8\n")
-    assertx(out, ":1\n:2\n:3\n:4\n:5\n:6\n:ok\n:7\n:8\n")
+    assertx(out, "1\n2\n3\n4\n5\n6\nok\n7\n8\n")
 end
 
 print '-=- THROW / CATCH -=-'
@@ -2095,7 +2095,7 @@ do
     ]]
     print("Testing...", "catch 1")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":e1\n:e2\n")
+    assertx(out, "e1\ne2\n")
 
     local src = [[
         var co
@@ -2122,7 +2122,7 @@ do
     ]]
     print("Testing...", "catch 2")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":e1\n:e2\n")
+    assertx(out, "e1\ne2\n")
 
     local src = [[
         val T = func () {
@@ -2143,7 +2143,7 @@ do
     ]]
     print("Testing...", "catch 3")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok1\n:ok2\n:ok3\n")
+    assertx(out, "ok1\nok2\nok3\n")
 
     local src = [[
         spawn {
@@ -2160,7 +2160,7 @@ do
     ]]
     print("Testing...", "catch 4")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok1\n:ok2\n")
+    assertx(out, "ok1\nok2\n")
 
     local src = [[
         val T = func () {
@@ -2186,7 +2186,7 @@ do
     ]]
     print("Testing...", "catch 5")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok1\n:ok2\n:ok3\n")
+    assertx(out, "ok1\nok2\nok3\n")
 
     local src = [[
         val T = func () {
@@ -2219,7 +2219,7 @@ do
     ]]
     print("Testing...", "catch 6")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok1\n:ok2\n:ok3\n")
+    assertx(out, "ok1\nok2\nok3\n")
 
     local src = [[
         spawn {
@@ -2286,11 +2286,11 @@ do
             await(true)
             return([2])
         } )()
-        print(status(t), t.pub)
+        dump(status(t), t.pub)
         emit(true)
-        print(status(t), t.pub)
+        dump(status(t), t.pub, t.ret)
     ]]
     print("Testing...", "return 1")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":yielded\t[1]\n:terminated\t[2]\n")
+    assertx(out, "suspended\t{ 1 }\ndead\t{ 1 }\t{ 2 }\n")
 end

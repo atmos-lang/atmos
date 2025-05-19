@@ -108,6 +108,7 @@ function task (f)
         ing = 0,
         gc  = false,
         pub = nil,
+        ret = nil,
     }
     setmetatable(t, meta)
     TASKS[t.co] = t
@@ -158,11 +159,12 @@ local function atm_task_resume_result (t, ok, err)
 ]]
 
     if status(t.co) == 'dead' then
+        t.ret = err
         if t.up then
             t.up.gc = true
         end
         --if t.status ~= 'aborted' then
-            emit(t.up, ':task', t)
+            emit(t.up, 'task', t)
         --end
     end
 end
@@ -243,13 +245,13 @@ end
 local function fto (me, to)
     if to == nil then
         to = 0
-    elseif to == ":task" then
+    elseif to == 'task' then
         to = 0
-    elseif to == ":parent" then
+    elseif to == 'parent' then
         to = 1
     end
 
-    if to == ":global" then
+    if to == 'global' then
         to = TASKS
     elseif type(to) == 'number' then
         local n = tonumber(to)
