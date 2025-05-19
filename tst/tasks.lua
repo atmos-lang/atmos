@@ -2126,28 +2126,28 @@ do
 
     local src = [[
         val T = func () {
-            catch :e1 ;;;(it| it==:e1 );;; {
-                spawn( func () {
+            catch :e1 {
+                spawn {
                     await(true)
                     throw(:e1)
                     print(:no)
-                }) ()
-                loop { await(true) } ;;thus { it => nil }
+                }
+                await(false)
             }
             print(:ok1)
             throw(:e2)
             print(:no)
         }
-        spawn (func () {
-            catch :e2 ;;;(it| :e2 );;; {
+        spawn {
+            catch :e2 {
                 spawn T()
-                loop { await(true) } ;;thus { it => nil }
+                await(false)
             }
             print(:ok2)
             throw(:e3)
             print(:no)
-        }) ()
-        catch :e3 ;;;(it | :e3 );;; {
+        }
+        catch :e3 {
             emit(true)
             print(:no)
         }

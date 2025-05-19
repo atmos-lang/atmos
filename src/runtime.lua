@@ -128,8 +128,7 @@ function atm_task_close (t)
 end
 meta.__close = atm_task_close
 
-local function atm_task_resume_result (t, ...)
-    local ok, err = resume(t.co, ...)
+local function atm_task_resume_result (t, ok, err)
     if ok then
         -- no error: continue normally
     elseif err == 'atm_aborted' then
@@ -195,9 +194,13 @@ function spawn (t, ...)
         return ok, t_o
     end
 ]]
-    atm_task_resume_result(t, ...)
+    atm_task_resume_result(t, resume(t.co, ...))
     return t
 end
+
+-------------------------------------------------------------------------------
+-- AWAIT
+-------------------------------------------------------------------------------
 
 function yield (...)
     if atm_me() then
@@ -206,9 +209,9 @@ function yield (...)
     return coroutine.yield(...)
 end
 
-local function _aux_ (a, b, ...)
-    if a == 'atm_error' then
-        error(b, 0)
+local function _aux_ (err, a, b, ...)
+    if err then
+        error(a, 0)
     else
         return a, b, ...
     end
@@ -269,12 +272,14 @@ local function femit (t, a, b, ...)
     end
 
     if t.tag == 'task' then
-        if atm_task_awake_check(t,a,b) then
-            if not ok then
+        if not ok then
+            if status(t.co) ~= 'dead' then
                 assert(resume(t.co, 'atm_error', err))
-            else
+            end
+        else
+            if atm_task_awake_check(t,a,b) then
                 -- a=:X, b={...}, choose b on resume(t,b)
-                atm_task_resume_result(t, b or a, a, ...)
+                atm_task_resume_result(t, resume(t.co, nil, b or a, a, ...))
             end
         end
     else
