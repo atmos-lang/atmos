@@ -134,7 +134,7 @@ local function atm_task_resume_result (t, ...)
         -- no error: continue normally
     elseif err == 'atm_aborted' then
         -- callee aborted from outside: continue normally
-        coroutine.close(t.co)
+        coroutine.close(t.co)   -- needs close b/c t.co is in error state
     else
         error(err, 0)
     end
@@ -267,12 +267,20 @@ local function femit (t, a, b, ...)
             break
         end
     end
+
     if t.tag == 'task' then
+        if atm_task_awake_check(t,a,b) then
+            if not ok then
+                assert(resume(t.co, 'atm_error', err))
+            else
+                -- a=:X, b={...}, choose b on resume(t,b)
+                atm_task_resume_result(t, b or a, a, ...)
+            end
+        end
+    else
+        assert(t.tag == 'tasks')
         if not ok then
-            assert(resume(t.co, 'atm_error', err))
-        elseif atm_task_awake_check(t,a,b) then
-            -- a=:X, b={...}, choose b on resume(t,b)
-            atm_task_resume_result(t, b or a, a, ...)
+            error(err, 0)
         end
     end
     -- ing--

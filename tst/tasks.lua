@@ -2078,15 +2078,15 @@ print '-=- THROW / CATCH -=-'
 
 do
     local src = [[
-        spawn (func () {
-            catch :e1 ;;;(it | it==:e1);;; {
+        spawn {
+            catch :e1 {
                 throw(:e1)
             }
             print(:e1)
             await(true)
             throw(:e2)
-        })()
-        catch :e2 ;;;(it| :e2);;; {
+        }
+        catch :e2 {
             emit(true)
             emit(true)
             print(99)
@@ -2154,7 +2154,7 @@ do
         print(:ok3)
     ]]
     print("Testing...", "catch 3")
-    --local out = exec_string("anon.atm", src)
-    --assertx(out, ":ok1\n:ok2\n:ok3\n")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok1\n:ok2\n:ok3\n")
     print 'TODO'
 end
