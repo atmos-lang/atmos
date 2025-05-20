@@ -60,7 +60,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(tostr_stmt(s) == "set x = spawn(f)")
+    assert(tostr_stmt(s) == "set x = spawn(nil, f)")
 
     local src = "spawn nil()"
     print("Testing...", src)

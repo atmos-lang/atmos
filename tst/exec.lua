@@ -535,7 +535,7 @@ do
     ]]
     print("Testing...", "task 2")
     local out = exec_string("anon.atm", src)
-    assert(out == "10\nnil\n")
+    assertx(out, "10\nnil\n")
 
     local src = [[
         val F = func (a,b) {
@@ -730,9 +730,28 @@ do
     local src = [[
         print(tasks())
     ]]
-    print("Testing...", "tasks")
+    print("Testing...", "tasks 1")
     local out = exec_string("anon.atm", src)
     assertfx(out, "table: 0x")
+
+    local src = [[
+        print(type(tasks()))
+    ]]
+    print("Testing...", "tasks 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "table\n")
+
+    local src = [[
+        val T = func () {
+            print(:in)
+        }
+        val ts = tasks()
+        spawn T() in ts
+        print(:out)
+    ]]
+    print("Testing...", "tasks 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "in\nout\n")
 end
 
 -- ERROR / LINE NUMBER

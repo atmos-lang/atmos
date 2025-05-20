@@ -549,7 +549,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "spawn(T, 1, 2, 3)")
+    assertx(tostr_expr(e), "spawn(nil, T, 1, 2, 3)")
 
     local src = "spawn (x+10)"
     print("Testing...", src)

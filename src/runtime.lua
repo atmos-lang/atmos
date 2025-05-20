@@ -195,9 +195,9 @@ local function atm_task_awake_check (t, a, b)
     end
 end
 
-function spawn (t, ...)
+function spawn (ts, t, ...)
     if type(t) == 'function' then
-        return spawn(task(t), ...)
+        return spawn(ts, task(t), ...)
     end
     if type(t)=='table' and t.co then
         -- ok

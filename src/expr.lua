@@ -128,17 +128,26 @@ function parser_expr_prim_1 ()
     elseif accept('spawn') then
         if check('{') then
             local cmd = { tag='acc', tk={tag='id', str='spawn', lin=TK0.lin} }
+            local ts = { tag='nil', tk={tag='key',str='nil'} }
             local ss = parser_curly()
             local f = { tag='func', pars={}, blk={tag='block',ss=ss} }
-            return { tag='call', f=cmd, args={f} }
+            return { tag='call', f=cmd, args={ts,f} }
         else
             local tk = TK0
             local cmd = { tag='acc', tk={tag='id', str=TK0.str, lin=TK0.lin} }
             local call = parser_expr()
+            local ts; do
+                if accept('in') then
+                    ts = parser_expr()
+                else
+                    ts = { tag='nil', tk={tag='key',str='nil'} }
+                end
+            end
             if call.tag ~= 'call' then
                 err(tk, "expected call")
             end
-            table.insert(call.args, 1, call.f)
+            table.insert(call.args, 1, ts)
+            table.insert(call.args, 2, call.f)
             return { tag='call', f=cmd, args=call.args }
         end
 

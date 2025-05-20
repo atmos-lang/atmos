@@ -411,3 +411,15 @@ do
         }
     ]])
 end
+
+-- TASK / TASKS
+
+do
+    local src = "spawn X() in ts"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check('<eof>'))
+    assertx(tostr_stmt(s), "pin _ = spawn(ts, X)")
+end
