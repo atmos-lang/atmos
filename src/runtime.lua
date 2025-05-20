@@ -97,8 +97,14 @@ end
 
 local meta = { __close=nil }
 
+function atm_pin (up, t)
+    up = up or atm_me() or TASKS
+    up.dns[#up.dns+1] = t
+    t.up = up
+    return t
+end
+
 function tasks ()
-    local up = atm_me()
     local ts = {
         tag = 'tasks',
         dns = {},
@@ -112,7 +118,7 @@ function task (ts, f)
     local t = {
         tag = 'task',
         co  = coro(f),
-        up  = up,
+        up  = nil,
         dns = {},
         status = nil, -- aborted, toggled
         ing = 0,
@@ -120,20 +126,16 @@ function task (ts, f)
         pub = nil,
         ret = nil,
     }
-    setmetatable(t, meta)
     TASKS[t.co] = t
-    if up then
-        up.dns[#up.dns+1] = t
-    else
-        TASKS.dns[#TASKS.dns+1] = t
+    setmetatable(t, meta)
+    if ts then
+        atm_pin(ts, t)
     end
     return t
 end
 
 function atm_close (t)
---print'close'
     for _,dn in ipairs(t.dns) do
---print('',dn)
         atm_close(dn)
     end
     if t.tag == 'task' then
