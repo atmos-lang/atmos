@@ -30,9 +30,10 @@ function parser_expr_prim_1 ()
 
     -- (...)
     elseif accept('(') then
+        local tk = TK0
         local e = parser_expr()
         accept_err(')')
-        return e
+        return { tag='parens', tk=tk, e=e }
 
     -- [ ... ]
     elseif accept('[') then

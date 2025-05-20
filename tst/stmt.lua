@@ -34,10 +34,10 @@ do
     lexer_string("anon", src)
     parser()
     local s = parser_main()
-    assert(tostr_stmt(s) == trim [[
+    assertx(tostr_stmt(s), trim [[
         do {
             val e = []
-            f()
+            (f)()
         }
     ]])
 end
@@ -279,9 +279,9 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(trim(tostr_stmt(s)) == trim [[
+    assertx(trim(tostr_stmt(s)), trim [[
         if f() {
-            if cnd {
+            if (cnd) {
                 val x
             } else {
                 val y
@@ -395,7 +395,7 @@ do
     assert(check('<eof>'))
     assert(trim(tostr_stmt(s)) == trim [[
         catch true, func (it) {
-            return((it > 0))
+            return(it > 0)
         } {
         }
     ]])

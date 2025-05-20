@@ -201,7 +201,7 @@ do
     local src = "print(([1])[[]])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assert(out == "nil\n")
+    assertx(out, "nil\n")
 
     local src = "print(([[1]])[([0])[0]][0])"
     print("Testing...", src)

@@ -58,7 +58,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(stringify(e) == "{ tag=acc, tk={ lin=1, str=a, tag=id } }")
+    assertx(stringify(e), "{ e={ tag=acc, tk={ lin=1, str=a, tag=id } }, tag=parens, tk={ lin=1, str=(, tag=sym } }")
 
     local src = " ( a "
     print("Testing...", src)
@@ -280,7 +280,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == '(-x[0])')
+    assert(tostr_expr(e) == '-x[0]')
 end
 
 -- UNO
@@ -302,7 +302,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "(!(-x))")
+    assert(tostr_expr(e) == "!-x")
 end
 
 -- BIN
@@ -332,7 +332,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "(2 * (a - 1))")
+    assertx(tostr_expr(e), "2 * (a - 1)")
 
     local src = "2 == -1"
     print("Testing...", src)
@@ -341,7 +341,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "(2 == (-1))")
+    assert(tostr_expr(e) == "2 == -1")
 
     local src = "x || y"
     print("Testing...", src)
@@ -350,7 +350,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "(x || y)")
+    assert(tostr_expr(e) == "x || y")
 
     local src = "- -1"
     print("Testing...", src)
@@ -359,7 +359,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "(-(-1))")
+    assert(tostr_expr(e) == "--1")
 
     local src = "(10+)"
     print("Testing...", src)
@@ -376,7 +376,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "((x and 10) or 20)")
+    assert(tostr_expr(e) == "x and 10 or 20")
 end
 
 -- CALL / FUNC / RETURN / THROW
@@ -419,10 +419,10 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == trim [[
-        func (x, y) {
-            return((x + y))
-        }(1, 2)
+    assertx(tostr_expr(e), trim [[
+        (func (x, y) {
+            return(x + y)
+        })(1, 2)
     ]])
 
     local src = [[
@@ -559,7 +559,7 @@ do
     assert(check('<eof>'))
     assert(tostr_expr(e) == trim [[
         await(:X, func (it) {
-            return((x + 10))
+            return(x + 10)
         })
     ]])
 

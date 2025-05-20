@@ -59,9 +59,9 @@ function tostr_expr (e)
     elseif e.tag == 'str' then
         return '"' .. e.tk.str .. '"'
     elseif e.tag == 'uno' then
-        return '('..e.op.str..tostr_expr(e.e)..')'
+        return e.op.str..tostr_expr(e.e)
     elseif e.tag == 'bin' then
-        return '('..tostr_expr(e.e1)..' '..e.op.str..' '..tostr_expr(e.e2)..')'
+        return tostr_expr(e.e1)..' '..e.op.str..' '..tostr_expr(e.e2)
     elseif e.tag == 'index' then
         return tostr_expr(e.t)..'['..tostr_expr(e.idx)..']'
     elseif e.tag == 'table' then
@@ -79,6 +79,8 @@ function tostr_expr (e)
         "}"
     elseif e.tag == 'exec' then
         return e.tk.str .. "(" .. tostr_expr(e.e) .. ")"
+    elseif e.tag == 'parens' then
+        return '('..tostr_expr(e.e)..')'
     else
         print(e.tag)
         error("TODO")

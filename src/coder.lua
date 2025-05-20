@@ -137,6 +137,8 @@ function coder_expr (e)
         return "function (" .. pars .. ") " ..
             coder_stmts(e.blk.ss) ..
         " end"
+    elseif e.tag == 'parens' then
+        return L(e.tk) .. '(' .. coder_expr(e.e) .. ')'
     else
         return L(e.tk) .. tostr_expr(e)
     end
