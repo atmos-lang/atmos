@@ -752,6 +752,18 @@ do
     print("Testing...", "tasks 3")
     local out = exec_string("anon.atm", src)
     assertx(out, "in\nout\n")
+
+    local src = [[
+        val T = func () {
+            print(:ok)
+        }
+        val ts = tasks(2)
+        spawn T() in ts
+        spawn T() in ts
+    ]]
+    print("Testing...", "tasks 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\nok\n")
 end
 
 -- ERROR / LINE NUMBER

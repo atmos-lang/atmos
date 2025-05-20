@@ -2608,3 +2608,104 @@ do
     local out = exec_string("anon.atm", src)
     assertx(out, "10\nok\n")
 end
+
+print '-=- TASKS -=-'
+
+do
+    local src = [[
+        tasks()
+        print(:ok)
+    ]]
+    print("Testing...", "tasks 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        do {
+            tasks()
+        }
+        print(:ok)
+    ]]
+    print("Testing...", "tasks 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        spawn (func () { print(:in) })() in tasks()
+        print(:out)
+    ]]
+    print("Testing...", "tasks 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "in\nout\n")
+
+    local src = [[
+        val T = func () {
+            await(true)
+            print(:in)
+        }
+        val ts = tasks()
+        spawn T() in ts
+        print(:out)
+        emit(true)
+    ]]
+    print("Testing...", "tasks 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "out\nin\n")
+
+    local src = [[
+        val T = func () {
+            await(true)
+        }
+        val ts = tasks()
+        val ok = spawn T() in ts
+        print(ok)
+    ]]
+    print("Testing...", "tasks 5")
+    local out = exec_string("anon.atm", src)
+    assertfx(out, "table: 0x")
+
+    local src = [[
+        print(tasks() == nil)
+    ]]
+    print("Testing...", "tasks 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "false\n")
+
+    local src = [[
+        val T = func (v) { }
+        val ts = tasks()
+        var x = 0
+        do :X {
+            loop {
+                spawn T() in ts
+                set x = x + 1
+                if x==500 {
+                    escape :X()
+                }
+            }
+        }
+        print(:ok)
+    ]]
+    print("Testing...", "tasks 7")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        var ts
+        set ts = tasks()
+        print(type(ts))
+        var T
+        set T = func (v) {
+            print(v)
+            val evt = await(true)
+            print(evt)
+        }
+        do {
+            spawn T(1) in ts
+        }
+        emit(2)
+    ]]
+    print("Testing...", "tasks 8")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "table\n1\n2\n")
+end

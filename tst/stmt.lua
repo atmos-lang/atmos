@@ -421,5 +421,5 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assertx(tostr_stmt(s), "pin _ = spawn(ts, X)")
+    assertx(tostr_stmt(s), "spawn(ts, X)")
 end
