@@ -180,6 +180,32 @@ do
     print("Testing...", "resume 1 : error : resume task")
     local out = exec_string("anon.atm", src)
     warn(out == "anon.atm : line 2 : bad argument #1 to 'resume' (thread expected, got table)\n", "(\\nresume)(...)")
+
+    local src = [[
+        var T
+        set T = func (x,y) {
+            print(x,y)
+        }
+        spawn T(1,2)
+    ]]
+    print("Testing...", "spawn 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\t2\n")
+
+    local src = [[
+        spawn (func () {}) ()
+        print(:ok)
+    ]]
+    print("Testing...", "spawn 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        spawn (func () {})
+    ]]
+    print("Testing...", "spawn 3: error")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 1 : near 'spawn' : expected call")
 end
 
 -- SPAWN (scope)

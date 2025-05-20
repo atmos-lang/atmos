@@ -2,7 +2,10 @@ function exec_string (file, src)
     init()
     lexer_string(file, src)
     parser()
-    local blk = parser_main()
+    local ok, blk = pcall(parser_main)
+    if not ok then
+        return blk
+    end
 
     local f = assert(io.open(file..".lua", "w"))
     f:write([[
