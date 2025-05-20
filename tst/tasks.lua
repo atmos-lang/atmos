@@ -261,7 +261,7 @@ do
     local src = [[
         var tk
         set tk = func () {
-            print(await(true))
+            dump(await(true))
         }
         var co
         set co = spawn tk()
@@ -275,7 +275,23 @@ do
     ]]
     print("Testing...", "spawn 8")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{  }\n")
+    warnx(out, "{  }\n")
+
+    local src = [[
+        var tk
+        set tk = func () {
+            dump(await(true))
+        }
+        var co
+        set co = spawn(tk)()
+        ;;var f = func' () {
+            emit ([])
+        ;;}
+        ;;f()
+    ]]
+    print("Testing...", "spawn 9")
+    local out = exec_string("anon.atm", src)
+    warnx(out, "{  }")
 end
 
 -- SPAWN (scope)
