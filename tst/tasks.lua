@@ -261,7 +261,7 @@ do
     local src = [[
         var tk
         set tk = func () {
-            dump(await(true))
+            dump((await(true)))
         }
         var co
         set co = spawn tk()
@@ -275,7 +275,7 @@ do
     ]]
     print("Testing...", "spawn 8")
     local out = exec_string("anon.atm", src)
-    warnx(out, "{  }\n")
+    assertx(out, "{  }\n")
 
     local src = [[
         var tk
@@ -291,7 +291,7 @@ do
     ]]
     print("Testing...", "spawn 9")
     local out = exec_string("anon.atm", src)
-    warnx(out, "{  }")
+    assertx(out, "{  }\n")
 end
 
 -- SPAWN (scope)
@@ -1006,7 +1006,7 @@ do
     ]]
     print("Testing...", "order 3")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, "1\tout\tout\n2\ttable: 0x"))
+    assert(string.find(out, "1\tout\n2\ttable: 0x"))
 
     local src = [[
         var T

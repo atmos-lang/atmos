@@ -224,8 +224,10 @@ end
 local function _aux_ (err, a, b, ...)
     if err then
         error(a, 0)
-    else
+    elseif b then
         return a, b, ...
+    else
+        return a    -- avoids repetition of a/b or a/nil
     end
 end
 
@@ -295,7 +297,7 @@ local function femit (t, a, b, ...)
         else
             if atm_task_awake_check(t,a,b) then
                 -- a=:X, b={...}, choose b on resume(t,b)
-                atm_task_resume_result(t, resume(t.co, nil, b or a, a, ...))
+                atm_task_resume_result(t, resume(t.co, nil, b or a, b and a or nil, ...))
             end
         end
     else
