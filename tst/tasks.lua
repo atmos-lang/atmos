@@ -292,6 +292,21 @@ do
     print("Testing...", "spawn 9")
     local out = exec_string("anon.atm", src)
     assertx(out, "{  }\n")
+
+    local src = [[
+        var T = func () {
+            do {
+                dump(await(true))
+            }
+        }
+        var t = spawn T()
+        ;;print(:1111)
+        emit ([])
+        ;;print(:2222)
+    ]]
+    print("Testing...", "spawn 10")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
 end
 
 -- SPAWN (scope)
@@ -491,6 +506,73 @@ do
     print("Testing...", "emit 8")
     local out = exec_string("anon.atm", src)
     assertx(out, "{  }\n")
+
+    local src = [[
+        var T = func () {
+            do {
+                var v =
+                    await(true) ;;thus { it => it }
+                dump(v)
+            }
+        }
+        var t = spawn T()
+        ;;print(:1111)
+        var e = []
+        emit (e)
+        ;;print(:2222)
+    ]]
+    print("Testing...", "emit 9")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
+    local src = [[
+        var T = func () {
+            var v = await(true)
+            dump(v)
+        }
+        var t = spawn T()
+        do {
+            val a
+            do {
+                val b
+                do {
+                    var e = []
+                    emit (e)
+                }
+            }
+        }
+    ]]
+    print("Testing...", "emit 10")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
+    local src = [[
+        var T = func () {
+            dump(await(true))
+        }
+        var t = spawn T()
+        do {
+            var e = []
+            emit (e)
+        }
+    ]]
+    print("Testing...", "emit 11")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
+    local src = [[
+        var fff = func (v) {
+            dump(v)
+        }
+        var T = func () {
+            fff(await(true))
+        }
+        spawn T()
+        emit ([1])
+    ]]
+    print("Testing...", "emit 12")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 1 }\n")
 end
 
 print "-=- EMIT / SCOPE -=-"
@@ -700,6 +782,56 @@ do
     print("Testing...", "emit scope 11")
     local out = exec_string("anon.atm", src)
     assertx(out, "{  }\n")
+
+    local src = [[
+        var T = func () {
+            var v =
+                (func (it) {return(it)}) (await(true))
+            dump(v)
+        }
+        var t = spawn T()
+        ;;print(:1111)
+        do {
+            val a
+            do {
+                val b
+                var e = []
+                emit (e)
+            }
+        }
+        ;;print(:2222)
+    ]]
+    print("Testing...", "emit scope 12")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
+
+    local src = [[
+        var T1 = func () {
+            await(true) ;;thus { it => nil}
+            spawn( func () {                ;; GC = task (no more)
+                val xevt = await(true) ;;thus { it => it}
+                print(:1)
+                var v = xevt
+            } )()
+        }
+        var t1 = spawn T1()
+        var T2 = func () {
+            await(true) ;;thus { it => nil}
+            val xevt = await(true) ;;thus { it => nil}
+            ;;print(:2)
+            do {
+                var v = xevt
+                ;;print(:evt, v, xevt)
+            }
+        }
+        var t2 = spawn T2()
+        emit ([])                      ;; GC = []
+        ;;print(`:number CEU_GC.free`)
+        print(:ok)
+    ]]
+    print("Testing...", "emit scope 13")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
 end
 
 print "-=- EMIT / ALIEN -=-"
@@ -795,6 +927,37 @@ do
     print("Testing...", "alien 5")
     local out = exec_string("anon.atm", src)
     assertx(out, "{ 10 }\n")
+
+    local src = [=[
+        var f = func (v) {  ;; *** v is no longer fleeting ***
+            val x = v[0]    ;; v also holds x, both are fleeting -> unsafe
+            dump(x)      ;; x will be freed and v would contain dangling pointer
+        }
+        var T = func () {
+            f(await(true)) ;;thus { it => it})
+        }
+        spawn T()
+        emit ([[1]])
+    ]=]
+    print("Testing...", "alien 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 1 }\n")
+
+    local src = [=[
+        var f = func (v) {
+            val x = v[0]    ;; v also holds x, both are fleeting -> unsafe
+            dump(x)      ;; x will be freed and v would contain dangling pointer
+        }
+        var T = func () {
+            val xevt = await(true) ;;thus { it => it}   ;; NOT FLEETING (vs prv test)
+            f(xevt)
+        }
+        spawn T()
+        emit ([[1]])
+    ]=]
+    print("Testing...", "alien 7")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 1 }\n")
 end
 
 -- EMIT-AWAIT / PAYLOAD

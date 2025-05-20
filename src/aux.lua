@@ -1,3 +1,7 @@
+function assertfx(cur, exp)
+    return assert(string.find(cur,exp), cur)
+end
+
 function assertx(cur, exp)
     return assert(cur == exp, cur)
 end

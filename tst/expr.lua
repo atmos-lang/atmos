@@ -497,6 +497,15 @@ do
     assert(check('<eof>'))
     assert(tostr_expr(e) == "tasks(10)")
 
+    local src = "tasks()"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assert(tostr_expr(e) == "tasks()")
+
     local src = "yield(x,10)"
     print("Testing...", src)
     init()

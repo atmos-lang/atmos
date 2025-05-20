@@ -490,7 +490,7 @@ do
     assertx(out, "true\t10\n")
 end
 
--- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME
+-- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME / TASKS
 
 do
     local src = [[
@@ -726,6 +726,13 @@ do
     print("Testing...", "task - catch 2")
     local out = exec_string("anon.atm", src)
     assertx(out, "1\n2\n3\ne\n4\n5\n")
+
+    local src = [[
+        print(tasks())
+    ]]
+    print("Testing...", "tasks")
+    local out = exec_string("anon.atm", src)
+    assertfx(out, "table: 0x")
 end
 
 -- ERROR / LINE NUMBER

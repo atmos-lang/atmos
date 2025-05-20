@@ -97,6 +97,15 @@ end
 
 local meta = { __close=nil }
 
+function tasks ()
+    local up = atm_me()
+    local ts = {
+        tag = 'tasks',
+        dns = {},
+    }
+    return ts
+end
+
 function task (f)
     local up = atm_me()
     local t = {

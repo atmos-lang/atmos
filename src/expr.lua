@@ -66,11 +66,22 @@ function parser_expr_prim_1 ()
         accept_err(']')
         return { tag='table', ps=ps }
 
-    -- coro(f), task(T), tasks(n)
-    elseif accept('coro') or accept('task') or accept('tasks') then
+    -- coro(f), task(T)
+    elseif accept('coro') or accept('task') then
         local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
         accept_err('(')
         local e = parser_expr()
+        accept_err(')')
+        return { tag='call', f=f, args={e} }
+
+    -- tasks(n)
+    elseif accept('tasks') then
+        local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
+        accept_err('(')
+        local e
+        if not check(')') then
+            e = parser_expr()
+        end
         accept_err(')')
         return { tag='call', f=f, args={e} }
 
