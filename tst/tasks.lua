@@ -2293,4 +2293,19 @@ do
     print("Testing...", "return 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "suspended\t{ 1 }\ndead\t{ 1 }\t{ 2 }\n")
+
+    local src = [[
+        spawn {
+            val t = spawn {
+                await(true)
+                return(10)
+            }
+            (func (it) { print(it.ret) }) (await(true))
+        }
+        emit(true)
+        print(:ok)
+    ]]
+    print("Testing...", "return 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\nok\n")
 end
