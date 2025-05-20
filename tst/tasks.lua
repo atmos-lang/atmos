@@ -206,6 +206,76 @@ do
     print("Testing...", "spawn 3: error")
     local out = exec_string("anon.atm", src)
     assertx(out, "anon.atm : line 1 : near 'spawn' : expected call")
+
+    local src = [[
+        val T = func (v) {
+            spawn (func () {
+                await(true)
+                print(:ok)
+            }) ()
+            emit (nil)
+        }
+        spawn T(2)
+    ]]
+    print("Testing...", "spawn 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        spawn (func () {
+            spawn (func () {
+                await(true)
+                emit(true)
+            }) ()
+            await(true)
+        }) ()
+        emit(true)
+        print(1)
+    ]]
+    print("Testing...", "spawn 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n")
+
+    local src = [[
+        ;;print(:BLOCK0, `:pointer ceu_block`)
+        spawn (func () {
+            ;;print(:CORO1, `:pointer ceu_x`)
+            ;;print(:BLOCK1, `:pointer ceu_block`)
+            spawn (func () {
+                ;;print(:CORO2, `:pointer ceu_x`)
+                ;;print(:BLOCK2, `:pointer ceu_block`)
+                await(true)
+                ;;print(:1)
+                emit(true)
+            }) ()
+            await(true)
+            ;;print(:2)
+        }) ()
+        emit(true)
+        print(1)
+    ]]
+    print("Testing...", "spawn 7")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n")
+
+    local src = [[
+        var tk
+        set tk = func () {
+            print(await(true))
+        }
+        var co
+        set co = spawn tk()
+        var f = func () {
+            var g = func () {
+                emit ([])
+            }
+            g()
+        }
+        f()
+    ]]
+    print("Testing...", "spawn 8")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{  }\n")
 end
 
 -- SPAWN (scope)
@@ -2301,6 +2371,30 @@ do
     print("Testing...", "catch 9")
     local out = exec_string("anon.atm", src)
     assertx(out, "1\n")
+
+    local src = [[
+        var tk = func (v) {
+            await(true)
+            val v = await(true)
+            throw(:1)
+        }
+        var co1 = spawn tk ()
+        var co2 = spawn tk ()
+        catch :1 {
+            (func () {
+                print(1)
+                emit(1)
+                print(2)
+                emit(2)
+                print(3)
+                emit(3)
+            })()
+        }
+        print(99)
+    ]]
+    print("Testing...", "catch 10")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n2\n99\n")
 end
 
 print '-=- RETURN -=-'
