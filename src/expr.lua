@@ -66,18 +66,26 @@ function parser_expr_prim_1 ()
         accept_err(']')
         return { tag='table', ps=ps }
 
-    -- coro(f), task(T)
-    elseif accept('coro') or accept('task') then
-        local cmd = TK0.str
-        local f = { tag='acc', tk={tag='id',str=cmd,lin=TK0.lin} }
+    -- coro(f)
+    elseif accept('coro') then
+        local f = { tag='acc', tk={tag='id',str="coro",lin=TK0.lin} }
         accept_err('(')
         local e = parser_expr()
         accept_err(')')
-        return { tag='call', f=f, args={e}, custom=cmd }
+        return { tag='call', f=f, args={e}, custom="coro" }
+
+    -- task(T)
+    elseif accept('task') then
+        local f = { tag='acc', tk={tag='id',str="task",lin=TK0.lin} }
+        local ts = { tag='nil', tk={tag='key',str='nil',lin=TK0.lin} }
+        accept_err('(')
+        local e = parser_expr()
+        accept_err(')')
+        return { tag='call', f=f, args={ts,e}, custom="task" }
 
     -- tasks(n)
     elseif accept('tasks') then
-        local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
+        local f = { tag='acc', tk={tag='id',str="tasks",lin=TK0.lin} }
         accept_err('(')
         local e
         if not check(')') then

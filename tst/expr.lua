@@ -486,7 +486,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "task(T)")
+    assertx(tostr_expr(e), "task(nil, T)")
 
     local src = "tasks(10)"
     print("Testing...", src)

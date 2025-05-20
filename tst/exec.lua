@@ -764,6 +764,74 @@ do
     print("Testing...", "tasks 4")
     local out = exec_string("anon.atm", src)
     assertx(out, "ok\nok\n")
+
+    local src = [[
+        var T
+        set T = func () {
+            await(true)
+        }
+        var ts
+        set ts = tasks()
+        spawn T(1) in ts
+        spawn T(2) in ts
+        print(1)
+    ]]
+    print("Testing...", "tasks 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n")
+
+    local src = [[
+        var T
+        set T = func (v) {
+            defer {
+                print(v)
+            }
+            await(true)
+        }
+        var ts
+        set ts = tasks()
+        spawn T(1) in ts
+        spawn T(2) in ts
+        print(0)
+    ]]
+    print("Testing...", "tasks 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "0\n1\n2\n")
+
+    local src = [[
+        do {
+            pin ts = tasks()
+            var T
+            set T = func (v) {
+                print(v)
+                val vx = await(true)
+                print(vx)
+            }
+            spawn T(1) in ts
+        }
+        emit(2)
+    ]]
+    print("Testing...", "tasks 7")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n")
+
+    local src = [[
+        do {
+            var ts
+            set ts = tasks()
+            var T
+            set T = func (v) {
+                print(v)
+                val vx = await(true)
+                print(vx)
+            }
+            spawn T(1) in ts
+        }
+        emit(2)
+    ]]
+    print("Testing...", "tasks 8: ts not pinned, no awake")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n")
 end
 
 -- ERROR / LINE NUMBER

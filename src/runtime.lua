@@ -47,7 +47,7 @@ function atm_exec (file, src)
         return nil
     end
 
-    atm_task_close(TASKS)
+    atm_close(TASKS)
 
     return v
 end
@@ -103,11 +103,12 @@ function tasks ()
         tag = 'tasks',
         dns = {},
     }
+    setmetatable(ts, meta)
     return ts
 end
 
-function task (f)
-    local up = atm_me()
+function task (ts, f)
+    local up = ts or atm_me()
     local t = {
         tag = 'task',
         co  = coro(f),
@@ -129,9 +130,11 @@ function task (f)
     return t
 end
 
-function atm_task_close (t)
+function atm_close (t)
+--print'close'
     for _,dn in ipairs(t.dns) do
-        atm_task_close(dn)
+--print('',dn)
+        atm_close(dn)
     end
     if t.tag == 'task' then
         if status(t.co) == 'normal' then
@@ -143,7 +146,7 @@ function atm_task_close (t)
     end
     -- TODO: remove from up (or up traverses dead dns)
 end
-meta.__close = atm_task_close
+meta.__close = atm_close
 
 local function atm_task_resume_result (t, ok, err)
 --print('res', ok, err)
@@ -197,7 +200,7 @@ end
 
 function spawn (ts, t, ...)
     if type(t) == 'function' then
-        return spawn(ts, task(t), ...)
+        return spawn(ts, task(ts,t), ...)
     end
     if type(t)=='table' and t.co then
         -- ok
