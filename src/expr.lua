@@ -68,11 +68,12 @@ function parser_expr_prim_1 ()
 
     -- coro(f), task(T)
     elseif accept('coro') or accept('task') then
-        local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
+        local cmd = TK0.str
+        local f = { tag='acc', tk={tag='id',str=cmd,lin=TK0.lin} }
         accept_err('(')
         local e = parser_expr()
         accept_err(')')
-        return { tag='call', f=f, args={e} }
+        return { tag='call', f=f, args={e}, custom=cmd }
 
     -- tasks(n)
     elseif accept('tasks') then
@@ -83,7 +84,7 @@ function parser_expr_prim_1 ()
             e = parser_expr()
         end
         accept_err(')')
-        return { tag='call', f=f, args={e} }
+        return { tag='call', f=f, args={e}, custom="tasks" }
 
     -- yield(...)
     elseif accept('yield') then
@@ -91,7 +92,7 @@ function parser_expr_prim_1 ()
         accept_err('(')
         local args = parser_list(',', ')', parser_expr)
         accept_err(')')
-        return { tag='call', f=f, args=args }
+        return { tag='call', f=f, args=args, custom="yield" }
 
     -- emit(...) in t
     elseif accept('emit') then
@@ -107,7 +108,7 @@ function parser_expr_prim_1 ()
             end
         end
         table.insert(args, 1, to)
-        return { tag='call', f=f, args=args }
+        return { tag='call', f=f, args=args, custom="emit" }
 
     -- await(...)
     elseif accept('await') then
@@ -122,7 +123,7 @@ function parser_expr_prim_1 ()
             xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
         end
         accept_err(')')
-        return { tag='call', f=f, args={xe,xf} }
+        return { tag='call', f=f, args={xe,xf}, custom="await" }
 
     -- spawn T(...)
     elseif accept('spawn') then
@@ -131,7 +132,7 @@ function parser_expr_prim_1 ()
             local ts = { tag='nil', tk={tag='key',str='nil'} }
             local ss = parser_curly()
             local f = { tag='func', pars={}, blk={tag='block',ss=ss} }
-            return { tag='call', f=cmd, args={ts,f} }
+            return { tag='call', f=cmd, args={ts,f}, custom="spawn" }
         else
             local tk = TK0
             local cmd = { tag='acc', tk={tag='id', str=TK0.str, lin=TK0.lin} }
@@ -148,7 +149,7 @@ function parser_expr_prim_1 ()
             end
             table.insert(call.args, 1, ts)
             table.insert(call.args, 2, call.f)
-            return { tag='call', f=cmd, args=call.args }
+            return { tag='call', f=cmd, args=call.args, custom="spawn" }
         end
 
     -- resume co(...)
@@ -160,7 +161,7 @@ function parser_expr_prim_1 ()
             err(tk, "expected call")
         end
         table.insert(call.args, 1, call.f)
-        return { tag='call', f=cmd, args=call.args }
+        return { tag='call', f=cmd, args=call.args, custom="resume" }
 
     -- throw(err)
     elseif accept('throw') then
@@ -174,7 +175,7 @@ function parser_expr_prim_1 ()
             end
         end
         accept_err(')')
-        return { tag='call', f=f, args={e, {tag='num',tk={str="0"}}} }
+        return { tag='call', f=f, args={e, {tag='num',tk={str="0"}}}, custom="throw" }
 
     -- func () { ... }
     elseif accept('func') then

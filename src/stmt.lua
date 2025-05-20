@@ -150,7 +150,7 @@ function parser_stmt ()
         local tk = TK1
         local e = parser_expr()
         if e.tag == 'call' then
-            if e.f.tag=='acc' and e.f.tk.str=='spawn' then
+            if e.custom=="spawn" and e.args[1].tag=='nil' then    -- [1]=tasks
                 local pin = {tag='key',str='pin'}
                 local id = { tag='id',str='_' }
                 return { tag='dcl', tk=pin, ids={id}, sets={e} }
