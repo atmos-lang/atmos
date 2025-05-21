@@ -9,8 +9,6 @@ function status (t)
     end
 end
 
-local TASKS = { tag='tasks', dns={} }
-
 function atm_idx (idx)
     if type(idx) == 'number' then
         idx = idx + 1
@@ -46,8 +44,6 @@ function atm_exec (file, src)
         io.stderr:write(file..' : line '..lin..' : '..msg..'\n')
         return nil
     end
-
-    atm_close(TASKS)
 
     return v
 end
@@ -90,29 +86,53 @@ function iter (v)
     return coroutine.wrap(f)
 end
 
-function atm_me ()
-    local co = coroutine.running()
-    return co and TASKS[co]
+-------------------------------------------------------------------------------
+
+local function close (t)
+    for _,dn in ipairs(t.dns) do
+        close(dn)
+    end
+    if t.tag == 'task' then
+        if status(t.co) == 'normal' then
+            -- cannot close now (emit continuation will raise error)
+            t.status = 'aborted'
+        else
+            coroutine.close(t.co)
+        end
+    end
 end
 
-local meta = { __close=nil }
-
-function atm_pin (up, t)
-    assert(t.up == nil)
-    up = up or atm_me() or TASKS
-    up.dns[#up.dns+1] = t
-    t.up = up
-    return t
-end
+local meta = { __close=close }
 
 function tasks (max)
     local ts = {
         tag = 'tasks',
         max = max,
         dns = {},
+        ing = 0,
+        gc  = false,
     }
     setmetatable(ts, meta)
     return ts
+end
+
+local TASKS <close> = tasks()
+
+function atm_me ()
+    local co = coroutine.running()
+    return co and TASKS[co]
+end
+
+
+function atm_pin (up, t)
+    assert(t.up == nil)
+    if t.co and status(t.co)=='dead' then
+        return t
+    end
+    up = up or atm_me() or TASKS
+    up.dns[#up.dns+1] = t
+    t.up = up
+    return t
 end
 
 function task (ts, f)
@@ -138,22 +158,6 @@ function task (ts, f)
     end
     return t
 end
-
-function atm_close (t)
-    for _,dn in ipairs(t.dns) do
-        atm_close(dn)
-    end
-    if t.tag == 'task' then
-        if status(t.co) == 'normal' then
-            -- cannot close now (emit continuation will raise error)
-            t.status = 'aborted'
-        else
-            coroutine.close(t.co)
-        end
-    end
-    -- TODO: remove from up (or up traverses dead dns)
-end
-meta.__close = atm_close
 
 local function atm_task_resume_result (t, ok, err)
 --print('res', ok, err)
@@ -299,13 +303,21 @@ local function fto (me, to)
 end
 
 local function femit (t, a, b, ...)
-    -- ing++
     local ok, err = true, nil
+
+    t.ing = t.ing + 1
     for _, dn in ipairs(t.dns) do
         --f(dn, ...)
         ok, err = pcall(femit, dn, a, b, ...)
         if not ok then
             break
+        end
+    end
+    t.ing = t.ing - 1
+
+    if t.gc and t.ing==0 then
+        for i=#t.dns, 1, -1 do
+            atm_task_rem(t.dns[i], i)
         end
     end
 
@@ -330,11 +342,12 @@ local function femit (t, a, b, ...)
             error(err, 0)
         end
     end
-    -- TODO: not only on emit, move to task_result?
-    -- ing--
-    -- TODO: gc
-    -- TODO: remove from up
-    -- TASKS[t.co] = nil
+end
+
+function atm_task_rem (t, i)
+    assert(i and t.up.ing==0 and t.tag=='task' and status(t.co)=='dead')
+    TASKS[t.co] = nil
+    table.remove(t.up.dns, i)
 end
 
 function emit (to, ...)

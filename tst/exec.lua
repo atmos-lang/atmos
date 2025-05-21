@@ -852,6 +852,18 @@ do
 
     local src = [[
         val T = func () {
+        }
+        val ts = tasks(1)
+        val ok1 = spawn T() in ts
+        val ok2 = spawn T() in ts
+        print(type(ok1)=='table', type(ok2)=='table')
+    ]]
+    print("Testing...", "tasks 9: max")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "true\ttrue\n")
+
+    local src = [[
+        val T = func () {
             await(true)
         }
         val ts = tasks(1)
@@ -859,7 +871,7 @@ do
         val ok2 = spawn T() in ts
         print(type(ok1)=='table', ok2)
     ]]
-    print("Testing...", "tasks 9: max")
+    print("Testing...", "tasks 10: max")
     local out = exec_string("anon.atm", src)
     assertx(out, "true\tnil\n")
 end
