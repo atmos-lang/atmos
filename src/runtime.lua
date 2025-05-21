@@ -150,9 +150,13 @@ end
 local meta = { __close=close }
 
 function tasks (max)
+    local n = max and tonumber(max) or nil
+    if max and (not n) then
+        error('invalid tasks limit : expected number', 2)
+    end
     local ts = {
         tag = 'tasks',
-        max = max,
+        max = n,
         i   = nil,
         dns = {},
         ing = 0,
@@ -284,7 +288,7 @@ function spawn (ts, t, ...)
     end
 ]]
     atm_task_resume_result(t, resume(t.co, ...))
-    if status(t) == 'dead' then
+    if status(t.co) == 'dead' then
         if t.up then
             atm_task_rem(t)
         end
@@ -371,8 +375,9 @@ local function femit (t, a, b, ...)
 
     if t.gc and t.ing==0 then
         for i=#t.dns, 1, -1 do
-            if t.tag=='task' and status(t.co)=='dead' then
-                atm_task_rem(t.dns[i])
+            local s = t.dns[i]
+            if s.tag=='task' and status(s.co)=='dead' then
+                atm_task_rem(s)
             end
         end
     end

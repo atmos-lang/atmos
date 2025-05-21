@@ -2893,4 +2893,35 @@ do
     print("Testing...", "tasks 16")
     local out = exec_string("anon.atm", src)
     assertx(out, "{ 10 }\n999\n")
+
+    local src = [[
+        func T () {}
+        val ts = tasks(0)
+        val x = spawn T() in ts
+        print(x)
+    ]]
+    print("Testing...", "tasks 17")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "nil\n")
+
+    local src = [[
+        tasks(true)
+    ]]
+    print("Testing...", "tasks 18")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number\n")
+
+    local src = [[
+        var ts = tasks(1)
+        var T = func () { await(true) }
+        var t1 = spawn T() in ts
+        var t2 = spawn T() in ts
+        emit(true) in ts
+        var t3 = spawn T() in ts
+        var t4 = spawn T() in ts
+        print(t1??:task, t2??:task, t3??:task, t4??:task)
+    ]]
+    print("Testing...", "tasks 19")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "true\tfalse\ttrue\tfalse\n")
 end
