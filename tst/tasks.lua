@@ -2758,9 +2758,9 @@ do
                 print(20)
                 print(30)
             }
-            await(true, type(it)!=:table)
+            await(true, it !? :task)
             if v {
-                await(true, type(it)!=:table)
+                await(true, it !? :task)
             }
         }
         print(0)
@@ -2773,6 +2773,33 @@ do
         print(3)
     ]]
     print("Testing...", "tasks 11")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "0\n10\n10\n1\n20\n30\n2\n20\n30\n3\n")
+
+    local src = [[
+        pin ts = tasks(2)
+        var T
+        set T = func (v) {
+            print(10)
+            defer {
+                print(20)
+                print(30)
+            }
+            await(true, it !? :task)
+            if v {
+                await(true, it !? :task)
+            }
+        }
+        print(0)
+        spawn T(false) in ts
+        spawn T(true) in ts
+        print(1)
+        emit(99)
+        print(2)
+        emit(99)
+        print(3)
+    ]]
+    print("Testing...", "tasks 12")
     local out = exec_string("anon.atm", src)
     assertx(out, "0\n10\n10\n1\n20\n30\n2\n20\n30\n3\n")
 end
