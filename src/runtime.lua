@@ -1,14 +1,6 @@
 coro   = coroutine.create
 resume = coroutine.resume
 
-function status (t)
-    if type(t)=='table' and t.tag=='task' then
-        return coroutine.status(t.co)
-    else
-        return coroutine.status(t)
-    end
-end
-
 function atm_idx (idx)
     if type(idx) == 'number' then
         idx = idx + 1
@@ -87,6 +79,14 @@ function iter (v)
 end
 
 -------------------------------------------------------------------------------
+
+function status (t)
+    if type(t)=='table' and t.tag=='task' then
+        return coroutine.status(t.co)
+    else
+        return coroutine.status(t)
+    end
+end
 
 local function close (t)
     for _,dn in ipairs(t.dns) do
