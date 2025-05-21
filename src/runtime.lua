@@ -108,6 +108,7 @@ function tasks (max)
     local ts = {
         tag = 'tasks',
         max = max,
+        i   = nil,
         dns = {},
         ing = 0,
         gc  = false,
@@ -117,10 +118,11 @@ function tasks (max)
 end
 
 local TASKS <close> = tasks()
+TASKS.cache = setmetatable({}, {__mode='k'})
 
 function atm_me ()
     local co = coroutine.running()
-    return co and TASKS[co]
+    return co and TASKS.cache[co]
 end
 
 
@@ -143,6 +145,7 @@ function task (ts, f)
     local t = {
         tag = 'task',
         co  = coro(f),
+        i   = nil,
         up  = nil,
         dns = {},
         status = nil, -- aborted, toggled
@@ -151,10 +154,11 @@ function task (ts, f)
         pub = nil,
         ret = nil,
     }
-    TASKS[t.co] = t
+    TASKS.cache[t.co] = t
     setmetatable(t, meta)
     if ts then
         atm_pin(ts, t)
+        t.i = #ts.dns
     end
     return t
 end
@@ -235,6 +239,11 @@ function spawn (ts, t, ...)
     end
 ]]
     atm_task_resume_result(t, resume(t.co, ...))
+    if status(t) == 'dead' then
+        if t.up then
+            atm_task_rem(t)
+        end
+    end
     return t
 end
 
@@ -317,7 +326,9 @@ local function femit (t, a, b, ...)
 
     if t.gc and t.ing==0 then
         for i=#t.dns, 1, -1 do
-            atm_task_rem(t.dns[i], i)
+            if t.tag=='task' and status(t.co)=='dead' then
+                atm_task_rem(t.dns[i])
+            end
         end
     end
 
@@ -344,10 +355,9 @@ local function femit (t, a, b, ...)
     end
 end
 
-function atm_task_rem (t, i)
-    assert(i and t.up.ing==0 and t.tag=='task' and status(t.co)=='dead')
-    TASKS[t.co] = nil
-    table.remove(t.up.dns, i)
+function atm_task_rem (t)
+    assert(t.up.ing==0 and t.tag=='task' and status(t.co)=='dead')
+    table.remove(t.up.dns, t.i)
 end
 
 function emit (to, ...)

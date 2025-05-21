@@ -2704,4 +2704,75 @@ do
     print("Testing...", "tasks 8")
     local out = exec_string("anon.atm", src)
     assertx(out, "table\n1\n2\n")
+
+    local src = [[
+        val T = func () {
+            set pub = []
+            await(true) ;;thus { it=>nil }
+        }
+        val ts = tasks(1)
+        do {
+            spawn T() in ts
+            spawn T() in ts
+            spawn T() in ts
+            emit([])
+            spawn T() in ts
+            spawn T() in ts
+            spawn T() in ts
+            emit([])
+            spawn T() in ts
+            spawn T() in ts
+            spawn T() in ts
+            emit([])
+            spawn T() in ts
+            spawn T() in ts
+            spawn T() in ts
+            spawn T() in ts
+            emit([])
+            print(:ok)
+        }
+    ]]
+    print("Testing...", "tasks 9")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        var T
+        set T = func () {
+            await(true)
+        }
+        var ts
+        set ts = tasks()
+        spawn T() in ts
+        print(1)
+    ]]
+    print("Testing...", "tasks 10")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n")
+
+    local src = [[
+        pin ts = tasks(2)
+        val T = func (v) {
+            print(10)
+            defer {
+                print(20)
+                print(30)
+            }
+            await(true, type(it)!=:table)
+            if v {
+                await(true, type(it)!=:table)
+            }
+        }
+        print(0)
+        spawn T(false) in ts
+        spawn T(true) in ts
+        print(1)
+        emit(99)
+        print(2)
+        emit(99)
+        print(3)
+    ]]
+    print("Testing...", "tasks 11")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "0\n10\n10\n1\n20\n30\n2\n20\n30\n3\n")
 end
