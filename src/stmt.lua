@@ -72,6 +72,22 @@ function parser_stmt ()
                     err(tk1, "invalid spawn : expected pin declaraion")
                 end
                 sets = { spw }
+            elseif accept('tasks') then
+                -- tasks(n)
+                custom = 'tasks'
+                if tk.str ~= 'pin' then
+                    err(TK0, "invalid tasks : expected pin declaraion")
+                end
+                local f = { tag='acc', tk={tag='id',str="tasks",lin=TK0.lin} }
+                accept_err('(')
+                local e
+                if not check(')') then
+                    e = parser_expr()
+                end
+                accept_err(')')
+                local ts = { tag='call', f=f, args={e}, custom="tasks" }
+                sets = { ts }
+
             else
                 sets = parser_list(',', nil, parser_expr)
             end

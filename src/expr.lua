@@ -82,17 +82,6 @@ function parser_expr_prim_1 ()
         accept_err(')')
         return { tag='call', f=f, args={e}, custom="task" }
 
-    -- tasks(n)
-    elseif accept('tasks') then
-        local f = { tag='acc', tk={tag='id',str="tasks",lin=TK0.lin} }
-        accept_err('(')
-        local e
-        if not check(')') then
-            e = parser_expr()
-        end
-        accept_err(')')
-        return { tag='call', f=f, args={e}, custom="tasks" }
-
     -- yield(...)
     elseif accept('yield') then
         local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }

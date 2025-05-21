@@ -150,31 +150,41 @@ end
 
 local meta = { __close=close }
 
-function tasks (max)
-    local n = max and tonumber(max) or nil
-    if max and (not n) then
-        error('invalid tasks limit : expected number', 2)
-    end
-    local ts = {
-        tag = 'tasks',
-        max = n,
-        i   = nil,
-        dns = {},
-        ing = 0,
-        gc  = false,
-    }
-    setmetatable(ts, meta)
-    return ts
-end
-
-local TASKS <close> = tasks()
-TASKS.cache = setmetatable({}, {__mode='k'})
+local TASKS <close> = setmetatable({
+    tag = 'tasks',
+    max = nil,
+    up  = nil,
+    i   = nil,
+    dns = {},
+    ing = 0,
+    gc  = false,
+    cache = setmetatable({}, {__mode='k'}),
+}, meta)
 
 function atm_me ()
     local co = coroutine.running()
     return co and TASKS.cache[co]
 end
 
+function tasks (max)
+    local n = max and tonumber(max) or nil
+    if max and (not n) then
+        error('invalid tasks limit : expected number', 2)
+    end
+    local up = atm_me() or TASKS
+    local ts = {
+        tag = 'tasks',
+        max = n,
+        up  = up,
+        i   = #up.dns+1,
+        dns = {},
+        ing = 0,
+        gc  = false,
+    }
+    up.dns[#up.dns+1] = ts
+    setmetatable(ts, meta)
+    return ts
+end
 
 function task (f)
     local t = {

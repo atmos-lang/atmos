@@ -446,6 +446,13 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_stmt)
-print(msg)
     assert(not ok and msg=="anon : line 1 : near 'spawn' : invalid spawn : expected pin declaraion")
+
+    local src = "val t = tasks()"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_stmt)
+    assertx(msg, "anon : line 1 : near 'tasks' : invalid tasks : expected pin declaraion")
 end

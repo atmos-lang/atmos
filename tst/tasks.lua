@@ -2610,7 +2610,7 @@ print '-=- TASKS -=-'
 
 do
     local src = [[
-        tasks()
+        pin ts = tasks()
         print(:ok)
     ]]
     print("Testing...", "tasks 1")
@@ -2619,7 +2619,7 @@ do
 
     local src = [[
         do {
-            tasks()
+            pin ts = tasks()
         }
         print(:ok)
     ]]
@@ -2628,7 +2628,8 @@ do
     assertx(out, "ok\n")
 
     local src = [[
-        spawn (func () { print(:in) })() in tasks()
+        pin ts = tasks()
+        spawn (func () { print(:in) })() in ts
         print(:out)
     ]]
     print("Testing...", "tasks 3")
@@ -2653,7 +2654,7 @@ do
         val T = func () {
             await(true)
         }
-        val ts = tasks()
+        pin ts = tasks()
         val ok = spawn T() in ts
         print(ok)
     ]]
@@ -2662,7 +2663,8 @@ do
     assertfx(out, "table: 0x")
 
     local src = [[
-        print(tasks() == nil)
+        pin ts = tasks()
+        print(ts == nil)
     ]]
     print("Testing...", "tasks 6")
     local out = exec_string("anon.atm", src)
@@ -2670,7 +2672,7 @@ do
 
     local src = [[
         val T = func (v) { }
-        val ts = tasks()
+        pin ts = tasks()
         var x = 0
         do :X {
             loop {
@@ -2710,7 +2712,7 @@ do
             set pub = []
             await(true) ;;thus { it=>nil }
         }
-        val ts = tasks(1)
+        pin ts = tasks(1)
         do {
             spawn T() in ts
             spawn T() in ts
@@ -2741,8 +2743,7 @@ do
         set T = func () {
             await(true)
         }
-        var ts
-        set ts = tasks()
+        pin ts = tasks()
         spawn T() in ts
         print(1)
     ]]
@@ -2867,7 +2868,7 @@ do
             set ;;;task.;;;pub = tup
             await(true)
         }
-        val ts = tasks()
+        pin ts = tasks()
         spawn T() in ts
         spawn T() in ts
         print(:ok)
@@ -2881,7 +2882,7 @@ do
             set pub = [10]
             await(true)
         }
-        var ts = tasks()
+        pin ts = tasks()
         spawn T() in ts
         loop t in ts {
             var x = t.pub
@@ -2896,7 +2897,7 @@ do
 
     local src = [[
         func T () {}
-        val ts = tasks(0)
+        pin ts = tasks(0)
         val x = spawn T() in ts
         print(x)
     ]]
@@ -2905,14 +2906,14 @@ do
     assertx(out, "nil\n")
 
     local src = [[
-        tasks(true)
+        pin x = tasks(true)
     ]]
     print("Testing...", "tasks 18")
     local out = exec_string("anon.atm", src)
     assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number\n")
 
     local src = [[
-        var ts = tasks(1)
+        pin ts = tasks(1)
         var T = func () { await(true) }
         val t1 = spawn T() in ts
         val t2 = spawn T() in ts
@@ -2926,15 +2927,12 @@ do
     assertx(out, "true\tfalse\ttrue\tfalse\n")
 
     local src = [[
-        var ts
-        set ts = tasks(1)
+        pin ts = tasks(1)
         var T
         set T = func () { await(true) }
-        var ok1
-        set ok1 = spawn T() in ts
+        val ok1 = spawn T() in ts
         emit(true) in ts
-        var ok2
-        set ok2 = spawn T() in ts
+        val ok2 = spawn T() in ts
         print(status(ok1), status(ok2))
     ]]
     print("Testing...", "tasks 20")

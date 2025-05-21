@@ -750,14 +750,16 @@ print '-=- TASKS -=-'
 
 do
     local src = [[
-        print(tasks())
+        pin ts = tasks()
+        print(ts)
     ]]
     print("Testing...", "tasks 1")
     local out = exec_string("anon.atm", src)
     assertfx(out, "table: 0x")
 
     local src = [[
-        print(type(tasks()))
+        pin ts = tasks()
+        print(type(ts))
     ]]
     print("Testing...", "tasks 2")
     local out = exec_string("anon.atm", src)
@@ -767,7 +769,7 @@ do
         val T = func () {
             print(:in)
         }
-        val ts = tasks()
+        pin ts = tasks()
         spawn T() in ts
         print(:out)
     ]]
@@ -779,7 +781,7 @@ do
         val T = func () {
             print(:ok)
         }
-        val ts = tasks(2)
+        pin ts = tasks(2)
         spawn T() in ts
         spawn T() in ts
     ]]
@@ -792,8 +794,7 @@ do
         set T = func () {
             await(true)
         }
-        var ts
-        set ts = tasks()
+        pin ts = tasks()
         spawn T(1) in ts
         spawn T(2) in ts
         print(1)
@@ -838,8 +839,7 @@ do
 
     local src = [[
         do {
-            var ts
-            set ts = tasks()
+            pin ts = tasks()
             var T
             set T = func (v) {
                 print(v)
@@ -857,7 +857,7 @@ do
     local src = [[
         val T = func () {
         }
-        val ts = tasks(1)
+        pin ts = tasks(1)
         val ok1 = spawn T() in ts
         val ok2 = spawn T() in ts
         print(type(ok1)=='table', type(ok2)=='table')
@@ -870,7 +870,7 @@ do
         val T = func () {
             await(true)
         }
-        val ts = tasks(1)
+        pin ts = tasks(1)
         val ok1 = spawn T() in ts
         val ok2 = spawn T() in ts
         print(type(ok1)=='table', ok2)
@@ -883,7 +883,7 @@ do
         val T = func () {
             await(true)
         }
-        val ts = tasks()
+        pin ts = tasks()
         spawn T() in ts
         spawn T() in ts
         loop t in ts {
