@@ -2802,4 +2802,95 @@ do
     print("Testing...", "tasks 12")
     local out = exec_string("anon.atm", src)
     assertx(out, "0\n10\n10\n1\n20\n30\n2\n20\n30\n3\n")
+
+    local src = [[
+        pin ts = tasks(2)
+        var T
+        set T = func (v) {
+            defer {
+                print(v)
+            }
+            catch :ok ;;;(err|err==:ok);;; {
+                spawn {
+                    await(true)
+                    if v == 1 {
+                        throw(:ok)
+                    }
+                    loop { await(true) }
+                }
+                loop { await(true) }
+            }
+            print(v)
+        }
+        spawn T(1) in ts
+        spawn T(2) in ts
+        emit(true)
+        emit(true)
+        print(999)
+    ]]
+    print("Testing...", "tasks 13")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n1\n999\n2\n")
+
+    local src = [[
+        pin ts = tasks(2)
+        var T
+        set T = func (v) {
+            defer {
+                print(v)
+            }
+            catch :ok ;;;(err|err==:ok);;; {
+                spawn {
+                    await(true)
+                    if v == 2 {
+                        throw(:ok)
+                    }
+                    loop { await(true) }
+                }
+                loop { await(true) }
+            }
+            print(v)
+        }
+        spawn T(1) in ts
+        spawn T(2) in ts
+        emit(true)
+        emit(true)
+        print(999)
+    ]]
+    print("Testing...", "tasks 14")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "2\n2\n999\n1\n")
+
+    local src = [[
+        val tup = []
+        val T = func () {
+            set ;;;task.;;;pub = tup
+            await(true)
+        }
+        val ts = tasks()
+        spawn T() in ts
+        spawn T() in ts
+        print(:ok)
+    ]]
+    print("Testing...", "tasks 15")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        var T = func () {
+            set pub = [10]
+            await(true)
+        }
+        var ts = tasks()
+        spawn T() in ts
+        loop t in ts {
+            var x = t.pub
+            emit (nil) in t
+            dump(x)
+        }
+        print(999)
+    ]]
+    print("Testing...", "tasks 16")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{ 10 }\n999\n")
 end

@@ -77,9 +77,9 @@ function atm_in (v, t)
     end
 end
 
-function iter (v)
+function iter (t)
     local f
-    if v == nil then
+    if t == nil then
         f = function ()
             local i = 0
             while true do
@@ -87,30 +87,38 @@ function iter (v)
                 i = i + 1
             end
         end
-    elseif type(v) == 'number' then
+    elseif type(t) == 'number' then
         f = function ()
-            for i=0, v-1 do
+            for i=0, t-1 do
                 coroutine.yield(i)
             end
         end
-    elseif type(v) == 'table' then
-        if v[1] ~= nil then
+    elseif type(t) == 'table' then
+        if t.tag == 'tasks' then
             f = function ()
-                for i,v in ipairs(v) do
+                t.ing = t.ing + 1
+                for _,v in ipairs(t.dns) do
+                    coroutine.yield(v)
+                end
+                t.ing = t.ing - 1
+            end
+        elseif t[1] ~= nil then
+            f = function ()
+                for i,v in ipairs(t) do
                     coroutine.yield(i-1,v)
                 end
             end
         else
             f = function ()
-                for k,v in pairs(v) do
+                for k,v in pairs(t) do
                     coroutine.yield(k,v)
                 end
             end
         end
-    elseif type(v) == 'function' then
-        f = v
+    elseif type(t) == 'function' then
+        f = t
     else
-        error("TODO - iter(v)")
+        error("TODO - iter(t)")
     end
     return coroutine.wrap(f)
 end

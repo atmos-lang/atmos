@@ -490,7 +490,7 @@ do
     assertx(out, "true\t10\n")
 end
 
--- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME
+-- EXEC / CORO / TASK / YIELD / SPAWN / RESUME
 
 do
     local src = [[
@@ -744,7 +744,11 @@ do
     print("Testing...", "task - catch 2")
     local out = exec_string("anon.atm", src)
     assertx(out, "1\n2\n3\ne\n4\n5\n")
+end
 
+print '-=- TASKS -=-'
+
+do
     local src = [[
         print(tasks())
     ]]
@@ -874,6 +878,21 @@ do
     print("Testing...", "tasks 10: max")
     local out = exec_string("anon.atm", src)
     assertx(out, "true\tnil\n")
+
+    local src = [[
+        val T = func () {
+            await(true)
+        }
+        val ts = tasks()
+        spawn T() in ts
+        spawn T() in ts
+        loop t in ts {
+            print(t ?? :task)
+        }
+    ]]
+    print("Testing...", "tasks 11: iter")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "true\ntrue\n")
 end
 
 print '-=- IS / IN -=-'
