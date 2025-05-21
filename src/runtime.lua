@@ -105,9 +105,10 @@ function atm_pin (up, t)
     return t
 end
 
-function tasks ()
+function tasks (max)
     local ts = {
         tag = 'tasks',
+        max = max,
         dns = {},
     }
     setmetatable(ts, meta)
@@ -116,6 +117,9 @@ end
 
 function task (ts, f)
     local up = ts or atm_me()
+    if ts and ts.max and #ts.dns>=ts.max then
+        return nil
+    end
     local t = {
         tag = 'task',
         co  = coro(f),
@@ -203,7 +207,12 @@ end
 
 function spawn (ts, t, ...)
     if type(t) == 'function' then
-        return spawn(ts, task(ts,t), ...)
+        t = task(ts, t)
+        if t == nil then
+            return nil
+        else
+            return spawn(ts, t, ...)
+        end
     end
     if type(t)=='table' and t.co then
         -- ok
