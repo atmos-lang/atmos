@@ -40,6 +40,43 @@ function atm_exec (file, src)
     return v
 end
 
+function atm_is (v, x)
+    if v == x then
+        return true
+    end
+    local tp = type(v)
+    if tp == x then
+        return true
+    elseif type(x) == 'string' then
+        local tag = (tp=='table' and v.tag) or tostring(v)
+        return x == tag
+        --return atm_sup(x, tag)
+    end
+    return false
+end
+
+function atm_in (v, t)
+    if type(t)=='table' and t[v] then
+        if t[v] then
+            return true
+        else
+            for _,x in pairs(t) do
+                if v == x then
+                    return true
+                end
+            end
+            return false
+        end
+    else
+        for x in iter(t) do
+            if x == v then
+                return true
+            end
+        end
+        return false
+    end
+end
+
 function iter (v)
     local f
     if v == nil then

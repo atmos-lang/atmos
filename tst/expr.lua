@@ -379,6 +379,37 @@ do
     assert(tostr_expr(e) == "x and 10 or 20")
 end
 
+print '-=- IS / IN -=-'
+
+do
+    local src = "a ?? b"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "a ?? b")
+
+    local src = "a ?> b"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "a ?> b")
+
+    local src = "(a !? b) || (a <? b) || (a !> b) || (a <! b)"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "(a !? b) || (a <? b) || (a !> b) || (a <! b)")
+end
+
 -- CALL / FUNC / RETURN / THROW
 
 do

@@ -136,7 +136,21 @@ function coder_expr (e)
     elseif e.tag == 'uno' then
         return '('..(OPS.lua[e.op.str] or e.op.str)..' '..coder_expr(e.e)..')'
     elseif e.tag == 'bin' then
-        return '('..coder_expr(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder_expr(e.e2)..')'
+        if e.op.str == '??' then
+            return "atm_is(" .. coder_expr(e.e1) .. ',' .. coder_expr(e.e2) .. ')'
+        elseif e.op.str == '!?' then
+            return "(not atm_is(" .. coder_expr(e.e1) .. ',' .. coder_expr(e.e2) .. '))'
+        elseif e.op.str == '?>' then
+            return "atm_in(" .. coder_expr(e.e1) .. ',' .. coder_expr(e.e2) .. ')'
+        elseif e.op.str == '!>' then
+            return "(not atm_in(" .. coder_expr(e.e1) .. ',' .. coder_expr(e.e2) .. '))'
+        elseif e.op.str == '<?' then
+            return "atm_in(" .. coder_expr(e.e2) .. ',' .. coder_expr(e.e1) .. ')'
+        elseif e.op.str == '<!' then
+            return "(not atm_in(" .. coder_expr(e.e2) .. ',' .. coder_expr(e.e1) .. '))'
+        else
+            return '('..coder_expr(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder_expr(e.e2)..')'
+        end
     elseif e.tag == 'call' then
         return '('..coder_expr(e.f)..')('..concat(", ", map(e.args, coder_expr))..')'
     elseif e.tag == 'func' then

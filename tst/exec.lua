@@ -876,6 +876,40 @@ do
     assertx(out, "true\tnil\n")
 end
 
+print '-=- IS / IN -=-'
+
+do
+    local src = [[
+        print(10 ?? :number)
+        print([] !? :table)
+        print(:x ?? :number)
+    ]]
+    print("Testing...", "is 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "true\nfalse\nfalse\n")
+
+    local src = [[
+        print([] ?? :bool)
+        print([] ?? :table)
+        print(1 !? :table)
+        print(1 !? :number)
+    ]]
+    print("Testing...", "is 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "false\ntrue\ntrue\nfalse\n")
+
+    local src = [[
+        val t = [1,2,3]
+        print(2 ?> t)
+        print(t <? 4)
+        print(2 !> t)
+        print(t <! 4)
+    ]]
+    print("Testing...", "is 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "true\nfalse\nfalse\ntrue\n")
+end
+
 -- ERROR / LINE NUMBER
 
 do

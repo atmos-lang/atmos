@@ -61,6 +61,19 @@ do
     lexer_string("anon", src)
     local ok, msg = pcall(LEX)
     assert(not ok and msg=="anon : line 1 : near '!!' : invalid operator")
+
+    local src = "!> ?? <? <! !? ?>"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    assert(LEX().str == '!>')
+    assert(LEX().str == '??')
+    assert(LEX().str == '<?')
+    assert(LEX().str == '<!')
+    assert(LEX().str == '!?')
+    assert(LEX().str == '?>')
+    assert(LEX().tag == 'eof')
+    assert(LEX() == nil)
+
 end
 
 -- NUMS / STRS
