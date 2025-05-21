@@ -422,4 +422,30 @@ do
     local s = parser_stmt()
     assert(check('<eof>'))
     assertx(tostr_stmt(s), "spawn(ts, X)")
+
+    local src = "spawn T(1,2,3)"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check('<eof>'))
+    assertx(tostr_stmt(s), "spawn(nil, T, 1, 2, 3)")
+
+    local src = "spawn (x+10)"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_stmt)
+    assert(not ok and msg=="anon : line 1 : near 'spawn' : expected call")
+
+    local src = "val t = spawn T()"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_stmt)
+print(msg)
+    assert(not ok and msg=="anon : line 1 : near 'spawn' : invalid spawn : expected pin declaraion")
 end

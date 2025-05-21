@@ -41,15 +41,8 @@ function coder_stmt (s)
             local id, f = s.ids[1], s.sets[1]
             return 'local ' .. id.str .. ' ; ' .. id.str .. mod .. ' = ' .. coder_expr(f)
         else
-            local f = function (it)
-                if s.tk.str == 'pin' then
-                    return "atm_pin(nil," .. coder_expr(it) .. ")"
-                else
-                    return coder_expr(it)
-                end
-            end
             local ids = concat(', ', map(s.ids,  function(id) return id.str end))
-            local sets = s.sets and (' = '..concat(', ',map(s.sets,f))) or ''
+            local sets = s.sets and (' = '..concat(', ',map(s.sets,coder_expr))) or ''
             return 'local ' .. ids .. mod .. sets
         end
     elseif s.tag == 'set' then

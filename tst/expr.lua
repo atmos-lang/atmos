@@ -517,7 +517,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "task(nil, T)")
+    assertx(tostr_expr(e), "task(T)")
 
     local src = "tasks(10)"
     print("Testing...", src)
@@ -578,17 +578,8 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local e = parser_expr()
-    assert(check('<eof>'))
-    assertx(tostr_expr(e), "spawn(nil, T, 1, 2, 3)")
-
-    local src = "spawn (x+10)"
-    print("Testing...", src)
-    init()
-    lexer_string("anon", src)
-    parser()
     local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : line 1 : near 'spawn' : expected call")
+    assert(not ok and msg=="anon : line 1 : near 'spawn' : expected expression")
 
     local src = "await(:X, x+10)"
     print("Testing...", src)

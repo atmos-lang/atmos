@@ -124,7 +124,7 @@ end
 do
     local src = [[
         val T = func () { }
-        val t = spawn T()
+        pin t = spawn T()
         print(t)
     ]]
     print("Testing...", "spawn 1")
@@ -133,7 +133,7 @@ do
 
     local src = [[
         val T = func () { }
-        val t = spawn T()
+        pin t = spawn T()
         resume t()
     ]]
     print("Testing...", "spawn 2")
@@ -156,7 +156,7 @@ do
 
     local src = [[
         val T = func () { yield() }
-        val t = spawn T()
+        pin t = spawn T()
         print(t)
     ]]
     print("Testing...", "yield 2 : error : yield inside task")
@@ -812,7 +812,7 @@ do
                 var v = xevt
             } )()
         }
-        var t1 = spawn T1()
+        pin t1 = spawn T1()
         var T2 = func () {
             await(true) ;;thus { it => nil}
             val xevt = await(true) ;;thus { it => nil}
@@ -822,7 +822,7 @@ do
                 ;;print(:evt, v, xevt)
             }
         }
-        var t2 = spawn T2()
+        pin t2 = spawn T2()
         emit ([])                      ;; GC = []
         ;;print(`:number CEU_GC.free`)
         print(:ok)
@@ -1235,10 +1235,10 @@ do
             await(true)
         }
         var t1
-        set t1 = spawn T (1)
+        pin t1 = spawn T (1)
         do {
             var t2
-            set t2 = spawn T (2)
+            pin t2 = spawn T (2)
             emit(nil) in t2
         }
     ]]
@@ -1257,7 +1257,7 @@ do
             val e = await(true)
             print(:ok, e)
         }
-        val t = spawn {
+        pin t = spawn {
         }
         emit(t)
     ]]
@@ -1270,7 +1270,7 @@ do
             val x = await(true)
             print(:ok, x)
         }
-        val t = spawn {
+        pin t = spawn {
         }
         emit(t)
     ]]
@@ -1325,7 +1325,7 @@ do
             set pub = []
             return (pub)
         }
-        val a = spawn (t) ()
+        pin a = spawn (t) ()
         val x = a.pub
         dump(x)
     ]]
@@ -1338,7 +1338,7 @@ do
             print(pub)
             await(true)
         }
-        val t = spawn T()
+        pin t = spawn T()
         print(t.pub)
     ]]
     print("Testing...", "pub 2")
@@ -1350,7 +1350,7 @@ do
             set pub = 10
             await(true)
         }
-        val t = spawn T()
+        pin t = spawn T()
         print(t.pub)
     ]]
     print("Testing...", "pub 3")
@@ -1365,7 +1365,7 @@ do
                 return(pub)
             }
         }
-        val t = spawn T()
+        pin t = spawn T()
         dump(t.pub)
     ]]
     print("Testing...", "pub 4")
@@ -1375,7 +1375,7 @@ do
     local src = [[
         val T = func () {
         }
-        val t = spawn T()
+        pin t = spawn T()
         do {
             val x = []
             set t.pub = x
@@ -1560,7 +1560,7 @@ do
 
     local src = [[
         spawn (func () {
-            val t = spawn( func () {
+            pin t = spawn( func () {
                 await(false)
             }) ()
             await(false)
@@ -1717,7 +1717,7 @@ do
         val T = func () {
             await(true)
         }
-        val t = spawn T()
+        pin t = spawn T()
         ;;spawn( func () {
             spawn (func () {
                 print(:A)
@@ -2654,7 +2654,7 @@ do
             await(true)
         }
         val ts = tasks()
-        val ok = spawn T() in ts
+        pin ok = spawn T() in ts
         print(ok)
     ]]
     print("Testing...", "tasks 5")
@@ -2897,7 +2897,7 @@ do
     local src = [[
         func T () {}
         val ts = tasks(0)
-        val x = spawn T() in ts
+        pin x = spawn T() in ts
         print(x)
     ]]
     print("Testing...", "tasks 17")
@@ -2914,11 +2914,11 @@ do
     local src = [[
         var ts = tasks(1)
         var T = func () { await(true) }
-        var t1 = spawn T() in ts
-        var t2 = spawn T() in ts
+        pin t1 = spawn T() in ts
+        pin t2 = spawn T() in ts
         emit(true) in ts
-        var t3 = spawn T() in ts
-        var t4 = spawn T() in ts
+        pin t3 = spawn T() in ts
+        pin t4 = spawn T() in ts
         print(t1??:task, t2??:task, t3??:task, t4??:task)
     ]]
     print("Testing...", "tasks 19")
@@ -2952,7 +2952,7 @@ do
         loop t in ts {
             print(:t, t.pub)
             emit(2)        ;; opens hole for 99 below
-            var ok = spawn T(99) in ts     ;; must not fill hole b/c ts in the stack
+            pin ok = spawn T(99) in ts     ;; must not fill hole b/c ts in the stack
             print(ok)
         }
         loop t in ts {

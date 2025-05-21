@@ -176,22 +176,7 @@ function atm_me ()
 end
 
 
-function atm_pin (up, t)
-    assert(t.up == nil)
-    if t.co and status(t.co)=='dead' then
-        return t
-    end
-    up = up or atm_me() or TASKS
-    up.dns[#up.dns+1] = t
-    t.up = up
-    return t
-end
-
-function task (ts, f)
-    local up = ts or atm_me()
-    if ts and ts.max and #ts.dns>=ts.max then
-        return nil
-    end
+function task (f)
     local t = {
         tag = 'task',
         co  = coro(f),
@@ -206,10 +191,6 @@ function task (ts, f)
     }
     TASKS.cache[t.co] = t
     setmetatable(t, meta)
-    if ts then
-        atm_pin(ts, t)
-        t.i = #ts.dns
-    end
     return t
 end
 
@@ -237,9 +218,7 @@ local function atm_task_resume_result (t, ok, err)
 
     if status(t.co) == 'dead' then
         t.ret = err
-        if t.up then
-            t.up.gc = true
-        end
+        t.up.gc = true
         --if t.status ~= 'aborted' then
             emit(t.up, 'task', t)
         --end
@@ -263,13 +242,13 @@ local function atm_task_awake_check (t, a, b)
     end
 end
 
-function spawn (ts, t, ...)
+function spawn (up, t, ...)
     if type(t) == 'function' then
-        t = task(ts, t)
+        t = task(t)
         if t == nil then
             return nil
         else
-            return spawn(ts, t, ...)
+            return spawn(up, t, ...)
         end
     end
     if type(t)=='table' and t.co then
@@ -288,12 +267,16 @@ function spawn (ts, t, ...)
         return ok, t_o
     end
 ]]
-    atm_task_resume_result(t, resume(t.co, ...))
-    if status(t.co) == 'dead' then
-        if t.up then
-            atm_task_rem(t)
-        end
+
+    up = up or atm_me() or TASKS
+    if up.max and #up.dns>=up.max then
+        return nil
     end
+    up.dns[#up.dns+1] = t
+    t.i = #up.dns
+    t.up = assert(t.up==nil and up)
+
+    atm_task_resume_result(t, resume(t.co, ...))
     return t
 end
 
@@ -366,7 +349,7 @@ function atm_task_gc (t)
         for i=#t.dns, 1, -1 do
             local s = t.dns[i]
             if s.tag=='task' and status(s.co)=='dead' then
-                atm_task_rem(s)
+                table.remove(t.dns, s.i)
             end
         end
     end
@@ -408,11 +391,6 @@ local function femit (t, a, b, ...)
             error(err, 0)
         end
     end
-end
-
-function atm_task_rem (t)
-    assert(t.up.ing==0 and t.tag=='task' and status(t.co)=='dead')
-    table.remove(t.up.dns, t.i)
 end
 
 function emit (to, ...)

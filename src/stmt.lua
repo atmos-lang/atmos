@@ -10,6 +10,36 @@ function parser_curly ()
     return ss
 end
 
+function parser_spawn ()
+    accept_err('spawn')
+    if check('{') then
+        -- spawn { ... }
+        local cmd = { tag='acc', tk={tag='id', str='spawn', lin=TK0.lin} }
+        local ts = { tag='nil', tk={tag='key',str='nil'} }
+        local ss = parser_curly()
+        local f = { tag='func', pars={}, blk={tag='block',ss=ss} }
+        return { tag='call', f=cmd, args={ts,f}, custom="spawn" }
+    else
+        -- spawn T(...)
+        local tk = TK0
+        local cmd = { tag='acc', tk={tag='id', str=TK0.str, lin=TK0.lin} }
+        local call = parser_expr()
+        local ts; do
+            if accept('in') then
+                ts = parser_expr()
+            else
+                ts = { tag='nil', tk={tag='key',str='nil'} }
+            end
+        end
+        if call.tag ~= 'call' then
+            err(tk, "expected call")
+        end
+        table.insert(call.args, 1, ts)
+        table.insert(call.args, 2, call.f)
+        return { tag='call', f=cmd, args=call.args, custom="spawn" }
+    end
+end
+
 function parser_stmt ()
     if false then
 
@@ -32,6 +62,13 @@ function parser_stmt ()
                 local cat = parser_stmt()
                 custom = 'catch'
                 sets = { cat }
+            elseif check('spawn') then
+                if tk.str ~= 'pin' then
+                    err(TK1, "invalid spawn : expected pin declaraion")
+                end
+                local spw = parser_spawn()
+                custom = 'spawn'
+                sets = { spw }
             else
                 sets = parser_list(',', nil, parser_expr)
             end
@@ -144,6 +181,10 @@ function parser_stmt ()
         end
         local ss = parser_curly()
         return { tag='catch', cnd={e=xe,f=xf}, blk={tag='block',ss=ss} }
+
+    elseif check('spawn') then
+        local spw = parser_spawn()
+        return { tag='expr', e=spw }
 
     -- call: f()
     else

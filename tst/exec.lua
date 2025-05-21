@@ -626,7 +626,7 @@ do
     assertx(out, "10\n")
 
     local src = [[
-        val t = spawn (func () {
+        pin t = spawn (func () {
             set pub = 10
         }) ()
         print(t.pub)
@@ -639,7 +639,7 @@ do
         print(:1)
         do {
             print(:2)
-            val x = spawn (func () {
+            pin x = spawn (func () {
                 defer {
                     print(:defer)
                 }
@@ -651,7 +651,7 @@ do
     ]]
     print("Testing...", "abort 1: no pin")
     local out = exec_string("anon.atm", src)
-    assertx(out, "1\n2\n3\n4\n")
+    assertx(out, "1\n2\n3\ndefer\n4\n")
 
     local src = [[
         print(:1)
@@ -858,8 +858,8 @@ do
         val T = func () {
         }
         val ts = tasks(1)
-        val ok1 = spawn T() in ts
-        val ok2 = spawn T() in ts
+        pin ok1 = spawn T() in ts
+        pin ok2 = spawn T() in ts
         print(type(ok1)=='table', type(ok2)=='table')
     ]]
     print("Testing...", "tasks 9: max")
@@ -871,8 +871,8 @@ do
             await(true)
         }
         val ts = tasks(1)
-        val ok1 = spawn T() in ts
-        val ok2 = spawn T() in ts
+        pin ok1 = spawn T() in ts
+        pin ok2 = spawn T() in ts
         print(type(ok1)=='table', ok2)
     ]]
     print("Testing...", "tasks 10: max")
