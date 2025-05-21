@@ -101,6 +101,7 @@ function iter (t)
                     coroutine.yield(v)
                 end
                 t.ing = t.ing - 1
+                atm_task_gc(t)
             end
         elseif t[1] ~= nil then
             f = function ()
@@ -360,6 +361,17 @@ local function fto (me, to)
     return to
 end
 
+function atm_task_gc (t)
+    if t.gc and t.ing==0 then
+        for i=#t.dns, 1, -1 do
+            local s = t.dns[i]
+            if s.tag=='task' and status(s.co)=='dead' then
+                atm_task_rem(s)
+            end
+        end
+    end
+end
+
 local function femit (t, a, b, ...)
     local ok, err = true, nil
 
@@ -373,14 +385,7 @@ local function femit (t, a, b, ...)
     end
     t.ing = t.ing - 1
 
-    if t.gc and t.ing==0 then
-        for i=#t.dns, 1, -1 do
-            local s = t.dns[i]
-            if s.tag=='task' and status(s.co)=='dead' then
-                atm_task_rem(s)
-            end
-        end
-    end
+    atm_task_gc(t)
 
     if t.tag == 'task' then
         if not ok then

@@ -2924,4 +2924,42 @@ do
     print("Testing...", "tasks 19")
     local out = exec_string("anon.atm", src)
     assertx(out, "true\tfalse\ttrue\tfalse\n")
+
+    local src = [[
+        var ts
+        set ts = tasks(1)
+        var T
+        set T = func () { await(true) }
+        var ok1
+        set ok1 = spawn T() in ts
+        emit(true) in ts
+        var ok2
+        set ok2 = spawn T() in ts
+        print(status(ok1), status(ok2))
+    ]]
+    print("Testing...", "tasks 20")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "dead\tsuspended\n")
+
+    local src = [[
+        var T = func (n) {
+            set pub = n
+            await(n)
+        }
+        pin ts = tasks(2)
+        spawn T(1) in ts
+        spawn T(2) in ts
+        loop t in ts {
+            print(:t, t.pub)
+            emit(2)        ;; opens hole for 99 below
+            var ok = spawn T(99) in ts     ;; must not fill hole b/c ts in the stack
+            print(ok)
+        }
+        loop t in ts {
+            print(:t, t.pub)
+        }
+    ]]
+    print("Testing...", "tasks 21")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "t\t1\nnil\nt\t2\nnil\nt\t1\n")
 end
