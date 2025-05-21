@@ -858,8 +858,8 @@ do
         val T = func () {
         }
         val ts = tasks(1)
-        pin ok1 = spawn T() in ts
-        pin ok2 = spawn T() in ts
+        val ok1 = spawn T() in ts
+        val ok2 = spawn T() in ts
         print(type(ok1)=='table', type(ok2)=='table')
     ]]
     print("Testing...", "tasks 9: max")
@@ -871,8 +871,8 @@ do
             await(true)
         }
         val ts = tasks(1)
-        pin ok1 = spawn T() in ts
-        pin ok2 = spawn T() in ts
+        val ok1 = spawn T() in ts
+        val ok2 = spawn T() in ts
         print(type(ok1)=='table', ok2)
     ]]
     print("Testing...", "tasks 10: max")

@@ -58,17 +58,16 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
-    assert(check('<eof>'))
-    assert(tostr_stmt(s) == "set x = spawn(nil, f)")
+    local ok, msg = pcall(parser_expr)
+    assertx(msg, "anon : line 1 : near 'set' : expected expression")
 
     local src = "spawn nil()"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : line 1 : near '(' : call error : expected prefix expression")
+    local ok, msg = pcall(parser_stmt)
+    assertx(msg, "anon : line 1 : near '(' : call error : expected prefix expression")
 
     local src = "nil.pub"
     print("Testing...", src)
@@ -328,7 +327,7 @@ do
     ]]
     print("Testing...", "spawn 5")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, "table: 0x"))
+    assertfx(out, "anon.atm : line 3 : near 'spawn' : expected expression")
 
     local src = [[
         val t = func () { print(:ok) }
@@ -350,13 +349,14 @@ do
         val t = do :X {
             var v
             set v = 10
-            escape :X(spawn T(v))
+            escape :X(task(func() { return(T(v)) }))
         }
+        spawn t()
         print(t)
     ]]
     print("Testing...", "spawn 7")
     local out = exec_string("anon.atm", src)
-    assert(string.match(out, "10\ntable: 0x"))
+    assertfx(out, "10\ntable: 0x")
 end
 
 -- EMIT
@@ -2654,7 +2654,7 @@ do
             await(true)
         }
         val ts = tasks()
-        pin ok = spawn T() in ts
+        val ok = spawn T() in ts
         print(ok)
     ]]
     print("Testing...", "tasks 5")
@@ -2897,7 +2897,7 @@ do
     local src = [[
         func T () {}
         val ts = tasks(0)
-        pin x = spawn T() in ts
+        val x = spawn T() in ts
         print(x)
     ]]
     print("Testing...", "tasks 17")
@@ -2914,11 +2914,11 @@ do
     local src = [[
         var ts = tasks(1)
         var T = func () { await(true) }
-        pin t1 = spawn T() in ts
-        pin t2 = spawn T() in ts
+        val t1 = spawn T() in ts
+        val t2 = spawn T() in ts
         emit(true) in ts
-        pin t3 = spawn T() in ts
-        pin t4 = spawn T() in ts
+        val t3 = spawn T() in ts
+        val t4 = spawn T() in ts
         print(t1??:task, t2??:task, t3??:task, t4??:task)
     ]]
     print("Testing...", "tasks 19")
@@ -2952,7 +2952,7 @@ do
         loop t in ts {
             print(:t, t.pub)
             emit(2)        ;; opens hole for 99 below
-            pin ok = spawn T(99) in ts     ;; must not fill hole b/c ts in the stack
+            val ok = spawn T(99) in ts     ;; must not fill hole b/c ts in the stack
             print(ok)
         }
         loop t in ts {

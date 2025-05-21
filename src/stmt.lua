@@ -63,11 +63,14 @@ function parser_stmt ()
                 custom = 'catch'
                 sets = { cat }
             elseif check('spawn') then
-                if tk.str ~= 'pin' then
-                    err(TK1, "invalid spawn : expected pin declaraion")
-                end
+                local tk1 = TK1
                 local spw = parser_spawn()
                 custom = 'spawn'
+                if tk.str=='pin' and spw.args[1].tag~='nil' then
+                    err(tk1, "invalid spawn in : unexpected pin declaraion")
+                elseif tk.str~='pin' and spw.args[1].tag=='nil' then
+                    err(tk1, "invalid spawn : expected pin declaraion")
+                end
                 sets = { spw }
             else
                 sets = parser_list(',', nil, parser_expr)
@@ -184,20 +187,20 @@ function parser_stmt ()
 
     elseif check('spawn') then
         local spw = parser_spawn()
-        return { tag='expr', e=spw }
+        if spw.args[1].tag == 'nil' then
+            local pin = {tag='key',str='pin'}
+            local id = { tag='id',str='_' }
+            return { tag='dcl', tk=pin, ids={id}, sets={spw} }
+        else
+            return { tag='expr', e=spw }
+        end
 
     -- call: f()
     else
         local tk = TK1
         local e = parser_expr()
         if e.tag == 'call' then
-            if e.custom=="spawn" and e.args[1].tag=='nil' then    -- [1]=tasks
-                local pin = {tag='key',str='pin'}
-                local id = { tag='id',str='_' }
-                return { tag='dcl', tk=pin, ids={id}, sets={e} }
-            else
-                return { tag='expr', e=e }
-            end
+            return { tag='expr', e=e }
         else
             err(tk, "expected statement")
         end

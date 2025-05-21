@@ -430,7 +430,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assertx(tostr_stmt(s), "spawn(nil, T, 1, 2, 3)")
+    assertx(tostr_stmt(s), "pin _ = spawn(nil, T, 1, 2, 3)")
 
     local src = "spawn (x+10)"
     print("Testing...", src)
