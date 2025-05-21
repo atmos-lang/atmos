@@ -263,8 +263,7 @@ do
         set tk = func () {
             dump((await(true)))
         }
-        var co
-        set co = spawn tk()
+        pin co = spawn tk()
         var f = func () {
             var g = func () {
                 emit ([])
@@ -282,8 +281,7 @@ do
         set tk = func () {
             dump(await(true))
         }
-        var co
-        set co = spawn(tk)()
+        spawn(tk)()
         ;;var f = func' () {
             emit ([])
         ;;}
@@ -299,7 +297,7 @@ do
                 dump(await(true))
             }
         }
-        var t = spawn T()
+        pin t = spawn T()
         ;;print(:1111)
         emit ([])
         ;;print(:2222)
@@ -369,8 +367,8 @@ do
             val e = await(true)
             print(v, e)
         }
-        var t1 = spawn T(:1)
-        var t2 = spawn T(:2)
+        spawn T(:1)
+        pin t2 = spawn T(:2)
         emit(1)
     ]]
     print("Testing...", "emit 1 : task term")
@@ -384,7 +382,7 @@ do
             var e2 = await(true)
             print(v, e2)
         }
-        var co1 = spawn tk(:1)
+        pin co1 = spawn tk(:1)
         spawn tk(:2)
         emit(1)
         emit(2)
@@ -395,8 +393,8 @@ do
     assert(string.find(out, "1\t1\n2\t1\n1\t2\n2\ttable: 0x"))
 
     local src = [[
-        var co1 = spawn (func () {
-            var co2 = spawn (func () {
+        spawn (func () {
+            spawn (func () {
                 await(true)              ;; awakes from outer bcast
                 print(:2)
             }) ()
@@ -416,7 +414,7 @@ do
             await(true)
             print(:ok)
         }
-        var t = spawn T()
+        spawn T()
         do {
             emit(1)
         }
@@ -432,8 +430,8 @@ do
             val e = await(true)
             print(e)
         }
-        var co1 = spawn (tk) ()
-        var co2 = spawn tk ()
+        spawn (tk) ()
+        spawn tk ()
         do {
              emit(1)
              emit(2)
@@ -515,7 +513,7 @@ do
                 dump(v)
             }
         }
-        var t = spawn T()
+        spawn T()
         ;;print(:1111)
         var e = []
         emit (e)
@@ -530,7 +528,7 @@ do
             var v = await(true)
             dump(v)
         }
-        var t = spawn T()
+        pin t = spawn T()
         do {
             val a
             do {
@@ -550,7 +548,7 @@ do
         var T = func () {
             dump(await(true))
         }
-        var t = spawn T()
+        spawn T()
         do {
             var e = []
             emit (e)
@@ -661,8 +659,8 @@ do
             dump(e2)
         }
         print(:1)
-        var co1 = spawn (tk) (10)
-        var co2 = spawn (tk) (10)
+        spawn (tk) (10)
+        spawn (tk) (10)
         val ok,e = catch true {
             return ((func () {
                 print(:2)
@@ -789,7 +787,7 @@ do
                 (func (it) {return(it)}) (await(true))
             dump(v)
         }
-        var t = spawn T()
+        spawn T()
         ;;print(:1111)
         do {
             val a
@@ -987,8 +985,8 @@ do
             print(:e2,e2)
         }
         print(:1)
-        var co1 = spawn (tk) (10)
-        var co2 = spawn (tk) (10)
+        spawn (tk) (10)
+        spawn (tk) (10)
         catch true {
             (func () {
                 print(:2)
@@ -1287,7 +1285,7 @@ do
             val x = await(true)
             print(:ok, x)
         }
-        val t = spawn {
+        pin t = spawn {
             await(true)
             print(:2)
         }
@@ -1300,7 +1298,7 @@ do
 
     local src = [[
         spawn {
-            val t = spawn {
+            pin t = spawn {
                 val e = await(true)
                 print(:1, e)
             }
@@ -1578,8 +1576,8 @@ do
         do {
             spawn (func () {
                 do {
-                    val t1 = spawn (func () {
-                        val t2 = spawn (func () {
+                    pin t1 = spawn (func () {
+                        pin t2 = spawn (func () {
                             await(true)
                             print(:1)
                         }) ()
@@ -1676,7 +1674,7 @@ do
                 print(:a)
                 await(true)
             }
-            val t = spawn T()
+            pin t = spawn T()
             spawn( func () {
                 print(:2)
                 await(true)
@@ -1700,7 +1698,7 @@ do
                 await(true)
                 await(true)
             }
-            val t = spawn T()
+            pin t = spawn T()
             spawn( func () {
                 await(true)
                 emit(true) in t
@@ -1798,7 +1796,7 @@ do
                 print(:a)
                 await(true)
             }
-            val t = spawn T()
+            pin t = spawn T()
             spawn( func () {
                 print(:2)
                 await(true)
@@ -1823,7 +1821,7 @@ do
                 await(true)
                 print(:2)
             }
-            val t = spawn T()
+            pin t = spawn T()
             spawn( func () {
                 await(true)
                 do {
@@ -1870,7 +1868,7 @@ do
                 await(true)
                 print(:2)
             }
-            val t = spawn T()
+            pin t = spawn T()
             spawn( func () {
                 await(true)
                 do {
@@ -1901,7 +1899,7 @@ do
                 await(true)
                 print(:2)
             }
-            val t = spawn T()
+            pin t = spawn T()
             spawn( func () {
                 await(true)
                 do {
@@ -1942,7 +1940,7 @@ do
                 await(true)
                 print(:2)
             }
-            var t = spawn T()
+            pin t = spawn T()
             spawn( func () {
                 await(true)
                 do {
@@ -2373,8 +2371,7 @@ do
     assertx(out, "e1\ne2\n")
 
     local src = [[
-        var co
-        set co = spawn (func () {
+        spawn (func () {
             catch :e1 ;;;(it| it==:e1);;; {
                 ;;resume (coroutine (coro' () {
                     ;;await(true)
@@ -2557,8 +2554,8 @@ do
             val v = await(true)
             throw(:1)
         }
-        var co1 = spawn tk ()
-        var co2 = spawn tk ()
+        spawn tk ()
+        spawn tk ()
         catch :1 {
             (func () {
                 print(1)
@@ -2580,7 +2577,7 @@ print '-=- RETURN -=-'
 
 do
     local src = [[
-        val t = spawn (func () {
+        pin t = spawn (func () {
             set pub = [1]
             await(true)
             return([2])
@@ -2595,7 +2592,7 @@ do
 
     local src = [[
         spawn {
-            val t = spawn {
+            spawn {
                 await(true)
                 return(10)
             }
@@ -2643,7 +2640,7 @@ do
             await(true)
             print(:in)
         }
-        val ts = tasks()
+        pin ts = tasks()
         spawn T() in ts
         print(:out)
         emit(true)
@@ -2691,8 +2688,7 @@ do
     assertx(out, "ok\n")
 
     local src = [[
-        var ts
-        set ts = tasks()
+        pin ts = tasks()
         print(type(ts))
         var T
         set T = func (v) {

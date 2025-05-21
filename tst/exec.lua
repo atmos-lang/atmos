@@ -595,7 +595,7 @@ do
     ]]
     print("Testing...", "emit 2")
     local out = exec_string("anon.atm", src)
-    assert(out == "1\t1\n2\t2\n")
+    assertx(out, "1\t1\n2\t2\n")
 
     local src = [[
         emit(1) in false
@@ -649,9 +649,27 @@ do
         }
         print(:4)
     ]]
-    print("Testing...", "abort 1")
+    print("Testing...", "abort 1: no pin")
     local out = exec_string("anon.atm", src)
-    assertx(out, "1\n2\n3\n4\ndefer\n")
+    assertx(out, "1\n2\n3\n4\n")
+
+    local src = [[
+        print(:1)
+        do {
+            print(:2)
+            pin x = spawn (func () {
+                defer {
+                    print(:defer)
+                }
+                await(true)
+            } )()
+            print(:3)
+        }
+        print(:4)
+    ]]
+    print("Testing...", "abort 1: pin")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n2\n3\ndefer\n4\n")
 
     local src = [[
         print(:1)
@@ -788,8 +806,7 @@ do
             }
             await(true)
         }
-        var ts
-        set ts = tasks()
+        pin ts = tasks()
         spawn T(1) in ts
         spawn T(2) in ts
         print(0)

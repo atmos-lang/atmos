@@ -98,6 +98,7 @@ end
 local meta = { __close=nil }
 
 function atm_pin (up, t)
+    assert(t.up == nil)
     up = up or atm_me() or TASKS
     up.dns[#up.dns+1] = t
     t.up = up
@@ -320,8 +321,11 @@ local function femit (t, a, b, ...)
             error(err, 0)
         end
     end
+    -- TODO: not only on emit, move to task_result?
     -- ing--
     -- TODO: gc
+    -- TODO: remove from up
+    -- TASKS[t.co] = nil
 end
 
 function emit (to, ...)
