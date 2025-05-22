@@ -262,16 +262,22 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : line 1 : near '[' : index error : expected prefix expression")
+    local e = parser_expr()
+    assert(not check('<eof>'))
+    assert(tostr_expr(e) == "1")
+    --local ok, msg = pcall(parser_expr)
+    --assert(not ok and msg=="anon : line 1 : near '[' : index error : expected prefix expression")
 
     local src = "nil.1"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : line 1 : near '.' : field error : expected prefix expression")
+    local e = parser_expr()
+    assert(not check('<eof>'))
+    assertx(tostr_expr(e), "nil")
+    --local ok, msg = pcall(parser_expr)
+    --assert(not ok and msg=="anon : line 1 : near '.' : field error : expected prefix expression")
 
     local src = "-x[0]"
     print("Testing...", src)
@@ -281,6 +287,24 @@ do
     local e = parser_expr()
     assert(check('<eof>'))
     assert(tostr_expr(e) == '-x[0]')
+
+    local src = ":X {}"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assert(tostr_expr(e) == 'atm_tag(:X, {})')
+
+    local src = ":X (x)"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assert(tostr_expr(e) == 'atm_tag(:X, (x))')
 end
 
 -- UNO

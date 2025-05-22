@@ -70,11 +70,19 @@ do
     init()
     lexer_string("anon", src)
     parser()
+    local ok, msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near ':X' : expected '('")
+
+    local src = "do :X { escape(:X) }"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
     local s = parser_stmt()
     assert(check('<eof>'))
     assertx(tostr_stmt(s), trim [[
         do :X {
-            escape :X(nil)
+            escape (:X)
         }
     ]])
 
@@ -137,16 +145,16 @@ do
     local ok, msg = pcall(parser_main)
     assert(not ok and msg=="anon : line 1 : near 'do' : expected tagged block")
 
-    local src = "val x = do :X { escape:X(10) }"
+    local src = "val x = do :X { escape(:X{10}) }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(tostr_stmt(s) == trim [[
+    assertx(tostr_stmt(s), trim [[
         val x = do :X {
-            escape :X(10)
+            escape (atm_tag(:X, {[1]=10}))
         }
     ]])
 end
@@ -385,7 +393,8 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_main)
-    assertx(msg, "anon : line 1 : near '{' : unexpected '{'")
+    --assertx(msg, "anon : line 1 : near '{' : unexpected '{'")
+    assertx(msg, "anon : line 1 : near '{' : expected <tag>")
 
     local src = "catch true, it>0 { }"
     print("Testing...", src)

@@ -67,16 +67,17 @@ do
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_stmt)
-    assertx(msg, "anon : line 1 : near '(' : call error : expected prefix expression")
+    assertx(msg, "anon : line 1 : near 'spawn' : expected call")
+    --assertx(msg, "anon : line 1 : near '(' : call error : expected prefix expression")
 
-    local src = "nil.pub"
+    local src = "val x = nil.pub"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : line 1 : near '.' : field error : expected prefix expression")
-
+    local ok, msg = pcall(parser_main)
+    --assertx(msg, "anon : line 1 : near '.' : field error : expected prefix expression")
+    assertx(msg, "anon : line 1 : near '.' : expected expression")
 end
 
 -- EXEC
@@ -349,7 +350,7 @@ do
         val t = do :X {
             var v
             set v = 10
-            escape :X(task(func() { return(T(v)) }))
+            escape(:X(task(func() { return(T(v)) })))
         }
         spawn t()
         print(t)
@@ -667,7 +668,7 @@ do
                 emit ({20})
                 print(:3)
                 emit ({[30]=30})
-                escape(true)
+                return(true)
             }) ())
         }
         print(e)
@@ -1009,7 +1010,7 @@ do
                         val x = e
                         print(:in, e)    ;; TODO: 10
                     }
-                    escape :brk()
+                    escape(:brk)
                 }
             }
         }
@@ -1046,7 +1047,7 @@ do
             do :X {
                 loop {
                     if evt[:type]==:x {
-                        escape :X()
+                        escape(:X)
                     }
                     set evt = await(true)
                 }
@@ -1539,7 +1540,7 @@ do
         do :X {
             loop {
                 if x == 2 {
-                    escape :X()
+                    escape (:X)
                 }
                 set x = x + 1
                 print(:2)
@@ -2679,7 +2680,7 @@ do
                 spawn T() in ts
                 set x = x + 1
                 if x==500 {
-                    escape :X()
+                    escape (:X)
                 }
             }
         }

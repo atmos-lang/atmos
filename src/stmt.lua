@@ -129,23 +129,15 @@ function parser_stmt ()
         local ss = parser_curly()
         return { tag='defer', blk={tag='block',ss=ss} }
 
-    -- escape(:X), return(...)
+    -- escape(:X)
     elseif accept('escape') then
-        local esc = accept(nil,'tag')
-        if esc then
-            accept_err('(')
-            local e = { tag='nil', tk={tag='key',str='nil'} }
-            if not check(')') then
-                e = parser_expr()
-            end
-            accept_err(')')
-            return { tag='escape', esc=esc, e=e }
-        else
-            accept_err('(')
-            local es = parser_list(',', ')', parser_expr)
-            accept_err(')')
-            return { tag='return', es=es }
-        end
+        accept_err('(')
+        local tag = check_err(nil, 'tag')
+        local e = parser_expr()
+        accept_err(')')
+        return { tag='escape', esc=tag, e=e }
+
+    -- return(...)
     elseif accept('return') then
         accept_err('(')
         local es = parser_list(',', ')', parser_expr)
@@ -190,8 +182,13 @@ function parser_stmt ()
 
     -- catch
     elseif accept('catch') then
-        check_no_err('{')
-        local xe = parser_expr()
+        local xe; do
+            if accept('true') or accept('false') then
+                xe = { tag='bool', tk=TK0 }
+            elseif accept_err(nil, 'tag') then
+                xe = { tag='tag', tk=TK0 }
+            end
+        end
         local xf = nil
         if accept(',') then
             local it = { tag='id', str="it" }

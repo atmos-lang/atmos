@@ -51,7 +51,7 @@ do
         print(:1)
         do :X {
             print(:2)
-            escape:X()
+            escape(:X)
             print(:3)
         }
         print(:4)
@@ -62,7 +62,7 @@ do
 
     local src = [[
         do :X {
-            escape :Y()
+            escape(:Y)
         }
     ]]
     print("Testing...", "block 5 : err : goto")
@@ -104,14 +104,14 @@ do
     local src = [[
         val x = do :X {
             do :Y {
-                escape:X(10)
+                escape(:X{10})
             }
         }
-        print(x)
+        dump(x)
     ]]
     print("Testing...", "do-escape 1")
     local out = exec_string("anon.atm", src)
-    assert(out == "10\n")
+    assertx(out, "{10, tag=X}\n")
 end
 
 -- DCL / VAL / VAR / SET
@@ -230,6 +230,11 @@ do
     print("Testing...", "table 1")
     local out = exec_string("anon.atm", src)
     assert(out == "1\t1\n")
+
+    local src = "dump(:X {10})"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{10, tag=X}\n")
 end
 
 -- CALL / FUNC / RETURN

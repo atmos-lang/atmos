@@ -170,40 +170,27 @@ end
 
 local function is_prefix (e)
     return (
-        e.tag == 'call'  or
-        e.tag == 'acc'   or
-        e.tag == 'index' or
-        TK0.str == ')'
+        e.tag == 'tag'    or
+        e.tag == 'acc'    or
+        e.tag == 'call'   or
+        e.tag == 'index'  or
+        e.tag == 'parens'
     )
 end
 
 function parser_expr_suf_2 (pre)
-    local tk0 = TK0
     local e = pre or parser_expr_prim_1()
-    local ok = (TK0.lin==TK1.lin) and (
-        check(nil,'sym') and contains(OPS.sufs,TK1.str)
-    )
+    local ok = (TK0.lin==TK1.lin) and is_prefix(e)
     if not ok then
         return e
     end
 
-    if not is_prefix(e) then
-        local op; do
-            if check'(' then
-                op = "call"
-            elseif TK1.str == '[' then
-                op = "index"
-            elseif TK1.str == '.' then
-                op = "field"
-            else
-                error("TODO")
-            end
-        end
-        err(TK1, op.." error : expected prefix expression")
-    end
-
     local ret = nil
-    if accept('(') then
+    if e.tag=='tag' and (check'(' or check'{') then
+        local t = parser_expr()
+        local f = { tag='acc', tk={tag='id',str="atm_tag"} }
+        ret = { tag='call', f=f, args={e,t} }
+    elseif accept('(') then
         local args = parser_list(',', ')', parser_expr)
         accept_err(')')
         ret = { tag='call', f=e, args=args }
@@ -217,7 +204,8 @@ function parser_expr_suf_2 (pre)
         local idx = { tag='tag', tk=id }
         ret = { tag='index', t=e, idx=idx }
     else
-        error("TODO")
+        -- nothing consumed, not a suffix
+        return e
     end
 
     return parser_expr_suf_2(ret)

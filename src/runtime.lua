@@ -1,6 +1,14 @@
 coro   = coroutine.create
 resume = coroutine.resume
 
+function atm_tag (tag, t)
+    if type(t) ~= 'table' then
+        error('invalid tag operation : expected table', 2)
+    end
+    t.tag = tag
+    return t
+end
+
 function atm_idx (idx)
     if type(idx) == 'number' then
         idx = idx + 1
@@ -47,10 +55,8 @@ function atm_is (v, x)
     local tp = type(v)
     if tp == x then
         return true
-    elseif type(x) == 'string' then
-        local tag = (tp=='table' and v.tag) or tostring(v)
-        return x == tag
-        --return atm_sup(x, tag)
+    elseif tp=='table' and type(x)=='string' then
+        return (string.find(v.tag or '', '^'..x) == 1)
     end
     return false
 end
