@@ -186,7 +186,7 @@ end
 
 do
     local src = [[
-        val t = [1, x=10, (:y,20)]
+        val t = {1, x=10, [:y]=20}
         print(t[0], t[:x], t.y)
     ]]
     print("Testing...", "table 1")
@@ -198,33 +198,33 @@ do
     local out = exec_string("anon.atm", src)
     assert(out == "anon.atm : line 1 : attempt to index a number value\n")
 
-    local src = "print(([1])[[]])"
+    local src = "print(({1})[{}])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assertx(out, "nil\n")
 
-    local src = "print(([[1]])[([0])[0]][0])"
+    local src = "print(({{1}})[({0})[0]][0])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assert(out == "1\n")
 
-    local src = "dump(([[1]])[([0])[0]])"
+    local src = "dump(({{1}})[({0})[0]])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assert(out == "{ 1 }\n")
+    assert(out == "{1}\n")
 
-    local src = "dump([(:key,:val)])"
+    local src = "dump({[:key]=:val})"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assertx(out, "{ key=val }\n")
+    assertx(out, "{key=val}\n")
 
-    local src = "print(type([(:key,:val)]))"
+    local src = "print(type({[:key]=:val}))"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assert(out == "table\n")
 
     local src = [[
-        val t = [(:x,1)]
+        val t = {[:x] = 1}
         print(t[:x], t.x)
     ]]
     print("Testing...", "table 1")
@@ -388,7 +388,7 @@ do
     assert(out == "1\n2\n")
 
     local src = [[
-        loop i,v in [1,2,3] {
+        loop i,v in {1,2,3} {
             print(i,v)
         }
     ]]
@@ -900,7 +900,7 @@ print '-=- IS / IN -=-'
 do
     local src = [[
         print(10 ?? :number)
-        print([] !? :table)
+        print({} !? :table)
         print(:x ?? :number)
     ]]
     print("Testing...", "is 1")
@@ -908,8 +908,8 @@ do
     assertx(out, "true\nfalse\nfalse\n")
 
     local src = [[
-        print([] ?? :bool)
-        print([] ?? :table)
+        print({} ?? :bool)
+        print({} ?? :table)
         print(1 !? :table)
         print(1 !? :number)
     ]]
@@ -918,7 +918,7 @@ do
     assertx(out, "false\ntrue\ntrue\nfalse\n")
 
     local src = [[
-        val t = [1,2,3]
+        val t = {1,2,3}
         print(2 ?> t)
         print(t <? 4)
         print(2 !> t)

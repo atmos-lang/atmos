@@ -6,6 +6,13 @@ end
 function check (str, tag)
     return (tag==nil or TK1.tag==tag) and (str==nil or TK1.str==str) and TK1 or nil
 end
+function check_no_err (str, tag)
+    local tk = check(str, tag)
+    if tk then
+        err(TK1, "unexpected "..((str and "'"..str.."'") or (tag and '<'..tag..'>')))
+    end
+    return tk
+end
 function check_err (str, tag)
     local tk = check(str, tag)
     if not tk then

@@ -56,7 +56,7 @@ function stringify (v)
             end
             fst = false
         end
-        return "{ " .. vs .. " }"
+        return "{" .. vs .. "}"
     end
 end
 

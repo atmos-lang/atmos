@@ -190,6 +190,7 @@ function parser_stmt ()
 
     -- catch
     elseif accept('catch') then
+        check_no_err('{')
         local xe = parser_expr()
         local xf = nil
         if accept(',') then

@@ -35,16 +35,16 @@ function parser_expr_prim_1 ()
         accept_err(')')
         return { tag='parens', tk=tk, e=e }
 
-    -- [ ... ]
-    elseif accept('[') then
+    -- { ... }
+    elseif accept('{') then
         local idx = 1
-        local ps = parser_list(',', ']', function ()
+        local ps = parser_list(',', '}', function ()
             local key
-            if accept('(') then
+            if accept('[') then
                 key = parser_expr()
-                accept_err(',')
+                accept_err(']')
+                accept_err('=')
                 val = parser_expr()
-                accept_err(')')
             elseif accept(nil,'id') then
                 local id = TK0
                 if accept('=') then
@@ -63,7 +63,7 @@ function parser_expr_prim_1 ()
             end
             return { k=key, v=val }
         end)
-        accept_err(']')
+        accept_err('}')
         return { tag='table', ps=ps }
 
     -- coro(f)

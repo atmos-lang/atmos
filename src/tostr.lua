@@ -66,9 +66,9 @@ function tostr_expr (e)
         return tostr_expr(e.t)..'['..tostr_expr(e.idx)..']'
     elseif e.tag == 'table' then
         local ps = concat(", ", map(e.ps, function (t)
-            return '('..tostr_expr(t.k)..','..tostr_expr(t.v)..')'
+            return '['..tostr_expr(t.k)..']='..tostr_expr(t.v)
         end))
-        return '[' .. ps .. ']'
+        return '{' .. ps .. '}'
     elseif e.tag == 'call' then
         return tostr_expr(e.f)..'('..concat(", ", map(e.args, tostr_expr))..')'
     elseif e.tag == 'func' then
