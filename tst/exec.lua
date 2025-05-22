@@ -749,6 +749,18 @@ do
     print("Testing...", "task - catch 2")
     local out = exec_string("anon.atm", src)
     assertx(out, "1\n2\n3\ne\n4\n5\n")
+
+    local src = [[
+        catch :z {
+            spawn {
+                throw(:x)
+            }
+        }
+        print(10)
+    ]]
+    print("Testing...", "task - throw")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
 end
 
 print '-=- TASKS -=-'
