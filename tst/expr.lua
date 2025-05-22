@@ -496,6 +496,14 @@ do
     --local ok, msg = pcall(parser_stmt)
     --assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
 
+    local src = "f '10' {20}"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(not check('<eof>'))
+    assertx(tostr_expr(e), "f")
 end
 
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME / PUB
@@ -592,17 +600,4 @@ do
     local e = parser_expr()
     assert(check('<eof>'))
     assertx(tostr_expr(e), 'pub')
-end
-
-print 'CALL / STRING / TABLE / TAG'
-
-do
-    local src = "f '10' {20}"
-    print("Testing...", src)
-    init()
-    lexer_string("anon", src)
-    parser()
-    local e = parser_expr()
-    assert(check('<eof>'))
-    assertx(tostr_expr(e), 'f("10")({[1]=20})')
 end

@@ -181,8 +181,7 @@ function parser_expr_suf_2 (pre)
     local tk0 = TK0
     local e = pre or parser_expr_prim_1()
     local ok = (TK0.lin==TK1.lin) and (
-        check(nil,'str') or
-        (check(nil,'sym') and contains(OPS.sufs,TK1.str))
+        check(nil,'sym') and contains(OPS.sufs,TK1.str)
     )
     if not ok then
         return e
@@ -190,7 +189,7 @@ function parser_expr_suf_2 (pre)
 
     if not is_prefix(e) then
         local op; do
-            if check'(' or check'{' or check(nil,'str') then
+            if check'(' then
                 op = "call"
             elseif TK1.str == '[' then
                 op = "index"
@@ -208,9 +207,6 @@ function parser_expr_suf_2 (pre)
         local args = parser_list(',', ')', parser_expr)
         accept_err(')')
         ret = { tag='call', f=e, args=args }
-    elseif check('{') or check(nil,'str') then
-        local v = parser_expr_prim_1()
-        ret = { tag='call', f=e, args={v} }
     elseif accept('[') then
         local idx = parser_expr()
         accept_err(']')
