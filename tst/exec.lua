@@ -104,7 +104,7 @@ do
     local src = [[
         val x = do :X {
             do :Y {
-                escape(:X{10})
+                escape(:X({10}))
             }
         }
         dump(x)
@@ -231,7 +231,7 @@ do
     local out = exec_string("anon.atm", src)
     assert(out == "1\t1\n")
 
-    local src = "dump(:X {10})"
+    local src = "dump(:X({10}))"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assertx(out, "{10, tag=X}\n")

@@ -288,14 +288,14 @@ do
     assert(check('<eof>'))
     assert(tostr_expr(e) == '-x[0]')
 
-    local src = ":X {}"
+    local src = ":X ({})"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == 'atm_tag(:X, {})')
+    assertx(tostr_expr(e), 'atm_tag(:X, ({}))')
 
     local src = ":X (x)"
     print("Testing...", src)

@@ -145,7 +145,7 @@ do
     local ok, msg = pcall(parser_main)
     assert(not ok and msg=="anon : line 1 : near 'do' : expected tagged block")
 
-    local src = "val x = do :X { escape(:X{10}) }"
+    local src = "val x = do :X { escape(:X({10})) }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
@@ -154,7 +154,7 @@ do
     assert(check('<eof>'))
     assertx(tostr_stmt(s), trim [[
         val x = do :X {
-            escape (atm_tag(:X, {[1]=10}))
+            escape (atm_tag(:X, ({[1]=10})))
         }
     ]])
 end

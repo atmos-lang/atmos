@@ -186,7 +186,7 @@ function parser_expr_suf_2 (pre)
     end
 
     local ret = nil
-    if e.tag=='tag' and (check'(' or check'{') then
+    if e.tag=='tag' and (check'(' --[[or check'{']]) then
         local t = parser_expr()
         local f = { tag='acc', tk={tag='id',str="atm_tag"} }
         ret = { tag='call', f=f, args={e,t} }
