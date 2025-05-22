@@ -180,14 +180,17 @@ end
 function parser_expr_suf_2 (pre)
     local tk0 = TK0
     local e = pre or parser_expr_prim_1()
-    local ok = check(nil,'sym') and contains(OPS.sufs,TK1.str) and (TK0.lin==TK1.lin)
+    local ok = (TK0.lin==TK1.lin) and (
+        check(nil,'str') or
+        (check(nil,'sym') and contains(OPS.sufs,TK1.str))
+    )
     if not ok then
         return e
     end
 
     if not is_prefix(e) then
         local op; do
-            if TK1.str == '(' then
+            if check'(' or check'{' or check(nil,'str') then
                 op = "call"
             elseif TK1.str == '[' then
                 op = "index"
@@ -200,24 +203,23 @@ function parser_expr_suf_2 (pre)
         err(TK1, op.." error : expected prefix expression")
     end
 
-    local sym = accept('~~') or accept('!~') or accept_err(nil,'sym')
-
     local ret = nil
-    if sym.str == '(' then
+    if accept('(') then
         local args = parser_list(',', ')', parser_expr)
         accept_err(')')
         ret = { tag='call', f=e, args=args }
-    elseif sym.str == '[' then
+    elseif check('{') or check(nil,'str') then
+        local v = parser_expr_prim_1()
+        ret = { tag='call', f=e, args={v} }
+    elseif accept('[') then
         local idx = parser_expr()
         accept_err(']')
         ret = { tag='index', t=e, idx=idx }
-    elseif sym.str == '.' then
+    elseif accept('.') then
         local id = accept_err(nil,'id')
         id = { tag='tag', str=':'..id.str }
         local idx = { tag='tag', tk=id }
         ret = { tag='index', t=e, idx=idx }
-    elseif sym.str=='~~' or sym.str=='!~' then
-        error("TODO - regex")
     else
         error("TODO")
     end
