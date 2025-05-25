@@ -194,6 +194,11 @@ function parser_expr_suf_2 (pre)
         local args = parser_list(',', ')', parser_expr)
         accept_err(')')
         ret = { tag='call', f=e, args=args }
+--[[
+    elseif check('[') or check(nil,'str') then
+        local v = parser_expr_prim_1()
+        ret = { tag='call', f=e, args={v} }
+]]
     elseif accept('[') then
         local idx = parser_expr()
         accept_err(']')

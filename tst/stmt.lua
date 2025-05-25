@@ -82,7 +82,7 @@ do
     assert(check('<eof>'))
     assertx(tostr_stmt(s), trim [[
         do :X {
-            escape (:X)
+            escape (:X, :X)
         }
     ]])
 
@@ -154,7 +154,7 @@ do
     assert(check('<eof>'))
     assertx(tostr_stmt(s), trim [[
         val x = do :X {
-            escape (atm_tag(:X, [(1,10)]))
+            escape (:X, atm_tag(:X, [(1,10)]))
         }
     ]])
 end
