@@ -266,7 +266,7 @@ do
         pin co = spawn tk()
         var f = func () {
             var g = func () {
-                emit ({})
+                emit ([])
             }
             g()
         }
@@ -283,7 +283,7 @@ do
         }
         spawn(tk)()
         ;;var f = func' () {
-            emit ({})
+            emit ([])
         ;;}
         ;;f()
     ]]
@@ -299,7 +299,7 @@ do
         }
         pin t = spawn T()
         ;;print(:1111)
-        emit ({})
+        emit ([])
         ;;print(:2222)
     ]]
     print("Testing...", "spawn 10")
@@ -343,7 +343,7 @@ do
 
     local src = [[
         val T = func (v) {
-            val x = {}
+            val x = []
             print(v)
             await(false)
         }
@@ -498,7 +498,7 @@ do
         spawn T(10)
         catch true {
             (func () {
-                emit ({})
+                emit ([])
             }) ()
         }
     ]]
@@ -516,7 +516,7 @@ do
         }
         spawn T()
         ;;print(:1111)
-        var e = {}
+        var e = []
         emit (e)
         ;;print(:2222)
     ]]
@@ -535,7 +535,7 @@ do
             do {
                 val b
                 do {
-                    var e = {}
+                    var e = []
                     emit (e)
                 }
             }
@@ -551,7 +551,7 @@ do
         }
         spawn T()
         do {
-            var e = {}
+            var e = []
             emit (e)
         }
     ]]
@@ -567,7 +567,7 @@ do
             fff(await(true))
         }
         spawn T()
-        emit ({1})
+        emit ([1])
     ]]
     print("Testing...", "emit 12")
     local out = exec_string("anon.atm", src)
@@ -584,7 +584,7 @@ do
         }
         spawn T(10)
         (func () {
-            emit ({})
+            emit ([])
         }) ()
     ]]
     print("Testing...", "emit scope 1")
@@ -598,7 +598,7 @@ do
         }
         spawn T(10)
         (func () {
-            emit ({})
+            emit ([])
         }) ()
     ]]
     print("Testing...", "emit scope 2")
@@ -613,7 +613,7 @@ do
         }
         spawn T()
         spawn T()
-        emit ({})
+        emit ([])
     ]]
     print("Testing...", "emit scope 3")
     local out = exec_string("anon.atm", src)
@@ -624,7 +624,7 @@ do
             await(true)
             dump(v)
         }
-        spawn T({})
+        spawn T([])
         emit(nil)
     ]]
     print("Testing...", "emit scope 4")
@@ -642,7 +642,7 @@ do
         }
         spawn T()
         do {
-            emit ({20})
+            emit ([20])
         }
         print(:ok)
     ]]
@@ -665,9 +665,9 @@ do
         val ok,e = catch true {
             return ((func () {
                 print(:2)
-                emit ({20})
+                emit ([20])
                 print(:3)
-                emit ({[30]=30})
+                emit ([(30,30)])
                 return(true)
             }) ())
         }
@@ -693,13 +693,13 @@ do
             (func (x) {
                 set x[0] = v[0]
                 dump(x[0])
-            }) ({0})
+            }) ([0])
         }
         var T = func () {
             f(await(true))
         }
         spawn T()
-        emit ({{1}})
+        emit ([ [1] ])
     ]]
     print("Testing...", "emit scope 7")
     local out = exec_string("anon.atm", src)
@@ -713,7 +713,7 @@ do
             f(await(true))
         }
         spawn T()
-        emit ({{1}})
+        emit ([ [ 1 ] ])
     ]]
     print("Testing...", "emit scope 8")
     local out = exec_string("anon.atm", src)
@@ -724,13 +724,13 @@ do
             (func (x) {
                 set x[0] = v[0]
                 dump(x[0])
-            }) ({0})
+            }) ([0])
         }
         var T = func () {
             f(await(true))
         }
         spawn T()
-        emit ({{1}})
+        emit ([ [ 1 ] ])
     ]]
     print("Testing...", "emit scope 9")
     local out = exec_string("anon.atm", src)
@@ -749,7 +749,7 @@ do
                 do {
                     do {
                         do {
-                            emit ({})
+                            emit ([])
                         }
                     }
                 }
@@ -773,7 +773,7 @@ do
         do {
             do {
                 do {
-                    emit ({})
+                    emit ([])
                 }
             }
         }
@@ -794,7 +794,7 @@ do
             val a
             do {
                 val b
-                var e = {}
+                var e = []
                 emit (e)
             }
         }
@@ -824,7 +824,7 @@ do
             }
         }
         pin t2 = spawn T2()
-        emit ({})                      ;; GC = {}
+        emit ([])                      ;; GC = {}
         ;;print(`:number CEU_GC.free`)
         print(:ok)
     ]]
@@ -838,7 +838,7 @@ print "-=- EMIT / ALIEN -=-"
 do
     local src = [[
         var x
-        set x = {}
+        set x = []
         emit (x)
         dump(x)
     ]]
@@ -853,7 +853,7 @@ do
             await(false)
         }) (nil)
         do {
-            val e = {}
+            val e = []
             emit(e)
         }
         print(:ok)
@@ -869,7 +869,7 @@ do
         }
         spawn T()
         do {
-            val e = {}
+            val e = []
             (func () { emit(e) })()
         }
         print(:ok)
@@ -881,13 +881,13 @@ do
     local src = [[
         spawn (func () {
             val evt = await(true)
-            val x = {nil}
+            val x = [nil]
             set x[0] = evt
             dump(x)
         }) ()
         do {
             val x
-            emit({10})
+            emit([10])
         }
     ]]
     print("Testing...", "alien 3")
@@ -905,7 +905,7 @@ do
         }) ()
         do {
             val x
-            emit({10})
+            emit([10])
         }
     ]]
     print("Testing...", "alien 4")
@@ -919,7 +919,7 @@ do
             dump(x)
         }) ()
         do {
-            val e = {{10}}
+            val e = [ [ 10 ] ]
             emit(e)
         }
     ]]
@@ -936,7 +936,7 @@ do
             f(await(true)) ;;thus { it => it})
         }
         spawn T()
-        emit ({{1}})
+        emit ([[1]])
     ]=]
     print("Testing...", "alien 6")
     local out = exec_string("anon.atm", src)
@@ -952,7 +952,7 @@ do
             f(xevt)
         }
         spawn T()
-        emit ({{1}})
+        emit ([[1]])
     ]=]
     print("Testing...", "alien 7")
     local out = exec_string("anon.atm", src)
@@ -969,7 +969,7 @@ do
             }
         }
         spawn T ()
-        emit({2})
+        emit([2])
         print(:ok)
     ]]
     print("Testing...", "payload 1")
@@ -1030,7 +1030,7 @@ do
             dump(x)
         }) ()
         do {
-            val e = {10}
+            val e = [10]
             emit(e)
         }
         emit(nil)
@@ -1055,9 +1055,9 @@ do
             print(99)
         }) ()
         print(1)
-        emit ({type=:y})
+        emit ([type=:y])
         print(2)
-        emit ({type=:x})
+        emit ([type=:x])
         print(3)
     ]]
     print("Testing...", "payload 5")
@@ -1078,8 +1078,8 @@ do
             fff(evt[:type])
             print(99)
         }) ()
-        emit ({type=:y})
-        emit ({[:type]=:x})
+        emit ([type=:y])
+        emit ([(:type,:x)])
     ]]
     print("Testing...", "payload 6")
     local out = exec_string("anon.atm", src)
@@ -1093,7 +1093,7 @@ do
                 set evt = await(true)
             }
         }
-        emit({})
+        emit([])
     ]]
     print("Testing...", "payload 7")
     local out = exec_string("anon.atm", src)
@@ -1125,7 +1125,7 @@ do
             print(:ok)
         }) ()
         print(:2)
-        emit({})
+        emit([])
         print(:4)
     ]]
     print("Testing...", "order 1")
@@ -1323,7 +1323,7 @@ print '-=- PUB -=-'
 do
     local src = [[
         val t = func () {
-            set pub = {}
+            set pub = []
             return (pub)
         }
         pin a = spawn (t) ()
@@ -1361,7 +1361,7 @@ do
     local src = [[
         val T = func () {
             do {
-                val x = {}
+                val x = []
                 set pub = x
                 return(pub)
             }
@@ -1378,7 +1378,7 @@ do
         }
         pin t = spawn T()
         do {
-            val x = {}
+            val x = []
             set t.pub = x
         }
         dump(t.pub)
@@ -1420,7 +1420,7 @@ do
 
     local src = [[
         spawn( func () {
-            val t = {}
+            val t = []
             spawn (func () {
                 await(true)
                 dump(t)
@@ -1454,7 +1454,7 @@ do
                 }) ()
                 await(true)
             }
-            emit({})
+            emit([])
         })()
         emit(99)
         print(:ok)
@@ -1760,7 +1760,7 @@ do
                 }) ()
                 await(true)
             }
-            emit({})
+            emit([])
         })()
         ;;emit(true)
         emit(true)
@@ -2148,7 +2148,7 @@ do
 
     local src = [[
         val f = func () {
-            val x = {}
+            val x = []
             emit(true) in :global
         }
         spawn (func () {
@@ -2579,9 +2579,9 @@ print '-=- RETURN -=-'
 do
     local src = [[
         pin t = spawn (func () {
-            set pub = {1}
+            set pub = [1]
             await(true)
-            return({2})
+            return([2])
         } )()
         dump(status(t), t.pub)
         emit(true)
@@ -2710,7 +2710,7 @@ do
 
     local src = [[
         val T = func () {
-            set pub = {}
+            set pub = []
             await(true) ;;thus { it=>nil }
         }
         pin ts = tasks(1)
@@ -2718,20 +2718,20 @@ do
             spawn T() in ts
             spawn T() in ts
             spawn T() in ts
-            emit({})
+            emit([])
             spawn T() in ts
             spawn T() in ts
             spawn T() in ts
-            emit({})
+            emit([])
             spawn T() in ts
             spawn T() in ts
             spawn T() in ts
-            emit({})
+            emit([])
             spawn T() in ts
             spawn T() in ts
             spawn T() in ts
             spawn T() in ts
-            emit({})
+            emit([])
             print(:ok)
         }
     ]]
@@ -2864,7 +2864,7 @@ do
     assertx(out, "2\n2\n999\n1\n")
 
     local src = [[
-        val tup = {}
+        val tup = []
         val T = func () {
             set ;;;task.;;;pub = tup
             await(true)
@@ -2880,7 +2880,7 @@ do
 
     local src = [[
         var T = func () {
-            set pub = {10}
+            set pub = [10]
             await(true)
         }
         pin ts = tasks()

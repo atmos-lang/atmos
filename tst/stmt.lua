@@ -26,7 +26,7 @@ do
     assert(stringify(s) == "{custom=func, ids={{lin=1, str=f, tag=id}}, sets={{blk={ss={{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, pars={{lin=1, str=v, tag=id}}, tag=func}}, tag=dcl, tk={str=var, tag=key}}")
 
     local src = [[
-        val e = {}
+        val e = []
         (f)()
     ]]
     print("Testing...", src)
@@ -36,7 +36,7 @@ do
     local s = parser_main()
     assertx(tostr_stmt(s), trim [[
         do {
-            val e = {}
+            val e = []
             (f)()
         }
     ]])
@@ -129,13 +129,13 @@ do
         }
     ]])
 
-    local src = "var v2 ; {tp,v1,v2}"
+    local src = "var v2 ; [tp,v1,v2]"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_main)
-    assert(not ok and msg=="anon : line 1 : near '{' : expected statement")
+    assert(not ok and msg=="anon : line 1 : near '[' : expected statement")
 
     local src = "val x = do {}"
     print("Testing...", src)
@@ -145,7 +145,7 @@ do
     local ok, msg = pcall(parser_main)
     assert(not ok and msg=="anon : line 1 : near 'do' : expected tagged block")
 
-    local src = "val x = do :X { escape(:X({10})) }"
+    local src = "val x = do :X { escape(:X [10]) }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
@@ -154,7 +154,7 @@ do
     assert(check('<eof>'))
     assertx(tostr_stmt(s), trim [[
         val x = do :X {
-            escape (atm_tag(:X, ({[1]=10})))
+            escape (atm_tag(:X, [(1,10)]))
         }
     ]])
 end
@@ -215,13 +215,13 @@ do
     --local ok, msg = pcall(parser_stmt)
     --assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
 
-    local src = "set {1} = 1"
+    local src = "set [1] = 1"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
     local ok, msg = pcall(parser_stmt)
-    assert(not ok and msg=="anon : line 1 : near '{' : expected assignable expression")
+    assertx(msg, "anon : line 1 : near '[' : expected assignable expression")
 
     local src = "set x, y, z = 10, 20"
     print("Testing...", src)
@@ -394,7 +394,8 @@ do
     parser()
     local ok, msg = pcall(parser_main)
     --assertx(msg, "anon : line 1 : near '{' : unexpected '{'")
-    assertx(msg, "anon : line 1 : near '{' : expected <tag>")
+    --assertx(msg, "anon : line 1 : near '{' : expected <tag>")
+    assert(not ok and msg=="anon : line 1 : near '{' : expected expression")
 
     local src = "catch true, it>0 { }"
     print("Testing...", src)

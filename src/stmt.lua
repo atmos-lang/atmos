@@ -134,6 +134,9 @@ function parser_stmt ()
         accept_err('(')
         local tag = check_err(nil, 'tag')
         local e = parser_expr()
+        if accept(',') then
+            e = parser_expr()
+        end
         accept_err(')')
         return { tag='escape', esc=tag, e=e }
 
@@ -182,13 +185,7 @@ function parser_stmt ()
 
     -- catch
     elseif accept('catch') then
-        local xe; do
-            if accept('true') or accept('false') then
-                xe = { tag='bool', tk=TK0 }
-            elseif accept_err(nil, 'tag') then
-                xe = { tag='tag', tk=TK0 }
-            end
-        end
+        local xe = parser_expr()
         local xf = nil
         if accept(',') then
             local it = { tag='id', str="it" }
