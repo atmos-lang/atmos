@@ -3,7 +3,7 @@ Expr = {}   -- solves mutual require with stmt.lua
 require "parser"
 _ = Stmt or require "stmt"
 
-function parser_expr_prim_1 ()
+function parser_expr_1_prim ()
     -- nil
     if accept('nil') then
         return { tag='nil', tk=TK0 }
@@ -178,8 +178,16 @@ local function is_prefix (e)
     )
 end
 
-function parser_expr_suf_2 (pre)
-    local e = pre or parser_expr_prim_1()
+-- expr_0_out : v --> f     f <-- v    v where {...}    v thus {...}
+-- expr_3_met : v->f    f<-v
+
+-- expr_4_bin : a + b
+-- expr_3_pre : -a    :T [...]
+-- expr_2_suf : v[0]    v.x    v.1    v.(:T).x    f()
+-- expr_1_prim
+
+function parser_expr_2_suf (pre)
+    local e = pre or parser_expr_1_prim()
     local ok = (TK0.lin==TK1.lin) and is_prefix(e)
     if not ok then
         return e
@@ -213,21 +221,21 @@ function parser_expr_suf_2 (pre)
         return e
     end
 
-    return parser_expr_suf_2(ret)
+    return parser_expr_2_suf(ret)
 end
 
-function parser_expr_pre_3 ()
+function parser_expr_3_pre ()
     local ok = check(nil,'op') and contains(OPS.unos, TK1.str)
     if not ok then
-        return parser_expr_suf_2()
+        return parser_expr_2_suf()
     end
     local op = accept_err(nil,'op')
-    local e = parser_expr_pre_3()
+    local e = parser_expr_3_pre()
     return { tag='uno', op=op, e=e }
 end
 
 function parser_expr_bin_4 (pre)
-    local e1 = pre or parser_expr_pre_3()
+    local e1 = pre or parser_expr_3_pre()
     local ok = check(nil,'op') and contains(OPS.bins, TK1.str)
     if not ok then
         return e1
@@ -236,7 +244,7 @@ function parser_expr_bin_4 (pre)
     if pre and pre.op.str ~= op.str then
         err(op, "binary operation error : use parentheses to disambiguate")
     end
-    local e2 = parser_expr_pre_3()
+    local e2 = parser_expr_3_pre()
     return parser_expr_bin_4 { tag='bin', op=op, e1=e1, e2=e2 }
 end
 
