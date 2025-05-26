@@ -61,6 +61,31 @@ function atm_is (v, x)
     return false
 end
 
+function atm_cat (v1, v2)
+    local t1 = type(v1)
+    local t2 = type(v2)
+    if t1 ~= t2 then
+        error('invalid ++ : incompatible types', 2)
+    end
+    if t1 == 'string' then
+        return v1 .. v2
+    elseif t1 == 'table' then
+        local ret = {}
+        for k,v in pairs(v1) do
+            ret[k] = v
+        end
+        local n1 = #v1
+        for k,v in pairs(v2) do
+            if type(k) == 'number' then
+                ret[n1+k] = v
+            end
+        end
+        return ret
+    else
+        error('invalid ++ : unsupported type', 2)
+    end
+end
+
 function atm_in (v, t)
     if type(t)=='table' and t[v] then
         if t[v] then

@@ -14,9 +14,18 @@ do
         print(:2)
         print(nil || 20)
     ]]
-    print("Testing...", "block 1")
+    print("Testing...", "expr 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "xxx\n2\n20\n")
+
+    local src = [[
+        print('a' ++ 'b' ++ 'c')
+        dump([1] ++ [2] ++ [3])
+    ]]
+    print("Testing...", "expr 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "abc\n{1, 2, 3}\n")
+
 end
 
 -- BLOCK / DO / ESCAPE / DEFER
@@ -88,7 +97,7 @@ do
     ]]
     print("Testing...", "block 6")
     local out = exec_string("anon.atm", src)
-    assert(out == "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')\n")
+    assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')\n")
 
     local src = [[
         print(:1)

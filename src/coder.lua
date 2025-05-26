@@ -129,7 +129,9 @@ function coder_expr (e)
     elseif e.tag == 'uno' then
         return '('..(OPS.lua[e.op.str] or e.op.str)..' '..coder_expr(e.e)..')'
     elseif e.tag == 'bin' then
-        if e.op.str == '??' then
+        if e.op.str == '++' then
+            return "atm_cat(" .. coder_expr(e.e1) .. ',' .. coder_expr(e.e2) .. ')'
+        elseif e.op.str == '??' then
             return "atm_is(" .. coder_expr(e.e1) .. ',' .. coder_expr(e.e2) .. ')'
         elseif e.op.str == '!?' then
             return "(not atm_is(" .. coder_expr(e.e1) .. ',' .. coder_expr(e.e2) .. '))'

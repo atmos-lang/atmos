@@ -40,7 +40,7 @@ end
 -- OPERATORS
 
 do
-    local src = "< > = # - == ! != #[ # >= # / || * +"
+    local src = "< > = # - == ! ++ != #[ # >= # / || * +"
     print("Testing...", src)
     lexer_string("anon", src)
     assert(LEX().str == '<')
@@ -50,6 +50,7 @@ do
     assert(LEX().str == '-')
     assert(LEX().str == '==')
     assert(LEX().str == '!')
+    assert(LEX().str == '++')
     assert(LEX().str == '!=')
     assert(LEX().str == '#')
     assert(LEX().str == '[')

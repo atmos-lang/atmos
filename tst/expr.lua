@@ -398,6 +398,15 @@ do
     assert(check('<eof>'))
     assert(tostr_expr(e) == "--1")
 
+    local src = "x++y++z"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "x ++ y ++ z")
+
     local src = "(10+)"
     print("Testing...", src)
     init()
