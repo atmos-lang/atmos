@@ -88,6 +88,16 @@ do
     assert(LEX().tag == 'eof')
     assert(LEX() == nil)
 
+    local src = "--> <- --> <-"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    assert(LEX().str == '-->')
+    assert(LEX().str == '<-')
+    assert(LEX().str == '-->')
+    assert(LEX().str == '<-')
+    assert(LEX().tag == 'eof')
+    assert(LEX() == nil)
+
 end
 
 -- NUMS / STRS

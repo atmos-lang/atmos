@@ -178,11 +178,11 @@ local function is_prefix (e)
     )
 end
 
--- expr_0_out : v --> f     f <-- v    v where {...}    v thus {...}
--- expr_3_met : v->f    f<-v
 
+-- expr_5_out : v --> f     f <-- v    v where {...}    v thus {...}
 -- expr_4_bin : a + b
 -- expr_3_pre : -a    :T [...]
+-- expr_X_met : v->f    f<-v
 -- expr_2_suf : v[0]    v.x    v.1    v.(:T).x    f()
 -- expr_1_prim
 
@@ -224,10 +224,34 @@ function parser_expr_2_suf (pre)
     return parser_expr_2_suf(ret)
 end
 
+local function method (f, e, pre)
+    if f.tag == 'call' then
+        if pre then
+            table.insert(f.args, 1, e)
+        else
+            f.args[#f.args+1] = e
+        end
+        return f
+    else
+        return { tag='call', f=f, args={e} }
+    end
+end
+
+function parser_expr_X_met (pre)
+    local e = pre or parser_expr_2_suf()
+    if accept('->') then
+        return parser_expr_X_met(method(parser_expr_2_suf(), e, true))
+    elseif accept('<-') then
+        return method(e, parser_expr_X_met(parser_expr_2_suf()), false)
+    else
+        return e
+    end
+end
+
 function parser_expr_3_pre ()
     local ok = check(nil,'op') and contains(OPS.unos, TK1.str)
     if not ok then
-        return parser_expr_2_suf()
+        return parser_expr_X_met()
     end
     local op = accept_err(nil,'op')
     local e = parser_expr_3_pre()

@@ -1047,6 +1047,71 @@ do
     assertx(out, "true\nfalse\nfalse\ntrue\n")
 end
 
+print '-=- CALL / METHOD / PIPE -=-'
+
+do
+    local src = "print(10 -> 10)"
+    print("Testing...", "is 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 1 : attempt to call a number value\n")
+
+    local src = [[
+        func f (v) { return(v) }
+        val v = 10->f()
+        print(v)
+    ]]
+    print("Testing...", "method 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
+
+    local src = [[
+        func f (v) { return(10) }
+        func g (v) { return(v) }
+        val v = 99->f()->g()
+        print(v)
+    ]]
+    print("Testing...", "method 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
+
+    local src = [[
+        func f (v) { return(10) }
+        func g (v) { return(v) }
+        val v = 99->f->g
+        print(v)
+    ]]
+    print("Testing...", "method 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
+
+    local src = [[
+        func f (v,x) { return(v - x) }
+        val v = 10->f(20)
+        print(v)
+    ]]
+    print("Testing...", "method 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "-10\n")
+
+    local src = [[
+        func f (v) { return(v) }
+        val v = f<-20
+        print(v)
+    ]]
+    print("Testing...", "method 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "20\n")
+
+    local src = [[
+        func f (v,x) { return(v - x) }
+        val v = f(10)<-20
+        print(v)
+    ]]
+    print("Testing...", "method 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "-10\n")
+end
+
 -- ERROR / LINE NUMBER
 
 do

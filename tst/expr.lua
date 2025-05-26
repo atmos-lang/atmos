@@ -594,6 +594,85 @@ do
     assertx(tostr_expr(e), "...")
 end
 
+print '-=- CALL / METHOD / PIPE -=-'
+
+do
+    local src = "10->f()"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "f(10)")
+
+    local src = "10->f(20)"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "f(10, 20)")
+
+    local src = "f() <- 10"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "f(10)")
+
+    local src = "f<-10"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "f(10)")
+
+    local src = "f(10)<-(20)"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "f(10, (20))")
+
+    local src = "(10->f)<-20"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "(f(10))(20)")
+
+    local src = "(func() {}) <- 20"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(trim(tostr_expr(e)), trim [[
+        (func () {
+        })(20)
+    ]])
+
+    local src = "10->10"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "10(10)")
+end
+
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME / PUB
 
 do
