@@ -343,13 +343,27 @@ do
     assert(out == "10\n")
 
     local src = [[
+        func f (v) {
+            if v > 0 {
+                return ([f(v - 1)])
+            } else {
+                return (0)
+            }
+        }
+        dump(f(2))
+    ]]
+    print("Testing...", "func 5: recursive table")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{{0}}\n")
+
+    local src = [[
         func f (a, ...) {
             print(a)
             print('x', ...)
         }
         f('a', 1, 2, 3)
     ]]
-    print("Testing...", src)
+    print("Testing...", "func 6: dots ...")
     local out = exec_string("anon.atm", src)
     assertx(out, "a\nx\t1\t2\t3\n")
 end

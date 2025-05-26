@@ -49,21 +49,17 @@ function parser_expr_prim_1 ()
                 accept_err(',')
                 val = parser_expr()
                 accept_err(')')
-            elseif accept(nil,'id') then
-                local id = TK0
-                if accept('=') then
-                    id = { tag='tag', str=':'..id.str }
+            else
+                local e = parser_expr()
+                if e.tag=='acc' and accept('=') then
+                    local id = { tag='tag', str=':'..e.tk.str }
                     key = { tag='tag', tk=id }
                     val = parser_expr()
                 else
                     key = { tag='num', tk={tag='num',str=tostring(idx)} }
                     idx = idx + 1
-                    val = { tag='acc', tk=id }
+                    val = e
                 end
-            else
-                key = { tag='num', tk={tag='num',str=tostring(idx)} }
-                idx = idx + 1
-                val = parser_expr()
             end
             return { k=key, v=val }
         end)

@@ -166,6 +166,15 @@ do
     assert(check('<eof>'))
     assert(tostr_expr(e) == '[(1,1)]')
 
+    local src = "[f()]"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), '[(1,f())]')
+
     local src = "[{"
     print("Testing...", src)
     init()
