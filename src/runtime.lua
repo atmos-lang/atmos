@@ -37,7 +37,7 @@ function atm_exec (file, src)
 
     local v, msg = pcall(f)
     if not v then
-print('ERR', msg)
+--print('ERR', msg)
         local filex, lin, msg = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
         --print(file, filex, lin, msg)
         assert(file == filex)
