@@ -54,7 +54,7 @@ function tostr_stmt (s)
 end
 
 function tostr_expr (e)
-    if e.tag=='nil' or e.tag=='bool' or e.tag=='tag' or e.tag=='num' or e.tag=='acc' then
+    if e.tag=='nil' or e.tag=='bool' or e.tag=='tag' or e.tag=='num' or e.tag=='acc' or e.tag=='dots' then
         return e.tk.str
     elseif e.tag == 'str' then
         return '"' .. e.tk.str .. '"'
@@ -73,8 +73,17 @@ function tostr_expr (e)
         return tostr_expr(e.f)..'('..concat(", ", map(e.args, tostr_expr))..')'
     elseif e.tag == 'func' then
         local pars = concat(', ', map(e.pars, function (id) return id.str end))
+        local dots = ''; do
+            if e.dots then
+                if #e.pars == 0 then
+                    dots = '...'
+                else
+                    dots = ', ...'
+                end
+            end
+        end
         local ss = concat('\n', map(e.blk.ss,tostr_stmt))
-        return "func (" .. pars .. ") {\n" ..
+        return "func (" .. pars .. dots .. ") {\n" ..
             ss ..'\n' ..
         "}"
     elseif e.tag == 'exec' then

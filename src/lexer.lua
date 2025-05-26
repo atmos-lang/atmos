@@ -3,7 +3,7 @@ require "aux"
 
 local match = string.match
 
-local syms = { '{', '}', '(', ')', '[', ']', ',', '.' }
+local syms = { '{', '}', '(', ')', '[', ']', ',' }
 
 function err (tk, msg)
     error(FILE .. " : line " .. tk.lin .. " : near '" .. tk.str .."' : " .. msg, 0)
@@ -98,6 +98,22 @@ local function _lexer_ (str)
         -- symbols:  {  (  ,  ;
         elseif contains(syms, c) then
             coroutine.yield { tag='sym', str=c, lin=LIN }
+
+        elseif c == '.' then
+            local c2 = read()
+            if c2 ~= '.' then
+                unread()
+                coroutine.yield { tag='sym', str='.', lin=LIN }
+            else
+                local c3 = read()
+                if c3 ~= '.' then
+                    unread()
+                    coroutine.yield { tag='sym', str='.', lin=LIN }
+                    coroutine.yield { tag='sym', str='.', lin=LIN }
+                else
+                    coroutine.yield { tag='sym', str='...', lin=LIN }
+                end
+            end
 
         -- operators:  +  >=  #
         elseif contains(OPS.cs, c) then

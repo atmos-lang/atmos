@@ -46,7 +46,7 @@ function parser_list (sep, clo, f)
         end
         if sep then
             if check(sep) then
-                local x = accept_err(sep)
+                accept_err(sep)
                 if clo and check(clo) then
                     return l
                 end
@@ -75,5 +75,25 @@ function parser_list (sep, clo, f)
 end
 
 function parser_ids (clo)
-    return parser_list(",", clo, function () return accept_err(nil,"id") end)
+    return parser_list(",", clo, function () return accept_err(nil,'id') end)
+end
+
+function parser_dots_pars ()
+    if accept('...') then
+        return true, {}
+    else
+        local l = {}
+        if check(')') then
+            return false, l
+        end
+        l[#l+1] = accept_err(nil,'id')
+        while not check(')') do
+            accept_err(sep)
+            if accept('...') then
+                return true, l
+            end
+            l[#l+1] = accept(nil,'id')
+        end
+        return false, l
+    end
 end

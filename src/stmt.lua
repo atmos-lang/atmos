@@ -114,10 +114,10 @@ function parser_stmt ()
     elseif accept('func') then
         local id = accept_err(nil,'id')
         accept_err('(')
-        local pars = parser_ids(')')
+        local dots, pars = parser_dots_pars()
         accept_err(')')
         local ss = parser_curly()
-        local f = { tag='func', pars=pars, blk={tag='block',ss=ss} }
+        local f = { tag='func', dots=dots, pars=pars, blk={tag='block',ss=ss} }
         return { tag='dcl', tk={tag='key',str='var'}, ids={id}, sets={f}, custom='func' }
 
     -- do { ... }, defer { ... }

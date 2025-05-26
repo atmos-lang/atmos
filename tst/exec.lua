@@ -341,6 +341,17 @@ do
     print("Testing...", "func 4: mutual recursive")
     local out = exec_string("anon.atm", src)
     assert(out == "10\n")
+
+    local src = [[
+        func f (a, ...) {
+            print(a)
+            print('x', ...)
+        }
+        f('a', 1, 2, 3)
+    ]]
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assertx(out, "a\nx\t1\t2\t3\n")
 end
 
 -- IF-ELSE / LOOP

@@ -23,7 +23,7 @@ do
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
-    assert(stringify(s) == "{custom=func, ids={{lin=1, str=f, tag=id}}, sets={{blk={ss={{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, pars={{lin=1, str=v, tag=id}}, tag=func}}, tag=dcl, tk={str=var, tag=key}}")
+    assertx(stringify(s), "{custom=func, ids={{lin=1, str=f, tag=id}}, sets={{blk={ss={{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, str=v, tag=id}}, tag=func}}, tag=dcl, tk={str=var, tag=key}}")
 
     local src = [[
         val e = []

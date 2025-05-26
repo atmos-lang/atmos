@@ -534,6 +534,48 @@ do
     assertx(tostr_expr(e), "f")
 end
 
+print '-=- FUNC / ... / dots'
+
+do
+    local src = "func (...) {}"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assertx(trim(tostr_expr(e)), trim [[
+        func (...) {
+        }
+    ]])
+
+    local src = "func (..., a) {}"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assertx(msg, "anon : line 1 : near ',' : expected ')'")
+
+    local src = "func (a, ...) {}"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assertx(trim(tostr_expr(e)), trim [[
+        func (a, ...) {
+        }
+    ]])
+
+    local src = "..."
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assertx(tostr_expr(e), "...")
+end
+
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME / PUB
 
 do

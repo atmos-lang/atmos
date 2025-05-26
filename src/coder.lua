@@ -148,7 +148,16 @@ function coder_expr (e)
         return '('..coder_expr(e.f)..')('..concat(", ", map(e.args, coder_expr))..')'
     elseif e.tag == 'func' then
         local pars = concat(', ', map(e.pars, function (id) return id.str end))
-        return "function (" .. pars .. ") " ..
+        local dots = ''; do
+            if e.dots then
+                if #e.pars == 0 then
+                    dots = '...'
+                else
+                    dots = ', ...'
+                end
+            end
+        end
+        return "function (" .. pars .. dots .. ") " ..
             coder_stmts(e.blk.ss) ..
         " end"
     elseif e.tag == 'parens' then

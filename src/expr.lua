@@ -24,6 +24,10 @@ function parser_expr_prim_1 ()
     elseif accept(nil,'str') then
         return { tag='str', tk=TK0 }
 
+    -- ...
+    elseif accept('...') then
+        return { tag='dots', tk=TK0 }
+
     -- x, __v
     elseif accept(nil,'id') then
         return { tag='acc', tk=TK0 }
@@ -149,10 +153,10 @@ function parser_expr_prim_1 ()
     -- func () { ... }
     elseif accept('func') then
         accept_err('(')
-        local pars = parser_ids(')')
+        local dots, pars = parser_dots_pars()
         accept_err(')')
         local ss = parser_curly()
-        return { tag='func', pars=pars, blk={tag='block',ss=ss} }
+        return { tag='func', dots=dots, pars=pars, blk={tag='block',ss=ss} }
 
     -- if x => y => z
     elseif accept('if') then
