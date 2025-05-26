@@ -179,10 +179,10 @@ local function is_prefix (e)
 end
 
 
--- expr_5_out : v --> f     f <-- v    v where {...}    v thus {...}
--- expr_4_bin : a + b
--- expr_3_pre : -a    :T [...]
--- expr_X_met : v->f    f<-v
+-- expr_6_out : v --> f     f <-- v    v where {...}    v thus {...}
+-- expr_5_bin : a + b
+-- expr_4_pre : -a    :T [...]
+-- expr_3_met : v->f    f<-v
 -- expr_2_suf : v[0]    v.x    v.1    v.(:T).x    f()
 -- expr_1_prim
 
@@ -237,29 +237,29 @@ local function method (f, e, pre)
     end
 end
 
-function parser_expr_X_met (pre)
+function parser_expr_3_met (pre)
     local e = pre or parser_expr_2_suf()
     if accept('->') then
-        return parser_expr_X_met(method(parser_expr_2_suf(), e, true))
+        return parser_expr_3_met(method(parser_expr_2_suf(), e, true))
     elseif accept('<-') then
-        return method(e, parser_expr_X_met(parser_expr_2_suf()), false)
+        return method(e, parser_expr_3_met(parser_expr_2_suf()), false)
     else
         return e
     end
 end
 
-function parser_expr_3_pre ()
+function parser_expr_4_pre ()
     local ok = check(nil,'op') and contains(OPS.unos, TK1.str)
     if not ok then
-        return parser_expr_X_met()
+        return parser_expr_3_met()
     end
     local op = accept_err(nil,'op')
-    local e = parser_expr_3_pre()
+    local e = parser_expr_4_pre()
     return { tag='uno', op=op, e=e }
 end
 
-function parser_expr_bin_4 (pre)
-    local e1 = pre or parser_expr_3_pre()
+function parser_expr_5_bin (pre)
+    local e1 = pre or parser_expr_4_pre()
     local ok = check(nil,'op') and contains(OPS.bins, TK1.str)
     if not ok then
         return e1
@@ -268,8 +268,8 @@ function parser_expr_bin_4 (pre)
     if pre and pre.op.str ~= op.str then
         err(op, "binary operation error : use parentheses to disambiguate")
     end
-    local e2 = parser_expr_3_pre()
-    return parser_expr_bin_4 { tag='bin', op=op, e1=e1, e2=e2 }
+    local e2 = parser_expr_4_pre()
+    return parser_expr_5_bin { tag='bin', op=op, e1=e1, e2=e2 }
 end
 
-parser_expr = parser_expr_bin_4
+parser_expr = parser_expr_5_bin
