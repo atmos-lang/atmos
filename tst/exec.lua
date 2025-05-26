@@ -124,6 +124,18 @@ do
     print("Testing...", "do-escape 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "10\n")
+
+    local src = [[
+        val x = do :X {
+            var x
+            set x = [0]
+            escape(:X,x)   ;; escape but no access
+        }
+        dump(x)
+    ]]
+    print("Testing...", "do-escape 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{0}\n")
 end
 
 -- DCL / VAL / VAR / SET
@@ -357,6 +369,34 @@ do
     assertx(out, "{{0}}\n")
 
     local src = [[
+        func f (v) {
+            if v > 0 {
+                val x = f(v - 1)
+                return ([x]) ;; invalid return
+            } else {
+                return(0)
+            }
+        }
+        dump(f(3))
+    ]]
+    print("Testing...", "func 7: recursive table")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{{{0}}}\n")
+
+    local src = [[
+        func f (v) {
+            if v != 0 {
+                print(v)
+                f(v - 1)
+            }
+        }
+        f(3)
+    ]]
+    print("Testing...", "func 8: recursive")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "3\n2\n1\n")
+
+    local src = [[
         func f (a, ...) {
             print(a)
             print('x', ...)
@@ -445,7 +485,22 @@ do
     ]]
     print("Testing...", "loop 6")
     local out = exec_string("anon.atm", src)
-    assert(out=="x\t1\ny\t2\n" or "y\t2\nx\t1\n")
+    assert(out=="x\t1\ny\t2\n" or out=="y\t2\nx\t1\n")
+
+    local src = "print(if false => 1 => 2)"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out=="2\n")
+
+    local src = "print(if true => 1 => 2)"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out=="1\n")
+
+    local src = "print(if true => if true => 1 => 99 => 99)"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out=="1\n")
 end
 
 -- CATCH / THROW

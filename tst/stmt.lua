@@ -40,6 +40,18 @@ do
             (f)()
         }
     ]])
+
+    local src = [[
+        func f {        ;; TODO: implicit it?
+            print(it)
+        }
+    ]]
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near '{' : expected '('")
 end
 
 -- BLOCK / DO / ESCAPE / DEFER / SEQ / ; / MAIN
