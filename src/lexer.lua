@@ -10,7 +10,6 @@ function err (tk, msg)
 end
 
 local function _lexer_ (str)
-    str = str .. '\0'
     local i = 1
 
     local function read ()
@@ -210,12 +209,16 @@ local function _lexer_ (str)
 end
 
 function lexer_string (file, str)
+    str = str .. '\0'
     FILE = file
     LIN = 1
-    LEX = coroutine.wrap (
-        function ()
-            _lexer_(str, 1)
+    local co = coroutine.create(_lexer_)
+    LEX = function ()
+        local ok, v = coroutine.resume(co, str)
+        if not ok then
+            error(v, 0)
         end
-    )
+        return v
+    end
 end
 
