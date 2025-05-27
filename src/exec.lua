@@ -61,5 +61,5 @@ function do_string (file, src)
     ]])
     f:close()
 
-    return pcall(dofile, file..".lu")
+    return pcall(dofile, file..".lua")
 end

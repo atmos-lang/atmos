@@ -196,6 +196,7 @@ function parser_stmt ()
         local ss = parser_curly()
         return { tag='catch', cnd={e=xe,f=xf}, blk={tag='block',ss=ss} }
 
+    -- spawn {}, spawn T()
     elseif check('spawn') then
         local spw = parser_spawn()
         if spw.args[1].tag == 'nil' then
@@ -205,6 +206,22 @@ function parser_stmt ()
         else
             return { tag='expr', e=spw }
         end
+
+    -- every { ... }
+    elseif accept('every') then
+        local xe = parser_expr()
+        local xf = nil
+        if accept(',') then
+            local it = { tag='id', str="it" }
+            local xe = parser_expr()
+            local ret = { tag='return', es={xe} }
+            xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
+        end
+        local f = { tag='acc', tk={tag='id',str='await',lin=TK0.lin} }
+        local awt = { tag='call', f=f, args={xe,xf}, custom="await" }
+        local ss = parser_curly()
+        table.insert(ss, 1, { tag='expr', e=awt })
+        return { tag='loop', ids=nil, itr=nil, blk={tag='block',ss=ss} }
 
     -- call: f()
     else

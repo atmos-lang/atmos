@@ -478,3 +478,20 @@ do
     local ok, msg = pcall(parser_stmt)
     assertx(msg, "anon : line 1 : near 'tasks' : invalid tasks : expected pin declaraion")
 end
+
+print '-=- EVERY -=-'
+
+do
+    local src = "every :X {}"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check('<eof>'))
+    assertx(trim(tostr_stmt(s)), trim [[
+        loop {
+            await(:X)
+        }
+    ]])
+end

@@ -2962,3 +2962,21 @@ do
     local out = exec_string("anon.atm", src)
     assertx(out, "t\t1\nnil\nt\t2\nnil\nt\t1\n")
 end
+
+print '-=- EVERY -=-'
+
+do
+    local src = [[
+        spawn {
+            every :X {
+                print(:X)
+            }
+        }
+        emit(:X)
+        emit(:Y)
+        emit(:X)
+    ]]
+    print("Testing...", "tasks 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "X\nX\n")
+end

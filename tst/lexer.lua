@@ -159,12 +159,13 @@ end
 -- KEYWORDS, VAR
 
 do
-    local src = "x X await"
+    local src = "x X await every"
     print("Testing...", src)
     lexer_string("anon", src)
     assert(stringify(LEX()) == "{lin=1, str=x, tag=id}")
     assert(stringify(LEX()) == "{lin=1, str=X, tag=id}")
     assert(stringify(LEX()) == "{lin=1, str=await, tag=key}")
+    assert(stringify(LEX()) == "{lin=1, str=every, tag=key}")
 
     local src = "x-1 10-abc"
     print("Testing...", src)
