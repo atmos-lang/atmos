@@ -10,15 +10,18 @@ function parser_curly ()
     return ss
 end
 
+local function spawn (lin, ss)
+    local cmd = { tag='acc', tk={tag='id', str='spawn', lin=lin} }
+    local ts = { tag='nil', tk={tag='key',str='nil'} }
+    local f = { tag='func', pars={}, blk={tag='block',ss=ss} }
+    return { tag='call', f=cmd, args={ts,f}, custom="spawn" }
+end
+
 function parser_spawn ()
     accept_err('spawn')
     if check('{') then
         -- spawn { ... }
-        local cmd = { tag='acc', tk={tag='id', str='spawn', lin=TK0.lin} }
-        local ts = { tag='nil', tk={tag='key',str='nil'} }
-        local ss = parser_curly()
-        local f = { tag='func', pars={}, blk={tag='block',ss=ss} }
-        return { tag='call', f=cmd, args={ts,f}, custom="spawn" }
+        return spawn(TK0.lin, parser_curly())
     else
         -- spawn T(...)
         local tk = TK0
@@ -222,6 +225,35 @@ function parser_stmt ()
         }
         table.insert(ss, 1, dcl)
         return { tag='loop', ids=nil, itr=nil, blk={tag='block',ss=ss} }
+
+    -- par
+    elseif accept('par') then
+        local sss = { { TK1.lin, parser_curly() } }
+        while accept('with') do
+            sss[#sss+1] = { TK1.lin, parser_curly() }
+        end
+        local function f (t)
+            return { tag='expr', e=spawn(t[1],t[2]) }
+        end
+        local function await (stmt, xe, xf)
+            local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
+            local args = {}
+            if xe==false or xe==true then
+                args[#args+1] = { tag='bool', tk={str=tostring(xe)} }
+            else
+                error'TODO'
+            end
+            assert(xf == nil)
+            local awt = { tag='call', f=f, args=args, custom="await" }
+            if stmt then
+                return { tag='expr', e=awt }
+            else
+                return awt
+            end
+        end
+        local ss = map(sss,f)
+        ss[#ss+1] = await(true, false, nil)
+        return { tag='block', ss=ss }
 
     -- call: f()
     else

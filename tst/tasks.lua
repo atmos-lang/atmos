@@ -2976,7 +2976,7 @@ do
         emit(:Y)
         emit(:X)
     ]]
-    print("Testing...", "tasks 1")
+    print("Testing...", "every 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "X\nX\n")
 
@@ -2990,7 +2990,31 @@ do
         emit(:Y)
         emit(:X,10)
     ]]
-    print("Testing...", "every 1")
+    print("Testing...", "every 2")
     local out = exec_string("anon.atm", src)
     assertx(out, "X\t10\n")
+end
+
+print '-=- PAR -=-'
+
+do
+    local src = [[
+        spawn {
+            par {
+                every :X {
+                    print(:X)
+                }
+            } with {
+                every :Y {
+                    print(:Y)
+                }
+            }
+        }
+        emit(:X)
+        emit(:Y)
+        emit(:X)
+    ]]
+    print("Testing...", "par 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "X\nY\nX\n")
 end
