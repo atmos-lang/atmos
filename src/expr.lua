@@ -3,18 +3,55 @@ Expr = {}   -- solves mutual require with stmt.lua
 require "parser"
 _ = Stmt or require "stmt"
 
-local units = { h=60*60*1000, min=60*1000, s=1000, ms=1 }
-
 function parser_await (lin)
-    local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
-    local xe = parser_expr()
-    local xf = nil
-    if accept(',') then
+    local xe, xf = nil, nil
+    local clk = accept(nil,'clk')
+    if clk then
+        local function f (v, mul)
+            if tonumber(v) then
+                return { tag='bin', op={str='*'}, e1={tag='num',tk={str=v}}, e2={tag='num',tk={str=tostring(mul)}} }
+            else
+                return { tag='bin', op={str='*'}, e1={tag='acc',tk={str=v}}, e2={tag='num',tk={str=tostring(mul)}} }
+            end
+        end
+        local clk = clk.clk; do
+            clk[1] = f(clk[1], 60*60*1000)
+            clk[2] = f(clk[2], 60*1000)
+            clk[3] = f(clk[3], 1000)
+            clk[4] = f(clk[4], 1)
+        end
+
+        xe = { tag='tag', tk={tag='tag',str='clock'} }
         local it = { tag='id', str="evt" }
-        local xe = parser_expr()
-        local ret = { tag='return', es={xe} }
+        local vs = map(clk, f)
+        local sum = {
+            tag = 'bin',
+            op  = {str='+'},
+            e1  = clk[1],
+            e2  = {
+                tag = 'bin',
+                op  = {str='+'},
+                e1  = clk[2],
+                e2  = {
+                    tag = 'bin',
+                    op  = {str='+'},
+                    e1  = clk[3],
+                    e2  = clk[4],
+                },
+            },
+         }
+        local ret = { tag='return', es={{tag='bin', op={str='>='}, e1={tag='acc',tk=it}, e2=sum}} }
         xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
+    else
+        xe = parser_expr()
+        if accept(',') then
+            local it = { tag='id', str="evt" }
+            local xe = parser_expr()
+            local ret = { tag='return', es={xe} }
+            xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
+        end
     end
+    local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
     return { tag='call', f=f, args={xe,xf}, custom="await" }
 end
 

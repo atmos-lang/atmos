@@ -792,26 +792,7 @@ do
         })
     ]])
 
-    local src = "await (@10:20:100.100)"
-    print("Testing...", src)
-    init()
-    lexer_string("anon", src)
-    parser()
-    local ok, msg = pcall(parser_expr)
-    assertx(msg, "anon : line 1 : near '<eof>' : expected expression")
-
-    local src = "await(:10:min:(v):s)"
-    print("Testing...", src)
-    init()
-    lexer_string("anon", src)
-    parser()
-    local e = parser_expr()
-    assert(check('<eof>'))
-    assertx(tostr_expr(e), trim [[
-        TODO
-    ]])
-
-    local src = "await(@(1_min_10_s_n_ms)"
+    local src = "await (@20:x.100)"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
