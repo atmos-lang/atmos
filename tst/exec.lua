@@ -6,7 +6,7 @@ require "tostr"
 require "coder"
 require "exec"
 
--- EXPR / STRING / TAG
+-- EXPR / STRING / TAG / NATIVE
 
 do
     local src = [[
@@ -26,6 +26,14 @@ do
     local out = exec_string("anon.atm", src)
     assertx(out, "abc\n{1, 2, 3}\n")
 
+    local src = [[
+        ```
+        print 'ok'
+        ```
+    ]]
+    print("Testing...", "native 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
 end
 
 -- BLOCK / DO / ESCAPE / DEFER
@@ -864,7 +872,7 @@ do
     warnx(out, "ok\n")  -- TODO: call stack
 end
 
-print '-=- TASKS -=-'
+print '--- TASKS ---'
 
 do
     local src = [[
@@ -1013,7 +1021,7 @@ do
     assertx(out, "true\ntrue\n")
 end
 
-print '-=- IS / IN -=-'
+print '--- IS / IN ---'
 
 do
     local src = [[
@@ -1047,7 +1055,7 @@ do
     assertx(out, "true\nfalse\nfalse\ntrue\n")
 end
 
-print '-=- CALL / METHOD / PIPE -=-'
+print '--- CALL / METHOD / PIPE ---'
 
 do
     local src = "print(10 -> 10)"

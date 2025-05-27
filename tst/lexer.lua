@@ -154,6 +154,17 @@ do
     lexer_string("anon", src)
     assert(trim(LEX().str) == "x")
     assert(trim(LEX().str) == '""\n"""""\n"""""')
+
+    local src = [[
+        '''
+        ''
+        '''''
+        ''''
+    ]]
+    print("Testing...", "string 3: multi-line unterminated")
+    lexer_string("anon", src)
+    local ok, msg = pcall(LEX)
+    assertx(msg, "anon : line 1 : near ''''' : unterminated string")
 end
 
 -- KEYWORDS, VAR
@@ -272,4 +283,24 @@ do
     assert(LEX().str == '(')
     assert(LEX().str == ')')
     assert(LEX().str == ':')
+end
+
+print "--- NATIVE ---"
+
+do
+    local src = "` abc `"
+    print("Testing...", src)
+    lexer_string("anon", src)
+    assertx(stringify(LEX()), "{lin=1, str= abc , tag=nat}")
+
+    local src = "``` \n ```` \n `` \n ```"
+    print("Testing...", "native 1")
+    lexer_string("anon", src)
+    assertx(stringify(LEX()), "{lin=1, str= \n ```` \n `` \n , tag=nat}")
+
+    local src = "``` \n ```` \n `` \n `````"
+    print("Testing...", "native 2")
+    lexer_string("anon", src)
+    local ok, msg = pcall(LEX)
+    assertx(msg, "anon : line 1 : near '```' : unterminated native")
 end

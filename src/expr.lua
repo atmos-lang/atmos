@@ -37,6 +37,10 @@ function parser_expr_1_prim ()
     elseif accept(nil,'str') then
         return { tag='str', tk=TK0 }
 
+    -- `xxx`, ```xxx```
+    elseif accept(nil,'nat') then
+        return { tag='nat', tk=TK0 }
+
     -- ...
     elseif accept('...') then
         return { tag='dots', tk=TK0 }
@@ -178,6 +182,7 @@ local function is_prefix (e)
     return (
         e.tag == 'tag'    or
         e.tag == 'acc'    or
+        e.tag == 'nat'    or
         e.tag == 'call'   or
         e.tag == 'index'  or
         e.tag == 'parens'

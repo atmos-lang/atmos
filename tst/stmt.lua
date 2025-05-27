@@ -4,7 +4,7 @@ require "lexer"
 require "stmt"
 require "tostr"
 
--- CALL / FUNC
+print '--- CALL / FUNC / NATIVE ---'
 
 do
     local src = "f(x,y)"
@@ -52,6 +52,14 @@ do
     parser()
     local ok, msg = pcall(parser_main)
     assertx(msg, "anon : line 1 : near '{' : expected '('")
+
+    local src = "`print('ok')`"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assertx(tostr_stmt(s), "`print('ok')`")
 end
 
 -- BLOCK / DO / ESCAPE / DEFER / SEQ / ; / MAIN
@@ -479,7 +487,7 @@ do
     assertx(msg, "anon : line 1 : near 'tasks' : invalid tasks : expected pin declaraion")
 end
 
-print '-=- AWAIT / EVERY -=-'
+print '--- AWAIT / EVERY ---'
 
 do
     local src = "every :X {}"

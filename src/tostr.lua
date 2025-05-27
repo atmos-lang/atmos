@@ -58,6 +58,8 @@ function tostr_expr (e)
         return e.tk.str
     elseif e.tag == 'str' then
         return '"' .. e.tk.str .. '"'
+    elseif e.tag == 'nat' then
+        return '`' .. e.tk.str .. '`'
     elseif e.tag == 'uno' then
         return e.op.str..tostr_expr(e.e)
     elseif e.tag == 'bin' then

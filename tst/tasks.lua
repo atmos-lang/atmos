@@ -574,7 +574,7 @@ do
     assertx(out, "{1}\n")
 end
 
-print "-=- EMIT / SCOPE -=-"
+print "--- EMIT / SCOPE ---"
 
 do
     local src = [[
@@ -833,7 +833,7 @@ do
     assertx(out, "ok\n")
 end
 
-print "-=- EMIT / ALIEN -=-"
+print "--- EMIT / ALIEN ---"
 
 do
     local src = [[
@@ -1189,7 +1189,7 @@ do
     assertx(out, "1\n2\n1\n2\n")
 end
 
-print "-=- EMIT / IN -=-"
+print "--- EMIT / IN ---"
 
 do
     local src = [[
@@ -1250,7 +1250,7 @@ do
     warn(false, 'TODO :parent')
 end
 
-print '-=- TASK / TERMINATION -=-'
+print '--- TASK / TERMINATION ---'
 
 do
     local src = [[
@@ -1318,7 +1318,7 @@ do
     assertx(out, "0\n1\ta\n2\ttrue\n")
 end
 
-print '-=- PUB -=-'
+print '--- PUB ---'
 
 do
     local src = [[
@@ -1388,7 +1388,7 @@ do
     assertx(out, "{}\n")
 end
 
-print '-=- NESTED -=-'
+print '--- NESTED ---'
 
 do
     local src = [[
@@ -1504,7 +1504,7 @@ do
     assertx(out, "1\n2\n3\nEND\n")
 end
 
-print '-=- ABORTION -=-'
+print '--- ABORTION ---'
 
 do
     local src = [[
@@ -2348,7 +2348,7 @@ do
     assertx(out, "1\n2\n3\n4\n5\n6\nok\n7\n8\n")
 end
 
-print '-=- THROW / CATCH -=-'
+print '--- THROW / CATCH ---'
 
 do
     local src = [[
@@ -2574,7 +2574,7 @@ do
     assertx(out, "1\n2\n99\n")
 end
 
-print '-=- RETURN -=-'
+print '--- RETURN ---'
 
 do
     local src = [[
@@ -2607,7 +2607,7 @@ do
     assertx(out, "10\nok\n")
 end
 
-print '-=- TASKS -=-'
+print '--- TASKS ---'
 
 do
     local src = [[
@@ -2963,7 +2963,7 @@ do
     assertx(out, "t\t1\nnil\nt\t2\nnil\nt\t1\n")
 end
 
-print '-=- EVERY -=-'
+print '--- EVERY ---'
 
 do
     local src = [[
@@ -2995,7 +2995,7 @@ do
     assertx(out, "X\t10\n")
 end
 
-print '-=- PAR -=-'
+print '--- PAR ---'
 
 do
     local src = [[

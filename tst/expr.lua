@@ -87,7 +87,11 @@ do
     local e2 = parser_expr()
     assert(check('<eof>'))
     assert(stringify(e2) == "{tag=bool, tk={lin=1, str=true, tag=key}}")
+end
 
+print '--- STRING / NATIVE ---'
+
+do
     local src = ":x :1:_"
     print("Testing...", src)
     init()
@@ -108,6 +112,22 @@ do
     assert(stringify(e1) == "{tag=str, tk={lin=1, str=xxx, tag=str}}")
     local e2 = parser_expr()
     assert(stringify(e2) == "{tag=str, tk={lin=2, str=1\n2\n, tag=str}}")
+
+    local src = "```f()```"
+    print("Testing...", "native 1")
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assertx(stringify(e), "{tag=nat, tk={lin=1, str=f(), tag=nat}}")
+
+    local src = "`f`()"
+    print("Testing...", "native 2")
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assertx(tostr_expr(e), "`f`()")
 end
 
 -- TABLE / INDEX
@@ -425,7 +445,7 @@ do
     assert(tostr_expr(e) == "x and 10 or 20")
 end
 
-print '-=- IS / IN -=-'
+print '--- IS / IN ---'
 
 do
     local src = "a ?? b"
@@ -552,7 +572,7 @@ do
     assertx(tostr_expr(e), "f")
 end
 
-print '-=- FUNC / ... / dots'
+print '--- FUNC / ... / dots ---'
 
 do
     local src = "func (...) {}"
@@ -594,7 +614,7 @@ do
     assertx(tostr_expr(e), "...")
 end
 
-print '-=- CALL / METHOD / PIPE -=-'
+print '--- CALL / METHOD / PIPE ---'
 
 do
     local src = "10->f()"

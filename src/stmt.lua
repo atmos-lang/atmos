@@ -255,11 +255,11 @@ function parser_stmt ()
         ss[#ss+1] = await(true, false, nil)
         return { tag='block', ss=ss }
 
-    -- call: f()
+    -- call: f(), nat: `xxx`
     else
         local tk = TK1
         local e = parser_expr()
-        if e.tag == 'call' then
+        if e.tag=='call' or e.tag=='nat' then
             return { tag='expr', e=e }
         else
             err(tk, "expected statement")

@@ -119,6 +119,8 @@ function coder_expr (e)
         else
             return L(e.tk) .. tostr_expr(e)
         end
+    elseif e.tag == 'nat' then
+        return L(e.tk) .. e.tk.str
     elseif e.tag == 'index' then
         return '(' .. coder_expr(e.t) .. ")[atm_idx(" .. coder_expr(e.idx) .. ')]'
     elseif e.tag == 'table' then

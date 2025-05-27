@@ -171,6 +171,35 @@ local function _lexer_ (str)
                 coroutine.yield { tag='num', str=num, lin=LIN }
             end
 
+        elseif c=='`' then
+            local lin = LIN
+            local pre = read_while(c, C(c))
+            local n1 = string.len(pre)
+            local v = ''
+            if n1 == 2 then
+                v = ''
+            elseif n1 == 1 then
+                v = read_until(v, M("[\n"..c.."]"))
+                if string.sub(str,i,i) == '\n' then
+                    err({str=string.sub(str,i-1,i-1),lin=lin}, "unterminated native")
+                end
+                assert(c == read())
+            else
+                while true do
+                    v = read_until(v, C(c))
+                    if not v then
+                        err({str=pre,lin=lin}, "unterminated native")
+                    end
+                    local pos = read_while('', C(c))
+                    local n2 = string.len(pos)
+                    if n1 == n2 then
+                        break
+                    end
+                    v = v .. pos
+                end
+            end
+            coroutine.yield { tag='nat', str=v, lin=lin }
+
         elseif c=='"' or c=="'" then
             local lin = LIN
             local pre = read_while(c, C(c))
@@ -187,6 +216,9 @@ local function _lexer_ (str)
             else
                 while true do
                     v = read_until(v, C(c))
+                    if not v then
+                        err({str=pre,lin=lin}, "unterminated string")
+                    end
                     local pos = read_while('', C(c))
                     local n2 = string.len(pos)
                     if n1 == n2 then
