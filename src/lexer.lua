@@ -138,6 +138,33 @@ local function _lexer_ (str)
                 coroutine.yield { tag='op', str=op, pre=pre, reg=reg, sub=sub, pos=pos }
             end
 
+        -- clock
+        elseif c == '@' then
+            local t = read_while('', M"[%w_:%.]")
+            local h,min,s,ms = string.match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)%.([^:%.]+)$')
+            if not h then
+                h,min,s = string.match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)$')
+                if not h then
+                    min,s,ms = string.match(t, '^([^:%.]+):([^:%.]+)%.([^:%.]+)$')
+                    if not min then
+                        min,s = string.match(t, '^([^:%.]+):([^:%.]+)$')
+                        if not min then
+                            s,ms = string.match(t, '^([^:%.]+)%.([^:%.]+)$')
+                            if not s then
+                                s = string.match(t, '^([^:%.]+)$')
+                                if not s then
+                                    ms = string.match(t, '^%.([^:%.]+)$')
+                                    if not ms then
+                                        err({str=t,lin=LIN}, "invalid clock")
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            coroutine.yield { tag='clk', str=t, clk={h or 0, min or 0, s or 0, ms or 0}, lin=LIN }
+
         -- tags:  :X  :a:b:c
         elseif c == ':' then
             local tag = read_while(':', M"[%w_:]")

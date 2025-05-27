@@ -792,7 +792,7 @@ do
         })
     ]])
 
-    local src = "await (:10:k)"
+    local src = "await (@10:20:100.100)"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
@@ -811,7 +811,7 @@ do
         TODO
     ]])
 
-    local src = "await(@(1min(x)ms)"
+    local src = "await(@(1_min_10_s_n_ms)"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
@@ -821,5 +821,4 @@ do
     assertx(tostr_expr(e), trim [[
         TODO
     ]])
-
 end
