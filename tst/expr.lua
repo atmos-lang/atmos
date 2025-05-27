@@ -766,6 +766,19 @@ do
     local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near 'spawn' : expected expression")
 
+    local src = "pub"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), 'pub')
+end
+
+print '-=- AWAIT -=-'
+
+do
     local src = "await(:X, x+10)"
     print("Testing...", src)
     init()
@@ -779,12 +792,34 @@ do
         })
     ]])
 
-    local src = "pub"
+    local src = "await (:10:k)"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assertx(msg, "anon : line 1 : near '<eof>' : expected expression")
+
+    local src = "await(:10:min:(v):s)"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), 'pub')
+    assertx(tostr_expr(e), trim [[
+        TODO
+    ]])
+
+    local src = "await(@(1min(x)ms)"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), trim [[
+        TODO
+    ]])
+
 end

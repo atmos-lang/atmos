@@ -3,6 +3,8 @@ Expr = {}   -- solves mutual require with stmt.lua
 require "parser"
 _ = Stmt or require "stmt"
 
+local units = { h=60*60*1000, min=60*1000, s=1000, ms=1 }
+
 function parser_await (lin)
     local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
     local xe = parser_expr()
