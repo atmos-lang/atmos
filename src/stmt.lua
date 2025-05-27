@@ -209,6 +209,7 @@ function parser_stmt ()
 
     -- every { ... }
     elseif accept('every') then
+        local par = accept('(')
         local xe = parser_expr()
         local xf = nil
         if accept(',') then
@@ -219,6 +220,9 @@ function parser_stmt ()
         end
         local f = { tag='acc', tk={tag='id',str='await',lin=TK0.lin} }
         local awt = { tag='call', f=f, args={xe,xf}, custom="await" }
+        if par then
+            accept_err(')')
+        end
         local ss = parser_curly()
         table.insert(ss, 1, { tag='expr', e=awt })
         return { tag='loop', ids=nil, itr=nil, blk={tag='block',ss=ss} }

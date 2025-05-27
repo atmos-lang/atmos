@@ -2979,4 +2979,18 @@ do
     print("Testing...", "tasks 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "X\nX\n")
+
+    local src = [[
+        spawn {
+            every (:X, it==10) {
+                print(:X)
+            }
+        }
+        emit(:X)
+        emit(:Y)
+        emit(:X,10)
+    ]]
+    print("Testing...", "every 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "X\n")
 end
