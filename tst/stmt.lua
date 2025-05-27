@@ -409,15 +409,15 @@ do
     --assertx(msg, "anon : line 1 : near '{' : expected <tag>")
     assert(not ok and msg=="anon : line 1 : near '{' : expected expression")
 
-    local src = "catch true, it>0 { }"
+    local src = "catch true, err>0 { }"
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
     local s = parser_stmt()
     assert(check('<eof>'))
     assert(trim(tostr_stmt(s)) == trim [[
-        catch true, func (it) {
-            return(it > 0)
+        catch true, func (err) {
+            return(err > 0)
         } {
         }
     ]])
@@ -479,7 +479,7 @@ do
     assertx(msg, "anon : line 1 : near 'tasks' : invalid tasks : expected pin declaraion")
 end
 
-print '-=- EVERY -=-'
+print '-=- AWAIT / EVERY -=-'
 
 do
     local src = "every :X {}"

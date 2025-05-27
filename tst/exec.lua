@@ -560,9 +560,9 @@ do
 
     local src = [[
         print(:1)
-        catch true, it==10 {
+        catch true, err==10 {
             print(:2)
-            catch true, it!=10 {
+            catch true, err!=10 {
                 print(:3)
                 throw(10)
                 print(:4)

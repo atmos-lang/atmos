@@ -478,7 +478,7 @@ do
                 var evt2 = evtx
                 loop {
                     print(evt2)    ;; lost reference
-                    set evt2 = await(true, type(it)!='table')
+                    set evt2 = await(true, type(evt)!='table')
                 }
             }) ()
             set evt1 = await(true)
@@ -510,7 +510,7 @@ do
         var T = func () {
             do {
                 var v =
-                    await(true) ;;thus { it => it }
+                    await(true)
                 dump(v)
             }
         }
@@ -654,9 +654,9 @@ do
         var tk
         set tk = func (v) {
             print(v)
-            val e1 = await(true, (type(it)!='table') || (it['tag']!='task'))
+            val e1 = await(true, (type(evt)!='table') || (evt['tag']!='task'))
             dump(e1)
-            val e2 = await(true, (type(it)!='table') || (it['tag']!='task'))
+            val e2 = await(true, (type(evt)!='table') || (evt['tag']!='task'))
             dump(e2)
         }
         print(:1)
@@ -806,17 +806,17 @@ do
 
     local src = [[
         var T1 = func () {
-            await(true) ;;thus { it => nil}
+            await(true)
             spawn( func () {                ;; GC = task (no more)
-                val xevt = await(true) ;;thus { it => it}
+                val xevt = await(true)
                 print(:1)
                 var v = xevt
             } )()
         }
         pin t1 = spawn T1()
         var T2 = func () {
-            await(true) ;;thus { it => nil}
-            val xevt = await(true) ;;thus { it => nil}
+            await(true)
+            val xevt = await(true)
             ;;print(:2)
             do {
                 var v = xevt
@@ -933,7 +933,7 @@ do
             dump(x)      ;; x will be freed and v would contain dangling pointer
         }
         var T = func () {
-            f(await(true)) ;;thus { it => it})
+            f(await(true))
         }
         spawn T()
         emit ([[1]])
@@ -980,9 +980,9 @@ do
         var tk
         set tk = func (v) {
             print(v)
-            val e1 = await(true, type(it)!='table')
+            val e1 = await(true, type(evt)!='table')
             print(:e1,e1)
-            val e2 = await(true, type(it)!='table')
+            val e2 = await(true, type(evt)!='table')
             print(:e2,e2)
         }
         print(:1)
@@ -1488,7 +1488,7 @@ do
                     await(true)
                     print(:2)
                 }) ()
-                loop { await(true) } ;;thus { it => nil }
+                loop { await(true) }
             }
             print(333)
         }) ()
@@ -1582,10 +1582,10 @@ do
                             await(true)
                             print(:1)
                         }) ()
-                        await(true, it==t2)
+                        await(true, evt==t2)
                         print(:2)
                     }) ()
-                    await(true, it==t1)
+                    await(true, evt==t1)
                     print(:3)
                 }
                 await(:X)
@@ -2711,7 +2711,7 @@ do
     local src = [[
         val T = func () {
             set pub = []
-            await(true) ;;thus { it=>nil }
+            await(true)
         }
         pin ts = tasks(1)
         do {
@@ -2760,9 +2760,9 @@ do
                 print(20)
                 print(30)
             }
-            await(true, it !? :task)
+            await(true, evt !? :task)
             if v {
-                await(true, it !? :task)
+                await(true, evt !? :task)
             }
         }
         print(0)
@@ -2787,9 +2787,9 @@ do
                 print(20)
                 print(30)
             }
-            await(true, it !? :task)
+            await(true, evt !? :task)
             if v {
-                await(true, it !? :task)
+                await(true, evt !? :task)
             }
         }
         print(0)
@@ -2982,7 +2982,7 @@ do
 
     local src = [[
         spawn {
-            every (:X, it==10) {
+            every (:X, evt==10) {
                 print(:X)
             }
         }

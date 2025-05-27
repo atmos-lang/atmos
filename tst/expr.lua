@@ -753,8 +753,8 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == trim [[
-        await(:X, func (it) {
+    assertx(tostr_expr(e), trim [[
+        await(:X, func (evt) {
             return(x + 10)
         })
     ]])

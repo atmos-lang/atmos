@@ -188,7 +188,7 @@ function parser_stmt ()
         local xe = parser_expr()
         local xf = nil
         if accept(',') then
-            local it = { tag='id', str="it" }
+            local it = { tag='id', str="err" }
             local e = parser_expr()
             local ret = { tag='return', es={e} }
             xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
@@ -209,17 +209,9 @@ function parser_stmt ()
 
     -- every { ... }
     elseif accept('every') then
+        local lin = TK0.lin
         local par = accept('(')
-        local xe = parser_expr()
-        local xf = nil
-        if accept(',') then
-            local it = { tag='id', str="it" }
-            local xe = parser_expr()
-            local ret = { tag='return', es={xe} }
-            xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
-        end
-        local f = { tag='acc', tk={tag='id',str='await',lin=TK0.lin} }
-        local awt = { tag='call', f=f, args={xe,xf}, custom="await" }
+        local awt = parser_await(lin)
         if par then
             accept_err(')')
         end

@@ -3,6 +3,19 @@ Expr = {}   -- solves mutual require with stmt.lua
 require "parser"
 _ = Stmt or require "stmt"
 
+function parser_await (lin)
+    local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
+    local xe = parser_expr()
+    local xf = nil
+    if accept(',') then
+        local it = { tag='id', str="evt" }
+        local xe = parser_expr()
+        local ret = { tag='return', es={xe} }
+        xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
+    end
+    return { tag='call', f=f, args={xe,xf}, custom="await" }
+end
+
 function parser_expr_1_prim ()
     -- nil
     if accept('nil') then
@@ -108,18 +121,11 @@ function parser_expr_1_prim ()
 
     -- await(...)
     elseif accept('await') then
-        local f = { tag='acc', tk={tag='id',str='await',lin=TK0.lin} }
+        local lin = TK0.lin
         accept_err('(')
-        local xe = parser_expr()
-        local xf = nil
-        if accept(',') then
-            local it = { tag='id', str="it" }
-            local xe = parser_expr()
-            local ret = { tag='return', es={xe} }
-            xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
-        end
+        local awt = parser_await(lin)
         accept_err(')')
-        return { tag='call', f=f, args={xe,xf}, custom="await" }
+        return awt
 
     -- resume co(...)
     elseif accept('resume') then
