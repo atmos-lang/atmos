@@ -2983,7 +2983,7 @@ do
     local src = [[
         spawn {
             every (:X, evt==10) {
-                print(:X)
+                print(:X, evt)
             }
         }
         emit(:X)
@@ -2992,5 +2992,5 @@ do
     ]]
     print("Testing...", "every 1")
     local out = exec_string("anon.atm", src)
-    assertx(out, "X\n")
+    assertx(out, "X\t10\n")
 end

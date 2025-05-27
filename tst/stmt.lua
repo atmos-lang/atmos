@@ -491,7 +491,7 @@ do
     assert(check('<eof>'))
     assertx(trim(tostr_stmt(s)), trim [[
         loop {
-            await(:X)
+            val evt = await(:X)
         }
     ]])
 end

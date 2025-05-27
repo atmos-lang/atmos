@@ -216,7 +216,11 @@ function parser_stmt ()
             accept_err(')')
         end
         local ss = parser_curly()
-        table.insert(ss, 1, { tag='expr', e=awt })
+        local dcl = {
+            tag='dcl', tk={tag='key',str='val'},
+            ids={{tag='id',str='evt'}}, sets={awt}
+        }
+        table.insert(ss, 1, dcl)
         return { tag='loop', ids=nil, itr=nil, blk={tag='block',ss=ss} }
 
     -- call: f()
