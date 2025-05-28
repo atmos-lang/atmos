@@ -321,6 +321,65 @@ function parser_stmt ()
         local ss2 = map(sss,f2)
         return { tag='block', ss=concat(ss1,ss2) }
 
+    -- par_or
+    elseif accept('par_or') then
+        local sss = { { TK1.lin, parser_curly() } }
+        while accept('with') do
+            sss[#sss+1] = { TK1.lin, parser_curly() }
+        end
+        local function f1 (t,i)
+            return {
+                tag  = 'dcl',
+                tk   = { tag='key', str='val' },
+                ids  = { {tag='id', str='atm_'..i} },
+                sets = { spawn(t[1],t[2]) },
+            }
+        end
+        local function f2 (i)
+            if i > #sss then
+                return { tag='bool', tk={str='false'} }
+            else
+                return {
+                    tag = 'bin',
+                    op  = {str = '||'},
+                    e1  = {
+                        tag = 'parens',
+                        e = {
+                            tag = 'bin',
+                            op  = { str='==' },
+                            e1  = { tag='acc', tk={str="evt"} },
+                            e2  = { tag='acc', tk={str="atm_"..i} },
+                        },
+                    },
+                    e2  = f2(i+1),
+                }
+            end
+        end
+        local ss = map(sss,f1)
+        local awt = {
+            tag = 'expr',
+            e = {
+                tag = 'call',
+                f = { tag='acc', tk={tag='id',str='await'} },
+                args = {
+                    { tag='bool', tk={str='true'} },
+                    {
+                        tag  = 'func',
+                        pars = { {tag='id',str="evt"} },
+                        blk  = {
+                            tag = 'block',
+                            ss  = {
+                                { tag='return', es={f2(1)} },
+                            },
+                        },
+                    },
+                },
+                custom = "await",
+            },
+        }
+        ss[#ss+1] = awt
+        return { tag='block', ss=ss }
+
     -- call: f(), nat: `xxx`
     else
         local tk = TK1

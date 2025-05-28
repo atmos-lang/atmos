@@ -3055,4 +3055,23 @@ do
     print("Testing...", "par_and 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "antes\nok\ndepois\n")
+
+    local src = [[
+        spawn {
+            par_or {
+                await(:X)
+            } with {
+                await(:Y)
+            }
+            print(:ok)
+        }
+        emit(:X)
+        emit(:X)
+        print(:antes)
+        emit(:Y)
+        print(:depois)
+    ]]
+    print("Testing...", "par_or 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\nantes\ndepois\n")
 end
