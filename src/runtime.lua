@@ -37,10 +37,11 @@ function atm_exec (file, src)
 
     local v, msg = pcall(f)
     if not v then
---print('ERR', msg)
         local filex, lin, msg = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
         --print(file, filex, lin, msg)
-        assert(file == filex)
+        if file ~= filex then
+            error('internal error : ' .. msg)
+        end
         io.stderr:write(file..' : line '..lin..' : '..msg..'\n')
         return nil
     end

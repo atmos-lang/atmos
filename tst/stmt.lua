@@ -279,7 +279,7 @@ do
     assertx(tostr_stmt(s), 'set pub = 10')
 end
 
--- IF-ELSE
+-- IF-ELSE / IFS
 
 do
     local src = "if cnd { } else { val f }"
@@ -392,6 +392,27 @@ do
             if x {
             } else {
                 break
+            }
+        }
+    ]])
+
+    local src = "ifs { a=>print(b) ; c => {} ; else => { f() } }"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check('<eof>'))
+    assertx(trim(tostr_stmt(s)), trim [[
+        if a {
+            print(b)
+        } else {
+            if c {
+            } else {
+                if true {
+                    f()
+                } else {
+                }
             }
         }
     ]])

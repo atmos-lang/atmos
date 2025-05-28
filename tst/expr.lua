@@ -434,7 +434,11 @@ do
     parser()
     local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near ')' : expected expression")
+end
 
+print '--- IF / IFS ---'
+
+do
     local src = "if x => 10 => 20"
     print("Testing...", src)
     init()
@@ -442,7 +446,16 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "x and 10 or 20")
+    assertx(tostr_expr(e), "(x and 10) or 20")
+
+    local src = "ifs { x => 10 ; y => nil ; else => 20 }"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "(x and 10) or ((y and nil) or ((true and 20) or (nil)))")
 end
 
 print '--- IS / IN ---'

@@ -518,6 +518,16 @@ do
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assert(out=="1\n")
+
+    local src = "print(ifs { false=>99 ; true=>100 })"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assertx(out, "100\n")
+
+    local src = "print(ifs { false=>0 ; true=>nil ; else=>99 })"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    warnx(out, "nil\n") -- TODO: true=>nil
 end
 
 -- CATCH / THROW

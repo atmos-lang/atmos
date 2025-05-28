@@ -213,7 +213,36 @@ function parser_expr_1_prim ()
         local t = parser_expr()
         accept_err('=>')
         local f = parser_expr()
-        return { tag='bin', op={str='or'}, e1={tag='bin',op={str='and'},e1=cnd,e2=t}, e2=f }
+        return { tag='bin', op={str='or'}, e1={tag='parens', e={tag='bin',op={str='and'},e1=cnd,e2=t}}, e2=f }
+
+    -- ifs { x => a ; y => b ; else => c }
+    elseif accept('ifs') then
+        local t = {}
+        accept_err('{')
+        while not check('}') do
+            local brk = false
+            local cnd; do
+                if accept('else') then
+                    brk = true
+                    cnd = { tag='bool', tk={str='true'} }
+                else
+                    cnd = parser_expr()
+                end
+            end
+            accept_err('=>')
+            local e = parser_expr()
+            t[#t+1] = { cnd, e }
+            if brk then
+                break
+            end
+        end
+        accept_err('}')
+        local function F (i)
+            local cnd, e = table.unpack(t[i])
+            local f = (i < #t) and F(i+1) or {tag='nil',tk={str='nil'}}
+            return { tag='bin', op={str='or'}, e1={tag='parens', e={tag='bin',op={str='and'},e1=cnd,e2=e}}, e2={tag='parens', e=f} }
+        end
+        return F(1)
 
     else
         err(TK1, "expected expression")

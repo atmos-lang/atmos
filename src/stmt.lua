@@ -163,6 +163,47 @@ function parser_stmt ()
         end
         return { tag='if', cnd=cnd, t={tag='block',ss=t}, f={tag='block',ss=f} }
 
+    -- ifs
+    elseif accept('ifs') then
+        accept_err('{')
+        local t = {}
+        while not check('}') do
+            local brk = false
+            local cnd; do
+                if accept('else') then
+                    brk = true
+                    cnd = { tag='bool', tk={str='true'} }
+                else
+                    cnd = parser_expr()
+                end
+            end
+            accept_err('=>')
+            local ss; do
+                if check('{') then
+                    ss = parser_curly()
+                else
+                    ss = { parser_stmt() }
+                end
+            end
+            t[#t+1] = { cnd, ss }
+            if brk then
+                break
+            end
+        end
+        accept_err('}')
+        local function F (i)
+            local cnd, ss = table.unpack(t[i])
+            local f; do
+                if i < #t then
+                    f = { tag='block', ss={F(i+1)} }
+                else
+                    f = { tag='block', ss={} }
+                end
+            end
+            return { tag='if', cnd=cnd, t={tag='block',ss=ss}, f=f }
+        end
+        return F(1)
+
     -- loop
     elseif accept('loop') then
         local ids = check(nil,'id') and parser_ids('=') or nil

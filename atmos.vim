@@ -30,13 +30,13 @@ syn match   Type      ':[a-zA-Z0-9'?!\.\-]\+'
 
 syn match   Statement '[\+\-\*\/\%\>\<\=\|\&\~]'
 
-syn keyword Statement await break catch defer do
-syn keyword Statement else emit escape every false func if
+syn keyword Statement await break catch coro defer do
+syn keyword Statement else emit escape every false func if ifs
 syn keyword Statement in loop nil par par_and par_or
 syn keyword Statement pin resume return set spawn status task tasks
 syn keyword Statement throw true until val var yield with while
 
-syn keyword Statement coro toggle test data ifs match
+syn keyword Statement toggle test data match
 syn keyword Statement resume-yield-all
 syn keyword Statement skip thus
 syn keyword Statement watching where
