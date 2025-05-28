@@ -1021,6 +1021,21 @@ do
     assertx(out, "true\ntrue\n")
 end
 
+print '--- AWAIT / CLOCK ---'
+
+do
+    local src = [[
+        spawn {
+            await(:X,
+                x+10)
+        }
+        emit(:X,10)
+    ]]
+    print("Testing...", "await 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 3 : attempt to perform arithmetic on a nil value (global 'x')\n")
+end
+
 print '--- IS / IN ---'
 
 do

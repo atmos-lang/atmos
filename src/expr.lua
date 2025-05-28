@@ -4,7 +4,6 @@ require "parser"
 _ = Stmt or require "stmt"
 
 function parser_await (lin)
-    local xe, xf = nil, nil
     local clk = accept(nil,'clk')
     if clk then
         local function f (v, mul)
@@ -21,8 +20,6 @@ function parser_await (lin)
             clk[4] = f(clk[4], 1)
         end
 
-        xe = { tag='tag', tk={tag='tag',str='clock'} }
-        local it = { tag='id', str="evt" }
         local vs = map(clk, f)
         local sum = {
             tag = 'bin',
@@ -40,19 +37,25 @@ function parser_await (lin)
                 },
             },
          }
-        local ret = { tag='return', es={{tag='bin', op={str='>='}, e1={tag='acc',tk=it}, e2=sum}} }
-        xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
+        local f = { tag='acc', tk={tag='id',str='await_clock',lin=lin} }
+        return { tag='call', f=f, args={sum}, custom="await" }
     else
-        xe = parser_expr()
+        local xe = parser_expr()
+        local xf = nil
         if accept(',') then
+            --[[
+                func (evt) {
+                    return $xe
+                }
+            ]]
             local it = { tag='id', str="evt" }
-            local xe = parser_expr()
-            local ret = { tag='return', es={xe} }
+            local cnd = parser_expr()
+            local ret = { tag='return', es={cnd} }
             xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
         end
+        local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
+        return { tag='call', f=f, args={xe,xf}, custom="await" }
     end
-    local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
-    return { tag='call', f=f, args={xe,xf}, custom="await" }
 end
 
 function parser_expr_1_prim ()

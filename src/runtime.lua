@@ -342,6 +342,15 @@ local function _aux_ (err, a, b, ...)
     end
 end
 
+function await_clock (e, ms)
+    local f = function (msx)
+    end
+    return await('clock', function (v)
+        ms = ms - v
+        return (ms <= 0)
+    end)
+end
+
 function await (e, f)
     local t = atm_me()
     if not t then

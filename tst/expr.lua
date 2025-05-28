@@ -799,7 +799,5 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), trim [[
-        TODO
-    ]])
+    assertx(tostr_expr(e), "await_clock(0 * 3600000 + 20 * 60000 + x * 1000 + 100 * 1)")
 end
