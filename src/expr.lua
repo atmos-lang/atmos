@@ -37,8 +37,9 @@ function parser_await (lin)
                 },
             },
          }
-        local f = { tag='acc', tk={tag='id',str='await_clock',lin=lin} }
-        return { tag='call', f=f, args={sum}, custom="await" }
+        local f   = { tag='acc', tk={tag='id',str='await',lin=lin} }
+        local tag = { tag='tag', tk={str=':clock'} }
+        return { tag='call', f=f, args={tag,sum}, custom="await" }
     else
         local xe = parser_expr()
         local xf = nil

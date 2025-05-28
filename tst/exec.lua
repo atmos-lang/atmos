@@ -1031,6 +1031,36 @@ do
     assertx(out, "true\ntrue\n")
 end
 
+print '--- AWAIT / TASK ---'
+
+do
+    local src = [[
+        spawn {
+            pin t = spawn { return(10) }
+            val x = await(t)
+            print(:ok, x)
+        }
+    ]]
+    print("Testing...", "await task 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\t10\n")
+
+    local src = [[
+        spawn {
+            pin t = spawn {
+                await(:X)
+                return(10)
+            }
+            val x = await(t)
+            print(:ok, x)
+        }
+        emit(:X)
+    ]]
+    print("Testing...", "await task 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\t10\n")
+end
+
 print '--- AWAIT / CLOCK ---'
 
 do

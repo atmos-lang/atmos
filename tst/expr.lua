@@ -812,7 +812,7 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "await_clock(0 * 3600000 + 20 * 60000 + x * 1000 + 100 * 1)")
+    assertx(tostr_expr(e), "await(:clock, 0 * 3600000 + 20 * 60000 + x * 1000 + 100 * 1)")
 
     local src = "await(@10,x)"
     print("Testing...", src)

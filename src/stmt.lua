@@ -276,25 +276,32 @@ function parser_stmt ()
         local function f (t)
             return { tag='expr', e=spawn(t[1],t[2]) }
         end
-        local function await (stmt, xe, xf)
-            local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
-            local args = {}
-            if xe==false or xe==true then
-                args[#args+1] = { tag='bool', tk={str=tostring(xe)} }
-            else
-                error'TODO'
-            end
-            assert(xf == nil)
-            local awt = { tag='call', f=f, args=args, custom="await" }
-            if stmt then
-                return { tag='expr', e=awt }
-            else
-                return awt
-            end
-        end
         local ss = map(sss,f)
-        ss[#ss+1] = await(true, false, nil)
+        ss[#ss+1] = {
+            tag = 'expr',
+            e = {
+                tag = 'call',
+                f = { tag='acc', tk={tag='id',str='await'} },
+                args = {
+                    { tag='bool', tk={str='false'} },
+                },
+                custom = "await",
+            },
+        }
         return { tag='block', ss=ss }
+
+    -- par_and
+    elseif accept('par_and') then
+        local sss = { { TK1.lin, parser_curly() } }
+        while accept('with') do
+            sss[#sss+1] = { TK1.lin, parser_curly() }
+        end
+        local function f1 (t)
+            return { tag='expr', e=spawn(t[1],t[2]) }
+        end
+        local ss1 = map(sss,f1)
+        local ss2 = map(sss,f2)
+        --return { tag='block', ss=ss1++ss2 }
 
     -- call: f(), nat: `xxx`
     else

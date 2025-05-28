@@ -1,6 +1,10 @@
 coro   = coroutine.create
 resume = coroutine.resume
 
+function atm_tsk (t, a, b)
+    return type(t)=='table' and (t.tag==a or t.tag==b)
+end
+
 function atm_tag (tag, t)
     if type(t) ~= 'table' then
         error('invalid tag operation : expected table', 2)
@@ -37,12 +41,12 @@ function atm_exec (file, src)
 
     local v, msg = pcall(f)
     if not v then
-        local filex, lin, msg = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
+        local filex, lin, msg2 = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
         --print(file, filex, lin, msg)
         if file ~= filex then
             error('internal error : ' .. msg)
         end
-        io.stderr:write(file..' : line '..lin..' : '..msg..'\n')
+        io.stderr:write(file..' : line '..lin..' : '..msg2..'\n')
         return nil
     end
 
@@ -159,7 +163,7 @@ end
 -------------------------------------------------------------------------------
 
 function status (t)
-    if type(t)=='table' and t.tag=='task' then
+    if atm_tsk(t,'task') then
         return coroutine.status(t.co)
     else
         return coroutine.status(t)
@@ -262,7 +266,7 @@ local function atm_task_resume_result (t, ok, err)
         t.ret = err
         t.up.gc = true
         --if t.status ~= 'aborted' then
-            emit(t.up, 'task', t)
+            emit(t.up, t)
         --end
     end
 end
@@ -333,23 +337,16 @@ function yield (...)
     return coroutine.yield(...)
 end
 
-local function _aux_ (err, a, b, ...)
+local function _aux_ (tsk, err, a, b, ...)
     if err then
         error(a, 0)
     elseif b then
         return a, b, ...
+    elseif tsk then
+        return a.ret
     else
         return a    -- avoids repetition of a/b or a/nil
     end
-end
-
-function await_clock (ms)
-    local f = function (msx)
-    end
-    return await('clock', function (v)
-        ms = ms - v
-        return (ms <= 0)
-    end)
 end
 
 function await (e, f)
@@ -357,8 +354,18 @@ function await (e, f)
     if not t then
         error('invalid await : expected enclosing task instance', 2)
     end
+    local tsk = atm_tsk(e, 'task')
+    if tsk and status(e.co)=='dead' then
+        return e.ret
+    elseif e == 'clock' then
+        local ms = f
+        f = function (v)
+            ms = ms - v
+            return (ms <= 0)
+        end
+    end
     t.await = { e=e, f=f }
-    return _aux_(coroutine.yield())
+    return _aux_(tsk, coroutine.yield())
 end
 
 -------------------------------------------------------------------------------
@@ -386,7 +393,7 @@ local function fto (me, to)
             end
             n = n - 1
         end
-    elseif type(to)=='table' and (to.tag=='task' or to.tag=='tasks') then
+    elseif atm_tsk(to,'task','tasks') then
         to = to
     else
         error('invalid emit : invalid target', 3)
