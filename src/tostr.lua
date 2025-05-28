@@ -8,34 +8,34 @@ function tostr_stmt (s)
                 return tostr_expr(se)
             end
         end
-        local ids = concat(', ', map(s.ids,  function(id) return id.str end))
-        local sets = s.sets and (' = '..concat(', ',map(s.sets,f))) or ''
+        local ids = join(', ', map(s.ids,  function(id) return id.str end))
+        local sets = s.sets and (' = '..join(', ',map(s.sets,f))) or ''
         return s.tk.str .. " " .. ids .. sets
     elseif s.tag == 'set' then
-        return "set "..concat(', ',map(s.dsts,tostr_expr)).." = "..concat(', ',map(s.srcs,tostr_expr))
+        return "set "..join(', ',map(s.dsts,tostr_expr)).." = "..join(', ',map(s.srcs,tostr_expr))
     elseif s.tag == 'block' then
         return "do " .. (s.esc and s.esc.str.." " or "") .. "{\n" ..
-            concat('\n', map(s.ss,tostr_stmt)) ..'\n' ..
+            join('\n', map(s.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == 'defer' then
         return "defer {\n" ..
-            concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
+            join('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == 'escape' then
         return "escape (" .. s.esc.str .. ', ' .. tostr_expr(s.e) .. ')'
     elseif s.tag == 'return' then
-        return "return(" .. concat(',',map(s.es,tostr_expr)) .. ")"
+        return "return(" .. join(',',map(s.es,tostr_expr)) .. ")"
     elseif s.tag == 'if' then
         return "if " .. tostr_expr(s.cnd) .. " {\n" ..
-            concat('\n', map(s.t.ss,tostr_stmt)) ..'\n' ..
+            join('\n', map(s.t.ss,tostr_stmt)) ..'\n' ..
         "} else {\n" ..
-            concat('\n', map(s.f.ss,tostr_stmt)) ..'\n' ..
+            join('\n', map(s.f.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == 'loop' then
-        local ids = s.ids and (' '..concat(', ', map(s.ids, function(id) return id.str end))) or ''
+        local ids = s.ids and (' '..join(', ', map(s.ids, function(id) return id.str end))) or ''
         local itr = s.itr and ' in '..tostr_expr(s.itr) or ''
         return "loop" .. ids .. itr .. " {\n" ..
-            concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
+            join('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == 'break' then
         return "break"
@@ -43,7 +43,7 @@ function tostr_stmt (s)
         local esc = s.esc and (s.esc.str..' ') or ''
         local xf = s.cnd.f and (', '..tostr_expr(s.cnd.f)) or ''
         return "catch " .. tostr_expr(s.cnd.e) .. xf .. " {\n" ..
-            concat('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
+            join('\n', map(s.blk.ss,tostr_stmt)) ..'\n' ..
         "}"
     elseif s.tag == 'expr' then
         return tostr_expr(s.e)
@@ -67,14 +67,14 @@ function tostr_expr (e)
     elseif e.tag == 'index' then
         return tostr_expr(e.t)..'['..tostr_expr(e.idx)..']'
     elseif e.tag == 'table' then
-        local ps = concat(", ", map(e.ps, function (t)
+        local ps = join(", ", map(e.ps, function (t)
             return '('..tostr_expr(t.k)..','..tostr_expr(t.v)..')'
         end))
         return '[' .. ps .. ']'
     elseif e.tag == 'call' then
-        return tostr_expr(e.f)..'('..concat(", ", map(e.args, tostr_expr))..')'
+        return tostr_expr(e.f)..'('..join(", ", map(e.args, tostr_expr))..')'
     elseif e.tag == 'func' then
-        local pars = concat(', ', map(e.pars, function (id) return id.str end))
+        local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
             if e.dots then
                 if #e.pars == 0 then
@@ -84,7 +84,7 @@ function tostr_expr (e)
                 end
             end
         end
-        local ss = concat('\n', map(e.blk.ss,tostr_stmt))
+        local ss = join('\n', map(e.blk.ss,tostr_stmt))
         return "func (" .. pars .. dots .. ") {\n" ..
             ss ..'\n' ..
         "}"

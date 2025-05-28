@@ -70,19 +70,30 @@ end
 
 function map (t, f)
     local ret = {}
-    for _,v in ipairs(t) do
-        ret[#ret+1] = f(v)
+    for i,v in ipairs(t) do
+        ret[#ret+1] = f(v,i)
     end
     return ret
 end
 
-function concat (sep, t)
+function join (sep, t)
     local ret = ""
     for i,v in ipairs(t) do
         if i > 1 then
             ret = ret .. sep
         end
         ret = ret .. v
+    end
+    return ret
+end
+
+function concat (t1, t2)
+    local ret = {}
+    for _,v in ipairs(t1) do
+        ret[#ret+1] = v
+    end
+    for _,v in ipairs(t2) do
+        ret[#ret+1] = v
     end
     return ret
 end

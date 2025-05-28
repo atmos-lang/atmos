@@ -296,12 +296,30 @@ function parser_stmt ()
         while accept('with') do
             sss[#sss+1] = { TK1.lin, parser_curly() }
         end
-        local function f1 (t)
-            return { tag='expr', e=spawn(t[1],t[2]) }
+        local function f1 (t,i)
+            return {
+                tag  = 'dcl',
+                tk   = { tag='key', str='val' },
+                ids  = { {tag='id', str='atm_'..i} },
+                sets = { spawn(t[1],t[2]) },
+            }
+        end
+        local function f2 (t,i)
+            return {
+                tag = 'expr',
+                e = {
+                    tag = 'call',
+                    f = { tag='acc', tk={tag='id',str='await'} },
+                    args = {
+                        { tag='acc', tk={str='atm_'..i} },
+                    },
+                    custom = "await",
+                },
+            }
         end
         local ss1 = map(sss,f1)
         local ss2 = map(sss,f2)
-        --return { tag='block', ss=ss1++ss2 }
+        return { tag='block', ss=concat(ss1,ss2) }
 
     -- call: f(), nat: `xxx`
     else

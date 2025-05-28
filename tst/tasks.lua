@@ -2995,7 +2995,7 @@ do
     assertx(out, "X\t10\n")
 end
 
-print '--- PAR ---'
+print '--- PAR / PAR_AND ---'
 
 do
     local src = [[
@@ -3017,4 +3017,42 @@ do
     print("Testing...", "par 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "X\nY\nX\n")
+
+    local src = [[
+        spawn {
+            par {
+                await(:X)
+            } with {
+                await(:Y)
+            }
+            print(:ok)
+        }
+        emit(:X)
+        emit(:X)
+        print(:antes)
+        emit(:Y)
+        print(:depois)
+    ]]
+    print("Testing...", "par 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "antes\ndepois\n")
+
+    local src = [[
+        spawn {
+            par_and {
+                await(:X)
+            } with {
+                await(:Y)
+            }
+            print(:ok)
+        }
+        emit(:X)
+        emit(:X)
+        print(:antes)
+        emit(:Y)
+        print(:depois)
+    ]]
+    print("Testing...", "par_and 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "antes\nok\ndepois\n")
 end

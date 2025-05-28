@@ -16,7 +16,7 @@ local function L (tk)
 end
 
 function coder_stmts (ss)
-    return concat(' ; ', map(ss,coder_stmt)) .. " ; "
+    return join(' ; ', map(ss,coder_stmt)) .. " ; "
 end
 
 function coder_stmt (s)
@@ -34,19 +34,19 @@ function coder_stmt (s)
             return coder_stmt(blk) .. [[ ; local ]] .. id.str .. mod .. ' = atm_'..blk.esc.str:sub(2)
         elseif s.custom == 'catch' then
             local n = _n_+1
-            local ids = concat(',', map(s.ids, function (id) return id.str end))
+            local ids = join(',', map(s.ids, function (id) return id.str end))
             local cat = coder_stmt(s.sets[1])
             return cat .. ' ; local ' .. ids .. ' = atm_ok_' .. n .. ', atm_esc_' .. n
         elseif s.custom == 'func' then
             local id, f = s.ids[1], s.sets[1]
             return 'local ' .. id.str .. ' ; ' .. id.str .. mod .. ' = ' .. coder_expr(f)
         else
-            local ids = concat(', ', map(s.ids,  function(id) return id.str end))
-            local sets = s.sets and (' = '..concat(', ',map(s.sets,coder_expr))) or ''
+            local ids = join(', ', map(s.ids,  function(id) return id.str end))
+            local sets = s.sets and (' = '..join(', ',map(s.sets,coder_expr))) or ''
             return 'local ' .. ids .. mod .. sets
         end
     elseif s.tag == 'set' then
-        return concat(',', map(s.dsts,coder_expr))..' = '..concat(',', map(s.srcs,coder_expr))
+        return join(',', map(s.dsts,coder_expr))..' = '..join(',', map(s.srcs,coder_expr))
     elseif s.tag == 'block' then
         local str = s.esc and s.esc.str:sub(2)
         return (s.esc and ("local atm_"..str) or "") .. ' ' ..
@@ -70,7 +70,7 @@ function coder_stmt (s)
             atm_]] .. str .. ' = ' .. coder_expr(s.e) .. [[
             goto ]] .. str
     elseif s.tag == 'return' then
-        return "return " .. concat(',', map(s.es,coder_expr))
+        return "return " .. join(',', map(s.es,coder_expr))
     elseif s.tag == 'if' then
         return "if " .. coder_expr(s.cnd) .. " then " ..
             coder_stmts(s.t.ss) ..
@@ -78,7 +78,7 @@ function coder_stmt (s)
             coder_stmts(s.f.ss) ..
         "end"
     elseif s.tag == 'loop' then
-        local ids = concat(', ', map(s.ids or {{str="_"}}, function(id) return id.str end))
+        local ids = join(', ', map(s.ids or {{str="_"}}, function(id) return id.str end))
         local itr = s.itr and coder_expr(s.itr) or ''
         return "for " .. ids .. " in iter(" .. itr .. ") do " ..
             coder_stmts(s.blk.ss) ..
@@ -124,7 +124,7 @@ function coder_expr (e)
     elseif e.tag == 'index' then
         return '(' .. coder_expr(e.t) .. ")[atm_idx(" .. coder_expr(e.idx) .. ')]'
     elseif e.tag == 'table' then
-        local ps = concat(", ", map(e.ps, function (t)
+        local ps = join(", ", map(e.ps, function (t)
             return '['..coder_expr(t.k)..'] = '..coder_expr(t.v)
         end))
         return '{' .. ps .. '}'
@@ -149,9 +149,9 @@ function coder_expr (e)
             return '('..coder_expr(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder_expr(e.e2)..')'
         end
     elseif e.tag == 'call' then
-        return '('..coder_expr(e.f)..')('..concat(", ", map(e.args, coder_expr))..')'
+        return '('..coder_expr(e.f)..')('..join(", ", map(e.args, coder_expr))..')'
     elseif e.tag == 'func' then
-        local pars = concat(', ', map(e.pars, function (id) return id.str end))
+        local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
             if e.dots then
                 if #e.pars == 0 then
