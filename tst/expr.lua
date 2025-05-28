@@ -800,4 +800,12 @@ do
     local e = parser_expr()
     assert(check('<eof>'))
     assertx(tostr_expr(e), "await_clock(0 * 3600000 + 20 * 60000 + x * 1000 + 100 * 1)")
+
+    local src = "await(@10,x)"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_expr)
+    assertx(msg, "anon : line 1 : near ',' : expected ')'")
 end

@@ -1034,6 +1034,19 @@ do
     print("Testing...", "await 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "anon.atm : line 3 : attempt to perform arithmetic on a nil value (global 'x')\n")
+
+    local src = [[
+        spawn {
+            await(@10.100)
+            print(:y)
+        }
+        emit(:clock,10000)
+        print(:x)
+        emit(:clock,100)
+    ]]
+    print("Testing...", "await 2: clock")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "x\ny\n")
 end
 
 print '--- IS / IN ---'

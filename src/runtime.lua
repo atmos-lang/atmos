@@ -342,7 +342,7 @@ local function _aux_ (err, a, b, ...)
     end
 end
 
-function await_clock (e, ms)
+function await_clock (ms)
     local f = function (msx)
     end
     return await('clock', function (v)
