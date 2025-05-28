@@ -278,7 +278,7 @@ local function atm_task_awake_check (t, a, b)
     elseif t.await.e == false then
         -- never awakes
         return false
-    elseif t.await.e==true or t.await.e==a then
+    elseif t.await.e==true or atm_is(a,t.await.e) then
         if t.await.f==nil or t.await.f(b or a) then
             -- a=:X, b={...}, choose b
             return true
