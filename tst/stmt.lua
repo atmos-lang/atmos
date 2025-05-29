@@ -416,6 +416,36 @@ do
             }
         }
     ]])
+
+    local src = "ifs {}"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near '{' : invalid ifs : expected case")
+
+    local src = "ifs { nil }"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local ok, msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near '}' : expected '=>'")
+
+    local src = "ifs { f() => g() }"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local s = parser_stmt()
+    assert(check('<eof>'))
+    assertx(trim(tostr_stmt(s)), trim [[
+        if f() {
+            g()
+        } else {
+        }
+    ]])
 end
 
 -- CATCH

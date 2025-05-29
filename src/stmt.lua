@@ -165,7 +165,7 @@ function parser_stmt ()
 
     -- ifs
     elseif accept('ifs') then
-        accept_err('{')
+        local tk = accept_err('{')
         local t = {}
         while not check('}') do
             local brk = false
@@ -191,6 +191,11 @@ function parser_stmt ()
             end
         end
         accept_err('}')
+
+        if #t == 0 then
+            err(tk, "invalid ifs : expected case")
+        end
+
         local function F (i)
             local cnd, ss = table.unpack(t[i])
             local f; do
