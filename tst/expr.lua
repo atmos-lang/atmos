@@ -1,7 +1,7 @@
 -- LUA_PATH="/x/atmos/src/?.lua;" lua5.4 expr.lua
 
-require "lexer"
-require "expr"
+require "parser"
+require "prim"
 require "tostr"
 
 -- PRIM

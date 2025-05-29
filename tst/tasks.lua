@@ -3095,7 +3095,7 @@ do
         emit(:Y)
         print(:depois)
     ]]
-    print("Testing...", "par_or 1")
+    print("Testing...", "par_or 2")
     local out = exec_string("anon.atm", src)
     assertx(out, "x\ny\nok\nantes\ndepois\n")
 

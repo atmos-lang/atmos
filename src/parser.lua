@@ -1,3 +1,10 @@
+Parser = {}
+
+_ = Expr or require "expr"
+_ = Stmt or require "stmt"
+
+-------------------------------------------------------------------------------
+
 function parser ()
     TK0 = TK1
     TK1 = LEX()
@@ -32,6 +39,10 @@ function accept_err (str, tag)
     parser()
     return tk
 end
+
+-------------------------------------------------------------------------------
+
+parser_expr = parser_expr_5_bin
 
 function parser_list (sep, clo, f)
     assert(sep or clo)
@@ -96,4 +107,17 @@ function parser_dots_pars ()
         end
         return false, l
     end
+end
+
+function parser_curly ()
+    accept_err('{')
+    local ss = parser_list(null, '}', parser_stmt)
+    accept_err('}')
+    return ss
+end
+
+function parser_main ()
+    local ss = parser_list(null, '<eof>', parser_stmt)
+    accept_err('<eof>')
+    return { tag='block', ss=ss }
 end

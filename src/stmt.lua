@@ -3,13 +3,6 @@ Stmt = {}   -- solves mutual require with expr.lua
 require "parser"
 _ = Expr or require "expr"
 
-function parser_curly ()
-    accept_err('{')
-    local ss = parser_list(null, '}', parser_stmt)
-    accept_err('}')
-    return ss
-end
-
 local function spawn (lin, ss)
     local cmd = { tag='acc', tk={tag='id', str='spawn', lin=lin} }
     local ts = { tag='nil', tk={tag='key',str='nil'} }
@@ -415,10 +408,4 @@ function parser_stmt ()
             err(tk, "expected statement")
         end
     end
-end
-
-function parser_main ()
-    local ss = parser_list(null, '<eof>', parser_stmt)
-    accept_err('<eof>')
-    return { tag='block', ss=ss }
 end
