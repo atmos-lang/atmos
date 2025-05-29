@@ -48,9 +48,9 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local s = parser_stmt()
+    local s = parser()
     local f = assert(io.open("/tmp/anon.lua", 'w'))
-    f:write(coder_stmt(s))
+    f:write(coder(s))
     f:close()
     local exe = assert(io.popen("lua5.4 /tmp/anon.lua", 'r'))
     local out = exe:read('a')
@@ -65,45 +65,23 @@ do
     assert(out == "1\n2\n")
 
     local src = [[
-        print(:1)
-        do :X {
-            print(:2)
-            escape(:X)
-            print(:3)
-        }
-        print(:4)
-    ]]
-    print("Testing...", "block 4")
-    local out = exec_string("anon.atm", src)
-    assertx(out, "1\n2\n4\n")
-
-    local src = [[
-        do :X {
-            escape(:Y)
-        }
-    ]]
-    print("Testing...", "block 5 : err : goto")
-    local out = exec_string("anon.atm", src)
-    assertx(out, "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
-
-    local src = [[
         val a = 1
-        do :X {
+        do {
             val b = 2
             print(a+b)
         }
     ]]
-    print("Testing...", "block 6")
+    print("Testing...", "block 4")
     local out = exec_string("anon.atm", src)
 
     local src = [[
         val a = 1
-        do :X {
+        do {
             val b = 2
         }
         print(a+b)
     ]]
-    print("Testing...", "block 6")
+    print("Testing...", "block 5")
     local out = exec_string("anon.atm", src)
     assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')\n")
 
@@ -119,40 +97,14 @@ do
     assert(out == "1\n3\n2\n")
 
     local src = [[
-        val x = do :X {
-            do :Y {
-                escape(:X [10])
-            }
+        val x = do {
+            10
         }
-        dump(x)
+        print(x)
     ]]
-    print("Testing...", "do-escape 1")
-    local out = exec_string("anon.atm", src)
-    assertx(out, "{10, tag=X}\n")
-
-    local src = [[
-        val x = do :X {
-            do :Y {
-                escape(:X,10)
-            }
-        }
-        dump(x)
-    ]]
-    print("Testing...", "do-escape 1")
+    print("Testing...", "do 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "10\n")
-
-    local src = [[
-        val x = do :X {
-            var x
-            set x = [0]
-            escape(:X,x)   ;; escape but no access
-        }
-        dump(x)
-    ]]
-    print("Testing...", "do-escape 1")
-    local out = exec_string("anon.atm", src)
-    assertx(out, "{0}\n")
 end
 
 -- DCL / VAL / VAR / SET
@@ -286,7 +238,7 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local s = parser_stmt()
+    local s = parser()
 
     local f = assert(io.open("/tmp/anon.lua", "w"))
     f:write(tostr_expr(s.e))
@@ -612,6 +564,100 @@ do
     print("Testing...", "catch 6")
     local out = exec_string("anon.atm", src)
     assertx(out, "true\t10\n")
+
+    local src = [[
+        print(:1)
+        catch :X {
+            print(:2)
+            throw(:X)
+            print(:3)
+        }
+        print(:4)
+    ]]
+    print("Testing...", "catch 7")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n2\n4\n")
+
+    local src = [[
+        catch :X {
+            throw(:Y)
+        }
+    ]]
+    print("Testing...", "catch 8 : err : goto")
+    local out = exec_string("anon.atm", src)
+    --assertx(out, "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
+    assertfx(out, "internal error : Y")
+    warn(false, "error stack")
+
+    local src = [[
+        val a = 1
+        catch :X {
+            val b = 2
+            print(a+b)
+        }
+    ]]
+    print("Testing...", "catch 9")
+    local out = exec_string("anon.atm", src)
+
+    local src = [[
+        val a = 1
+        catch :X {
+            val b = 2
+        }
+        print(a+b)
+    ]]
+    print("Testing...", "catch 10")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')\n")
+
+    local src = [[
+        val x = catch :X {
+            catch :Y {
+                throw :X [10]
+            }
+        }
+        dump(x)
+    ]]
+    print("Testing...", "catch 11")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{10, tag=X}\n")
+
+    local src = [[
+        val x = catch :X {
+            catch :Y {
+                throw :Z [10]
+            }
+            :ok
+        }
+        print(:ok)
+    ]]
+    print("Testing...", "catch 12")
+    local out = exec_string("anon.atm", src)
+    assertx(out, ":ok\n")
+
+    local src = [[
+        val x = do :X {
+            do :Y {
+                escape(:X,10)
+            }
+        }
+        dump(x)
+    ]]
+    print("Testing...", "catch 13")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
+
+    local src = [[
+        val x = do :X {
+            var x
+            set x = [0]
+            escape(:X,x)   ;; escape but no access
+        }
+        dump(x)
+    ]]
+    print("Testing...", "catch 14")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{0}\n")
 end
 
 -- EXEC / CORO / TASK / YIELD / SPAWN / RESUME

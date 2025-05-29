@@ -304,8 +304,7 @@ function parser_1_prim ()
 
     -- do { ... }, defer { ... }
     elseif accept('do') then
-        local tag = accept(nil,'tag')
-        local es  = parser_curly()
+        local es = parser_curly()
         return { tag='block', es=es }
     elseif accept('defer') then
         local es = parser_curly()

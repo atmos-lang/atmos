@@ -1,7 +1,6 @@
 require "global"
 require "lexer"
 require "parser"
-require "stmt"
 require "coder"
 require "tostr"
 
@@ -14,7 +13,7 @@ end
 function exec_string (file, src)
     init()
     lexer_init(file, src)
-    parser()
+    lexer_next()
     local ok, blk = pcall(parser_main)
     if not ok then
         return blk
@@ -26,7 +25,7 @@ function exec_string (file, src)
         require 'runtime'
         return atm_exec (
             "]] .. file .. [[",
-            ]] .. string.format('%q', coder_stmts(blk.ss)) .. [[
+            ]] .. string.format('%q', coder_exprs(blk.es)) .. [[
         )
     ]])
     f:close()
@@ -44,7 +43,7 @@ end
 function do_string (file, src)
     init()
     lexer_init(file, src)
-    parser()
+    lexer_next()
     local ok, blk = pcall(parser_main)
     if not ok then
         return ok, blk
@@ -56,7 +55,7 @@ function do_string (file, src)
         require 'runtime'
         return atm_exec (
             "]] .. file .. [[",
-            ]] .. string.format('%q', coder_stmts(blk.ss)) .. [[
+            ]] .. string.format('%q', coder_exprs(blk.es)) .. [[
         )
     ]])
     f:close()
