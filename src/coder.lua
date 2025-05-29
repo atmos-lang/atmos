@@ -59,8 +59,6 @@ function coder_stmt (e)
             local sets = e.sets and (' = '..join(', ',map(e.sets,coder))) or ''
             return 'local ' .. ids .. mod .. sets
         end
-    elseif e.tag == 'set' then
-        return join(',', map(e.dsts,coder))..' = '..join(',', map(e.srcs,coder))
     elseif e.tag == 'return' then
         return "return " .. join(',', map(e.es,coder))
     elseif e.tag == 'if' then
@@ -150,8 +148,10 @@ function coder (e)
         local ids = join(', ', map(e.ids,  function(id) return id.str end))
         local sets = e.sets and (' = '..join(', ',map(e.sets,coder))) or ''
         return 'local ' .. ids .. mod .. sets
+    elseif e.tag == 'set' then
+        return join(',', map(e.dsts,coder))..' = '..join(',', map(e.srcs,coder))
     elseif e.tag == 'block' then
-        return "do " .. coder_exprs(e.es) .. " end"
+        return "(function () " .. coder_exprs(e.es) .. " end)()"
     elseif e.tag == 'defer' then
         local n = N()
         local def = "atm_"..n

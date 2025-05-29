@@ -117,7 +117,7 @@ do
     ]]
     print("Testing...", "var 1")
     local out = exec_string("anon.atm", src)
-    assert(out == "10\n")
+    assertx(out, "10\n")
 
     local src = [[
         val x = :1
