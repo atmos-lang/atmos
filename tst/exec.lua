@@ -250,18 +250,18 @@ do
 
     local src = [[
         val f = func (x, y) {
-            return (x + y)
+            (x + y)
         }
         print(f(10,20))
     ]]
     print("Testing...", "func 1")
     local out = exec_string("anon.atm", src)
-    assert(out == "30\n")
+    assertx(out, "30\n")
 
     local src = [[
         val f = func (x) {
-            return (func (y) {
-                return (x + y)
+            (func (y) {
+                (x + y)
             })
         }
         print(f(10)(20))
@@ -290,31 +290,31 @@ do
     local src = [[
         func f (v) {
             if v == 0 {
-                return (0)
+                (0)
             } else {
-                return (v + f(v - 1))
+                v + f(v - 1)
             }
         }
         print(f(4))
     ]]
     print("Testing...", "func 3: recursive")
     local out = exec_string("anon.atm", src)
-    assert(out == "10\n")
+    assertx(out, "10\n")
 
     local src = [[
         var f, g
         set f = func (v) {
             if v == 0 {
-                return (0)
+                0
             } else {
-                return (v + g(v - 1))
+                (v + g(v - 1))
             }
         }
         set g = func (v) {
             if v == 0 {
-                return (0)
+                0
             } else {
-                return (v + f(v - 1))
+                v + f(v - 1)
             }
         }
         print(f(4))
@@ -326,9 +326,9 @@ do
     local src = [[
         func f (v) {
             if v > 0 {
-                return ([f(v - 1)])
+                [f(v - 1)]
             } else {
-                return (0)
+                0
             }
         }
         dump(f(2))
@@ -341,9 +341,9 @@ do
         func f (v) {
             if v > 0 {
                 val x = f(v - 1)
-                return ([x]) ;; invalid return
+                [x] ;; invalid return
             } else {
-                return(0)
+                0
             }
         }
         dump(f(3))

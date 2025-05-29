@@ -7,7 +7,7 @@ local function L (tk)
     local ls = ''
     if tk and tk.lin then
         if tk.lin < _l_ then
-            return ls           -- TODO: workaround for watching
+            --return ls           -- TODO: workaround for watching
         end
         assert(tk.lin >= _l_)
         while tk.lin > _l_ do
@@ -51,9 +51,6 @@ function coder_stmt (e)
             local ids = join(',', map(e.ids, function (id) return id.str end))
             local cat = coder(e.sets[1])
             return cat .. ' ; local ' .. ids .. ' = atm_ok_' .. n .. ', atm_esc_' .. n
-        elseif e.custom == 'func' then
-            local id, f = e.ids[1], e.sets[1]
-            return 'local ' .. id.str .. ' ; ' .. id.str .. mod .. ' = ' .. coder(f)
         else
             local ids = join(', ', map(e.ids,  function(id) return id.str end))
             local sets = e.sets and (' = '..join(', ',map(e.sets,coder))) or ''
@@ -61,12 +58,6 @@ function coder_stmt (e)
         end
     elseif e.tag == 'return' then
         return "return " .. join(',', map(e.es,coder))
-    elseif e.tag == 'if' then
-        return "if " .. coder(e.cnd) .. " then " ..
-            coder_exprs(e.t.es) ..
-        "else " ..
-            coder_exprs(e.f.es) ..
-        "end"
     elseif e.tag == 'loop' then
         local ids = join(', ', map(e.ids or {{str="_"}}, function(id) return id.str end))
         local itr = e.itr and coder(e.itr) or ''
@@ -145,9 +136,14 @@ function coder (e)
                 mod = " <close>"
             end
         end
-        local ids = join(', ', map(e.ids,  function(id) return id.str end))
-        local sets = e.sets and (' = '..join(', ',map(e.sets,coder))) or ''
-        return 'local ' .. ids .. mod .. sets
+        if e.custom == 'func' then
+            local id, f = e.ids[1], e.sets[1]
+            return 'local ' .. id.str .. ' ; ' .. id.str .. mod .. ' = ' .. coder(f)
+        else
+            local ids = join(', ', map(e.ids,  function(id) return id.str end))
+            local sets = e.sets and (' = '..join(', ',map(e.sets,coder))) or ''
+            return 'local ' .. ids .. mod .. sets
+        end
     elseif e.tag == 'set' then
         return join(',', map(e.dsts,coder))..' = '..join(',', map(e.srcs,coder))
     elseif e.tag == 'block' then
@@ -161,6 +157,15 @@ function coder (e)
                     coder_exprs(e.blk.es) ..
                 " end" ..
             "})"
+    elseif e.tag == 'if' then
+        return
+            "(function () " ..
+                "if " .. coder(e.cnd) .. " then " ..
+                    coder_exprs(e.t.es) ..
+                " else " ..
+                    coder_exprs(e.f.es) ..
+                " end" ..
+            " end)()"
     elseif e.tag == 'catch' then
         local n = N()
         local ok, esc = "atm_ok_"..n, "atm_esc_"..n
