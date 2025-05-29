@@ -20,6 +20,16 @@ function atm_idx (idx)
     return idx
 end
 
+function atm_handle (up, ok, err, ...)
+    if ok then
+        return err, ...
+    elseif up == err.up then
+        return table.unpack(err)
+    else
+        error(err, 0)
+    end
+end
+
 function atm_catch (v, e, f)
     return (e==true or v==e) and (f==nil or f(v))
 end

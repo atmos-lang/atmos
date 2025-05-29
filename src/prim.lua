@@ -229,23 +229,33 @@ function parser_1_prim ()
             error "bug found"
         end
 
-    -- func
-    elseif accept('func') then
-        -- func () { ... }
-        -- func f () { ... }
-        if accept('(') then
-            local dots, pars = parser_dots_pars()
-            accept_err(')')
-            local es = parser_curly()
-            return { tag='func', dots=dots, pars=pars, blk={tag='block',es=es} }
-        else
-            local id = accept_err(nil,'id')
+    -- func, return
+    elseif check('func') or check('return') then
+        if accept('func') then
+            -- func () { ... }
+            -- func f () { ... }
+            if accept('(') then
+                local dots, pars = parser_dots_pars()
+                accept_err(')')
+                local es = parser_curly()
+                return { tag='func', dots=dots, pars=pars, blk={tag='block',es=es} }
+            else
+                local id = accept_err(nil,'id')
+                accept_err('(')
+                local dots, pars = parser_dots_pars()
+                accept_err(')')
+                local es = parser_curly()
+                local f = { tag='func', dots=dots, pars=pars, blk={tag='block',es=es} }
+                return { tag='dcl', tk={tag='key',str='var'}, ids={id}, sets={f}, custom='func' }
+            end
+        -- return(...)
+        elseif accept('return') then
             accept_err('(')
-            local dots, pars = parser_dots_pars()
+            local es = parser_list(',', ')', parser)
             accept_err(')')
-            local es = parser_curly()
-            local f = { tag='func', dots=dots, pars=pars, blk={tag='block',es=es} }
-            return { tag='dcl', tk={tag='key',str='var'}, ids={id}, sets={f}, custom='func' }
+            return { tag='return', es=es }
+        else
+            error "bug found"
         end
 
     -- var x = 10

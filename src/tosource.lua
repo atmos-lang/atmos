@@ -3,8 +3,6 @@ function tostr_stmt (e)
     if false then
     elseif e.tag == 'escape' then
         return "escape (" .. e.esc.str .. ', ' .. tosource(e.e) .. ')'
-    elseif e.tag == 'return' then
-        return "return(" .. join(',',map(e.es,tosource)) .. ")"
     elseif e.tag == 'expr' then
         return tosource(e.e)
     else
@@ -51,6 +49,8 @@ function tosource (e)
         return "func (" .. pars .. dots .. ") {\n" ..
             es ..'\n' ..
         "}"
+    elseif e.tag == 'return' then
+        return "return(" .. join(',',map(e.es,tosource)) .. ")"
 
     elseif e.tag == 'dcl' then
         local f = function (se)

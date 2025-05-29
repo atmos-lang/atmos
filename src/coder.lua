@@ -60,8 +60,6 @@ function coder_stmt (e)
             local sets = e.sets and (' = '..coder_args(e.sets)) or ''
             return 'local ' .. ids .. mod .. sets
         end
-    elseif e.tag == 'return' then
-        return "return " .. coder_args(e.es)
     else
         error(e.tag)
     end
@@ -118,9 +116,16 @@ function coder (e)
                 end
             end
         end
-        return "function (" .. pars .. dots .. ") " ..
-            coder_stmts(e.blk.es) ..
-        " end"
+        return
+            "function (" .. pars .. dots .. ") " ..
+                "return atm_handle('func', " ..
+                    "pcall(function () " ..
+                        coder_stmts(e.blk.es) ..
+                    " end)" ..
+                ")" ..
+            " end"
+    elseif e.tag == 'return' then
+        return "error({up='func'," .. coder_args(e.es) .. "}, 0)"
     elseif e.tag == 'parens' then
         return L(e.tk) .. '(' .. coder(e.e) .. ')'
 
@@ -166,20 +171,13 @@ function coder (e)
         local ids = join(', ', map(e.ids or {{str="_"}}, function(id) return id.str end))
         local itr = e.itr and coder(e.itr) or ''
         return
-            "(function () "..
-                "local ok, v = pcall(function () "..
+            "atm_handle('loop', " ..
+                "pcall(function () " ..
                     "for " .. ids .. " in iter(" .. itr .. ") do " ..
                         coder_stmts(e.blk.es,true) ..
                     " end" ..
-                " end) " ..
-                "if not ok then " ..
-                    "if v.up == 'loop' then " ..
-                        "return table.unpack(v)" ..
-                    " else " ..
-                        "error(v)" ..
-                    " end" ..
-                " end" ..
-            " end)()"
+                " end)" ..
+            ")"
     elseif e.tag == 'break' then
         return "error({up='loop'," .. coder_args(e.args) .. "}, 0)"
     elseif e.tag == 'catch' then

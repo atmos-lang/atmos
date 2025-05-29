@@ -13,13 +13,6 @@ _ = Expr or require "expr"
 function parser_stmt ()
     if false then
 
-    -- return(...)
-    elseif accept('return') then
-        accept_err('(')
-        local es = parser_list(',', ')', parser)
-        accept_err(')')
-        return { tag='return', es=es }
-
     -- par
     elseif accept('par') then
         local sss = { { TK1.lin, parser_curly() } }

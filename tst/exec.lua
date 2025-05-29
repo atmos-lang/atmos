@@ -259,6 +259,28 @@ do
     assertx(out, "30\n")
 
     local src = [[
+        val f = func (x, y) {
+            print(:1)
+            return(x, y)
+            print(:2)
+        }
+        print(f(10,20))
+    ]]
+    print("Testing...", "func 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n10\t20\n")
+
+    local src = [[
+        val f = func (x, y) {
+            (x, y)
+        }
+        print(f(10,20))
+    ]]
+    print("Testing...", "func 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "30\n")
+
+    local src = [[
         val f = func (x) {
             (func (y) {
                 (x + y)
