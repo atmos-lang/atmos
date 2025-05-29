@@ -389,8 +389,9 @@ function parser_stmt ()
 
     -- watching
     elseif accept('watching') then
+        local lin = TK0.lin
         local par = accept('(')
-        local awt = parser_await(0)
+        local awt = parser_await(lin)
         if par then
             accept_err(')')
         end
