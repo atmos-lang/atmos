@@ -527,7 +527,7 @@ do
     local src = "print(ifs { false=>0 ; true=>nil ; else=>99 })"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    warnx(out, "nil\n") -- TODO: true=>nil
+    assertx(out, "nil\n") -- TODO: true=>nil
 end
 
 -- CATCH / THROW

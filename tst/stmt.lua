@@ -12,24 +12,24 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
-    assert(stringify(s) == "{e={args={{tag=acc, tk={lin=1, str=x, tag=id}}, {tag=acc, tk={lin=1, str=y, tag=id}}}, f={tag=acc, tk={lin=1, str=f, tag=id}}, tag=call}, tag=expr}")
+    assertx(stringify(s), "{args={{tag=acc, tk={lin=1, str=x, tag=id}}, {tag=acc, tk={lin=1, str=y, tag=id}}}, f={tag=acc, tk={lin=1, str=f, tag=id}}, tag=call}")
 
     local src = "func f (v) { val x }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
-    assertx(stringify(s), "{custom=func, ids={{lin=1, str=f, tag=id}}, sets={{blk={ss={{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, str=v, tag=id}}, tag=func}}, tag=dcl, tk={str=var, tag=key}}")
+    assertx(stringify(s), "{custom=func, ids={{lin=1, str=f, tag=id}}, sets={{blk={es={{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, str=v, tag=id}}, tag=func}}, tag=dcl, tk={str=var, tag=key}}")
 
     local src = [[
         val e = []
         (f)()
     ]]
-    print("Testing...", src)
+    print("Testing...", "call 1")
     init()
     lexer_string("anon", src)
     parser()
@@ -46,7 +46,7 @@ do
             print(it)
         }
     ]]
-    print("Testing...", src)
+    print("Testing...", "func 1")
     init()
     lexer_string("anon", src)
     parser()
@@ -58,7 +58,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assertx(tostr_stmt(s), "`print('ok')`")
 end
 
@@ -70,39 +70,45 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
-    assert(stringify(s) == "{ss={}, tag=block}")
+    local s = parser_expr()
+    assert(stringify(s) == "{es={}, tag=block}")
 
     local src = "do { var x }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(tostr_stmt(s) == trim [[
         do {
             var x
         }
     ]])
 
-    local src = "do :X { escape:X() }"
+    local src = "catch :X { throw :X[] }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_main)
-    assertx(msg, "anon : line 1 : near ':X' : expected '('")
+    local s = parser_expr()
+    assertx(tostr_stmt(s), trim [[
+        catch :X {
+            error(atm_tag(:X, []), 0)
+        }
+    ]])
+    --local ok, msg = pcall(parser_main)
+    --assertx(msg, "anon : line 1 : near ':X' : expected '('")
 
-    local src = "do :X { escape(:X) }"
+    local src = "catch :X { throw(:X) }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(tostr_stmt(s), trim [[
-        do :X {
-            escape (:X, :X)
+        catch :X {
+            error(:X, 0)
         }
     ]])
 
@@ -111,7 +117,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(tostr_stmt(s) == trim [[
         defer {
@@ -125,7 +131,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(tostr_stmt(s) == trim [[
         defer {
@@ -149,32 +155,60 @@ do
         }
     ]])
 
+    local src = "var v2 ; [tp,v1,v2] ; nil"
+    print("Testing...", src)
+    init()
+    lexer_string("anon", src)
+    parser()
+    local s = parser_main()
+    assertx(tostr_stmt(s), trim [[
+        do {
+            var v2
+            [(1,tp), (2,v1), (3,v2)]
+            nil
+        }
+    ]])
+    --local ok, msg = pcall(parser_main)
+    --assertx(msg, "anon : line 1 : near '[' : expected statement")
+
     local src = "var v2 ; [tp,v1,v2]"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_main)
-    assert(not ok and msg=="anon : line 1 : near '[' : expected statement")
+    local s = parser_main()
+    assertx(trim(tostr_stmt(s)), trim [[
+        do {
+            var v2
+            [(1,tp), (2,v1), (3,v2)]
+        }
+    ]])
 
     local src = "val x = do {}"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_main)
-    assert(not ok and msg=="anon : line 1 : near 'do' : expected tagged block")
+    --local ok, msg = pcall(parser_main)
+    --assert(not ok and msg=="anon : line 1 : near 'do' : expected tagged block")
+    local s = parser_main()
+    assertx(trim(tostr_stmt(s)), trim [[
+        do {
+            val x = do {
+            }
+        }
+    ]])
 
-    local src = "val x = do :X { escape(:X [10]) }"
+    local src = "val x = catch :X { throw(:X [10]) }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(tostr_stmt(s), trim [[
-        val x = do :X {
-            escape (:X, atm_tag(:X, [(1,10)]))
+        val x = catch :X {
+            error(atm_tag(:X, [(1,10)]), 0)
         }
     ]])
 end
@@ -187,7 +221,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(stringify(s) == "{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}")
 
     local src = "set y = 10"
@@ -195,7 +229,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(stringify(s) == "{dsts={{tag=acc, tk={lin=1, str=y, tag=id}}}, srcs={{tag=num, tk={lin=1, str=10, tag=num}}}, tag=set}")
 
@@ -204,7 +238,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(stringify(s) == "{ids={{lin=1, str=y, tag=id}}, sets={{tag=num, tk={lin=1, str=10, tag=num}}}, tag=dcl, tk={lin=1, str=var, tag=key}}")
 
@@ -213,7 +247,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_stmt)
+    local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near '[' : expected <id>")
 
     local src = "set 1 = 1"
@@ -221,7 +255,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_stmt)
+    local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near '1' : expected assignable expression")
 
     local src = "val it = 1"
@@ -229,10 +263,10 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(tostr_stmt(s), "val it = 1")
-    --local ok, msg = pcall(parser_stmt)
+    --local ok, msg = pcall(parser_expr)
     --assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
 
     local src = "set [1] = 1"
@@ -240,7 +274,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_stmt)
+    local ok, msg = pcall(parser_expr)
     assertx(msg, "anon : line 1 : near '[' : expected assignable expression")
 
     local src = "set x, y, z = 10, 20"
@@ -248,7 +282,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(tostr_stmt(s) == "set x, y, z = 10, 20")
 
@@ -257,7 +291,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(tostr_stmt(s) == "val x, y = 10, 20, 30")
 
@@ -266,7 +300,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_stmt)
+    local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near '#' : expected assignable expression")
 
     local src = "set pub = 10"
@@ -274,7 +308,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(tostr_stmt(s), 'set pub = 10')
 end
@@ -287,25 +321,25 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
-    assert(stringify(s) == "{cnd={tag=acc, tk={lin=1, str=cnd, tag=id}}, f={ss={{ids={{lin=1, str=f, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, t={ss={}, tag=block}, tag=if}")
+    assert(stringify(s) == "{cnd={tag=acc, tk={lin=1, str=cnd, tag=id}}, f={es={{ids={{lin=1, str=f, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, t={es={}, tag=block}, tag=if}")
 
     local src = "if true { }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
-    assert(stringify(s) == "{cnd={tag=bool, tk={lin=1, str=true, tag=key}}, f={ss={}, tag=block}, t={ss={}, tag=block}, tag=if}")
+    assert(stringify(s) == "{cnd={tag=bool, tk={lin=1, str=true, tag=key}}, f={es={}, tag=block}, t={es={}, tag=block}, tag=if}")
 
     local src = "if f() { if (cnd) { val x } else { val y } }"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(trim(tostr_stmt(s)), trim [[
         if f() {
@@ -324,16 +358,16 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
-    assert(stringify(s) == "{blk={ss={{tag=break}}, tag=block}, tag=loop}")
+    assert(stringify(s) == "{blk={es={{tag=break}}, tag=block}, tag=loop}")
 
     local src = "loop x in f() {}"
     print("Testing...", src)
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(trim(tostr_stmt(s)) == trim [[
         loop x in f() {
@@ -345,7 +379,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(trim(tostr_stmt(s)) == trim [[
         loop in f() {
@@ -357,7 +391,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(trim(tostr_stmt(s)) == trim [[
         loop x {
@@ -369,7 +403,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(trim(tostr_stmt(s)) == trim [[
         loop {
@@ -385,7 +419,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assert(trim(tostr_stmt(s)) == trim [[
         loop {
@@ -401,7 +435,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(trim(tostr_stmt(s)), trim [[
         if a {
@@ -438,7 +472,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(trim(tostr_stmt(s)), trim [[
         if f() {
@@ -455,9 +489,9 @@ do
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
-    assert(stringify(s) == "{blk={ss={}, tag=block}, cnd={e={tag=tag, tk={lin=1, str=:X, tag=tag}}}, tag=catch}")
+    assert(stringify(s) == "{blk={es={}, tag=block}, cnd={e={tag=tag, tk={lin=1, str=:X, tag=tag}}}, tag=catch}")
 
     local src = "catch { }"
     print("Testing...", src)
@@ -472,11 +506,11 @@ do
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
-    assert(trim(tostr_stmt(s)) == trim [[
+    assertx(trim(tostr_stmt(s)), trim [[
         catch true, func (err) {
-            return(err > 0)
+            err > 0
         } {
         }
     ]])
@@ -485,7 +519,7 @@ do
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(trim(tostr_stmt(s)), trim [[
         val x = catch :X {
@@ -500,7 +534,7 @@ do
     print("Testing...", src)
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(tostr_stmt(s), "spawn(ts, X)")
 
@@ -509,7 +543,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(tostr_stmt(s), "pin _ = spawn(nil, T, 1, 2, 3)")
 
@@ -518,7 +552,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_stmt)
+    local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near 'spawn' : expected call")
 
     local src = "val t = spawn T()"
@@ -526,7 +560,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_stmt)
+    local ok, msg = pcall(parser_expr)
     assert(not ok and msg=="anon : line 1 : near 'spawn' : invalid spawn : expected pin declaraion")
 
     local src = "val t = tasks()"
@@ -534,7 +568,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_stmt)
+    local ok, msg = pcall(parser_expr)
     assertx(msg, "anon : line 1 : near 'tasks' : invalid tasks : expected pin declaraion")
 end
 
@@ -546,7 +580,7 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local s = parser_stmt()
+    local s = parser_expr()
     assert(check('<eof>'))
     assertx(trim(tostr_stmt(s)), trim [[
         loop {

@@ -68,13 +68,13 @@ function parser_list (sep, clo, f)
         --[[
         -- HACK-01: flatten "seq" into list
         if f == parser_stmt then
-            local ss = f()
-            if ss.tag == "seq" then
-                for _,s in ipairs(ss) do
+            local es = f()
+            if es.tag == "seq" then
+                for _,s in ipairs(es) do
                     l[#l+1] = s
                 end
             else
-                l[#l+1] = ss
+                l[#l+1] = es
             end
         else
             l[#l+1] = f()
@@ -111,13 +111,13 @@ end
 
 function parser_curly ()
     accept_err('{')
-    local ss = parser_list(null, '}', parser_stmt)
+    local es = parser_list(null, '}', parser_expr)
     accept_err('}')
-    return ss
+    return es
 end
 
 function parser_main ()
-    local ss = parser_list(null, '<eof>', parser_stmt)
+    local es = parser_list(null, '<eof>', parser_expr)
     accept_err('<eof>')
-    return { tag='block', ss=ss }
+    return { tag='block', es=es }
 end

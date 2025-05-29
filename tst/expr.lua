@@ -446,7 +446,14 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "(x and 10) or 20")
+    --assertx(tostr_expr(e), "(x and 10) or 20")
+    assertx(trim(tostr_expr(e)), trim [[
+        if x {
+            10
+        } else {
+            20
+        }
+    ]])
 
     local src = "ifs { x => 10 ; y => nil ; else => 20 }"
     print("Testing...", src)
@@ -455,7 +462,21 @@ do
     parser()
     local e = parser_expr()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "(x and 10) or ((y and nil) or ((true and 20) or (nil)))")
+    --assertx(tostr_expr(e), "(x and 10) or ((y and nil) or ((true and 20) or (nil)))")
+    assertx(trim(tostr_expr(e)), trim [[
+        if x {
+            10
+        } else {
+            if y {
+                nil
+            } else {
+                if true {
+                    20
+                } else {
+                }
+            }
+        }
+    ]])
 end
 
 print '--- IS / IN ---'
@@ -520,7 +541,7 @@ do
 
     local src = [[
         (func (x,y) {
-            return (x + y)
+            (x + y)
         })(1,2)
     ]]
     print("Testing...", "func 1")
@@ -531,7 +552,7 @@ do
     assert(check('<eof>'))
     assertx(tostr_expr(e), trim [[
         (func (x, y) {
-            return(x + y)
+            (x + y)
         })(1, 2)
     ]])
 
@@ -776,8 +797,11 @@ do
     init()
     lexer_string("anon", src)
     parser()
-    local ok, msg = pcall(parser_expr)
-    assert(not ok and msg=="anon : line 1 : near 'spawn' : expected expression")
+    local e = parser_expr()
+    assert(check('<eof>'))
+    assertx(tostr_expr(e), "pin _ = spawn(nil, T, 1, 2, 3)")
+    --local ok, msg = pcall(parser_expr)
+    --assertx(msg, "anon : line 1 : near 'spawn' : expected expression")
 
     local src = "pub"
     print("Testing...", src)
@@ -801,7 +825,7 @@ do
     assert(check('<eof>'))
     assertx(tostr_expr(e), trim [[
         await(:X, func (evt) {
-            return(x + 10)
+            x + 10
         })
     ]])
 

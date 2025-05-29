@@ -1,12 +1,19 @@
 Stmt = {}   -- solves mutual require with expr.lua
 
+-- only_stmt: dcl, func, set, ...
+    -- list of exprs, except last
+-- only_expr: literals, index, parens, bins, mets
+    -- middle of compund exprs
+    -- last in list of exprs
+-- both: call, if, ...
+
 require "parser"
 _ = Expr or require "expr"
 
-local function spawn (lin, ss)
+local function spawn (lin, es)
     local cmd = { tag='acc', tk={tag='id', str='spawn', lin=lin} }
     local ts = { tag='nil', tk={tag='key',str='nil'} }
-    local f = { tag='func', pars={}, blk={tag='block',ss=ss} }
+    local f = { tag='func', pars={}, blk={tag='block',es=es} }
     return { tag='call', f=cmd, args={ts,f}, custom="spawn" }
 end
 
@@ -16,7 +23,7 @@ function parser_spawn ()
         -- spawn { ... }
         return spawn(TK0.lin, parser_curly())
     else
-        -- spawn T(...)
+        -- spawn T(...) [in ...]
         local tk = TK0
         local cmd = { tag='acc', tk={tag='id', str=TK0.str, lin=TK0.lin} }
         local call = parser_expr()
@@ -39,231 +46,12 @@ end
 function parser_stmt ()
     if false then
 
-    -- var x = 10
-    elseif accept('val') or accept('var') or accept('pin') then
-        local tk = TK0
-        local ids = parser_ids('=')
-        local sets
-        local custom
-        if accept('=') then
-            if check('do') then
-                local tk = TK1
-                local blk = parser_stmt()
-                if blk.esc == nil then
-                    err(tk, "expected tagged block")
-                end
-                custom = 'block'
-                sets = { blk }
-            elseif check('catch') then
-                local cat = parser_stmt()
-                custom = 'catch'
-                sets = { cat }
-            elseif check('spawn') then
-                local tk1 = TK1
-                local spw = parser_spawn()
-                custom = 'spawn'
-                if tk.str=='pin' and spw.args[1].tag~='nil' then
-                    err(tk1, "invalid spawn in : unexpected pin declaraion")
-                elseif tk.str~='pin' and spw.args[1].tag=='nil' then
-                    err(tk1, "invalid spawn : expected pin declaraion")
-                end
-                sets = { spw }
-            elseif accept('tasks') then
-                -- tasks(n)
-                custom = 'tasks'
-                if tk.str ~= 'pin' then
-                    err(TK0, "invalid tasks : expected pin declaraion")
-                end
-                local f = { tag='acc', tk={tag='id',str="tasks",lin=TK0.lin} }
-                accept_err('(')
-                local e
-                if not check(')') then
-                    e = parser_expr()
-                end
-                accept_err(')')
-                local ts = { tag='call', f=f, args={e}, custom="tasks" }
-                sets = { ts }
-
-            else
-                sets = parser_list(',', nil, parser_expr)
-            end
-        end
-        return { tag='dcl', tk=tk, ids=ids, sets=sets, custom=custom }
-
-    -- set x = 10
-    elseif accept('set') then
-        local dsts = parser_list(',', '=', function ()
-            local tk = TK1
-            local e = parser_expr()
-            if e.tag=='acc' or e.tag=='index' then
-                -- ok
-            else
-                err(tk, "expected assignable expression")
-            end
-            return e
-        end)
-        accept_err('=')
-        local srcs = parser_list(',', nil, parser_expr)
-        return { tag='set', dsts=dsts, srcs=srcs }
-
-    -- func () { ... }
-    elseif accept('func') then
-        local id = accept_err(nil,'id')
-        accept_err('(')
-        local dots, pars = parser_dots_pars()
-        accept_err(')')
-        local ss = parser_curly()
-        local f = { tag='func', dots=dots, pars=pars, blk={tag='block',ss=ss} }
-        return { tag='dcl', tk={tag='key',str='var'}, ids={id}, sets={f}, custom='func' }
-
-    -- do { ... }, defer { ... }
-    elseif accept('do') then
-        local tag = accept(nil,'tag')
-        local ss  = parser_curly()
-        return { tag='block', esc=tag, ss=ss }
-    elseif accept('defer') then
-        local ss = parser_curly()
-        return { tag='defer', blk={tag='block',ss=ss} }
-
-    -- escape(:X)
-    elseif accept('escape') then
-        accept_err('(')
-        local tag = check_err(nil, 'tag')
-        local e = parser_expr()
-        if accept(',') then
-            e = parser_expr()
-        end
-        accept_err(')')
-        return { tag='escape', esc=tag, e=e }
-
     -- return(...)
     elseif accept('return') then
         accept_err('(')
         local es = parser_list(',', ')', parser_expr)
         accept_err(')')
         return { tag='return', es=es }
-
-    -- if-else
-    elseif accept('if') then
-        local cnd = parser_expr()
-        local t = parser_curly()
-        local f; do
-            if accept('else') then
-                f = parser_curly()
-            else
-                f = {}
-            end
-        end
-        return { tag='if', cnd=cnd, t={tag='block',ss=t}, f={tag='block',ss=f} }
-
-    -- ifs
-    elseif accept('ifs') then
-        local tk = accept_err('{')
-        local t = {}
-        while not check('}') do
-            local brk = false
-            local cnd; do
-                if accept('else') then
-                    brk = true
-                    cnd = { tag='bool', tk={str='true'} }
-                else
-                    cnd = parser_expr()
-                end
-            end
-            accept_err('=>')
-            local ss; do
-                if check('{') then
-                    ss = parser_curly()
-                else
-                    ss = { parser_stmt() }
-                end
-            end
-            t[#t+1] = { cnd, ss }
-            if brk then
-                break
-            end
-        end
-        accept_err('}')
-
-        if #t == 0 then
-            err(tk, "invalid ifs : expected case")
-        end
-
-        local function F (i)
-            local cnd, ss = table.unpack(t[i])
-            local f; do
-                if i < #t then
-                    f = { tag='block', ss={F(i+1)} }
-                else
-                    f = { tag='block', ss={} }
-                end
-            end
-            return { tag='if', cnd=cnd, t={tag='block',ss=ss}, f=f }
-        end
-        return F(1)
-
-    -- loop
-    elseif accept('loop') then
-        local ids = check(nil,'id') and parser_ids('=') or nil
-        local itr = nil
-        if accept('in') then
-            itr = parser_expr()
-        end
-        local ss = parser_curly()
-        return { tag='loop', ids=ids, itr=itr, blk={tag='block',ss=ss} }
-
-    -- break, until, while
-    elseif accept('break') then
-        return { tag='break' }
-    elseif accept('until') or accept('while') then
-        local whi = (TK0.str == 'while')
-        local cnd = parser_expr()
-        local t = { tag='block', ss={{tag='break'}} }
-        local f = { tag='block', ss={} }
-        if whi then
-            t, f = f, t
-        end
-        return { tag='if', cnd=cnd, t=t, f=f }
-
-    -- catch
-    elseif accept('catch') then
-        local xe = parser_expr()
-        local xf = nil
-        if accept(',') then
-            local it = { tag='id', str="err" }
-            local e = parser_expr()
-            local ret = { tag='return', es={e} }
-            xf = { tag='func', pars={it}, blk={tag='block',ss={ret}} }
-        end
-        local ss = parser_curly()
-        return { tag='catch', cnd={e=xe,f=xf}, blk={tag='block',ss=ss} }
-
-    -- spawn {}, spawn T()
-    elseif check('spawn') then
-        local spw = parser_spawn()
-        if spw.args[1].tag == 'nil' then
-            local pin = {tag='key',str='pin'}
-            local id = { tag='id',str='_' }
-            return { tag='dcl', tk=pin, ids={id}, sets={spw} }
-        else
-            return { tag='expr', e=spw }
-        end
-
-    -- every { ... }
-    elseif accept('every') then
-        local lin = TK0.lin
-        local par = accept('(')
-        local awt = parser_await(lin)
-        if par then
-            accept_err(')')
-        end
-        local ss = parser_curly()
-        local dcl = {
-            tag='dcl', tk={tag='key',str='val'},
-            ids={{tag='id',str='evt'}}, sets={awt}
-        }
-        table.insert(ss, 1, dcl)
-        return { tag='loop', ids=nil, itr=nil, blk={tag='block',ss=ss} }
 
     -- par
     elseif accept('par') then
@@ -274,8 +62,8 @@ function parser_stmt ()
         local function f (t)
             return { tag='expr', e=spawn(t[1],t[2]) }
         end
-        local ss = map(sss,f)
-        ss[#ss+1] = {
+        local es = map(sss,f)
+        es[#es+1] = {
             tag = 'expr',
             e = {
                 tag = 'call',
@@ -286,7 +74,7 @@ function parser_stmt ()
                 custom = "await",
             },
         }
-        return { tag='block', ss=ss }
+        return { tag='block', es=es }
 
     -- par_and
     elseif accept('par_and') then
@@ -318,7 +106,7 @@ function parser_stmt ()
         end
         local ss1 = map(sss,f1)
         local ss2 = map(sss,f2)
-        return { tag='block', ss=concat(ss1,ss2) }
+        return { tag='block', es=concat(ss1,ss2) }
 
     -- par_or
     elseif accept('par_or') then
@@ -355,7 +143,7 @@ function parser_stmt ()
                 }
             end
         end
-        local ss = map(sss,f1)
+        local es = map(sss,f1)
         local awt = {
             tag = 'expr',
             e = {
@@ -368,7 +156,7 @@ function parser_stmt ()
                         pars = { {tag='id',str="evt"} },
                         blk  = {
                             tag = 'block',
-                            ss  = {
+                            es  = {
                                 { tag='return', es={f2(1)} },
                             },
                         },
@@ -377,8 +165,8 @@ function parser_stmt ()
                 custom = "await",
             },
         }
-        ss[#ss+1] = awt
-        return { tag='block', ss=ss }
+        es[#es+1] = awt
+        return { tag='block', es=es }
 
     -- watching
     elseif accept('watching') then
@@ -389,14 +177,14 @@ function parser_stmt ()
             accept_err(')')
         end
         local lin = TK1.lin
-        local ss = parser_curly()
+        local es = parser_curly()
         local spw = {
             tag  = 'dcl',
             tk   = { tag='key', str='val' },
             ids  = { {tag='id', str='_'} },
-            sets = { spawn(lin,ss) },
+            sets = { spawn(lin,es) },
         }
-        return { tag='block', ss={spw, {tag='expr',e=awt}} }
+        return { tag='block', es={spw, {tag='expr',e=awt}} }
 
     -- call: f(), nat: `xxx`
     else
