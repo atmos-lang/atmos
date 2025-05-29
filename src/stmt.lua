@@ -297,6 +297,7 @@ function parser_stmt ()
 
     -- par_and
     elseif accept('par_and') then
+        local n = N()
         local sss = { { TK1.lin, parser_curly() } }
         while accept('with') do
             sss[#sss+1] = { TK1.lin, parser_curly() }
@@ -304,8 +305,8 @@ function parser_stmt ()
         local function f1 (t,i)
             return {
                 tag  = 'dcl',
-                tk   = { tag='key', str='val' },
-                ids  = { {tag='id', str='atm_'..i} },
+                tk   = { tag='key', str='pin' },
+                ids  = { {tag='id', str='atm_'..n..'_'..i} },
                 sets = { spawn(t[1],t[2]) },
             }
         end
@@ -316,7 +317,7 @@ function parser_stmt ()
                     tag = 'call',
                     f = { tag='acc', tk={tag='id',str='await'} },
                     args = {
-                        { tag='acc', tk={str='atm_'..i} },
+                        { tag='acc', tk={str='atm_'..n..'_'..i} },
                     },
                     custom = "await",
                 },
@@ -328,6 +329,7 @@ function parser_stmt ()
 
     -- par_or
     elseif accept('par_or') then
+        local n = N()
         local sss = { { TK1.lin, parser_curly() } }
         while accept('with') do
             sss[#sss+1] = { TK1.lin, parser_curly() }
@@ -335,8 +337,8 @@ function parser_stmt ()
         local function f1 (t,i)
             return {
                 tag  = 'dcl',
-                tk   = { tag='key', str='val' },
-                ids  = { {tag='id', str='atm_'..i} },
+                tk   = { tag='key', str='pin' },
+                ids  = { {tag='id', str='atm_'..n..'_'..i} },
                 sets = { spawn(t[1],t[2]) },
             }
         end
@@ -353,7 +355,7 @@ function parser_stmt ()
                             tag = 'bin',
                             op  = { str='==' },
                             e1  = { tag='acc', tk={str="evt"} },
-                            e2  = { tag='acc', tk={str="atm_"..i} },
+                            e2  = { tag='acc', tk={str="atm_"..n..'_'..i} },
                         },
                     },
                     e2  = f2(i+1),
@@ -384,6 +386,23 @@ function parser_stmt ()
         }
         ss[#ss+1] = awt
         return { tag='block', ss=ss }
+
+    -- watching
+    elseif accept('watching') then
+        local par = accept('(')
+        local awt = parser_await(0)
+        if par then
+            accept_err(')')
+        end
+        local lin = TK1.lin
+        local ss = parser_curly()
+        local spw = {
+            tag  = 'dcl',
+            tk   = { tag='key', str='val' },
+            ids  = { {tag='id', str='_'} },
+            sets = { spawn(lin,ss) },
+        }
+        return { tag='block', ss={spw, {tag='expr',e=awt}} }
 
     -- call: f(), nat: `xxx`
     else

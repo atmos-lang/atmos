@@ -6,6 +6,9 @@ end
 local function L (tk)
     local ls = ''
     if tk and tk.lin then
+        if tk.lin < _l_ then
+            return ls           -- TODO: workaround for watching
+        end
         assert(tk.lin >= _l_)
         while tk.lin > _l_ do
             ls = ls .. '\n'

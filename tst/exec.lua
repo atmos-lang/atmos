@@ -84,7 +84,7 @@ do
     ]]
     print("Testing...", "block 5 : err : goto")
     local out = exec_string("anon.atm", src)
-    assert(out == "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
+    assertx(out, "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
 
     local src = [[
         val a = 1
