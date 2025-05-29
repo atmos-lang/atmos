@@ -2,7 +2,7 @@
 
 require "lexer"
 require "parser"
-require "tostr"
+require "tosource"
 
 -- PRIM
 
@@ -127,7 +127,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(tostr_expr(e), "`f`()")
+    assertx(tosource(e), "`f`()")
 end
 
 -- TABLE / INDEX
@@ -157,7 +157,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), '[(1,v1), (:k2,v2), (:k3,v3), (2,v4)]')
+    assertx(tosource(e), '[(1,v1), (:k2,v2), (:k3,v3), (2,v4)]')
 
     local src = "[ ]"
     print("Testing...", src)
@@ -166,7 +166,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), '[]')
+    assertx(tosource(e), '[]')
 
     local src = "[ [], k2=[1,2,3], ([1],v3) ]"
     print("Testing...", src)
@@ -175,7 +175,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == '[(1,[]), (:k2,[(1,1), (2,2), (3,3)]), ([(1,1)],v3)]')
+    assert(tosource(e) == '[(1,[]), (:k2,[(1,1), (2,2), (3,3)]), ([(1,1)],v3)]')
 
     local src = "[1,]"
     print("Testing...", src)
@@ -184,7 +184,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == '[(1,1)]')
+    assert(tosource(e) == '[(1,1)]')
 
     local src = "[f()]"
     print("Testing...", src)
@@ -193,7 +193,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), '[(1,f())]')
+    assertx(tosource(e), '[(1,f())]')
 
     local src = "[{"
     print("Testing...", src)
@@ -246,7 +246,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == 'x[:a]')
+    assert(tosource(e) == 'x[:a]')
 
     local src = "t[1"
     print("Testing...", src)
@@ -279,7 +279,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == 'x[1]()[:a]')
+    assert(tosource(e) == 'x[1]()[:a]')
 
     local src = "#t"
     print("Testing...", src)
@@ -297,7 +297,7 @@ do
     lexer_next()
     local e = parser()
     assert(not check('<eof>'))
-    assert(tostr_expr(e) == "1")
+    assert(tosource(e) == "1")
     --local ok, msg = pcall(parser)
     --assert(not ok and msg=="anon : line 1 : near '[' : index error : expected prefix expression")
 
@@ -308,7 +308,7 @@ do
     lexer_next()
     local e = parser()
     assert(not check('<eof>'))
-    assertx(tostr_expr(e), "nil")
+    assertx(tosource(e), "nil")
     --local ok, msg = pcall(parser)
     --assert(not ok and msg=="anon : line 1 : near '.' : field error : expected prefix expression")
 
@@ -319,7 +319,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == '-x[0]')
+    assert(tosource(e) == '-x[0]')
 
     local src = ":X []"
     print("Testing...", src)
@@ -328,7 +328,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), 'atm_tag(:X, [])')
+    assertx(tosource(e), 'atm_tag(:X, [])')
 
     local src = ":X (x)"
     print("Testing...", src)
@@ -337,7 +337,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == 'atm_tag(:X, (x))')
+    assert(tosource(e) == 'atm_tag(:X, (x))')
 end
 
 -- UNO
@@ -359,7 +359,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "!-x")
+    assert(tosource(e) == "!-x")
 end
 
 -- BIN
@@ -389,7 +389,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "2 * (a - 1)")
+    assertx(tosource(e), "2 * (a - 1)")
 
     local src = "2 == -1"
     print("Testing...", src)
@@ -398,7 +398,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "2 == -1")
+    assert(tosource(e) == "2 == -1")
 
     local src = "x || y"
     print("Testing...", src)
@@ -407,7 +407,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "x || y")
+    assert(tosource(e) == "x || y")
 
     local src = "- -1"
     print("Testing...", src)
@@ -416,7 +416,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "--1")
+    assert(tosource(e) == "--1")
 
     local src = "x++y++z"
     print("Testing...", src)
@@ -425,7 +425,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "x ++ y ++ z")
+    assertx(tosource(e), "x ++ y ++ z")
 
     local src = "(10+)"
     print("Testing...", src)
@@ -446,8 +446,8 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    --assertx(tostr_expr(e), "(x and 10) or 20")
-    assertx(trim(tostr_expr(e)), trim [[
+    --assertx(tosource(e), "(x and 10) or 20")
+    assertx(trim(tosource(e)), trim [[
         if x {
             10
         } else {
@@ -462,8 +462,8 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    --assertx(tostr_expr(e), "(x and 10) or ((y and nil) or ((true and 20) or (nil)))")
-    assertx(trim(tostr_expr(e)), trim [[
+    --assertx(tosource(e), "(x and 10) or ((y and nil) or ((true and 20) or (nil)))")
+    assertx(trim(tosource(e)), trim [[
         if x {
             10
         } else {
@@ -489,7 +489,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "a ?? b")
+    assertx(tosource(e), "a ?? b")
 
     local src = "a ?> b"
     print("Testing...", src)
@@ -498,7 +498,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "a ?> b")
+    assertx(tosource(e), "a ?> b")
 
     local src = "(a !? b) || (a <? b) || (a !> b) || (a <! b)"
     print("Testing...", src)
@@ -507,7 +507,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "(a !? b) || (a <? b) || (a !> b) || (a <! b)")
+    assertx(tosource(e), "(a !? b) || (a <? b) || (a !> b) || (a <! b)")
 end
 
 -- CALL / FUNC / RETURN / THROW
@@ -521,7 +521,7 @@ do
     local e = parser()
     assert(check('<eof>'))
     assert(stringify(e) == "{args={{tag=acc, tk={lin=1, str=x, tag=id}}, {tag=acc, tk={lin=1, str=y, tag=id}}}, f={tag=acc, tk={lin=1, str=f, tag=id}}, tag=call}")
-    assert(tostr_expr(e) == "f(x, y)")
+    assert(tosource(e) == "f(x, y)")
 
     local src = "f({"
     print("Testing...", src)
@@ -550,7 +550,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), trim [[
+    assertx(tosource(e), trim [[
         (func (x, y) {
             (x + y)
         })(1, 2)
@@ -589,7 +589,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(trim(tostr_expr(e)), trim [[
+    assertx(trim(tosource(e)), trim [[
         func (it) {
         }
     ]])
@@ -603,7 +603,7 @@ do
     lexer_next()
     local e = parser()
     assert(not check('<eof>'))
-    assertx(tostr_expr(e), "f")
+    assertx(tosource(e), "f")
 end
 
 print '--- FUNC / ... / dots ---'
@@ -615,7 +615,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(trim(tostr_expr(e)), trim [[
+    assertx(trim(tosource(e)), trim [[
         func (...) {
         }
     ]])
@@ -634,7 +634,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(trim(tostr_expr(e)), trim [[
+    assertx(trim(tosource(e)), trim [[
         func (a, ...) {
         }
     ]])
@@ -645,7 +645,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(tostr_expr(e), "...")
+    assertx(tosource(e), "...")
 end
 
 print '--- CALL / METHOD / PIPE ---'
@@ -658,7 +658,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "f(10)")
+    assertx(tosource(e), "f(10)")
 
     local src = "10->f(20)"
     print("Testing...", src)
@@ -667,7 +667,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "f(10, 20)")
+    assertx(tosource(e), "f(10, 20)")
 
     local src = "f() <- 10"
     print("Testing...", src)
@@ -676,7 +676,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "f(10)")
+    assertx(tosource(e), "f(10)")
 
     local src = "f<-10"
     print("Testing...", src)
@@ -685,7 +685,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "f(10)")
+    assertx(tosource(e), "f(10)")
 
     local src = "f(10)<-(20)"
     print("Testing...", src)
@@ -694,7 +694,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "f(10, (20))")
+    assertx(tosource(e), "f(10, (20))")
 
     local src = "(10->f)<-20"
     print("Testing...", src)
@@ -703,7 +703,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "(f(10))(20)")
+    assertx(tosource(e), "(f(10))(20)")
 
     local src = "(func() {}) <- 20"
     print("Testing...", src)
@@ -712,7 +712,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(trim(tostr_expr(e)), trim [[
+    assertx(trim(tosource(e)), trim [[
         (func () {
         })(20)
     ]])
@@ -724,7 +724,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "10(10)")
+    assertx(tosource(e), "10(10)")
 end
 
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME / PUB
@@ -746,7 +746,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "task(T)")
+    assertx(tosource(e), "task(T)")
 
     local src = "tasks(10)"
     print("Testing...", src)
@@ -763,7 +763,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "yield(x, 10)")
+    assert(tosource(e) == "yield(x, 10)")
 
     local src = "emit(:X,10)"
     print("Testing...", src)
@@ -772,7 +772,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "emit(nil, :X, 10)")
+    assert(tosource(e) == "emit(nil, :X, 10)")
 
     local src = "emit(:X,10) in x"
     print("Testing...", src)
@@ -781,7 +781,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "emit(x, :X, 10)")
+    assert(tosource(e) == "emit(x, :X, 10)")
 
     local src = "resume co()"
     print("Testing...", src)
@@ -790,7 +790,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "resume(co)")
+    assert(tosource(e) == "resume(co)")
 
     local src = "spawn T(1,2,3)"
     print("Testing...", src)
@@ -799,7 +799,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "pin _ = spawn(nil, T, 1, 2, 3)")
+    assertx(tosource(e), "pin _ = spawn(nil, T, 1, 2, 3)")
     --local ok, msg = pcall(parser)
     --assertx(msg, "anon : line 1 : near 'spawn' : expected expression")
 
@@ -810,7 +810,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), 'pub')
+    assertx(tosource(e), 'pub')
 end
 
 print '-=- AWAIT -=-'
@@ -823,7 +823,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), trim [[
+    assertx(tosource(e), trim [[
         await(:X, func (evt) {
             x + 10
         })
@@ -836,7 +836,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tostr_expr(e), "await(:clock, 0 * 3600000 + 20 * 60000 + x * 1000 + 100 * 1)")
+    assertx(tosource(e), "await(:clock, 0 * 3600000 + 20 * 60000 + x * 1000 + 100 * 1)")
 
     local src = "await(@10,x)"
     print("Testing...", src)

@@ -87,7 +87,7 @@ function coder (e)
         if e.tk.str == 'pub' then
             return L(e.tk) .. "atm_me().pub"
         else
-            return L(e.tk) .. tostr_expr(e)
+            return L(e.tk) .. tosource(e)
         end
     elseif e.tag == 'nat' then
         return L(e.tk) .. e.tk.str
@@ -178,6 +178,6 @@ function coder (e)
             " end"
     else
 print(e.tag)
-        return L(e.tk) .. tostr_expr(e)
+        return L(e.tk) .. tosource(e)
     end
 end

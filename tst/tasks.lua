@@ -18,7 +18,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tostr_expr(e) == "await(:1)")
+    assert(tosource(e) == "await(:1)")
 
     local src = "await()"
     print("Testing...", src)

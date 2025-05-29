@@ -2,7 +2,7 @@
 
 require "lexer"
 require "parser"
-require "tostr"
+require "tosource"
 require "coder"
 require "exec"
 
@@ -241,7 +241,7 @@ do
     local s = parser()
 
     local f = assert(io.open("/tmp/anon.lua", "w"))
-    f:write(tostr_expr(s.e))
+    f:write(tosource(s.e))
     f:close()
 
     local exe = assert(io.popen("lua5.4 /tmp/anon.lua", "r"))

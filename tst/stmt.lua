@@ -2,7 +2,6 @@
 
 require "lexer"
 require "parser"
-require "tostr"
 
 print '--- CALL / FUNC / NATIVE ---'
 
