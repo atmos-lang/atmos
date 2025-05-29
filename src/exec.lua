@@ -2,8 +2,6 @@ require "global"
 require "lexer"
 require "parser"
 require "coder"
-require "tostr"
-
 function exec_file (file)
     local f = assert(io.open(file))
     local src = f:read('*a')

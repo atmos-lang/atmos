@@ -33,7 +33,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser_main()
-    assertx(tostr_stmt(s), trim [[
+    assertx(tosource(s), trim [[
         do {
             val e = []
             (f)()
@@ -58,7 +58,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
-    assertx(tostr_stmt(s), "`print('ok')`")
+    assertx(tosource(s), "`print('ok')`")
 end
 
 -- BLOCK / DO / ESCAPE / DEFER / SEQ / ; / MAIN
@@ -78,7 +78,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
-    assert(tostr_stmt(s) == trim [[
+    assert(tosource(s) == trim [[
         do {
             var x
         }
@@ -90,7 +90,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
-    assertx(tostr_stmt(s), trim [[
+    assertx(tosource(s), trim [[
         catch :X {
             error(atm_tag(:X, []), 0)
         }
@@ -105,7 +105,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tostr_stmt(s), trim [[
+    assertx(tosource(s), trim [[
         catch :X {
             error(:X, 0)
         }
@@ -118,7 +118,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(tostr_stmt(s) == trim [[
+    assert(tosource(s) == trim [[
         defer {
             var x
             f(1)
@@ -132,7 +132,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(tostr_stmt(s) == trim [[
+    assert(tosource(s) == trim [[
         defer {
             var x
             f(1)
@@ -145,7 +145,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser_main()
-    assert(tostr_stmt(s) == trim [[
+    assert(tosource(s) == trim [[
         do {
             f()
             g()
@@ -160,7 +160,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser_main()
-    assertx(tostr_stmt(s), trim [[
+    assertx(tosource(s), trim [[
         do {
             var v2
             [(1,tp), (2,v1), (3,v2)]
@@ -176,7 +176,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser_main()
-    assertx(trim(tostr_stmt(s)), trim [[
+    assertx(trim(tosource(s)), trim [[
         do {
             var v2
             [(1,tp), (2,v1), (3,v2)]
@@ -191,7 +191,7 @@ do
     --local ok, msg = pcall(parser_main)
     --assert(not ok and msg=="anon : line 1 : near 'do' : expected tagged block")
     local s = parser_main()
-    assertx(trim(tostr_stmt(s)), trim [[
+    assertx(trim(tosource(s)), trim [[
         do {
             val x = do {
             }
@@ -205,7 +205,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tostr_stmt(s), trim [[
+    assertx(tosource(s), trim [[
         val x = catch :X {
             error(atm_tag(:X, [(1,10)]), 0)
         }
@@ -264,7 +264,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tostr_stmt(s), "val it = 1")
+    assertx(tosource(s), "val it = 1")
     --local ok, msg = pcall(parser)
     --assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
 
@@ -283,7 +283,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(tostr_stmt(s) == "set x, y, z = 10, 20")
+    assert(tosource(s) == "set x, y, z = 10, 20")
 
     local src = "val x, y = 10, 20, 30"
     print("Testing...", src)
@@ -292,7 +292,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(tostr_stmt(s) == "val x, y = 10, 20, 30")
+    assert(tosource(s) == "val x, y = 10, 20, 30")
 
     local src = "set #x = 1"
     print("Testing...", src)
@@ -309,7 +309,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tostr_stmt(s), 'set pub = 10')
+    assertx(tosource(s), 'set pub = 10')
 end
 
 -- IF-ELSE / IFS
@@ -340,7 +340,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(trim(tostr_stmt(s)), trim [[
+    assertx(trim(tosource(s)), trim [[
         if f() {
             if (cnd) {
                 val x
@@ -368,7 +368,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(trim(tostr_stmt(s)) == trim [[
+    assert(trim(tosource(s)) == trim [[
         loop x in f() {
         }
     ]])
@@ -380,7 +380,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(trim(tostr_stmt(s)) == trim [[
+    assert(trim(tosource(s)) == trim [[
         loop in f() {
         }
     ]])
@@ -392,7 +392,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(trim(tostr_stmt(s)) == trim [[
+    assert(trim(tosource(s)) == trim [[
         loop x {
         }
     ]])
@@ -404,7 +404,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(trim(tostr_stmt(s)) == trim [[
+    assert(trim(tosource(s)) == trim [[
         loop {
             if x {
                 break
@@ -420,7 +420,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(trim(tostr_stmt(s)) == trim [[
+    assert(trim(tosource(s)) == trim [[
         loop {
             if x {
             } else {
@@ -436,7 +436,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(trim(tostr_stmt(s)), trim [[
+    assertx(trim(tosource(s)), trim [[
         if a {
             print(b)
         } else {
@@ -473,7 +473,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(trim(tostr_stmt(s)), trim [[
+    assertx(trim(tosource(s)), trim [[
         if f() {
             g()
         } else {
@@ -507,7 +507,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(trim(tostr_stmt(s)), trim [[
+    assertx(trim(tosource(s)), trim [[
         catch true, func (err) {
             err > 0
         } {
@@ -520,7 +520,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(trim(tostr_stmt(s)), trim [[
+    assertx(trim(tosource(s)), trim [[
         val x = catch :X {
         }
     ]])
@@ -535,7 +535,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tostr_stmt(s), "spawn(ts, X)")
+    assertx(tosource(s), "spawn(ts, X)")
 
     local src = "spawn T(1,2,3)"
     print("Testing...", src)
@@ -544,7 +544,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tostr_stmt(s), "pin _ = spawn(nil, T, 1, 2, 3)")
+    assertx(tosource(s), "pin _ = spawn(nil, T, 1, 2, 3)")
 
     local src = "spawn (x+10)"
     print("Testing...", src)
@@ -581,7 +581,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(trim(tostr_stmt(s)), trim [[
+    assertx(trim(tosource(s)), trim [[
         loop {
             val evt = await(:X)
         }

@@ -241,7 +241,7 @@ do
     local s = parser()
 
     local f = assert(io.open("/tmp/anon.lua", "w"))
-    f:write(tosource(s.e))
+    f:write(tosource(s))
     f:close()
 
     local exe = assert(io.popen("lua5.4 /tmp/anon.lua", "r"))
