@@ -68,6 +68,15 @@ function dump (...)
     print(table.unpack(ret))
 end
 
+function any (t, f)
+    for _, v in ipairs(t) do
+        if f(v) then
+            return true
+        end
+    end
+    return false
+end
+
 function map (t, f)
     local ret = {}
     for i,v in ipairs(t) do

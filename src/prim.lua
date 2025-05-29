@@ -57,35 +57,36 @@ function parser_await (lin)
 end
 
 function parser_expr_1_prim ()
-    -- nil
-    if accept('nil') then
-        return { tag='nil', tk=TK0 }
+    local lits = { {'nil','true','false','...'}, {'tag','num','str','nat'} }
+    local function check_(tag)
+        return check(nil, tag)
+    end
 
-    -- true, false
-    elseif accept('true') or accept('false') then
-        return { tag='bool', tk=TK0 }
+    -- literals: nil, true, false, ..., tag, str, nat
+    if any(lits[1],check) or any(lits[2],check_) then
+        -- nil, true, false, ...
+        if accept('nil') then
+            return { tag='nil', tk=TK0 }
+        elseif accept('true') or accept('false') then
+            return { tag='bool', tk=TK0 }
+        elseif accept('...') then
+            return { tag='dots', tk=TK0 }
 
-    -- :tag
-    elseif accept(nil,'tag') then
-        return { tag='tag', tk=TK0 }
+        -- :tag, 0xFF, 'xxx'
+        elseif accept(nil,'tag') then
+            return { tag='tag', tk=TK0 }
+        elseif accept(nil,'num') then
+            return { tag='num', tk=TK0 }
+        elseif accept(nil,'str') then
+            return { tag='str', tk=TK0 }
+        elseif accept(nil,'nat') then
+            return { tag='nat', tk=TK0 }
 
-    -- 10, 0xFF
-    elseif accept(nil,'num') then
-        return { tag='num', tk=TK0 }
+        else
+            error "bug found"
+        end
 
-    -- 'xxx', """xxx"""
-    elseif accept(nil,'str') then
-        return { tag='str', tk=TK0 }
-
-    -- `xxx`, ```xxx```
-    elseif accept(nil,'nat') then
-        return { tag='nat', tk=TK0 }
-
-    -- ...
-    elseif accept('...') then
-        return { tag='dots', tk=TK0 }
-
-    -- x, __v
+    -- id: x, __v
     elseif accept(nil,'id') then
         return { tag='acc', tk=TK0 }
 
