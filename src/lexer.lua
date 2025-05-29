@@ -141,19 +141,19 @@ local function _lexer_ (str)
         -- clock
         elseif c == '@' then
             local t = read_while('', M"[%w_:%.]")
-            local h,min,s,ms = string.match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)%.([^:%.]+)$')
+            local h,min,s,ms = match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)%.([^:%.]+)$')
             if not h then
-                h,min,s = string.match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)$')
+                h,min,s = match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)$')
                 if not h then
-                    min,s,ms = string.match(t, '^([^:%.]+):([^:%.]+)%.([^:%.]+)$')
+                    min,s,ms = match(t, '^([^:%.]+):([^:%.]+)%.([^:%.]+)$')
                     if not min then
-                        min,s = string.match(t, '^([^:%.]+):([^:%.]+)$')
+                        min,s = match(t, '^([^:%.]+):([^:%.]+)$')
                         if not min then
-                            s,ms = string.match(t, '^([^:%.]+)%.([^:%.]+)$')
+                            s,ms = match(t, '^([^:%.]+)%.([^:%.]+)$')
                             if not s then
-                                s = string.match(t, '^([^:%.]+)$')
+                                s = match(t, '^([^:%.]+)$')
                                 if not s then
-                                    ms = string.match(t, '^%.([^:%.]+)$')
+                                    ms = match(t, '^%.([^:%.]+)$')
                                     if not ms then
                                         err({str=t,lin=LIN}, "invalid clock")
                                     end
@@ -267,7 +267,7 @@ local function _lexer_ (str)
     end
 end
 
-function lexer_string (file, str)
+function lexer_init (file, str)
     str = str .. '\0'
     FILE = file
     LIN = 1
@@ -281,3 +281,7 @@ function lexer_string (file, str)
     end
 end
 
+function lexer_next ()
+    TK0 = TK1
+    TK1 = LEX()
+end

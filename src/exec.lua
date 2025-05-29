@@ -13,7 +13,7 @@ end
 
 function exec_string (file, src)
     init()
-    lexer_string(file, src)
+    lexer_init(file, src)
     parser()
     local ok, blk = pcall(parser_main)
     if not ok then
@@ -43,7 +43,7 @@ end
 
 function do_string (file, src)
     init()
-    lexer_string(file, src)
+    lexer_init(file, src)
     parser()
     local ok, blk = pcall(parser_main)
     if not ok then

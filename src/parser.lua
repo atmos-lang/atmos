@@ -1,14 +1,7 @@
-Parser = {}
-
-_ = Expr or require "expr"
-_ = Stmt or require "stmt"
+require "expr"
+require "prim"
 
 -------------------------------------------------------------------------------
-
-function parser ()
-    TK0 = TK1
-    TK1 = LEX()
-end
 
 function check (str, tag)
     return (tag==nil or TK1.tag==tag) and (str==nil or TK1.str==str) and TK1 or nil
@@ -30,19 +23,19 @@ end
 function accept (str, tag)
     local tk = check(str, tag)
     if tk then
-        parser()
+        lexer_next()
     end
     return tk
 end
 function accept_err (str, tag)
     local tk = check_err(str, tag)
-    parser()
+    lexer_next()
     return tk
 end
 
 -------------------------------------------------------------------------------
 
-parser_expr = parser_expr_5_bin
+parser = parser_5_bin
 
 function parser_list (sep, clo, f)
     assert(sep or clo)
@@ -111,13 +104,13 @@ end
 
 function parser_curly ()
     accept_err('{')
-    local es = parser_list(null, '}', parser_expr)
+    local es = parser_list(null, '}', parser)
     accept_err('}')
     return es
 end
 
 function parser_main ()
-    local es = parser_list(null, '<eof>', parser_expr)
+    local es = parser_list(null, '<eof>', parser)
     accept_err('<eof>')
     return { tag='block', es=es }
 end

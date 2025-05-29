@@ -7,7 +7,7 @@ require "lexer"
 do
     local src = "{ } ( ; {{ () ) , ][ ."
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(stringify(LEX()) == "{lin=1, str={, tag=sym}")
     assert(LEX().str == '}')
     assert(LEX().str == '(')
@@ -25,7 +25,7 @@ do
 
     local src = ". .. ... .. ."
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == '.')
     assert(LEX().str == '.')
     assert(LEX().str == '.')
@@ -42,7 +42,7 @@ end
 do
     local src = "< > = # - == ! ++ != #[ # >= # / || * +"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == '<')
     assert(LEX().str == '>')
     assert(LEX().str == '=')
@@ -66,19 +66,19 @@ do
 
     local src = "##"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     local ok, msg = pcall(LEX)
     assert(not ok and msg=="anon : line 1 : near '##' : invalid operator")
 
     local src = "!!"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     local ok, msg = pcall(LEX)
     assert(not ok and msg=="anon : line 1 : near '!!' : invalid operator")
 
     local src = "!> ?? <? <! !? ?>"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == '!>')
     assert(LEX().str == '??')
     assert(LEX().str == '<?')
@@ -90,7 +90,7 @@ do
 
     local src = "--> <- --> <-"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == '-->')
     assert(LEX().str == '<-')
     assert(LEX().str == '-->')
@@ -105,7 +105,7 @@ end
 do
     local src = "10 0xF2 1.5 35 0xff 0xEaA 3.0 1.5F"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(stringify(LEX()) == "{lin=1, str=10, tag=num}")
     assert(stringify(LEX()) == "{lin=1, str=0xF2, tag=num}")
     assert(stringify(LEX()) == "{lin=1, str=1.5, tag=num}")
@@ -118,7 +118,7 @@ do
 
     local src = "3.1416 3.6e-2 0.4E1 34e1 0x0.1E 0xA3p-4 0X1.9F2D8P+1 0b12"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(stringify(LEX()) == "{lin=1, str=3.1416, tag=num}")
     assert(stringify(LEX()) == "{lin=1, str=3.6e-2, tag=num}")
     assert(stringify(LEX()) == "{lin=1, str=0.4E1, tag=num}")
@@ -131,7 +131,7 @@ do
 
     local src = "'xx' \"zzz\" '' '\\n\\z10' \"\\d\" '\n"
     print("Testing...", "string 1")
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(stringify(LEX()) == "{lin=1, str=xx, tag=str}")
     assert(stringify(LEX()) == "{lin=1, str=zzz, tag=str}")
     assert(stringify(LEX()) == "{lin=1, str=, tag=str}")
@@ -151,7 +151,7 @@ do
         """"
     ]]
     print("Testing...", "string 2: multi-line")
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(trim(LEX().str) == "x")
     assert(trim(LEX().str) == '""\n"""""\n"""""')
 
@@ -162,7 +162,7 @@ do
         ''''
     ]]
     print("Testing...", "string 3: multi-line unterminated")
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     local ok, msg = pcall(LEX)
     assertx(msg, "anon : line 1 : near ''''' : unterminated string")
 end
@@ -172,7 +172,7 @@ end
 do
     local src = "x X await every"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(stringify(LEX()) == "{lin=1, str=x, tag=id}")
     assert(stringify(LEX()) == "{lin=1, str=X, tag=id}")
     assert(stringify(LEX()) == "{lin=1, str=await, tag=key}")
@@ -180,7 +180,7 @@ do
 
     local src = "x-1 10-abc"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == "x")
     assert(LEX().str == '-')
     assert(LEX().str == "1")
@@ -201,7 +201,7 @@ do
         -
     ]]
     print("Testing...", "comments 1")
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == "x")
     assert(LEX().str == '-')
     assert(LEX().str == "y")
@@ -216,7 +216,7 @@ do
         z
     ]]
     print("Testing...", "comments 2")
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == "x")
     assert(LEX().str == "y")
     assert(LEX().str == "z")
@@ -235,7 +235,7 @@ do
         y
     ]]
     print("Testing...", "comments 3")
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == "x")
     assert(LEX().str == "y")
 
@@ -247,7 +247,7 @@ do
         y
     ]]
     print("Testing...", "comments 4")
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == "x")
     local ok, msg = pcall(LEX)
     assert(not ok and msg=="anon : line 2 : near ';;;' : unterminated comment")
@@ -260,7 +260,7 @@ do
         y
     ]]
     print("Testing...", "comments 4")
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == "x")
     assert(LEX().str == "y")
     assert(LEX().tag == 'eof')
@@ -271,14 +271,14 @@ end
 do
     local src = ":X :a:X:1 ::"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(stringify(LEX()) == "{lin=1, str=:X, tag=tag}")
     assert(stringify(LEX()) == "{lin=1, str=:a:X:1, tag=tag}")
     assert(stringify(LEX()) == "{lin=1, str=::, tag=tag}")
 
     local src = ":() :"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assert(LEX().str == ':')
     assert(LEX().str == '(')
     assert(LEX().str == ')')
@@ -290,17 +290,17 @@ print "--- NATIVE ---"
 do
     local src = "` abc `"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assertx(stringify(LEX()), "{lin=1, str= abc , tag=nat}")
 
     local src = "``` \n ```` \n `` \n ```"
     print("Testing...", "native 1")
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assertx(stringify(LEX()), "{lin=1, str= \n ```` \n `` \n , tag=nat}")
 
     local src = "``` \n ```` \n `` \n `````"
     print("Testing...", "native 2")
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     local ok, msg = pcall(LEX)
     assertx(msg, "anon : line 1 : near '```' : unterminated native")
 end
@@ -310,27 +310,27 @@ print "--- CLOCK ---"
 do
     local src = "@1:2:3.4"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assertx(stringify(LEX()), "{clk={1, 2, 3, 4}, lin=1, str=1:2:3.4, tag=clk}")
 
     local src = "@10:05"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assertx(stringify(LEX()), "{clk={0, 10, 05, 0}, lin=1, str=10:05, tag=clk}")
 
     local src = "@1:v1:3.x"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assertx(stringify(LEX()), "{clk={1, v1, 3, x}, lin=1, str=1:v1:3.x, tag=clk}")
 
     local src = "@.x1"
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     assertx(stringify(LEX()), "{clk={0, 0, 0, x1}, lin=1, str=.x1, tag=clk}")
 
     local src = "@1:v1:3."
     print("Testing...", src)
-    lexer_string("anon", src)
+    lexer_init("anon", src)
     local ok, msg = pcall(LEX)
     assertx(msg, "anon : line 1 : near '1:v1:3.' : invalid clock")
 end

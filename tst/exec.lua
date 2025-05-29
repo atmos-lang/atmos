@@ -1,7 +1,7 @@
 -- LUA_PATH="/x/atmos/src/?.lua;" lua5.4 exec.lua
 
 require "lexer"
-require "stmt"
+require "parser"
 require "tostr"
 require "coder"
 require "exec"
@@ -46,8 +46,8 @@ do
     ]]
     print("Testing...", "block 2")
     init()
-    lexer_string("anon", src)
-    parser()
+    lexer_init("anon", src)
+    lexer_next()
     local s = parser_stmt()
     local f = assert(io.open("/tmp/anon.lua", 'w'))
     f:write(coder_stmt(s))
@@ -284,8 +284,8 @@ do
     local src = "print(10, nil, false, 2+2)"
     print("Testing...", src)
     init()
-    lexer_string("anon", src)
-    parser()
+    lexer_init("anon", src)
+    lexer_next()
     local s = parser_stmt()
 
     local f = assert(io.open("/tmp/anon.lua", "w"))
