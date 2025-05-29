@@ -391,7 +391,10 @@ function parser_1_prim ()
             return { tag='loop', ids=ids, itr=itr, blk={tag='block',es=es} }
         -- break
         elseif accept('break') then
-            return { tag='break' }
+            accept_err('(')
+            local args = parser_list(',', ')', parser)
+            accept_err(')')
+            return { tag='break', args=args }
         -- until, while
         elseif accept('until') or accept('while') then
             local whi = (TK0.str == 'while')
@@ -421,25 +424,21 @@ function parser_1_prim ()
             return { tag='catch', cnd={e=xe,f=xf}, blk={tag='block',es=es} }
         -- throw(err)
         elseif accept('throw') then
-            local f = { tag='acc', tk={tag='id', str="error", lin=TK0.lin} }
-            local e; do
+            local args; do
                 if check(nil,'tag') then
                     local tk = TK1
-                    e = parser()
+                    local e = parser()
                     if e.tag~='call' or e.f.tag~='acc' or e.f.tk.str~="atm_tag" then
                         err(tk, "invalid throw : expected tag constructor")
                     end
+                    args = { e }
                 else
                     accept_err('(')
-                    if check(')') then
-                        e = { tag='nil', tk={tag='key',str='nil',lin=TK0.lin} }
-                    else
-                        e = parser()
-                    end
+                    args = parser_list(',', ')', parser)
                     accept_err(')')
                 end
             end
-            return { tag='call', f=f, args={e, {tag='num',tk={str="0"}}}, custom="throw" }
+            return { tag='throw', args=args, custom="throw" }
         else
             error "bug found"
         end

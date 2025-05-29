@@ -23,7 +23,7 @@ function exec_string (file, src)
         require 'runtime'
         return atm_exec (
             "]] .. file .. [[",
-            ]] .. string.format('%q', coder_exprs(blk.es)) .. [[
+            ]] .. string.format('%q', coder_stmts(blk.es)) .. [[
         )
     ]])
     f:close()
@@ -53,7 +53,7 @@ function do_string (file, src)
         require 'runtime'
         return atm_exec (
             "]] .. file .. [[",
-            ]] .. string.format('%q', coder_exprs(blk.es)) .. [[
+            ]] .. string.format('%q', coder_stmts(blk.es)) .. [[
         )
     ]])
     f:close()

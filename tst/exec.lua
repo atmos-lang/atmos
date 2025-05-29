@@ -395,28 +395,29 @@ do
 
     local src = [[
         print(:1)
-        loop {
+        val x = loop {
             print(:2)
-            break
+            break(10)
             print(:3)
         }
         print(:4)
+        print(x)
     ]]
     print("Testing...", "loop 1")
     local out = exec_string("anon.atm", src)
-    assert(out == "1\n2\n4\n")
+    assertx(out, "1\n2\n4\n10\n")
 
     local src = [[
         loop x {
             print(x)
             if x == 2 {
-                break
+                break()
             }
         }
     ]]
     print("Testing...", "loop 2")
     local out = exec_string("anon.atm", src)
-    assert(out == "0\n1\n2\n")
+    assertx(out, "0\n1\n2\n")
 
     local src = [[
         loop x in 2 {
@@ -436,7 +437,7 @@ do
     ]]
     print("Testing...", "loop 4")
     local out = exec_string("anon.atm", src)
-    assert(out == "1\n2\n")
+    assertx(out, "1\n2\n")
 
     local src = [[
         loop i,v in [1,2,3] {

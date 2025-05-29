@@ -581,7 +581,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(stringify(e), "{args={{tag=tag, tk={lin=1, str=:X, tag=tag}}, {tag=num, tk={str=0}}}, custom=throw, f={tag=acc, tk={lin=1, str=error, tag=id}}, tag=call}")
+    assertx(stringify(e), "{args={{tag=tag, tk={lin=1, str=:X, tag=tag}}}, custom=throw, tag=throw}")
 
     local src = "func (it) {}"
     print("Testing...", src)

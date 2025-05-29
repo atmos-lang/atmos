@@ -93,6 +93,8 @@ function tosource (e)
         return "catch " .. tosource(e.cnd.e) .. xf .. " {\n" ..
             join('\n', map(e.blk.es,tostr_stmt)) ..'\n' ..
         "}"
+    elseif e.tag == 'throw' then
+        return 'throw('..join(", ", map(e.args, tosource))..')'
     else
         print(e.tag)
         error("TODO")

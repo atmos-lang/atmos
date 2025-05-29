@@ -22,15 +22,19 @@ local function is_stmt (e)
     return e.tag=='dcl' or e.tag=='set'
 end
 
-function coder_exprs (es)
+function coder_stmts (es, noret)
     local function f (e, i)
-        if i<#es or is_stmt(e) then
+        if noret or i<#es or is_stmt(e) then
             return coder(e)
         else
             return "return "..coder(e)
         end
     end
-    return join(' ; ', map(es,f)) .. " ; "
+    return join(" ; ", map(es,f)) .. " ; "
+end
+
+function coder_args (es)
+    return join(", ", map(es,coder))
 end
 
 function coder_stmt (e)
@@ -53,19 +57,11 @@ function coder_stmt (e)
             return cat .. ' ; local ' .. ids .. ' = atm_ok_' .. n .. ', atm_esc_' .. n
         else
             local ids = join(', ', map(e.ids,  function(id) return id.str end))
-            local sets = e.sets and (' = '..join(', ',map(e.sets,coder))) or ''
+            local sets = e.sets and (' = '..coder_args(e.sets)) or ''
             return 'local ' .. ids .. mod .. sets
         end
     elseif e.tag == 'return' then
-        return "return " .. join(',', map(e.es,coder))
-    elseif e.tag == 'loop' then
-        local ids = join(', ', map(e.ids or {{str="_"}}, function(id) return id.str end))
-        local itr = e.itr and coder(e.itr) or ''
-        return "for " .. ids .. " in iter(" .. itr .. ") do " ..
-            coder_exprs(e.blk.es) ..
-        "end"
-    elseif e.tag == 'break' then
-        return "break"
+        return "return " .. coder_args(e.es)
     else
         error(e.tag)
     end
@@ -110,7 +106,7 @@ function coder (e)
             return '('..coder(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder(e.e2)..')'
         end
     elseif e.tag == 'call' then
-        return '('..coder(e.f)..')('..join(", ", map(e.args, coder))..')'
+        return coder(e.f) .. '(' .. coder_args(e.args) .. ')'
     elseif e.tag == 'func' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
@@ -123,7 +119,7 @@ function coder (e)
             end
         end
         return "function (" .. pars .. dots .. ") " ..
-            coder_exprs(e.blk.es) ..
+            coder_stmts(e.blk.es) ..
         " end"
     elseif e.tag == 'parens' then
         return L(e.tk) .. '(' .. coder(e.e) .. ')'
@@ -141,37 +137,57 @@ function coder (e)
             return 'local ' .. id.str .. ' ; ' .. id.str .. mod .. ' = ' .. coder(f)
         else
             local ids = join(', ', map(e.ids,  function(id) return id.str end))
-            local sets = e.sets and (' = '..join(', ',map(e.sets,coder))) or ''
+            local sets = e.sets and (' = '..coder_args(e.sets)) or ''
             return 'local ' .. ids .. mod .. sets
         end
     elseif e.tag == 'set' then
-        return join(',', map(e.dsts,coder))..' = '..join(',', map(e.srcs,coder))
+        return coder_args(e.dsts) .. ' = ' .. coder_args(e.srcs)
     elseif e.tag == 'block' then
-        return "(function () " .. coder_exprs(e.es) .. " end)()"
+        return "(function () " .. coder_stmts(e.es) .. " end)()"
     elseif e.tag == 'defer' then
         local n = N()
         local def = "atm_"..n
         return
             "local " .. def .. " <close> = setmetatable({}, {__close=" ..
                 "function () " ..
-                    coder_exprs(e.blk.es) ..
+                    coder_stmts(e.blk.es,true) ..
                 " end" ..
             "})"
     elseif e.tag == 'if' then
         return
             "(function () " ..
                 "if " .. coder(e.cnd) .. " then " ..
-                    coder_exprs(e.t.es) ..
+                    coder_stmts(e.t.es) ..
                 " else " ..
-                    coder_exprs(e.f.es) ..
+                    coder_stmts(e.f.es) ..
                 " end" ..
             " end)()"
+    elseif e.tag == 'loop' then
+        local ids = join(', ', map(e.ids or {{str="_"}}, function(id) return id.str end))
+        local itr = e.itr and coder(e.itr) or ''
+        return
+            "(function () "..
+                "local ok, v = pcall(function () "..
+                    "for " .. ids .. " in iter(" .. itr .. ") do " ..
+                        coder_stmts(e.blk.es,true) ..
+                    " end" ..
+                " end) " ..
+                "if not ok then " ..
+                    "if v.up == 'loop' then " ..
+                        "return table.unpack(v)" ..
+                    " else " ..
+                        "error(v)" ..
+                    " end" ..
+                " end" ..
+            " end)()"
+    elseif e.tag == 'break' then
+        return "error({up='loop'," .. coder_args(e.args) .. "}, 0)"
     elseif e.tag == 'catch' then
         local n = N()
         local ok, esc = "atm_ok_"..n, "atm_esc_"..n
         local xe  = coder(e.cnd.e)
         local xf  = e.cnd.f and coder(e.cnd.f) or 'nil'
-        local blk = coder_exprs(e.blk.es)
+        local blk = coder_stmts(e.blk.es)
         return
             "local " .. ok .. ',' .. esc .. " = pcall(" ..
                 "function () " ..

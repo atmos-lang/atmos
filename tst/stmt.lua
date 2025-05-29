@@ -92,7 +92,7 @@ do
     local s = parser()
     assertx(tosource(s), trim [[
         catch :X {
-            error(atm_tag(:X, []), 0)
+            throw(atm_tag(:X, []))
         }
     ]])
     --local ok, msg = pcall(parser_main)
@@ -107,7 +107,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(s), trim [[
         catch :X {
-            error(:X, 0)
+            throw(:X)
         }
     ]])
 
@@ -207,7 +207,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(s), trim [[
         val x = catch :X {
-            error(atm_tag(:X, [(1,10)]), 0)
+            throw(atm_tag(:X, [(1,10)]))
         }
     ]])
 end
@@ -352,14 +352,22 @@ do
         }
     ]])
 
-    local src = "loop { break }"
+    local src = "break"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near '<eof>' : expected '('")
+
+    local src = "loop { break() }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(stringify(s) == "{blk={es={{tag=break}}, tag=block}, tag=loop}")
+    assertx(stringify(s), "{blk={es={{args={}, tag=break}}, tag=block}, tag=loop}")
 
     local src = "loop x in f() {}"
     print("Testing...", src)
