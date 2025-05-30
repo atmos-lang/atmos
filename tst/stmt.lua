@@ -92,7 +92,7 @@ do
     local s = parser()
     assertx(tosource(s), trim [[
         catch :X {
-            throw(atm_tag(:X, []))
+            throw(atm_tag_do(:X, []))
         }
     ]])
     --local ok, msg = pcall(parser_main)
@@ -207,7 +207,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(s), trim [[
         val x = catch :X {
-            throw(atm_tag(:X, [(1,10)]))
+            throw(atm_tag_do(:X, [(1,10)]))
         }
     ]])
 end

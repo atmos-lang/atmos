@@ -142,7 +142,7 @@ function parser_2_suf (pre)
     local ret = nil
     if e.tag=='tag' and (check'(' or check'[') then
         local t = parser()
-        local f = { tag='acc', tk={tag='id',str="atm_tag"} }
+        local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
         ret = { tag='call', f=f, args={e,t} }
     elseif accept('(') then
         local args = parser_list(',', ')', parser)

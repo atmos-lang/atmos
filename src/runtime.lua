@@ -1,11 +1,11 @@
 coro   = coroutine.create
 resume = coroutine.resume
 
-function atm_tsk (t, a, b)
+function atm_tag_is (t, a, b)
     return type(t)=='table' and (t.tag==a or t.tag==b)
 end
 
-function atm_tag (tag, t)
+function atm_tag_do (tag, t)
     if type(t) ~= 'table' then
         error('invalid tag operation : expected table', 2)
     end
@@ -211,7 +211,7 @@ end
 -------------------------------------------------------------------------------
 
 function status (t)
-    if atm_tsk(t,'task') then
+    if atm_tag_is(t,'task') then
         return coroutine.status(t.co)
     else
         return coroutine.status(t)
@@ -402,7 +402,7 @@ function await (e, f)
     if not t then
         error('invalid await : expected enclosing task instance', 2)
     end
-    local tsk = atm_tsk(e, 'task')
+    local tsk = atm_tag_is(e, 'task')
     if tsk and status(e.co)=='dead' then
         return e.ret
     elseif e == 'clock' then
@@ -441,7 +441,7 @@ local function fto (me, to)
             end
             n = n - 1
         end
-    elseif atm_tsk(to,'task','tasks') then
+    elseif atm_tag_is(to,'task','tasks') then
         to = to
     else
         error('invalid emit : invalid target', 3)

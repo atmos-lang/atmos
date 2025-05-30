@@ -328,7 +328,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), 'atm_tag(:X, [])')
+    assertx(tosource(e), 'atm_tag_do(:X, [])')
 
     local src = ":X (x)"
     print("Testing...", src)
@@ -337,7 +337,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == 'atm_tag(:X, (x))')
+    assert(tosource(e) == 'atm_tag_do(:X, (x))')
 end
 
 -- UNO

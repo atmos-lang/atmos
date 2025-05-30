@@ -329,7 +329,7 @@ function parser_1_prim ()
                 if check(nil,'tag') then
                     local tk = TK1
                     local e = parser()
-                    if e.tag~='call' or e.f.tag~='acc' or e.f.tk.str~="atm_tag" then
+                    if e.tag~='call' or e.f.tag~='acc' or e.f.tk.str~="atm_tag_do" then
                         err(tk, "invalid escape : expected tag constructor")
                     end
                     args = { e }
@@ -466,7 +466,7 @@ function parser_1_prim ()
                 if check(nil,'tag') then
                     local tk = TK1
                     local e = parser()
-                    if e.tag~='call' or e.f.tag~='acc' or e.f.tk.str~="atm_tag" then
+                    if e.tag~='call' or e.f.tag~='acc' or e.f.tk.str~="atm_tag_do" then
                         err(tk, "invalid throw : expected tag constructor")
                     end
                     args = { e }
