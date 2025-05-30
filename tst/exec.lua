@@ -296,7 +296,7 @@ do
     local src = "print(func () {})"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, "function: 0x"))
+    assertfx(out, "table: 0x")
 
     local src = [[
         val f = func (x) {

@@ -20,11 +20,27 @@ function atm_idx (idx)
     return idx
 end
 
-function atm_call (me, f, ...)
+function atm_call (f, ...)
+    if not atm_tag_is(f,'func') then
+        return f(...)
+    else
+        return (function (ok, err, ...)
+            if ok then
+                return err, ...
+            elseif err.up == 'func' then
+                return table.unpack(err)
+            else
+                error(err, 0)
+            end
+        end)(pcall(f.func, ...))
+    end
+end
+
+function atm_loop (f, ...)
     return (function (ok, err, ...)
         if ok then
             return err, ...
-        elseif err.up == me then
+        elseif err.up == 'loop' then
             return table.unpack(err)
         else
             error(err, 0)
@@ -198,9 +214,9 @@ function iter (t)
                 end
             end
         end
-    elseif type(t) == 'function' then
+    elseif atm_tag_is(t,'func') then
         f = function (...)
-            return atm_call('func', t, ...)
+            return atm_call(t, ...)
         end
     else
         error("TODO - iter(t)")

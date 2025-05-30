@@ -108,7 +108,7 @@ function coder (e)
             return '('..coder(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder(e.e2)..')'
         end
     elseif e.tag == 'call' then
-        return "atm_call('func', " .. coder(e.f) .. (#e.args>0 and ',' or '') .. coder_args(e.args) .. ')'
+        return "atm_call(" .. coder(e.f) .. (#e.args>0 and ',' or '') .. coder_args(e.args) .. ')'
     elseif e.tag == 'func' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
@@ -121,9 +121,9 @@ function coder (e)
             end
         end
         return (
-            "function (" .. pars .. dots .. ") " ..
+            "{ tag='func', func=function (" .. pars .. dots .. ") " ..
                 coder_stmts(e.blk.es) ..
-            " end"
+            " end }"
         )
     elseif e.tag == 'return' then
         return "error({up='func'," .. coder_args(e.es) .. "}, 0)"
@@ -183,14 +183,15 @@ function coder (e)
     elseif e.tag == 'loop' then
         local ids = join(', ', map(e.ids or {{str="_"}}, function(id) return id.str end))
         local itr = e.itr and coder(e.itr) or ''
-        return
-            "atm_call('loop', " ..
+        return (
+            "atm_loop(" ..
                 "function () " ..
                     "for " .. ids .. " in iter(" .. itr .. ") do " ..
                         coder_stmts(e.blk.es,true) ..
                     " end" ..
                 " end" ..
             ")"
+        )
     elseif e.tag == 'break' then
         return "error({up='loop'," .. coder_args(e.args) .. "}, 0)"
     elseif e.tag == 'catch' then
