@@ -65,9 +65,13 @@ function coder_stmt (e)
     end
 end
 
+function coder_tag (tag)
+    return L(tag) .. '"' .. tag.str:sub(2) .. '"'
+end
+
 function coder (e)
     if e.tag == 'tag' then
-        return L(e.tk) .. '"' .. e.tk.str:sub(2) .. '"'
+        return coder_tag(e.tk)
     elseif e.tag == 'acc' then
         if e.tk.str == 'pub' then
             return L(e.tk) .. "atm_me().pub"
@@ -147,7 +151,17 @@ function coder (e)
     elseif e.tag == 'set' then
         return coder_args(e.dsts) .. ' = ' .. coder(e.src)
     elseif e.tag == 'block' then
-        return "(function () " .. coder_stmts(e.es) .. " end)()"
+        if e.esc then
+            return (
+                "atm_do(" .. coder_tag(e.esc) .. ',' ..
+                    "function () " .. coder_stmts(e.es) .. " end" ..
+                ")"
+            )
+        else
+            return "(function () " .. coder_stmts(e.es) .. " end)()"
+        end
+    elseif e.tag == 'escape' then
+        return "error({up='do', " .. coder_args(e.args) .. "}, 0)"
     elseif e.tag == 'defer' then
         local n = N()
         local def = "atm_"..n
@@ -182,10 +196,9 @@ function coder (e)
     elseif e.tag == 'catch' then
         local xe  = coder(e.cnd.e)
         local xf  = e.cnd.f and coder(e.cnd.f) or 'nil'
-        local blk = coder_stmts(e.blk.es)
         return (
             "atm_catch(" .. xe .. ',' .. xf .. ',' ..
-                "function () " .. blk .. " end" ..
+                "function () " .. coder_stmts(e.blk.es) .. " end" ..
             ")"
         )
     elseif e.tag == 'throw' then

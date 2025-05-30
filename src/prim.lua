@@ -316,13 +316,37 @@ function parser_1_prim ()
         local src = parser()
         return { tag='set', dsts=dsts, src=src }
 
-    -- do { ... }, defer { ... }
-    elseif accept('do') then
-        local es = parser_curly()
-        return { tag='block', es=es }
-    elseif accept('defer') then
-        local es = parser_curly()
-        return { tag='defer', blk={tag='block',es=es} }
+    -- do, escape, defer
+    elseif check('do') or check('escape') or check('defer') then
+        -- do :X {...}
+        if accept('do') then
+            local tag = accept(nil, 'tag')
+            local es = parser_curly()
+            return { tag='block', esc=tag, es=es }
+        -- escape :X()
+        elseif accept('escape') then
+            local args; do
+                if check(nil,'tag') then
+                    local tk = TK1
+                    local e = parser()
+                    if e.tag~='call' or e.f.tag~='acc' or e.f.tk.str~="atm_tag" then
+                        err(tk, "invalid escape : expected tag constructor")
+                    end
+                    args = { e }
+                else
+                    accept_err('(')
+                    args = parser_list(',', ')', parser)
+                    accept_err(')')
+                end
+            end
+            return { tag='escape', args=args, custom="escape" }
+        -- defer {...}
+        elseif accept('defer') then
+            local es = parser_curly()
+            return { tag='defer', blk={tag='block',es=es} }
+        else
+            error "bug found"
+        end
 
     -- if, ifs
     elseif check('if') or check('ifs') then

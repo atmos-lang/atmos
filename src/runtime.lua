@@ -20,11 +20,11 @@ function atm_idx (idx)
     return idx
 end
 
-function atm_call (up, f, ...)
+function atm_call (me, f, ...)
     return (function (ok, err, ...)
         if ok then
             return err, ...
-        elseif err.up == up then
+        elseif err.up == me then
             return table.unpack(err)
         else
             error(err, 0)
@@ -37,8 +37,24 @@ function atm_catch (xe, xf, blk, ...)
         if ok then
             return true, err, ...
         elseif err.up == 'catch' then
-            if (xe==true or xe==err[1]) and (xf==nil or xf(table.unpack(err))) then
+            if (xe==true or atm_is(err[1],xe)) and (xf==nil or xf(table.unpack(err))) then
                 return false, table.unpack(err)
+            else
+                error(err, 0)
+            end
+        else
+            error(err, 0)
+        end
+    end)(pcall(blk, ...))
+end
+
+function atm_do (xt, blk, ...)
+    return (function (ok, err, ...)
+        if ok then
+            return err, ...
+        elseif err.up == 'do' then
+            if atm_is(err[1],xt) then
+                return table.unpack(err, (#err==1 and 1) or 2)
             else
                 error(err, 0)
             end
@@ -65,13 +81,18 @@ function atm_exec (file, src)
 
     local v, msg = pcall(f)
     if not v then
---dump(v, msg)
-        local filex, lin, msg2 = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
-        --print(file, filex, lin, msg)
-        if file ~= filex then
-            error('internal error : ' .. msg)
+        if type(msg) == 'table' then
+            assert(msg.up)
+            io.stderr:write("uncaught throw : " .. stringify(msg[1]) .. '\n')
+        else
+            assert(type(msg) == 'string')
+            local filex, lin, msg2 = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
+            --print(file, filex, lin, msg)
+            if file ~= filex then
+                error('internal error : ' .. msg)
+            end
+            io.stderr:write(file..' : line '..lin..' : '..msg2..'\n')
         end
-        io.stderr:write(file..' : line '..lin..' : '..msg2..'\n')
         return nil
     end
 

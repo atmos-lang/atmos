@@ -581,7 +581,7 @@ do
 
     local src = [[
         val ok,v = catch true {
-            return(10)
+            (10)
         }
         print(ok,v)
     ]]
@@ -610,7 +610,7 @@ do
     print("Testing...", "catch 8 : err : goto")
     local out = exec_string("anon.atm", src)
     --assertx(out, "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
-    assertfx(out, "internal error : Y")
+    assertfx(out, "uncaught throw : Y")
     warn(false, "error stack")
 
     local src = [[
@@ -635,7 +635,7 @@ do
     assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')\n")
 
     local src = [[
-        val x = catch :X {
+        val _,x = catch :X {
             catch :Y {
                 throw :X [10]
             }
@@ -657,7 +657,7 @@ do
     ]]
     print("Testing...", "catch 12")
     local out = exec_string("anon.atm", src)
-    assertx(out, ":ok\n")
+    assertx(out, "uncaught throw : {10, tag=Z}\n")
 
     local src = [[
         val x = do :X {
@@ -667,7 +667,7 @@ do
         }
         dump(x)
     ]]
-    print("Testing...", "catch 13")
+    print("Testing...", "do 0")
     local out = exec_string("anon.atm", src)
     assertx(out, "10\n")
 
@@ -679,9 +679,39 @@ do
         }
         dump(x)
     ]]
-    print("Testing...", "catch 14")
+    print("Testing...", "do 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "{0}\n")
+
+    local src = [[
+        val a,b = do :X {
+            escape(:X,10,20)
+        }
+        print(a,b)
+    ]]
+    print("Testing...", "do 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\t20\n")
+
+    local src = [[
+        val a,b = do :X {
+            (10,20)
+        }
+        print(a,b)
+    ]]
+    print("Testing...", "do 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\t20\n")
+
+    local src = [[
+        val x = do :X {
+            escape :X [10]
+        }
+        dump(x)
+    ]]
+    print("Testing...", "do 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{10, tag=X}\n")
 end
 
 -- EXEC / CORO / TASK / YIELD / SPAWN / RESUME
