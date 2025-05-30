@@ -50,11 +50,12 @@ do
     lexer_next()
     local s = parser()
     local f = assert(io.open("/tmp/anon.lua", 'w'))
+    f:write('require "runtime";\n')
     f:write(coder(s))
     f:close()
     local exe = assert(io.popen("lua5.4 /tmp/anon.lua", 'r'))
     local out = exe:read('a')
-    assert(out == "ok\n")
+    assertx(out, "ok\n")
 
     local src = [[
         print(:1)

@@ -20,18 +20,32 @@ function atm_idx (idx)
     return idx
 end
 
-function atm_handle (up, ok, err, ...)
-    if ok then
-        return err, ...
-    elseif up == err.up then
-        return table.unpack(err)
-    else
-        error(err, 0)
-    end
+function atm_call (up, f, ...)
+    return (function (ok, err, ...)
+        if ok then
+            return err, ...
+        elseif err.up == up then
+            return table.unpack(err)
+        else
+            error(err, 0)
+        end
+    end)(pcall(f, ...))
 end
 
-function atm_catch (v, e, f)
-    return (e==true or v==e) and (f==nil or f(v))
+function atm_catch (xe, xf, blk, ...)
+    return (function (ok, err, ...)
+        if ok then
+            return true, err, ...
+        elseif err.up == 'catch' then
+            if (xe==true or xe==err[1]) and (xf==nil or xf(table.unpack(err))) then
+                return false, table.unpack(err)
+            else
+                error(err, 0)
+            end
+        else
+            error(err, 0)
+        end
+    end)(pcall(blk, ...))
 end
 
 function atm_exec (file, src)
@@ -51,6 +65,7 @@ function atm_exec (file, src)
 
     local v, msg = pcall(f)
     if not v then
+--dump(v, msg)
         local filex, lin, msg2 = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
         --print(file, filex, lin, msg)
         if file ~= filex then
@@ -163,7 +178,9 @@ function iter (t)
             end
         end
     elseif type(t) == 'function' then
-        f = t
+        f = function (...)
+            return atm_call('func', t, ...)
+        end
     else
         error("TODO - iter(t)")
     end

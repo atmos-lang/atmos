@@ -104,7 +104,7 @@ function coder (e)
             return '('..coder(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder(e.e2)..')'
         end
     elseif e.tag == 'call' then
-        return coder(e.f) .. '(' .. coder_args(e.args) .. ')'
+        return "atm_call('func', " .. coder(e.f) .. (#e.args>0 and ',' or '') .. coder_args(e.args) .. ')'
     elseif e.tag == 'func' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
@@ -116,14 +116,11 @@ function coder (e)
                 end
             end
         end
-        return
+        return (
             "function (" .. pars .. dots .. ") " ..
-                "return atm_handle('func', " ..
-                    "pcall(function () " ..
-                        coder_stmts(e.blk.es) ..
-                    " end)" ..
-                ")" ..
+                coder_stmts(e.blk.es) ..
             " end"
+        )
     elseif e.tag == 'return' then
         return "error({up='func'," .. coder_args(e.es) .. "}, 0)"
     elseif e.tag == 'parens' then
@@ -173,30 +170,27 @@ function coder (e)
         local ids = join(', ', map(e.ids or {{str="_"}}, function(id) return id.str end))
         local itr = e.itr and coder(e.itr) or ''
         return
-            "atm_handle('loop', " ..
-                "pcall(function () " ..
+            "atm_call('loop', " ..
+                "function () " ..
                     "for " .. ids .. " in iter(" .. itr .. ") do " ..
                         coder_stmts(e.blk.es,true) ..
                     " end" ..
-                " end)" ..
+                " end" ..
             ")"
     elseif e.tag == 'break' then
         return "error({up='loop'," .. coder_args(e.args) .. "}, 0)"
     elseif e.tag == 'catch' then
-        local n = N()
-        local ok, esc = "atm_ok_"..n, "atm_esc_"..n
         local xe  = coder(e.cnd.e)
         local xf  = e.cnd.f and coder(e.cnd.f) or 'nil'
         local blk = coder_stmts(e.blk.es)
-        return
-            "local " .. ok .. ',' .. esc .. " = pcall(" ..
-                "function () " ..
-                    blk ..
-                " end" ..
-            ") ; " ..
-            "if " .. ok .. " or atm_catch("..esc..','..xe..','..xf..") then else "..
-                "error(" .. esc .. ", 0)" ..
-            " end"
+        return (
+            "atm_catch(" .. xe .. ',' .. xf .. ',' ..
+                "function () " .. blk .. " end" ..
+            ")"
+        )
+    elseif e.tag == 'throw' then
+        return "error({up='catch', " .. coder_args(e.args) .. "}, 0)"
+
     else
 print(e.tag)
         return L(e.tk) .. tosource(e)
