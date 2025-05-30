@@ -158,7 +158,7 @@ do
     assert(out == "10\n20\n10\n")
 
     local src = [[
-        val x, y, z = 10, 20
+        val x, y, z = (10, 20)
         print(x, y, z)
     ]]
     print("Testing...", "set 1: multi")
@@ -166,8 +166,8 @@ do
     assert(out == "10\t20\tnil\n")
 
     local src = [[
-        val x, y, z = 10, 20
-        set x, y = y, x, z
+        val x, y, z = (10, 20)
+        set x, y = (y, (x, z))
         print(x, y, z)
     ]]
     print("Testing...", "set 1: multi")
@@ -278,7 +278,7 @@ do
     ]]
     print("Testing...", "func 2")
     local out = exec_string("anon.atm", src)
-    assertx(out, "30\n")
+    assertx(out, "10\t20\n")
 
     local src = [[
         val f = func (x) {

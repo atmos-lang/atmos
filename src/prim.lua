@@ -150,9 +150,13 @@ function parser_1_prim ()
     -- parens: (...)
     elseif accept('(') then
         local tk = TK0
-        local e = parser()
+        local es = parser_list(',', ')', parser)
         accept_err(')')
-        return { tag='parens', tk=tk, e=e }
+        if #es == 1 then
+            return { tag='parens', tk=tk, e=es[1] }
+        else
+            return { tag='es', tk=tk, es=es }
+        end
 
     -- coro, resume, yield
     elseif check('coro') or check('yield') or check('resume') then
@@ -222,7 +226,7 @@ function parser_1_prim ()
                 -- force "pin" if no "in" target
                 local pin = {tag='key',str='pin'}
                 local id = { tag='id',str='_' }
-                spw = { tag='dcl', tk=pin, ids={id}, sets={spw} }
+                spw = { tag='dcl', tk=pin, ids={id}, set=spw }
             end
             return spw
         else
@@ -246,7 +250,7 @@ function parser_1_prim ()
                 accept_err(')')
                 local es = parser_curly()
                 local f = { tag='func', dots=dots, pars=pars, blk={tag='block',es=es} }
-                return { tag='dcl', tk={tag='key',str='var'}, ids={id}, sets={f}, custom='func' }
+                return { tag='dcl', tk={tag='key',str='var'}, ids={id}, set=f, custom='func' }
             end
         -- return(...)
         elseif accept('return') then
@@ -262,7 +266,7 @@ function parser_1_prim ()
     elseif accept('val') or accept('var') or accept('pin') then
         local tk = TK0
         local ids = parser_ids('=')
-        local sets
+        local set
         local custom
         if accept('=') then
             if check('spawn') then
@@ -274,7 +278,7 @@ function parser_1_prim ()
                 elseif tk.str~='pin' and spw.args[1].tag=='nil' then
                     err(tk1, "invalid spawn : expected pin declaraion")
                 end
-                sets = { spw }
+                set = spw
             elseif accept('tasks') then
                 custom = 'tasks'
                 if tk.str ~= 'pin' then
@@ -288,13 +292,13 @@ function parser_1_prim ()
                 end
                 accept_err(')')
                 local ts = { tag='call', f=f, args={e}, custom="tasks" }
-                sets = { ts }
+                set = ts
 
             else
-                sets = parser_list(',', nil, parser)
+                set = parser()
             end
         end
-        return { tag='dcl', tk=tk, ids=ids, sets=sets, custom=custom }
+        return { tag='dcl', tk=tk, ids=ids, set=set, custom=custom }
 
     -- set x = 10
     elseif accept('set') then
@@ -309,8 +313,8 @@ function parser_1_prim ()
             return e
         end)
         accept_err('=')
-        local srcs = parser_list(',', nil, parser)
-        return { tag='set', dsts=dsts, srcs=srcs }
+        local src = parser()
+        return { tag='set', dsts=dsts, src=src }
 
     -- do { ... }, defer { ... }
     elseif accept('do') then
@@ -466,7 +470,7 @@ function parser_1_prim ()
             local es = parser_curly()
             local dcl = {
                 tag='dcl', tk={tag='key',str='val'},
-                ids={{tag='id',str='evt'}}, sets={awt}
+                ids={{tag='id',str='evt'}}, set=awt
             }
             table.insert(es, 1, dcl)
             return { tag='loop', ids=nil, itr=nil, blk={tag='block',es=es} }

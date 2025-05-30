@@ -45,10 +45,10 @@ function parser_stmt ()
         end
         local function f1 (t,i)
             return {
-                tag  = 'dcl',
-                tk   = { tag='key', str='pin' },
-                ids  = { {tag='id', str='atm_'..n..'_'..i} },
-                sets = { spawn(t[1],t[2]) },
+                tag = 'dcl',
+                tk  = { tag='key', str='pin' },
+                ids = { {tag='id', str='atm_'..n..'_'..i} },
+                set = spawn(t[1],t[2]),
             }
         end
         local function f2 (t,i)
@@ -77,10 +77,10 @@ function parser_stmt ()
         end
         local function f1 (t,i)
             return {
-                tag  = 'dcl',
-                tk   = { tag='key', str='pin' },
-                ids  = { {tag='id', str='atm_'..n..'_'..i} },
-                sets = { spawn(t[1],t[2]) },
+                tag = 'dcl',
+                tk  = { tag='key', str='pin' },
+                ids = { {tag='id', str='atm_'..n..'_'..i} },
+                set = spawn(t[1],t[2]),
             }
         end
         local function f2 (i)
@@ -139,10 +139,10 @@ function parser_stmt ()
         local lin = TK1.lin
         local es = parser_curly()
         local spw = {
-            tag  = 'dcl',
-            tk   = { tag='key', str='val' },
-            ids  = { {tag='id', str='_'} },
-            sets = { spawn(lin,es) },
+            tag = 'dcl',
+            tk  = { tag='key', str='val' },
+            ids = { {tag='id', str='_'} },
+            set = spawn(lin,es),
         }
         return { tag='block', es={spw, {tag='expr',e=awt}} }
 

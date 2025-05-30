@@ -217,4 +217,5 @@ function parser_5_bin (pre)
     local e2 = parser_4_pre()
     return parser_5_bin { tag='bin', op=op, e1=e1, e2=e2 }
 end
+
 parser = parser_5_bin

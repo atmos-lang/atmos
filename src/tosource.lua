@@ -30,6 +30,8 @@ function tosource (e)
             return '('..tosource(t.k)..','..tosource(t.v)..')'
         end))
         return '[' .. ps .. ']'
+    elseif e.tag == 'es' then
+        return '('..join(", ", map(e.es, tosource))..')'
     elseif e.tag == 'parens' then
         return '('..tosource(e.e)..')'
     elseif e.tag == 'call' then
@@ -61,10 +63,10 @@ function tosource (e)
             end
         end
         local ids = join(', ', map(e.ids,  function(id) return id.str end))
-        local sets = e.sets and (' = '..join(', ',map(e.sets,f))) or ''
-        return e.tk.str .. " " .. ids .. sets
+        local set = e.set and (' = '..f(e.set)) or ''
+        return e.tk.str .. " " .. ids .. set
     elseif e.tag == 'set' then
-        return "set "..join(', ',map(e.dsts,tosource)).." = "..join(', ',map(e.srcs,tosource))
+        return "set " .. join(', ',map(e.dsts,tosource)) .. " = " .. tosource(e.src)
     elseif e.tag == 'block' then
         return "do " .. (e.esc and e.esc.str.." " or "") .. "{\n" ..
             join('\n', map(e.es,tostr_stmt)) ..'\n' ..

@@ -48,17 +48,17 @@ function coder_stmt (e)
             end
         end
         if e.custom == 'block' then
-            local id, blk = e.ids[1], e.sets[1]
+            local id, blk = e.ids[1], e.set
             return coder(blk) .. [[ ; local ]] .. id.str .. mod .. ' = atm_'..blk.esc.str:sub(2)
         elseif e.custom == 'catch' then
             local n = _n_+1
             local ids = join(',', map(e.ids, function (id) return id.str end))
-            local cat = coder(e.sets[1])
+            local cat = coder(e.set)
             return cat .. ' ; local ' .. ids .. ' = atm_ok_' .. n .. ', atm_esc_' .. n
         else
             local ids = join(', ', map(e.ids,  function(id) return id.str end))
-            local sets = e.sets and (' = '..coder_args(e.sets)) or ''
-            return 'local ' .. ids .. mod .. sets
+            local set = e.set and (' = '..coder(e.set)) or ''
+            return 'local ' .. ids .. mod .. set
         end
     else
         error(e.tag)
@@ -128,6 +128,8 @@ function coder (e)
         return "error({up='func'," .. coder_args(e.es) .. "}, 0)"
     elseif e.tag == 'parens' then
         return L(e.tk) .. '(' .. coder(e.e) .. ')'
+    elseif e.tag == 'es' then
+        return coder_args(e.es)
 
     elseif e.tag == 'dcl' then
         local mod = ''; do
@@ -138,15 +140,15 @@ function coder (e)
             end
         end
         if e.custom == 'func' then
-            local id, f = e.ids[1], e.sets[1]
-            return 'local ' .. id.str .. ' ; ' .. id.str .. mod .. ' = ' .. coder(f)
+            local id = e.ids[1]
+            return 'local ' .. id.str .. ' ; ' .. id.str .. mod .. ' = ' .. coder(e.set)
         else
             local ids = join(', ', map(e.ids,  function(id) return id.str end))
-            local sets = e.sets and (' = '..coder_args(e.sets)) or ''
-            return 'local ' .. ids .. mod .. sets
+            local set = e.set and (' = '..coder(e.set)) or ''
+            return 'local ' .. ids .. mod .. set
         end
     elseif e.tag == 'set' then
-        return coder_args(e.dsts) .. ' = ' .. coder_args(e.srcs)
+        return coder_args(e.dsts) .. ' = ' .. coder(e.src)
     elseif e.tag == 'block' then
         return "(function () " .. coder_stmts(e.es) .. " end)()"
     elseif e.tag == 'defer' then

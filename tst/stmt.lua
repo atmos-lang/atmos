@@ -22,7 +22,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{custom=func, ids={{lin=1, str=f, tag=id}}, sets={{blk={es={{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, str=v, tag=id}}, tag=func}}, tag=dcl, tk={str=var, tag=key}}")
+    assertx(stringify(s), "{custom=func, ids={{lin=1, str=f, tag=id}}, set={blk={es={{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, str=v, tag=id}}, tag=func}, tag=dcl, tk={str=var, tag=key}}")
 
     local src = [[
         val e = []
@@ -230,7 +230,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(stringify(s) == "{dsts={{tag=acc, tk={lin=1, str=y, tag=id}}}, srcs={{tag=num, tk={lin=1, str=10, tag=num}}}, tag=set}")
+    assertx(stringify(s), "{dsts={{tag=acc, tk={lin=1, str=y, tag=id}}}, src={tag=num, tk={lin=1, str=10, tag=num}}, tag=set}")
 
     local src = "var y = 10"
     print("Testing...", src)
@@ -239,7 +239,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(stringify(s) == "{ids={{lin=1, str=y, tag=id}}, sets={{tag=num, tk={lin=1, str=10, tag=num}}}, tag=dcl, tk={lin=1, str=var, tag=key}}")
+    assert(stringify(s) == "{ids={{lin=1, str=y, tag=id}}, set={tag=num, tk={lin=1, str=10, tag=num}}, tag=dcl, tk={lin=1, str=var, tag=key}}")
 
     local src = "val [10]"
     print("Testing...", src)
@@ -276,23 +276,32 @@ do
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near '[' : expected assignable expression")
 
+    local src = "set x, y, z = (10, 20)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assert(tosource(s) == "set x, y, z = (10, 20)")
+
     local src = "set x, y, z = 10, 20"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
-    assert(check('<eof>'))
-    assert(tosource(s) == "set x, y, z = 10, 20")
+    assert(not check('<eof>'))
+    assert(TK1.str == ',')
 
-    local src = "val x, y = 10, 20, 30"
+    local src = "val x, y = ((10, 20), 30)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(tosource(s) == "val x, y = 10, 20, 30")
+    assert(tosource(s) == "val x, y = ((10, 20), 30)")
 
     local src = "set #x = 1"
     print("Testing...", src)
