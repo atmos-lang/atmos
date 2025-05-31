@@ -2,7 +2,7 @@ resume = coroutine.resume
 
 function coro (f)
     if atm_tag_is(f,'func') then
-        return { tag='coro', co=coroutine.create(f.func) }
+        return { tag='coro', th=coroutine.create(f.func) }
     else
         return coroutine.create(f)
     end
@@ -26,9 +26,9 @@ function resume (co, ...)
         dump(x)
 ]]
 
-                error(err, 0)
+                return false, err, ...
             end
-        end)(coroutine.resume(co.co, ...))
+        end)(coroutine.resume(co.th, ...))
     else
         return coroutine.resume(co, ...)
     end
@@ -120,14 +120,12 @@ end
 
 function atm_exec (file, src)
     local f, msg = load(src, file)
-    --print(f, msg)
 
     if not f then
         local filex, lin, msg2 = string.match(msg, '%[string "(.-)"%]:(%d+): (.-) at line %d+$')
         if not filex then
             filex, lin, msg2 = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
         end
-        --print('xxx', file, filex, lin, msg2)
         assert(file == filex)
         io.stderr:write(file..' : line '..lin..' : '..msg2..'\n')
         return nil
@@ -156,6 +154,7 @@ function atm_exec (file, src)
         end
         return nil
     end
+    close(TASKS)
 
     return v
 end
@@ -273,15 +272,15 @@ end
 
 function status (t)
     if atm_tag_is(t,'task') then
-        return coroutine.status(t.co.co)
+        return coroutine.status(t.co.th)
     elseif atm_tag_is(t,'coro') then
-        return coroutine.status(t.co)
+        return coroutine.status(t.th)
     else
         return coroutine.status(t)
     end
 end
 
-local function close (t)
+function close (t)
     for _,dn in ipairs(t.dns) do
         close(dn)
     end
@@ -290,14 +289,12 @@ local function close (t)
             -- cannot close now (emit continuation will raise error)
             t.status = 'aborted'
         else
-            coroutine.close(t.co.co)
+            coroutine.close(t.co.th)
         end
     end
 end
 
-local meta = { __close=close }
-
-local TASKS <close> = setmetatable({
+TASKS = {
     tag = 'tasks',
     max = nil,
     up  = nil,
@@ -306,12 +303,14 @@ local TASKS <close> = setmetatable({
     ing = 0,
     gc  = false,
     cache = setmetatable({}, {__mode='k'}),
-}, meta)
+}
 
 function atm_me ()
-    local co = coroutine.running()
-    return co and TASKS.cache[co]
+    local th = coroutine.running()
+    return th and TASKS.cache[th]
 end
+
+local meta = { __close=close }
 
 function tasks (max)
     local n = max and tonumber(max) or nil
@@ -346,21 +345,18 @@ function task (f)
         pub = nil,
         ret = nil,
     }
-    TASKS.cache[t.co.co] = t
+    TASKS.cache[t.co.th] = t
     setmetatable(t, meta)
     return t
 end
 
 local function atm_task_resume_result (t, ok, err)
---print('res', ok, err)
---  print(debug.traceback())
     if ok then
         -- no error: continue normally
     elseif err == 'atm_aborted' then
         -- callee aborted from outside: continue normally
-        coroutine.close(t.co.co)   -- needs close b/c t.co is in error state
+        coroutine.close(t.co.th)   -- needs close b/c t.co is in error state
     else
---print'up'
         error(err, 0)
     end
 
@@ -408,7 +404,7 @@ function spawn (up, t, ...)
             return spawn(up, t, ...)
         end
     end
-    if atm_tag_is(t,'task') and t.co.co then
+    if atm_tag_is(t,'task') and t.co.th then
         -- ok
     else
         error('invalid spawn : expected task prototype', 2)
@@ -505,7 +501,6 @@ local function fto (me, to)
     elseif atm_tag_is(to,'task','tasks') then
         to = to
     else
---print(debug.traceback())
         error('invalid emit : invalid target', 3)
     end
 
@@ -531,6 +526,12 @@ local function femit (t, a, b, ...)
         --f(dn, ...)
         ok, err = pcall(femit, dn, a, b, ...)
         if not ok then
+            --[[
+            if dn.status == 'aborted' then
+                assert(err=='atm_aborted' and status(t)=='dead')
+                close(dn)
+            end
+            ]]
             break
         end
     end
@@ -542,7 +543,6 @@ local function femit (t, a, b, ...)
         if not ok then
             if status(t) ~= 'dead' then
                 local ok, err = resume(t.co, 'atm_error', err)
---print('x', ok, err)
                 if not ok then
                     error(err, 0)
                 end

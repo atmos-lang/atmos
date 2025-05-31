@@ -2292,7 +2292,7 @@ do
             }))
             resume co ()
             print(:3)
-            coroutine['close'](co)
+            coroutine['close'](co.th)
         }) ()
     ]]
     print("Testing...", "abort 34")
