@@ -108,7 +108,7 @@ function coder (e)
             return '('..coder(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder(e.e2)..')'
         end
     elseif e.tag == 'call' then
-        return "atm_call(" .. coder(e.f) .. (#e.args>0 and ',' or '') .. coder_args(e.args) .. ')'
+        return coder(e.f) .. '(' .. coder_args(e.args) .. ')'
     elseif e.tag == 'func' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
@@ -121,9 +121,11 @@ function coder (e)
             end
         end
         return (
-            "{ tag='func', func=function (" .. pars .. dots .. ") " ..
-                coder_stmts(e.blk.es) ..
-            " end }"
+            "atm_func(" ..
+                "function (" .. pars .. dots .. ") " ..
+                    coder_stmts(e.blk.es) ..
+                " end" ..
+            ")"
         )
     elseif e.tag == 'return' then
         return "error({up='func'," .. coder_args(e.es) .. "}, 0)"

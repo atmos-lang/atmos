@@ -1,8 +1,31 @@
-coro   = coroutine.create
 resume = coroutine.resume
 
+function coro (f)
+    if atm_tag_is(f,'func') then
+        return { tag='coro', co=coroutine.create(f.func) }
+    else
+        return coroutine.create(f)
+    end
+end
+
+function resume (co, ...)
+    if atm_tag_is(co,'coro') then
+        return (function (ok, err, ...)
+            if ok then
+                return ok, err, ...
+            elseif err.up == 'func' then
+                return true, table.unpack(err)
+            else
+                error(err, 0)
+            end
+        end)(coroutine.resume(co.co, ...))
+    else
+        return coroutine.resume(co, ...)
+    end
+end
+
 function atm_tag_is (t, a, b)
-    return type(t)=='table' and (t.tag==a or t.tag==b)
+    return type(t)=='table' and t.tag and (t.tag==a or t.tag==b)
 end
 
 function atm_tag_do (tag, t)
@@ -36,6 +59,11 @@ function atm_call (f, ...)
     end
 end
 
+__atm_func = { __call=atm_call }
+function atm_func (f)
+    return setmetatable({ tag='func', func=f }, __atm_func)
+end
+
 function atm_loop (f, ...)
     return (function (ok, err, ...)
         if ok then
@@ -53,7 +81,7 @@ function atm_catch (xe, xf, blk, ...)
         if ok then
             return true, err, ...
         elseif err.up == 'catch' then
-            if (xe==true or atm_is(err[1],xe)) and (xf==nil or xf(table.unpack(err))) then
+            if (xe==true or atm_is(err[1],xe)) and (xf==nil or atm_call(xf,table.unpack(err))) then
                 return false, table.unpack(err)
             else
                 error(err, 0)
@@ -96,6 +124,7 @@ function atm_exec (file, src)
     end
 
     local v, msg = pcall(f)
+    --print(v, msg)
     if not v then
         if type(msg) == 'table' then
             assert(msg.up)
@@ -185,6 +214,10 @@ function iter (t)
                 i = i + 1
             end
         end
+    elseif atm_tag_is(t,'func') then
+        f = function (...)
+            return atm_call(t, ...)
+        end
     elseif type(t) == 'number' then
         f = function ()
             for i=0, t-1 do
@@ -214,10 +247,6 @@ function iter (t)
                 end
             end
         end
-    elseif atm_tag_is(t,'func') then
-        f = function (...)
-            return atm_call(t, ...)
-        end
     else
         error("TODO - iter(t)")
     end
@@ -228,6 +257,8 @@ end
 
 function status (t)
     if atm_tag_is(t,'task') then
+        return coroutine.status(t.co.co)
+    elseif atm_tag_is(t,'coro') then
         return coroutine.status(t.co)
     else
         return coroutine.status(t)
@@ -243,7 +274,7 @@ local function close (t)
             -- cannot close now (emit continuation will raise error)
             t.status = 'aborted'
         else
-            coroutine.close(t.co)
+            coroutine.close(t.co.co)
         end
     end
 end
@@ -299,7 +330,7 @@ function task (f)
         pub = nil,
         ret = nil,
     }
-    TASKS.cache[t.co] = t
+    TASKS.cache[t.co.co] = t
     setmetatable(t, meta)
     return t
 end
@@ -343,7 +374,7 @@ local function atm_task_awake_check (t, a, b)
         -- never awakes
         return false
     elseif t.await.e==true or atm_is(a,t.await.e) then
-        if t.await.f==nil or t.await.f(b or a) then
+        if t.await.f==nil or atm_call(t.await.f, b or a) then
             -- a=:X, b={...}, choose b
             return true
         else
@@ -353,7 +384,7 @@ local function atm_task_awake_check (t, a, b)
 end
 
 function spawn (up, t, ...)
-    if type(t) == 'function' then
+    if atm_tag_is(t,'func') then
         t = task(t)
         if t == nil then
             return nil
@@ -361,7 +392,7 @@ function spawn (up, t, ...)
             return spawn(up, t, ...)
         end
     end
-    if type(t)=='table' and t.co then
+    if atm_tag_is(t,'task') and t.co.co then
         -- ok
     else
         error('invalid spawn : expected task prototype', 2)
@@ -460,6 +491,7 @@ local function fto (me, to)
     elseif atm_tag_is(to,'task','tasks') then
         to = to
     else
+--print(debug.traceback())
         error('invalid emit : invalid target', 3)
     end
 

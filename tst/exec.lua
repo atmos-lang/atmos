@@ -723,6 +723,7 @@ do
             val c = yield()
             print(a, b, c)
             return(20)
+            ;;20
         }
         val f = coro(F)
         val a = resume f(1)
@@ -823,10 +824,12 @@ do
 
     local src = [[
         emit(1) in false
+        nil
     ]]
     print("Testing...", "emit 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "anon.atm : line 1 : invalid emit : invalid target\n")
+    warn(false, "tail call in emit hides line")
 
     local src = [[
         spawn (func () {
@@ -1227,6 +1230,11 @@ print '--- CALL / METHOD / PIPE ---'
 
 do
     local src = "print(10 -> 10)"
+    print("Testing...", "is 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 1 : ')' expected near '('\n")
+
+    local src = "print(10 -> (10))"
     print("Testing...", "is 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "anon.atm : line 1 : attempt to call a number value\n")
