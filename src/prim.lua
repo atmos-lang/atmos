@@ -482,7 +482,7 @@ function parser_1_prim ()
         end
 
     -- every
-    elseif check('every') then
+    elseif check('every') or check('par') or check('par_and') or check('par_or') or check('watching') then
         -- every { ... }
         if accept('every') then
             local lin = TK0.lin
@@ -498,10 +498,127 @@ function parser_1_prim ()
             }
             table.insert(es, 1, dcl)
             return { tag='loop', ids=nil, itr=nil, blk={tag='block',es=es} }
+        -- par
+        elseif accept('par') then
+            local sss = { { TK1.lin, parser_curly() } }
+            while accept('with') do
+                sss[#sss+1] = { TK1.lin, parser_curly() }
+            end
+            local es = map(sss, function (t) return spawn(t[1],t[2]) end)
+            es[#es+1] = {
+                tag = 'call',
+                f = { tag='acc', tk={tag='id',str='await'} },
+                args = {
+                    { tag='bool', tk={str='false'} },
+                },
+                custom = "await",
+            }
+            return { tag='block', es=es }
+        -- par_and
+        elseif accept('par_and') then
+            local n = N()
+            local sss = { { TK1.lin, parser_curly() } }
+            while accept('with') do
+                sss[#sss+1] = { TK1.lin, parser_curly() }
+            end
+            local function f1 (t,i)
+                return {
+                    tag = 'dcl',
+                    tk  = { tag='key', str='pin' },
+                    ids = { {tag='id', str='atm_'..n..'_'..i} },
+                    set = spawn(t[1],t[2]),
+                }
+            end
+            local function f2 (t,i)
+                return {
+                    tag = 'call',
+                    f = { tag='acc', tk={tag='id',str='await'} },
+                    args = {
+                        { tag='acc', tk={str='atm_'..n..'_'..i} },
+                    },
+                    custom = "await",
+                }
+            end
+            local ss1 = map(sss,f1)
+            local ss2 = map(sss,f2)
+            return { tag='block', es=concat(ss1,ss2) }
+        -- par_or
+        elseif accept('par_or') then
+            local n = N()
+            local sss = { { TK1.lin, parser_curly() } }
+            while accept('with') do
+                sss[#sss+1] = { TK1.lin, parser_curly() }
+            end
+            local function f1 (t,i)
+                return {
+                    tag = 'dcl',
+                    tk  = { tag='key', str='pin' },
+                    ids = { {tag='id', str='atm_'..n..'_'..i} },
+                    set = spawn(t[1],t[2]),
+                }
+            end
+            local function f2 (i)
+                if i > #sss then
+                    return { tag='bool', tk={str='false'} }
+                else
+                    return {
+                        tag = 'bin',
+                        op  = {str = '||'},
+                        e1  = {
+                            tag = 'parens',
+                            e = {
+                                tag = 'bin',
+                                op  = { str='==' },
+                                e1  = { tag='acc', tk={str="evt"} },
+                                e2  = { tag='acc', tk={str="atm_"..n..'_'..i} },
+                            },
+                        },
+                        e2  = f2(i+1),
+                    }
+                end
+            end
+            local es = map(sss,f1)
+            local awt = {
+                tag = 'call',
+                f = { tag='acc', tk={tag='id',str='await'} },
+                args = {
+                    { tag='bool', tk={str='true'} },
+                    {
+                        tag  = 'func',
+                        pars = { {tag='id',str="evt"} },
+                        blk  = {
+                            tag = 'block',
+                            es  = {
+                                { tag='return', es={f2(1)} },
+                            },
+                        },
+                    },
+                },
+                custom = "await",
+            }
+            es[#es+1] = awt
+            return { tag='block', es=es }
+        -- watching
+        elseif accept('watching') then
+            local lin = TK0.lin
+            local par = accept('(')
+            local awt = parser_await(lin)
+            if par then
+                accept_err(')')
+            end
+            local lin = TK1.lin
+            local es = parser_curly()
+            local spw = {
+                tag = 'dcl',
+                tk  = { tag='key', str='val' },
+                ids = { {tag='id', str='_'} },
+                set = spawn(lin,es),
+            }
+            return { tag='block', es={spw, awt} }
+
         else
             error "bug found"
         end
-
     else
         err(TK1, "expected expression")
     end
