@@ -208,7 +208,7 @@ function coder (e)
         return "error({up='catch', " .. coder_args(e.args) .. "}, 0)"
 
     else
-print(e.tag)
+        --print(e.tag)
         return L(e.tk) .. tosource(e)
     end
 end

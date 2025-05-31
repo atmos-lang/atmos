@@ -16,6 +16,16 @@ function resume (co, ...)
             elseif err.up == 'func' then
                 return true, table.unpack(err)
             else
+
+--[[
+        local dbg = debug.getinfo(co.co,1)
+        local x = {
+            file = dbg.short_src,
+            line = dbg.currentline,
+        }
+        dump(x)
+]]
+
                 error(err, 0)
             end
         end)(coroutine.resume(co.co, ...))
@@ -127,8 +137,14 @@ function atm_exec (file, src)
     --print(v, msg)
     if not v then
         if type(msg) == 'table' then
-            assert(msg.up)
-            io.stderr:write("uncaught throw : " .. stringify(msg[1]) .. '\n')
+            if msg.up == 'func' then
+                return table.unpack(msg)
+            elseif msg.up == 'catch' then
+                assert(msg.up)
+                io.stderr:write("uncaught throw : " .. stringify(msg[1]) .. '\n')
+            else
+                error "bug found"
+            end
         else
             assert(type(msg) == 'string')
             local filex, lin, msg2 = string.match(msg, '%[string "(.-)"%]:(%d+): (.*)$')
@@ -270,7 +286,7 @@ local function close (t)
         close(dn)
     end
     if t.tag == 'task' then
-        if status(t.co) == 'normal' then
+        if status(t) == 'normal' then
             -- cannot close now (emit continuation will raise error)
             t.status = 'aborted'
         else
@@ -342,7 +358,7 @@ local function atm_task_resume_result (t, ok, err)
         -- no error: continue normally
     elseif err == 'atm_aborted' then
         -- callee aborted from outside: continue normally
-        coroutine.close(t.co)   -- needs close b/c t.co is in error state
+        coroutine.close(t.co.co)   -- needs close b/c t.co is in error state
     else
 --print'up'
         error(err, 0)
@@ -357,7 +373,7 @@ local function atm_task_resume_result (t, ok, err)
     end
 ]]
 
-    if status(t.co) == 'dead' then
+    if status(t) == 'dead' then
         t.ret = err
         t.up.gc = true
         --if t.status ~= 'aborted' then
@@ -367,7 +383,7 @@ local function atm_task_resume_result (t, ok, err)
 end
 
 local function atm_task_awake_check (t, a, b)
-    if status(t.co) ~= 'suspended' then
+    if status(t) ~= 'suspended' then
         -- nothing to awake
         return false
     elseif t.await.e == false then
@@ -397,17 +413,6 @@ function spawn (up, t, ...)
     else
         error('invalid spawn : expected task prototype', 2)
     end
---[[
-    local dbg = debug.getinfo(2)
-    t.stk = {
-        file = dbg.short_src,
-        line = dbg.currentline,
-    }
-    local ok, t_o = atm_task_resume(t, ...)
-    if not ok then
-        return ok, t_o
-    end
-]]
 
     up = up or atm_me() or TASKS
     if up.max and #up.dns>=up.max then
@@ -424,6 +429,15 @@ end
 -------------------------------------------------------------------------------
 -- AWAIT
 -------------------------------------------------------------------------------
+
+--[[
+        local dbg = debug.getinfo(2)
+        local x = {
+            file = dbg.short_src,
+            line = dbg.currentline,
+        }
+        dump(x)
+]]
 
 function yield (...)
     if atm_me() then
@@ -450,7 +464,7 @@ function await (e, f)
         error('invalid await : expected enclosing task instance', 2)
     end
     local tsk = atm_tag_is(e, 'task')
-    if tsk and status(e.co)=='dead' then
+    if tsk and status(e)=='dead' then
         return e.ret
     elseif e == 'clock' then
         local ms = f
@@ -502,7 +516,7 @@ function atm_task_gc (t)
     if t.gc and t.ing==0 then
         for i=#t.dns, 1, -1 do
             local s = t.dns[i]
-            if s.tag=='task' and status(s.co)=='dead' then
+            if s.tag=='task' and status(s)=='dead' then
                 table.remove(t.dns, s.i)
             end
         end
@@ -526,7 +540,7 @@ local function femit (t, a, b, ...)
 
     if t.tag == 'task' then
         if not ok then
-            if status(t.co) ~= 'dead' then
+            if status(t) ~= 'dead' then
                 local ok, err = resume(t.co, 'atm_error', err)
 --print('x', ok, err)
                 if not ok then

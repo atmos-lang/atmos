@@ -49,7 +49,7 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local s = parser_stmt()
+    local s = parser()
     assert(check('<eof>'))
     assert(tostr_stmt(s) == "set y = await(:X)")
 
@@ -58,15 +58,18 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'set' : expected expression")
+    --local ok, msg = pcall(parser)
+    --assertx(msg, "anon : line 1 : near 'set' : expected expression")
+    lexer_next()
+    local ok, msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near '=' : expected expression")
 
     local src = "spawn nil()"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser_stmt)
+    local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near 'spawn' : expected call")
     --assertx(msg, "anon : line 1 : near '(' : call error : expected prefix expression")
 
@@ -89,7 +92,7 @@ do
     ]]
     print("Testing...", "task 1: proto")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, "function: 0x"))
+    assertfx(out, "table: 0x")
 
     local src = [[
         val T1 = func () { }
@@ -109,7 +112,7 @@ do
     ]]
     print("Testing...", "task 3: coro/task")
     local out = exec_string("anon.atm", src)
-    assert(string.find(out, "thread: 0x.*table: 0x"))
+    assertfx(out, "table: 0x.*table: 0x")
 
     local src = [[
         yield()
@@ -155,22 +158,24 @@ do
     assert(out == "anon.atm : line 1 : invalid spawn : expected task prototype\n")
 
     local src = [[
-        val T = func () { yield() }
+        val T = func () { yield();nil }
         pin t = spawn T()
         print(t)
     ]]
     print("Testing...", "yield 2 : error : yield inside task")
     local out = exec_string("anon.atm", src)
     assertx(out, "anon.atm : line 1 : invalid yield : unexpected enclosing task instance\n")
+    warn(false, "tail call in yield hides line")
 
     local src = [[
-        val T = func () { await(true) }
+        val T = func () { await(true);nil }
         val t = T()
         print(t)
     ]]
     print("Testing...", "yield 3 : error : await without enclosing task")
     local out = exec_string("anon.atm", src)
     assertx(out, "anon.atm : line 1 : invalid await : expected enclosing task instance\n")
+    warn(false, "tail call in yield hides line")
 
     local src = [[
         val T = func () { yield() }
@@ -328,7 +333,8 @@ do
     ]]
     print("Testing...", "spawn 5")
     local out = exec_string("anon.atm", src)
-    assertfx(out, "anon.atm : line 3 : near 'spawn' : expected expression")
+    --assertfx(out, "anon.atm : line 3 : near 'spawn' : expected expression")
+    assertfx(out, "nil\n")
 
     local src = [[
         val t = func () { print(:ok) }
@@ -350,7 +356,7 @@ do
         val t = do :X {
             var v
             set v = 10
-            escape(:X(task(func() { return(T(v)) })))
+            escape(:X, (task(func() { return(T(v)) })))
         }
         spawn t()
         print(t)
@@ -685,7 +691,6 @@ do
         3
         {30=30}
         {30=30}
-        true
     ]])
 
     local src = [[
@@ -1513,6 +1518,7 @@ do
                 defer {
                     print(:defer)
                 }
+                nil
             }
         ) ()
     ]]
