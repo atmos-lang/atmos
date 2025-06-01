@@ -442,19 +442,18 @@ function yield (...)
     return coroutine.yield(...)
 end
 
-local function _aux_ (tsk, err, a, b, ...)
+local function _aux_ (err, a, b, ...)
+    a = (atm_tag_is(a,'task') and a.ret) or a
     if err then
         error(a, 0)
     elseif b then
         return a, b, ...
-    elseif tsk then
-        return a.ret
     else
         return a    -- avoids repetition of a/b or a/nil
     end
 end
 
-function await (e, f)
+function await (e, f, ...)
     local t = atm_me()
     if not t then
         error('invalid await : expected enclosing task instance', 2)
@@ -468,9 +467,11 @@ function await (e, f)
             ms = ms - v
             return (ms <= 0)
         end
+    elseif e == 'par_or' then
+        f = function ()
     end
     t.await = { e=e, f=f }
-    return _aux_(tsk, coroutine.yield())
+    return _aux_(coroutine.yield())
 end
 
 -------------------------------------------------------------------------------
