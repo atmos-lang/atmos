@@ -737,10 +737,11 @@ do
 
     local src = [[
         emit(true)
+        nil
     ]]
     print("Testing...", "emit 1: err")
     local out = exec_string("anon.atm", src)
-    --assertx(out, "anon.atm : line 1 : invalid emit : expected tag\n")
+    assertx(out, "anon.atm : line 1 : invalid emit : expected tag\n")
     warn(false, "tail call in emit hides line")
 
     local src = [[
