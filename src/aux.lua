@@ -96,13 +96,16 @@ function join (sep, t)
     return ret
 end
 
-function concat (t1, t2)
+function concat (t1, t2, ...)
     local ret = {}
     for _,v in ipairs(t1) do
         ret[#ret+1] = v
     end
     for _,v in ipairs(t2) do
         ret[#ret+1] = v
+    end
+    if ... then
+        return concat(ret, ...)
     end
     return ret
 end

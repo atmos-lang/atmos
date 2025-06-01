@@ -539,9 +539,22 @@ function parser_1_prim ()
                     custom = "await",
                 }
             end
+            local function f3 (t,i)
+                return {
+                    k = { tag='num', tk={tag='num',str=tostring(i)} },
+                    v = {
+                        tag = 'index',
+                        t   = { tag='acc', tk={str='atm_'..n..'_'..i} },
+                        idx = { tag='str', tk={str="ret"} },
+                    }
+                }
+            end
             local ss1 = map(sss,f1)
             local ss2 = map(sss,f2)
-            return { tag='block', es=concat(ss1,ss2) }
+            local ss3 = {
+                { tag='table', ps=map(sss,f3) },
+            }
+            return { tag='block', es=concat(ss1,ss2,ss3) }
         -- par_or
         elseif accept('par_or') then
             local n = N()

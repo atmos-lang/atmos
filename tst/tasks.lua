@@ -3159,10 +3159,10 @@ do
                 20
             }
             emit(10)
-            print(x)
+            dump(x)
         }
     ]]
     print("Testing...", "par_and 3: return")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{10,20}\n")
+    assertx(out, "{10, 20}\n")
 end
