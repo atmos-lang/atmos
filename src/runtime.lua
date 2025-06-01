@@ -468,7 +468,20 @@ function await (e, f, ...)
             return (ms <= 0)
         end
     elseif e == 'par_or' then
+        local tsks = { ... }
+        e = true
         f = function ()
+            for _,tsk in ipairs(tsks) do
+                if status(tsk) == 'dead' then
+                    return tsk
+                end
+            end
+            return false
+        end
+        local tsk = f()
+        if tsk then
+            return tsk.ret
+        end
     end
     t.await = { e=e, f=f }
     return _aux_(coroutine.yield())

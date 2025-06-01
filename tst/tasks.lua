@@ -1723,12 +1723,13 @@ do
     local src = [[
         val T = func () {
             await(true)
+            10
         }
         pin t = spawn T()
         ;;spawn( func () {
             spawn (func () {
                 print(:A)
-                (func (it) { print(it==t) }) (await(true))
+                (func (it) { print(it==10) }) (await(true))
                 print(:C)
             }) ()
             emit(true) in t
@@ -2603,7 +2604,7 @@ do
                 await(true)
                 return(10)
             }
-            (func (it) { print(it.ret) }) (await(true))
+            (func (it) { print(it) }) (await(true))
         }
         emit(true)
         print(:ok)
@@ -3124,4 +3125,44 @@ do
     print("Testing...", "watching 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "antes\ny\nx\ndepois\n")
+
+    local src = [[
+        val x = do {
+            10
+        }
+        print(x)
+    ]]
+    print("Testing...", "do: return")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
+
+    local src = [[
+        spawn {
+            val x = par_or {
+                await(false)
+            } with {
+                10
+            }
+            print(x)
+        }
+    ]]
+    print("Testing...", "par_or 3: return")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
+
+    local src = [[
+        spawn {
+            val x = par_and {
+                await(true)
+                10
+            } with {
+                20
+            }
+            emit(10)
+            print(x)
+        }
+    ]]
+    print("Testing...", "par_and 3: return")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "{10,20}\n")
 end

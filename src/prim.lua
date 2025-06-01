@@ -557,43 +557,19 @@ function parser_1_prim ()
                     set = spawn(t[1],t[2]),
                 }
             end
-            local function f2 (i)
-                if i > #sss then
-                    return { tag='bool', tk={str='false'} }
-                else
-                    return {
-                        tag = 'bin',
-                        op  = {str = '||'},
-                        e1  = {
-                            tag = 'parens',
-                            e = {
-                                tag = 'bin',
-                                op  = { str='==' },
-                                e1  = { tag='acc', tk={str="evt"} },
-                                e2  = { tag='acc', tk={str="atm_"..n..'_'..i} },
-                            },
-                        },
-                        e2  = f2(i+1),
-                    }
-                end
+            local function f2 (_,i)
+                return { tag='acc', tk={str="atm_"..n..'_'..i} }
             end
             local es = map(sss,f1)
+            local tsks = map(sss,f2)
+            local xe_xf = {
+                { tag='tag', tk={str=':par_or'} },
+                { tag='nil', tk={tag='key',str='nil'} },
+            }
             local awt = {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='await'} },
-                args = {
-                    { tag='bool', tk={str='true'} },
-                    {
-                        tag  = 'func',
-                        pars = { {tag='id',str="evt"} },
-                        blk  = {
-                            tag = 'block',
-                            es  = {
-                                { tag='return', es={f2(1)} },
-                            },
-                        },
-                    },
-                },
+                args = concat(xe_xf,tsks),
                 custom = "await",
             }
             es[#es+1] = awt
