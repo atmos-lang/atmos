@@ -238,10 +238,8 @@ function iter (t)
                 i = i + 1
             end
         end
-    elseif atm_tag_is(t,'func') then
-        f = function (...)
-            return atm_call(t, ...)
-        end
+    elseif type(t)=='function' or atm_tag_is(t,'func') then
+        return t
     elseif type(t) == 'number' then
         f = function ()
             for i=0, t-1 do
