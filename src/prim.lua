@@ -34,7 +34,7 @@ function parser_await (lin)
          }
         local f   = { tag='acc', tk={tag='id',str='await',lin=lin} }
         local tag = { tag='tag', tk={str=':clock'} }
-        return { tag='call', f=f, args={tag,sum}, custom="await" }
+        return { tag='call', f=f, args={tag,sum} }
     else
         local xe = parser()
         local xf = nil
@@ -49,7 +49,7 @@ function parser_await (lin)
             xf = { tag='func', pars={it}, blk={tag='block',es={cnd}} }
         end
         local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
-        return { tag='call', f=f, args={xe,xf}, custom="await" }
+        return { tag='call', f=f, args={xe,xf} }
     end
 end
 
@@ -57,7 +57,7 @@ local function spawn (lin, es)
     local cmd = { tag='acc', tk={tag='id', str='spawn', lin=lin} }
     local ts = { tag='nil', tk={tag='key',str='nil'} }
     local f = { tag='func', pars={}, blk={tag='block',es=es} }
-    return { tag='call', f=cmd, args={ts,f}, custom="spawn" }
+    return { tag='call', f=cmd, args={ts,f} }
 end
 
 function parser_spawn ()
@@ -82,7 +82,7 @@ function parser_spawn ()
         end
         table.insert(call.args, 1, ts)
         table.insert(call.args, 2, call.f)
-        return { tag='call', f=cmd, args=call.args, custom="spawn" }
+        return { tag='call', f=cmd, args=call.args }
     end
 end
 
@@ -166,7 +166,7 @@ function parser_1_prim ()
             accept_err('(')
             local e = parser()
             accept_err(')')
-            return { tag='call', f=f, args={e}, custom="coro" }
+            return { tag='call', f=f, args={e} }
         -- resume co(...)
         elseif accept('resume') then
             local tk = TK0
@@ -176,14 +176,14 @@ function parser_1_prim ()
                 err(tk, "expected call")
             end
             table.insert(call.args, 1, call.f)
-            return { tag='call', f=cmd, args=call.args, custom="resume" }
+            return { tag='call', f=cmd, args=call.args }
         -- yield(...)
         elseif accept('yield') then
             local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
             accept_err('(')
             local args = parser_list(',', ')', parser)
             accept_err(')')
-            return { tag='call', f=f, args=args, custom="yield" }
+            return { tag='call', f=f, args=args }
         else
             error "bug found"
         end
@@ -196,7 +196,7 @@ function parser_1_prim ()
             accept_err('(')
             local e = parser()
             accept_err(')')
-            return { tag='call', f=f, args={e}, custom="task" }
+            return { tag='call', f=f, args={e} }
         -- emit(...) in t
         elseif accept('emit') then
             local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
@@ -211,7 +211,7 @@ function parser_1_prim ()
                 end
             end
             table.insert(args, 1, to)
-            return { tag='call', f=f, args=args, custom="emit" }
+            return { tag='call', f=f, args=args }
         -- await(...)
         elseif accept('await') then
             local lin = TK0.lin
@@ -267,12 +267,10 @@ function parser_1_prim ()
         local tk = TK0
         local ids = parser_ids('=')
         local set
-        local custom
         if accept('=') then
             if check('spawn') then
                 local tk1 = TK1
                 local spw = parser_spawn()
-                custom = 'spawn'
                 if tk.str=='pin' and spw.args[1].tag~='nil' then
                     err(tk1, "invalid spawn in : unexpected pin declaraion")
                 elseif tk.str~='pin' and spw.args[1].tag=='nil' then
@@ -280,7 +278,6 @@ function parser_1_prim ()
                 end
                 set = spw
             elseif accept('tasks') then
-                custom = 'tasks'
                 if tk.str ~= 'pin' then
                     err(TK0, "invalid tasks : expected pin declaraion")
                 end
@@ -291,14 +288,14 @@ function parser_1_prim ()
                     e = parser()
                 end
                 accept_err(')')
-                local ts = { tag='call', f=f, args={e}, custom="tasks" }
+                local ts = { tag='call', f=f, args={e} }
                 set = ts
 
             else
                 set = parser()
             end
         end
-        return { tag='dcl', tk=tk, ids=ids, set=set, custom=custom }
+        return { tag='dcl', tk=tk, ids=ids, set=set }
 
     -- set x = 10
     elseif accept('set') then
@@ -361,11 +358,11 @@ function parser_1_prim ()
         -- escape :X()
         elseif accept('escape') then
             local args = tag_args(true)
-            return { tag='escape', args=args, custom="escape" }
+            return { tag='escape', args=args }
         -- throw(err)
         elseif accept('throw') then
             local args = tag_args()
-            return { tag='throw', args=args, custom="throw" }
+            return { tag='throw', args=args }
         -- defer {...}
         elseif accept('defer') then
             local es = parser_curly()
@@ -503,7 +500,6 @@ function parser_1_prim ()
                 args = {
                     { tag='bool', tk={str='false'} },
                 },
-                custom = "await",
             }
             return { tag='block', es=es }
         -- par_and
@@ -528,7 +524,6 @@ function parser_1_prim ()
                     args = {
                         { tag='acc', tk={str='atm_'..n..'_'..i} },
                     },
-                    custom = "await",
                 }
             end
             local function f3 (t,i)
@@ -575,7 +570,6 @@ function parser_1_prim ()
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='await'} },
                 args = concat(xe_xf,tsks),
-                custom = "await",
             }
             es[#es+1] = awt
             return { tag='block', es=es }

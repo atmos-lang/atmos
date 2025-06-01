@@ -37,34 +37,6 @@ function coder_args (es)
     return join(", ", map(es,coder))
 end
 
-function coder_stmt (e)
-    if false then
-    elseif e.tag == 'dcl' then
-        local mod = ''; do
-            if e.tk.str == 'val' then
-                mod = " <const>"
-            elseif e.tk.str == 'pin' then
-                mod = " <close>"
-            end
-        end
-        if e.custom == 'block' then
-            local id, blk = e.ids[1], e.set
-            return coder(blk) .. [[ ; local ]] .. id.str .. mod .. ' = atm_'..blk.esc.str:sub(2)
-        elseif e.custom == 'catch' then
-            local n = _n_+1
-            local ids = join(',', map(e.ids, function (id) return id.str end))
-            local cat = coder(e.set)
-            return cat .. ' ; local ' .. ids .. ' = atm_ok_' .. n .. ', atm_esc_' .. n
-        else
-            local ids = join(', ', map(e.ids,  function(id) return id.str end))
-            local set = e.set and (' = '..coder(e.set)) or ''
-            return 'local ' .. ids .. mod .. set
-        end
-    else
-        error(e.tag)
-    end
-end
-
 function coder_tag (tag)
     return L(tag) .. '"' .. tag.str:sub(2) .. '"'
 end

@@ -581,7 +581,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(stringify(e), "{args={{tag=tag, tk={lin=1, str=:X, tag=tag}}}, custom=throw, tag=throw}")
+    assertx(stringify(e), "{args={{tag=tag, tk={lin=1, str=:X, tag=tag}}}, tag=throw}")
 
     local src = "func (it) {}"
     print("Testing...", src)
@@ -737,7 +737,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(stringify(e), "{args={{tag=acc, tk={lin=1, str=f, tag=id}}}, custom=coro, f={tag=acc, tk={lin=1, str=coro, tag=id}}, tag=call}")
+    assertx(stringify(e), "{args={{tag=acc, tk={lin=1, str=f, tag=id}}}, f={tag=acc, tk={lin=1, str=coro, tag=id}}, tag=call}")
 
     local src = "task(T)"
     print("Testing...", src)
