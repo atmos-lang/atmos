@@ -218,7 +218,7 @@ do
                 await(true)
                 print(:ok)
             }) ()
-            emit (nil)
+            emit (:ok)
         }
         spawn T(2)
     ]]
@@ -230,11 +230,11 @@ do
         spawn (func () {
             spawn (func () {
                 await(true)
-                emit(true)
+                emit(:ok)
             }) ()
             await(true)
         }) ()
-        emit(true)
+        emit(:ok)
         print(1)
     ]]
     print("Testing...", "spawn 5")
@@ -251,12 +251,12 @@ do
                 ;;print(:BLOCK2, `:pointer ceu_block`)
                 await(true)
                 ;;print(:1)
-                emit(true)
+                emit(:ok)
             }) ()
             await(true)
             ;;print(:2)
         }) ()
-        emit(true)
+        emit(:ok)
         print(1)
     ]]
     print("Testing...", "spawn 7")
@@ -271,7 +271,7 @@ do
         pin co = spawn tk()
         var f = func () {
             var g = func () {
-                emit ([])
+                emit (:x,[])
             }
             g()
         }
@@ -288,13 +288,13 @@ do
         }
         spawn(tk)()
         ;;var f = func' () {
-            emit ([])
+            emit (:x,[])
         ;;}
         ;;f()
     ]]
     print("Testing...", "spawn 9")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{}\n")
+    assertx(out, "{}\tx\n")
 
     local src = [[
         var T = func () {
@@ -304,12 +304,12 @@ do
         }
         pin t = spawn T()
         ;;print(:1111)
-        emit ([])
+        emit (:x,[])
         ;;print(:2222)
     ]]
     print("Testing...", "spawn 10")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{}\n")
+    assertx(out, "{}\tx\n")
 end
 
 -- SPAWN (scope)
@@ -376,7 +376,7 @@ do
         }
         spawn T(:1)
         pin t2 = spawn T(:2)
-        emit(1)
+        emit(:1)
     ]]
     print("Testing...", "emit 1 : task term")
     local out = exec_string("anon.atm", src)
@@ -391,9 +391,9 @@ do
         }
         pin co1 = spawn tk(:1)
         spawn tk(:2)
-        emit(1)
-        emit(2)
-        emit(3)
+        emit(:1)
+        emit(:2)
+        emit(:3)
     ]]
     print("Testing...", "emit 2 : task term")
     local out = exec_string("anon.atm", src)
@@ -410,7 +410,7 @@ do
         }) ()
         ;;`printf(">>> %d\n", CEU_DEPTH);`
         print(:bcast)
-        emit()
+        emit(:ok)
     ]]
     print("Testing...", "emit 3 : task term")
     local out = exec_string("anon.atm", src)
@@ -423,7 +423,7 @@ do
         }
         spawn T()
         do {
-            emit(1)
+            emit(:1)
         }
     ]]
     print("Testing...", "emit 4")
@@ -440,9 +440,9 @@ do
         spawn (tk) ()
         spawn tk ()
         do {
-             emit(1)
-             emit(2)
-             emit(3)
+             emit(:1)
+             emit(:2)
+             emit(:3)
         }
     ]]
     print("Testing...", "emit 5")
@@ -466,10 +466,10 @@ do
             }
         }
         spawn tk ()
-        emit(1)
-        emit(2)
-        emit(3)
-        emit(4)
+        emit(:1)
+        emit(:2)
+        emit(:3)
+        emit(:4)
     ]]
     print("Testing...", "emit 6")
     local out = exec_string("anon.atm", src)
@@ -489,8 +489,8 @@ do
             }) ()
             set evt1 = await(true)
         }) ()
-        emit (10)
-        emit (20)
+        emit (:10)
+        emit (:20)
     ]]
     print("Testing...", "emit 7")
     local out = exec_string("anon.atm", src)
@@ -504,7 +504,7 @@ do
         spawn T(10)
         catch true {
             (func () {
-                emit ([])
+                emit (:t,[])
             }) ()
         }
     ]]
@@ -523,7 +523,7 @@ do
         spawn T()
         ;;print(:1111)
         var e = []
-        emit (e)
+        emit (:t, e)
         ;;print(:2222)
     ]]
     print("Testing...", "emit 9")
@@ -542,7 +542,7 @@ do
                 val b
                 do {
                     var e = []
-                    emit (e)
+                    emit (:t, e)
                 }
             }
         }
@@ -558,12 +558,12 @@ do
         spawn T()
         do {
             var e = []
-            emit (e)
+            emit (:t, e)
         }
     ]]
     print("Testing...", "emit 11")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{}\n")
+    assertx(out, "{}\tt\n")
 
     local src = [[
         var fff = func (v) {
@@ -573,7 +573,7 @@ do
             fff(await(true))
         }
         spawn T()
-        emit ([1])
+        emit (:t, [1])
     ]]
     print("Testing...", "emit 12")
     local out = exec_string("anon.atm", src)
@@ -590,7 +590,7 @@ do
         }
         spawn T(10)
         (func () {
-            emit ([])
+            emit (:t, [])
         }) ()
     ]]
     print("Testing...", "emit scope 1")
@@ -604,7 +604,7 @@ do
         }
         spawn T(10)
         (func () {
-            emit ([])
+            emit (:t, [])
         }) ()
     ]]
     print("Testing...", "emit scope 2")
@@ -619,7 +619,7 @@ do
         }
         spawn T()
         spawn T()
-        emit ([])
+        emit (:t, [])
     ]]
     print("Testing...", "emit scope 3")
     local out = exec_string("anon.atm", src)
@@ -631,7 +631,7 @@ do
             dump(v)
         }
         spawn T([])
-        emit(nil)
+        emit(:ok)
     ]]
     print("Testing...", "emit scope 4")
     local out = exec_string("anon.atm", src)
@@ -648,7 +648,7 @@ do
         }
         spawn T()
         do {
-            emit ([20])
+            emit (:t, [20])
         }
         print(:ok)
     ]]
@@ -671,9 +671,9 @@ do
         val ok,e = catch true {
             return ((func () {
                 print(:2)
-                emit ([20])
+                emit (:t,[20])
                 print(:3)
-                emit ([(30,30)])
+                emit (:t,[(30,30)])
                 return(true)
             }) ())
         }
@@ -704,7 +704,7 @@ do
             f(await(true))
         }
         spawn T()
-        emit ([ [1] ])
+        emit (:t,[ [1] ])
     ]]
     print("Testing...", "emit scope 7")
     local out = exec_string("anon.atm", src)
@@ -718,7 +718,7 @@ do
             f(await(true))
         }
         spawn T()
-        emit ([ [ 1 ] ])
+        emit (:t,[ [ 1 ] ])
     ]]
     print("Testing...", "emit scope 8")
     local out = exec_string("anon.atm", src)
@@ -735,7 +735,7 @@ do
             f(await(true))
         }
         spawn T()
-        emit ([ [ 1 ] ])
+        emit (:t,[ [ 1 ] ])
     ]]
     print("Testing...", "emit scope 9")
     local out = exec_string("anon.atm", src)
@@ -754,7 +754,7 @@ do
                 do {
                     do {
                         do {
-                            emit ([])
+                            emit (:t,[])
                         }
                     }
                 }
@@ -778,7 +778,7 @@ do
         do {
             do {
                 do {
-                    emit ([])
+                    emit (:t,[])
                 }
             }
         }
@@ -800,7 +800,7 @@ do
             do {
                 val b
                 var e = []
-                emit (e)
+                emit (:t,e)
             }
         }
         ;;print(:2222)
@@ -829,7 +829,7 @@ do
             }
         }
         pin t2 = spawn T2()
-        emit ([])                      ;; GC = {}
+        emit (:t,[])                      ;; GC = {}
         ;;print(`:number CEU_GC.free`)
         print(:ok)
     ]]
@@ -844,7 +844,7 @@ do
     local src = [[
         var x
         set x = []
-        emit (x)
+        emit (:t,x)
         dump(x)
     ]]
     print("Testing...", "alien 0")
@@ -859,7 +859,7 @@ do
         }) (nil)
         do {
             val e = []
-            emit(e)
+            emit(:t,e)
         }
         print(:ok)
     ]]
@@ -875,7 +875,7 @@ do
         spawn T()
         do {
             val e = []
-            (func () { emit(e) })()
+            (func () { emit(:t,e) })()
         }
         print(:ok)
     ]]
@@ -892,7 +892,7 @@ do
         }) ()
         do {
             val x
-            emit([10])
+            emit(:t,[10])
         }
     ]]
     print("Testing...", "alien 3")
@@ -910,7 +910,7 @@ do
         }) ()
         do {
             val x
-            emit([10])
+            emit(:t,[10])
         }
     ]]
     print("Testing...", "alien 4")
@@ -925,7 +925,7 @@ do
         }) ()
         do {
             val e = [ [ 10 ] ]
-            emit(e)
+            emit(:t,e)
         }
     ]]
     print("Testing...", "alien 5")
@@ -941,7 +941,7 @@ do
             f(await(true))
         }
         spawn T()
-        emit ([[1]])
+        emit (:t,[[1]])
     ]=]
     print("Testing...", "alien 6")
     local out = exec_string("anon.atm", src)
@@ -957,7 +957,7 @@ do
             f(xevt)
         }
         spawn T()
-        emit ([[1]])
+        emit (:t [[1]])
     ]=]
     print("Testing...", "alien 7")
     local out = exec_string("anon.atm", src)
@@ -974,7 +974,7 @@ do
             }
         }
         spawn T ()
-        emit([2])
+        emit(:t [2])
         print(:ok)
     ]]
     print("Testing...", "payload 1")
@@ -996,9 +996,9 @@ do
         catch true {
             (func () {
                 print(:2)
-                emit(20)
+                emit(:20)
                 print(:3)
-                emit(30)
+                emit(:30)
             })()
         }
     ]]
@@ -1020,7 +1020,7 @@ do
             }
         }
         spawn T()
-        emit(10)
+        emit(:10)
     ]]
     print("Testing...", "payload 3")
     local out = exec_string("anon.atm", src)
@@ -1036,9 +1036,9 @@ do
         }) ()
         do {
             val e = [10]
-            emit(e)
+            emit(:t,e)
         }
-        emit(nil)
+        emit(:ok)
     ]]
     print("Testing...", "payload 4")
     local out = exec_string("anon.atm", src)
@@ -1060,9 +1060,9 @@ do
             print(99)
         }) ()
         print(1)
-        emit ([type=:y])
+        emit (:T [type=:y])
         print(2)
-        emit ([type=:x])
+        emit (:T [type=:x])
         print(3)
     ]]
     print("Testing...", "payload 5")
@@ -1083,8 +1083,8 @@ do
             fff(evt[:type])
             print(99)
         }) ()
-        emit ([type=:y])
-        emit ([(:type,:x)])
+        emit (:T [type=:y])
+        emit (:T [(:type,:x)])
     ]]
     print("Testing...", "payload 6")
     local out = exec_string("anon.atm", src)
@@ -1098,17 +1098,17 @@ do
                 set evt = await(true)
             }
         }
-        emit([])
+        emit(:T [])
     ]]
     print("Testing...", "payload 7")
     local out = exec_string("anon.atm", src)
-    assertx(out, "nil\n{}\n")
+    assertx(out, "nil\n{tag=T}\n")
 
     local src = [[
         spawn {
             print(await(true))
         }
-        emit(10,20)
+        emit(:10,:20)
     ]]
     print("Testing...", "payload 8: multi emit/await args")
     local out = exec_string("anon.atm", src)
@@ -1130,7 +1130,7 @@ do
             print(:ok)
         }) ()
         print(:2)
-        emit([])
+        emit(:T[])
         print(:4)
     ]]
     print("Testing...", "order 1")
@@ -1150,7 +1150,7 @@ do
             print(:no)
         }) ()
         print(:2)
-        emit()
+        emit(:ok)
         print(:4)
     ]]
     print("Testing...", "order 2")
@@ -1187,7 +1187,7 @@ do
         }
         spawn T(1)
         spawn T(2)
-        emit()
+        emit(:ok)
     ]]
     print("Testing...", "order 4")
     local out = exec_string("anon.atm", src)
@@ -1198,7 +1198,7 @@ print "--- EMIT / IN ---"
 
 do
     local src = [[
-        emit() in nil
+        emit(:ok) in nil
         print(:ok)
     ]]
     print("Testing...", "emit-in 1")
@@ -1211,7 +1211,7 @@ do
             print(:ok, x)
         }) ()
         spawn (func () {
-            emit(10) in :global
+            emit(:10) in :global
         }) ()
     ]]
     print("Testing...", "emit-in 2")
@@ -1224,9 +1224,9 @@ do
             print(:ok, x)
         }) ()
         spawn (func () {
-            emit(10) in :task
+            emit(:10) in :task
             print(:no)
-            emit(20) in :global
+            emit(:20) in :global
         }) ()
     ]]
     print("Testing...", "emit-in 3")
@@ -1245,7 +1245,7 @@ do
         do {
             var t2
             pin t2 = spawn T (2)
-            emit(nil) in t2
+            emit(:nil) in t2
         }
     ]]
     print("Testing...", "emit-in 4: in t2")
@@ -1265,7 +1265,7 @@ do
         }
         pin t = spawn {
         }
-        emit(t)
+        emit(:T, t)
     ]]
     print("Testing...", "task-term 1")
     local out = exec_string("anon.atm", src)
@@ -1295,8 +1295,8 @@ do
             await(true)
             print(:2)
         }
-        emit(nil)
-        emit(t)
+        emit(:nil)
+        emit(:T, t)
     ]]
     print("Testing...", "task-term 3")
     local out = exec_string("anon.atm", src)
@@ -1433,7 +1433,7 @@ do
             await(true)
         }) ()
         coro(func () { })
-        emit(true)
+        emit(:true)
     ]]
     print("Testing...", "nested 3")
     local out = exec_string("anon.atm", src)
@@ -1459,9 +1459,9 @@ do
                 }) ()
                 await(true)
             }
-            emit([])
+            emit(:T[])
         })()
-        emit(99)
+        emit(:99)
         print(:ok)
     ]]
     print("Testing...", "nested 4")
@@ -1480,7 +1480,7 @@ do
             spawn T()
             await(true)
         }) ()
-        emit(true)
+        emit(:true)
     ]]
     print("Testing...", "nested 5")
     local out = exec_string("anon.atm", src)
@@ -1499,7 +1499,7 @@ do
         }) ()
         do {
             print(:1)
-            emit(true)
+            emit(:true)
             print(:3)
         }
         print(:END)
@@ -1572,7 +1572,7 @@ do
             }) ()
             await(false)
         } )()
-        emit(true)
+        emit(:true)
         print(:ok)
     ]]
     print("Testing...", "abort 4")
@@ -1598,7 +1598,7 @@ do
                 print(:99)
             }) ()
             print(:0)
-            emit(true)
+            emit(:true)
             print(:4)
         }
     ]]
@@ -1625,7 +1625,7 @@ do
                 }
             }
         }) ()
-        emit(true)
+        emit(:true)
         print(:ok)
     ]]
     print("Testing...", "abort 6")
@@ -1651,7 +1651,7 @@ do
             print(:5)
         }) ()
         print(:0)
-        emit(true)
+        emit(:true)
         print(:6)
     ]]
     print("Testing...", "abort 7")
@@ -1662,11 +1662,11 @@ do
         spawn (func () {
             spawn(func () {
                 await(true)
-                emit(true) in :global
+                emit(:true) in :global
             })()
             await(true)
         })()
-        emit(true)
+        emit(:true)
         print(:ok)
     ]]
     print("Testing...", "abort 8")
@@ -1686,14 +1686,14 @@ do
                 print(:2)
                 await(true)
                 print(:b)
-                emit(true) in t     ;; pending
+                emit(:) in t     ;; pending
                 print(999)
             } )()
             print(:3)
             await(true)
             print(:ok)
         })()
-        emit(true)
+        emit(:)
     ]]
     print("Testing...", "abort 9")
     local out = exec_string("anon.atm", src)
@@ -1708,13 +1708,13 @@ do
             pin t = spawn T()
             spawn( func () {
                 await(true)
-                emit(true) in t
+                emit(:) in t
                 print(999)
             } )()
             await(true)
             print(:ok)
         })()
-        emit(true)
+        emit(:)
     ]]
     print("Testing...", "abort 10")
     local out = exec_string("anon.atm", src)
@@ -1732,7 +1732,7 @@ do
                 (func (it) { print(it==10) }) (await(true))
                 print(:C)
             }) ()
-            emit(true) in t
+            emit(:) in t
         ;;})()
         print(:ok)
     ]]
@@ -1769,8 +1769,8 @@ do
             }
             emit([])
         })()
-        ;;emit(true)
-        emit(true)
+        ;;emit(:)
+        emit(:)
         print(:ok)
     ]]
     print("Testing...", "abort 13")
@@ -1783,13 +1783,13 @@ do
             do {
                 spawn (func () {
                     await(true)
-                    emit(true) in :global
+                    emit(:) in :global
                 }) ()
                 await(true)
             }
-            emit(true)
+            emit(:)
         })()
-        emit(true)
+        emit(:)
         print(:ok)
     ]]
     print("Testing...", "abort 14")
@@ -1809,14 +1809,14 @@ do
                 print(:2)
                 await(true)
                 print(:b)
-                emit(true) in t
+                emit(:) in t
                 print(999)
             } )()
             print(:3)
             await(true)
             print(:ok)
         })()
-        emit(true)
+        emit(:)
     ]]
     print("Testing...", "abort 15")
     local out = exec_string("anon.atm", src)
@@ -1834,7 +1834,7 @@ do
                 await(true)
                 do {
                     print(:1)
-                    emit(true) in t
+                    emit(:) in t
                     print(:no)
                 }
                 print(:no)
@@ -1843,7 +1843,7 @@ do
             print(:3)
         })()
         print(:0)
-        emit(true)
+        emit(:)
         print(:4)
     ]]
     print("Testing...", "abort 16")
@@ -1857,12 +1857,12 @@ do
                 defer {
                     print(:1)
                 }
-                emit(true) in :global
+                emit(:) in :global
             }) ()
             await(true)
             print(:0)
         }) ()
-        emit(true)
+        emit(:)
         print(:2)
     ]]
     print("Testing...", "abort 17")
@@ -1884,7 +1884,7 @@ do
                         print(:ok)
                     }
                     print(:1)
-                    emit(true) in t
+                    emit(:) in t
                     print(:no)
                 }
                 print(:no)
@@ -1893,7 +1893,7 @@ do
             print(:3)
         })()
         print(:0)
-        emit(true)
+        emit(:)
         print(:4)
     ]]
     print("Testing...", "abort 18")
@@ -1916,7 +1916,7 @@ do
                     }
                     print(:1)
                     (func () {
-                        emit(true) in t
+                        emit(:) in t
                     }) ()
                     print(:no)
                 }
@@ -1926,7 +1926,7 @@ do
             print(:3)
         })()
         print(:0)
-        emit(true)
+        emit(:)
         print(:4)
     ]]
     print("Testing...", "abort 19")
@@ -1939,7 +1939,7 @@ do
                 print(:ok)
             }
             print(:1)
-            emit(true) in t
+            emit(:) in t
             print(:no)
         }
         spawn (func () {
@@ -1961,7 +1961,7 @@ do
             print(:3)
         })()
         print(:0)
-        emit(true)
+        emit(:)
         print(:4)
     ]]
     print("Testing...", "abort 20")
@@ -1977,14 +1977,14 @@ do
                         print(:3)
                     }
                     print(:1)
-                    emit(true) in :global
+                    emit(:) in :global
                     print(:999)
                 }
             }) ()
             await(true)
             print(:2)
         }) ()
-        emit(true) in :global
+        emit(:) in :global
     ]]
     print("Testing...", "abort 21")
     local out = exec_string("anon.atm", src)
@@ -1995,13 +1995,13 @@ do
             spawn (func () {
                 await(true)
                 print(:1)
-                emit(true) in :global
+                emit(:) in :global
                 print(:999)
             }) ()
             await(true)
             print(:2)
         }) ()
-        emit(true) in :global
+        emit(:) in :global
         print(:3)
     ]]
     print("Testing...", "abort 22")
@@ -2012,11 +2012,11 @@ do
         spawn (func () {
             spawn (func () {
                 await(true)
-                emit(true) in :global
+                emit(:) in :global
             }) ()
             await(true)
         }) ()
-        emit(true)
+        emit(:)
         print(:ok)
     ]]
     print("Testing...", "abort 23")
@@ -2030,7 +2030,7 @@ do
                     print(:4)    ;; TODO: aborted func should execute defer
                 }
                 print(:1)
-                emit(true) in :global
+                emit(:) in :global
                 print(:999)
             }
         }
@@ -2048,7 +2048,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit(true) in :global
+        emit(:) in :global
     ]]
     print("Testing...", "abort 24")
     local out = exec_string("anon.atm", src)
@@ -2065,7 +2065,7 @@ do
                     print(:1)
                     resume (coro (func () {
                         ;; TODO: coro hides outer t.co and consumes the error
-                        emit(true) in :global
+                        emit(:) in :global
                     })) ()
                     print(:999)
                 }
@@ -2073,7 +2073,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit(true) in :global
+        emit(:) in :global
     ]]
     print("Testing...", "abort 25")
     local out = exec_string("anon.atm", src)
@@ -2084,12 +2084,12 @@ do
             spawn (func () {
                 await(true)
                 spawn (func () {
-                    emit(true) in :global
+                    emit(:) in :global
                 }) ()
             }) ()
             await(true)
         }) ()
-        emit(true) in :global
+        emit(:) in :global
         print(:ok)
     ]]
     print("Testing...", "abort 26")
@@ -2106,7 +2106,7 @@ do
                     }
                     print(:1)
                     spawn (func () {
-                        emit(true) in :global
+                        emit(:) in :global
                     }) ()
                     print(:999)
                 }
@@ -2114,7 +2114,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit(true) in :global
+        emit(:) in :global
     ]]
     print("Testing...", "abort 27")
     local out = exec_string("anon.atm", src)
@@ -2128,7 +2128,7 @@ do
                 }
                 print(:1)
                 ;;resume (coro(func () {
-                    emit(true) in :global
+                    emit(:) in :global
                 ;;})) ()
                 print(:y999)
             }
@@ -2147,7 +2147,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit(true) in :global
+        emit(:) in :global
     ]]
     print("Testing...", "abort 28")
     local out = exec_string("anon.atm", src)
@@ -2156,7 +2156,7 @@ do
     local src = [[
         val f = func () {
             val x = []
-            emit(true) in :global
+            emit(:) in :global
         }
         spawn (func () {
             spawn (func () {
@@ -2166,7 +2166,7 @@ do
             }) ()
             await(true)
         }) ()
-        emit(true)
+        emit(:)
         print(:ok)
     ]]
     print("Testing...", "abort 29")
@@ -2181,7 +2181,7 @@ do
                 }
                 print(:1)
                 spawn (func () {
-                    emit(true) in :global
+                    emit(:) in :global
                 }) ()
                 print(:y999)
             }
@@ -2200,7 +2200,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit(true) in :global
+        emit(:) in :global
     ]]
     print("Testing...", "abort 30")
     local out = exec_string("anon.atm", src)
@@ -2217,7 +2217,7 @@ do
                                 print(:3)
                             }
                             print(:1)
-                            emit(true) in :global
+                            emit(:) in :global
                         }
                     ;;})) ()
                     print(:999)
@@ -2226,7 +2226,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit(true) in :global
+        emit(:) in :global
     ]]
     print("Testing...", "abort 31")
     local out = exec_string("anon.atm", src)
@@ -2243,7 +2243,7 @@ do
                                 print(:3)
                             }
                             print(:1)
-                            emit(true) in :global
+                            emit(:) in :global
                         }
                     }) ()
                     print(:999)
@@ -2252,7 +2252,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit(true) in :global
+        emit(:) in :global
     ]]
     print("Testing...", "abort 32")
     local out = exec_string("anon.atm", src)
@@ -2316,7 +2316,7 @@ do
             await(true)
             print(:3)
         }) ()
-        emit(true)
+        emit(:)
         print(:4)
     ]]
     print("Testing...", "abort 35")
@@ -2330,7 +2330,7 @@ do
                 print(:2)
                 await(true)
                 print(:6)
-                emit(true) in :global
+                emit(:) in :global
             }) ()
             ;;resume (coro (func () {
             spawn {
@@ -2346,7 +2346,7 @@ do
             print(:7)
         }) ()
         print(:5)
-        emit(true)
+        emit(:)
         print(:8)
     ]]
     print("Testing...", "abort 36")
@@ -2368,8 +2368,8 @@ do
             throw(:e2)
         }
         catch :e2 {
-            emit(true)
-            emit(true)
+            emit(:)
+            emit(:)
             print(99)
         }
         print(:e2)
@@ -2394,8 +2394,8 @@ do
             throw(:e2)
         })()
         catch :e2 ;;;(it | it==:e2 );;; {
-            emit(true)
-            emit(true)
+            emit(:)
+            emit(:)
             print(99)
         }
         print(:e2)
@@ -2418,7 +2418,7 @@ do
             }
             print(:ok2)
         }
-        emit(true)
+        emit(:)
         print(:ok3)
     ]]
     print("Testing...", "catch 3")
@@ -2433,7 +2433,7 @@ do
             print(:no)
         }
         catch :e3 {
-            emit(true)
+            emit(:)
             print(:no)
         }
         print(:ok2)
@@ -2459,7 +2459,7 @@ do
             print(:no2)
         }
         catch :e3 {
-            emit(true)
+            emit(:)
             print(:no3)
         }
         print(:ok3)
@@ -2492,7 +2492,7 @@ do
             print(:no)
         }
         catch :e3 {
-            emit(true)
+            emit(:)
             print(:no)
         }
         print(:ok3)
@@ -2548,7 +2548,7 @@ do
             ;;print(:out)
         }
         ;;print(:bcast-in)
-        emit (true)
+        emit (:)
         ;;print(:bcast-out)
         print(1)
     ]]
@@ -2567,11 +2567,11 @@ do
         catch :1 {
             (func () {
                 print(1)
-                emit(1)
+                emit(:1)
                 print(2)
-                emit(2)
+                emit(:2)
                 print(3)
-                emit(3)
+                emit(:3)
             })()
         }
         print(99)
@@ -2591,7 +2591,7 @@ do
             return([2])
         } )()
         dump(status(t), t.pub)
-        emit(true)
+        emit(:)
         dump(status(t), t.pub, t.ret)
     ]]
     print("Testing...", "return 1")
@@ -2606,7 +2606,7 @@ do
             }
             (func (it) { print(it) }) (await(true))
         }
-        emit(true)
+        emit(:)
         print(:ok)
     ]]
     print("Testing...", "return 2")
@@ -2652,7 +2652,7 @@ do
         pin ts = tasks()
         spawn T() in ts
         print(:out)
-        emit(true)
+        emit(:)
     ]]
     print("Testing...", "tasks 4")
     local out = exec_string("anon.atm", src)
@@ -2709,7 +2709,7 @@ do
         do {
             spawn T(1) in ts
         }
-        emit(2)
+        emit(:2)
     ]]
     print("Testing...", "tasks 8")
     local out = exec_string("anon.atm", src)
@@ -2725,20 +2725,20 @@ do
             spawn T() in ts
             spawn T() in ts
             spawn T() in ts
-            emit([])
+            emit(:T[])
             spawn T() in ts
             spawn T() in ts
             spawn T() in ts
-            emit([])
+            emit(:T[])
             spawn T() in ts
             spawn T() in ts
             spawn T() in ts
-            emit([])
+            emit(:T[])
             spawn T() in ts
             spawn T() in ts
             spawn T() in ts
             spawn T() in ts
-            emit([])
+            emit(:T[])
             print(:ok)
         }
     ]]
@@ -2776,9 +2776,9 @@ do
         spawn T(false) in ts
         spawn T(true) in ts
         print(1)
-        emit(99)
+        emit(:99)
         print(2)
-        emit(99)
+        emit(:99)
         print(3)
     ]]
     print("Testing...", "tasks 11")
@@ -2803,9 +2803,9 @@ do
         spawn T(false) in ts
         spawn T(true) in ts
         print(1)
-        emit(99)
+        emit(:99)
         print(2)
-        emit(99)
+        emit(:99)
         print(3)
     ]]
     print("Testing...", "tasks 12")
@@ -2833,8 +2833,8 @@ do
         }
         spawn T(1) in ts
         spawn T(2) in ts
-        emit(true)
-        emit(true)
+        emit(:)
+        emit(:)
         print(999)
     ]]
     print("Testing...", "tasks 13")
@@ -2862,8 +2862,8 @@ do
         }
         spawn T(1) in ts
         spawn T(2) in ts
-        emit(true)
-        emit(true)
+        emit(:)
+        emit(:)
         print(999)
     ]]
     print("Testing...", "tasks 14")
@@ -2894,7 +2894,7 @@ do
         spawn T() in ts
         loop t in ts {
             var x = t.pub
-            emit (nil) in t
+            emit (:nil) in t
             dump(x)
         }
         print(999)
@@ -2925,7 +2925,7 @@ do
         var T = func () { await(true) }
         val t1 = spawn T() in ts
         val t2 = spawn T() in ts
-        emit(true) in ts
+        emit(:) in ts
         val t3 = spawn T() in ts
         val t4 = spawn T() in ts
         print(t1??:task, t2??:task, t3??:task, t4??:task)
@@ -2939,7 +2939,7 @@ do
         var T
         set T = func () { await(true) }
         val ok1 = spawn T() in ts
-        emit(true) in ts
+        emit(:) in ts
         val ok2 = spawn T() in ts
         print(status(ok1), status(ok2))
     ]]
@@ -2950,14 +2950,14 @@ do
     local src = [[
         var T = func (n) {
             set pub = n
-            await(n)
+            await(tostring(n))
         }
         pin ts = tasks(2)
         spawn T(1) in ts
         spawn T(2) in ts
         loop t in ts {
             print(:t, t.pub)
-            emit(2)        ;; opens hole for 99 below
+            emit(:2)        ;; opens hole for 99 below
             val ok = spawn T(99) in ts     ;; must not fill hole b/c ts in the stack
             print(ok)
         }
@@ -3158,7 +3158,7 @@ do
             } with {
                 20
             }
-            emit(10)
+            emit(:10)
             dump(x)
         }
     ]]

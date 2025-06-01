@@ -35,7 +35,16 @@ function resume (co, ...)
 end
 
 function atm_tag_is (t, a, b)
-    return type(t)=='table' and t.tag and (t.tag==a or t.tag==b)
+    local ist = (type(t) == 'table')
+    if not ist then
+        return false
+    elseif not t.tag then
+        return false
+    elseif a then
+        return (t.tag == a) or (t.tag == b)
+    else
+        return t.tag
+    end
 end
 
 function atm_tag_do (tag, t)
@@ -373,7 +382,7 @@ local function atm_task_resume_result (t, ok, err)
         t.ret = err
         t.up.gc = true
         --if t.status ~= 'aborted' then
-            emit(t.up, t)
+            emit(t.up, 'task', t)
         --end
     end
 end
@@ -459,8 +468,16 @@ function await (e, f, ...)
         error('invalid await : expected enclosing task instance', 2)
     end
     local tsk = atm_tag_is(e, 'task')
-    if tsk and status(e)=='dead' then
-        return e.ret
+    if tsk then
+        if status(e)=='dead' then
+            return e.ret
+        else
+            tsk = e
+            e = 'task'
+            f = function (v)
+                return (v == tsk)
+            end
+        end
     elseif e == 'clock' then
         local ms = f
         f = function (v)
@@ -575,10 +592,19 @@ local function femit (t, a, b, ...)
     end
 end
 
-function emit (to, ...)
+function emit (to, e, ...)
+    local ist = atm_tag_is(e)
+    local tag = ist or e
+    if type(tag) ~= 'string' then
+        error('invalid emit : expected tag', 2)
+    end
     local me = atm_me()
 
-    femit(fto(me,to), ...)
+    if ist then
+        femit(fto(me,to), tag, e, ...)
+    else
+        femit(fto(me,to), e, ...)
+    end
 
     if me and me.status=='aborted' then
         error('atm_aborted', 0)

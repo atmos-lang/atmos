@@ -736,6 +736,14 @@ do
     assert(out == "1\tnil\t2\ntrue\ttrue\ttrue\n")
 
     local src = [[
+        emit(true)
+    ]]
+    print("Testing...", "emit 1: err")
+    local out = exec_string("anon.atm", src)
+    --assertx(out, "anon.atm : line 1 : invalid emit : expected tag\n")
+    warn(false, "tail call in emit hides line")
+
+    local src = [[
         val T = func (a) {
             print(a)
             val b = await(:X)
@@ -756,11 +764,11 @@ do
             print(b)
         }
         spawn T(10)
-        emit()
+        emit(:ok)
     ]]
     print("Testing...", "task 2")
     local out = exec_string("anon.atm", src)
-    assertx(out, "10\nnil\n")
+    assertx(out, "10\nok\n")
 
     local src = [[
         val F = func (a,b) {
@@ -813,9 +821,9 @@ do
             print(:2, e2)
         }
         spawn tk ()
-        emit(1)
-        emit(2)
-        emit(3)
+        emit(:1)
+        emit(:2)
+        emit(:3)
 
     ]]
     print("Testing...", "emit 2")
@@ -823,7 +831,7 @@ do
     assertx(out, "1\t1\n2\t2\n")
 
     local src = [[
-        emit(1) in false
+        emit(:1) in false
         nil
     ]]
     print("Testing...", "emit 1")
@@ -965,7 +973,7 @@ do
             print(:4)
         }
         print(:3)
-        emit(true)
+        emit(:ok)
         print(:5)
     ]]
     print("Testing...", "task - catch 2")
@@ -1070,7 +1078,7 @@ do
             }
             spawn T(1) in ts
         }
-        emit(2)
+        emit(:2)
     ]]
     print("Testing...", "tasks 7")
     local out = exec_string("anon.atm", src)
@@ -1087,7 +1095,7 @@ do
             }
             spawn T(1) in ts
         }
-        emit(2)
+        emit(:2)
     ]]
     print("Testing...", "tasks 8: ts not pinned, no awake")
     local out = exec_string("anon.atm", src)
