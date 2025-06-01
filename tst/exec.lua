@@ -1319,4 +1319,9 @@ do
     print("Testing...", "func 4")
     local out = exec_string("anon.atm", src)
     assert(out == "anon.atm : line 3 : attempt to perform arithmetic on a nil value\n")
+
+    local src = [[ error("hello") ]]
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assert(out == "anon.atm : line 1 : hello\n")
 end

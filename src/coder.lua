@@ -1,3 +1,5 @@
+require "tosource"
+
 function N ()
     _n_ = _n_ + 1
     return _n_
