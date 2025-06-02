@@ -36,6 +36,16 @@ do
     assert(LEX().str == '.')
     assert(LEX().tag == 'eof')
     assert(LEX() == nil)
+
+    local src = "{{ @{ #{ @"
+    print("Testing...", src)
+    lexer_init("anon", src)
+    assert(LEX().str == '{')
+    assert(LEX().str == '{')
+    assert(LEX().str == '@{')
+    assert(LEX().str == '#{')
+    local _,msg = pcall(LEX)
+    assertx(msg, "anon : line 1 : near '@' : invalid clock")
 end
 
 -- OPERATORS
@@ -68,8 +78,8 @@ do
     local src = "##"
     print("Testing...", src)
     lexer_init("anon", src)
-    local ok, msg = pcall(LEX)
-    assert(not ok and msg=="anon : line 1 : near '##' : invalid operator")
+    local _,msg = pcall(LEX)
+    assertx(msg, "anon : line 1 : near '##' : invalid operator")
 
     local src = "!!"
     print("Testing...", src)
@@ -334,5 +344,5 @@ do
     print("Testing...", src)
     lexer_init("anon", src)
     local ok, msg = pcall(LEX)
-    assertx(msg, "anon : line 1 : near '1:v1:3.' : invalid clock")
+    assertx(msg, "anon : line 1 : near '@' : invalid clock")
 end

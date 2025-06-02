@@ -20,7 +20,7 @@ do
 
     local src = [[
         print('a' ++ 'b' ++ 'c')
-        dump([1] ++ [2] ++ [3])
+        dump(@{1} ++ @{2} ++ @{3})
     ]]
     print("Testing...", "expr 2")
     local out = exec_string("anon.atm", src)
@@ -180,7 +180,7 @@ end
 
 do
     local src = [[
-        val t = [1, x=10, (:y,20)]
+        val t = @{1, x=10, [:y]=20}
         print(t[0], t[:x], t.y)
     ]]
     print("Testing...", "table 1")
@@ -192,40 +192,40 @@ do
     local out = exec_string("anon.atm", src)
     assert(out == "anon.atm : line 1 : attempt to index a number value\n")
 
-    local src = "print(([1])[[]])"
+    local src = "print((@{1})[@{}])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assertx(out, "nil\n")
 
-    local src = "print(([[1]])[([0])[0]][0])"
+    local src = "print((@{@{1}})[(@{0})[0]][0])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assert(out == "1\n")
 
-    local src = "dump(([[1]])[([0])[0]])"
+    local src = "dump((@{@{1}})[(@{0})[0]])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assert(out == "{1}\n")
 
-    local src = "dump([(:key,:val)])"
+    local src = "dump(@{[:key]=:val})"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assertx(out, "{key=val}\n")
 
-    local src = "print(type([(:key,:val)]))"
+    local src = "print(type(@{[:key]=:val}))"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assert(out == "table\n")
 
     local src = [[
-        val t = [(:x,1)]
+        val t = @{[:x]=1}
         print(t[:x], t.x)
     ]]
     print("Testing...", "table 1")
     local out = exec_string("anon.atm", src)
     assert(out == "1\t1\n")
 
-    local src = "dump(:X [10])"
+    local src = "dump(:X @{10})"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assertx(out, "{10, tag=X}\n")
@@ -349,7 +349,7 @@ do
     local src = [[
         func f (v) {
             if v > 0 {
-                [f(v - 1)]
+                @{f(v - 1)}
             } else {
                 0
             }
@@ -364,7 +364,7 @@ do
         func f (v) {
             if v > 0 {
                 val x = f(v - 1)
-                [x] ;; invalid return
+                @{x} ;; invalid return
             } else {
                 0
             }
@@ -463,7 +463,7 @@ do
     assertx(out, "1\n2\n")
 
     local src = [[
-        loop i,v in [1,2,3] {
+        loop i,v in @{1,2,3} {
             print(i,v)
         }
     ]]
@@ -472,7 +472,7 @@ do
     assert(out == "0\t1\n1\t2\n2\t3\n")
 
     local src = [[
-        loop k,v in [x=1,y=2] {
+        loop k,v in @{x=1,y=2} {
             print(k,v)
         }
     ]]
@@ -651,7 +651,7 @@ do
     local src = [[
         val _,x = catch :X {
             catch :Y {
-                throw :X [10]
+                throw :X @{10}
             }
         }
         dump(x)
@@ -663,7 +663,7 @@ do
     local src = [[
         val x = catch :X {
             catch :Y {
-                throw :Z [10]
+                throw :Z @{10}
             }
             :ok
         }
@@ -688,7 +688,7 @@ do
     local src = [[
         val x = do :X {
             var x
-            set x = [0]
+            set x = @{0}
             escape(:X,x)   ;; escape but no access
         }
         dump(x)
@@ -719,7 +719,7 @@ do
 
     local src = [[
         val x = do :X {
-            escape :X [10]
+            escape :X @{10}
         }
         dump(x)
     ]]
@@ -1220,7 +1220,7 @@ print '--- IS / IN ---'
 do
     local src = [[
         print(10 ?? :number)
-        print([] !? :table)
+        print(@{} !? :table)
         print(:x ?? :number)
     ]]
     print("Testing...", "is 1")
@@ -1228,8 +1228,8 @@ do
     assertx(out, "true\nfalse\nfalse\n")
 
     local src = [[
-        print([] ?? :bool)
-        print([] ?? :table)
+        print(@{} ?? :bool)
+        print(@{} ?? :table)
         print(1 !? :table)
         print(1 !? :number)
     ]]
@@ -1238,7 +1238,7 @@ do
     assertx(out, "false\ntrue\ntrue\nfalse\n")
 
     local src = [[
-        val t = [1,2,3]
+        val t = @{1,2,3}
         print(2 ?> t)
         print(t <? 4)
         print(2 !> t)
@@ -1320,7 +1320,7 @@ do
 
     local src = [[
         func f (self,v) { self.v+v }
-        val o = [v=10,f=f]
+        val o = @{v=10,f=f}
         print(o::f(20))
     ]]
     print("Testing...", "method 6")

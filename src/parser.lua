@@ -140,7 +140,7 @@ function parser_2_suf (pre)
     end
 
     local ret = nil
-    if e.tag=='tag' and (check'(' or check'[') then
+    if e.tag=='tag' and (check'(' or check'@{') then
         local t = parser()
         local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
         ret = { tag='call', f=f, args={e,t} }
@@ -148,11 +148,9 @@ function parser_2_suf (pre)
         local args = parser_list(',', ')', parser)
         accept_err(')')
         ret = { tag='call', f=e, args=args }
---[[
-    elseif check('[') or check(nil,'str') then
-        local v = parser_prim_1()
+    elseif check('@{') or check(nil,'str') then
+        local v = parser_1_prim()
         ret = { tag='call', f=e, args={v} }
-]]
     elseif accept('[') then
         local idx = parser()
         accept_err(']')

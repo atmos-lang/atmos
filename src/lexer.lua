@@ -94,6 +94,55 @@ local function _lexer_ (str)
                 end
             end
 
+        -- \{
+        --elseif c == '\\' then
+
+        -- #, #{
+        elseif c == '#' then
+            local c2 = read()
+            if c2 == '{' then
+                coroutine.yield { tag='sym', str=c..'{', lin=LIN }
+            elseif contains(OPS.cs, c2) then
+                local op = read_while(c..c2, function (c) return contains(OPS.cs,c) end)
+                err({str=op,lin=LIN}, "invalid operator")
+            else
+                unread()
+                coroutine.yield { tag='op', str='#', lin=LIN }
+            end
+
+        -- @{, @clk
+        elseif c == '@' then
+            local c2 = read()
+            if c2 == '{' then
+                coroutine.yield { tag='sym', str=c..'{', lin=LIN }
+            else -- clock
+                unread()
+                local t = read_while('', M"[%w_:%.]")
+                local h,min,s,ms = match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)%.([^:%.]+)$')
+                if not h then
+                    h,min,s = match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)$')
+                    if not h then
+                        min,s,ms = match(t, '^([^:%.]+):([^:%.]+)%.([^:%.]+)$')
+                        if not min then
+                            min,s = match(t, '^([^:%.]+):([^:%.]+)$')
+                            if not min then
+                                s,ms = match(t, '^([^:%.]+)%.([^:%.]+)$')
+                                if not s then
+                                    s = match(t, '^([^:%.]+)$')
+                                    if not s then
+                                        ms = match(t, '^%.([^:%.]+)$')
+                                        if not ms then
+                                            err({str='@',lin=LIN}, "invalid clock")
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                coroutine.yield { tag='clk', str=t, clk={h or 0, min or 0, s or 0, ms or 0}, lin=LIN }
+            end
+
         -- symbols:  {  (  ,  ;
         elseif contains(syms, c) then
             coroutine.yield { tag='sym', str=c, lin=LIN }
@@ -137,33 +186,6 @@ local function _lexer_ (str)
                 end
                 coroutine.yield { tag='op', str=op, pre=pre, reg=reg, sub=sub, pos=pos }
             end
-
-        -- clock
-        elseif c == '@' then
-            local t = read_while('', M"[%w_:%.]")
-            local h,min,s,ms = match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)%.([^:%.]+)$')
-            if not h then
-                h,min,s = match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)$')
-                if not h then
-                    min,s,ms = match(t, '^([^:%.]+):([^:%.]+)%.([^:%.]+)$')
-                    if not min then
-                        min,s = match(t, '^([^:%.]+):([^:%.]+)$')
-                        if not min then
-                            s,ms = match(t, '^([^:%.]+)%.([^:%.]+)$')
-                            if not s then
-                                s = match(t, '^([^:%.]+)$')
-                                if not s then
-                                    ms = match(t, '^%.([^:%.]+)$')
-                                    if not ms then
-                                        err({str=t,lin=LIN}, "invalid clock")
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-            coroutine.yield { tag='clk', str=t, clk={h or 0, min or 0, s or 0, ms or 0}, lin=LIN }
 
         -- tags:  :X  :a:b:c
         elseif c == ':' then

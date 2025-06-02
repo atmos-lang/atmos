@@ -25,7 +25,7 @@ do
     assertx(stringify(s), "{custom=func, ids={{lin=1, str=f, tag=id}}, set={blk={es={{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, str=v, tag=id}}, tag=func}, tag=dcl, tk={str=var, tag=key}}")
 
     local src = [[
-        val e = []
+        val e = @{}
         (f)()
     ]]
     print("Testing...", "call 1")
@@ -35,7 +35,7 @@ do
     local s = parser_main()
     assertx(tosource(s), trim [[
         do {
-            val e = []
+            val e = @{}
             (f)()
         }
     ]])
@@ -84,7 +84,7 @@ do
         }
     ]])
 
-    local src = "catch :X { throw :X[] }"
+    local src = "catch :X { throw :X@{} }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -92,7 +92,7 @@ do
     local s = parser()
     assertx(tosource(s), trim [[
         catch :X {
-            throw(atm_tag_do(:X, []))
+            throw(atm_tag_do(:X, @{}))
         }
     ]])
     --local ok, msg = pcall(parser_main)
@@ -154,7 +154,7 @@ do
         }
     ]])
 
-    local src = "var v2 ; [tp,v1,v2] ; nil"
+    local src = "var v2 ; @{tp,v1,v2} ; nil"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -163,14 +163,14 @@ do
     assertx(tosource(s), trim [[
         do {
             var v2
-            [(1,tp), (2,v1), (3,v2)]
+            @{[1]=tp, [2]=v1, [3]=v2}
             nil
         }
     ]])
     --local ok, msg = pcall(parser_main)
     --assertx(msg, "anon : line 1 : near '[' : expected statement")
 
-    local src = "var v2 ; [tp,v1,v2]"
+    local src = "var v2 ; @{tp,v1,v2}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -179,7 +179,7 @@ do
     assertx(trim(tosource(s)), trim [[
         do {
             var v2
-            [(1,tp), (2,v1), (3,v2)]
+            @{[1]=tp, [2]=v1, [3]=v2}
         }
     ]])
 
@@ -198,7 +198,7 @@ do
         }
     ]])
 
-    local src = "val x = catch :X { throw(:X [10]) }"
+    local src = "val x = catch :X { throw(:X @{10}) }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -207,7 +207,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(s), trim [[
         val x = catch :X {
-            throw(atm_tag_do(:X, [(1,10)]))
+            throw(atm_tag_do(:X, @{[1]=10}))
         }
     ]])
 end
@@ -268,13 +268,13 @@ do
     --local ok, msg = pcall(parser)
     --assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
 
-    local src = "set [1] = 1"
+    local src = "set @{1} = 1"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near '[' : expected assignable expression")
+    assertx(msg, "anon : line 1 : near '@{' : expected assignable expression")
 
     local src = "set x, y, z = (10, 20)"
     print("Testing...", src)

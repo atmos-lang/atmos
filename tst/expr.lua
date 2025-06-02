@@ -25,7 +25,7 @@ do
     assert(check('<eof>'))
     assert(stringify(e) == "{tag=num, tk={lin=1, str=1.5, tag=num}}")
 
-    local src = "["
+    local src = "@{"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -132,7 +132,7 @@ end
 
 -- TABLE / INDEX
 do
-    local src = "[a]"
+    local src = "@{a}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -141,79 +141,79 @@ do
     assert(check('<eof>'))
     assertx(stringify(e), "{ps={{k={tag=num, tk={str=1, tag=num}}, v={tag=acc, tk={lin=1, str=a, tag=id}}}}, tag=table}")
 
-    local src = "[:x=10]"
+    local src = "@{:x=10}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near '=' : expected ']'")
-    --assertx(msg, "anon : line 1 : near '=' : expected '}'")
+    --assertx(msg, "anon : line 1 : near '=' : expected ']'")
+    assertx(msg, "anon : line 1 : near '=' : expected '}'")
 
-    local src = "[ v1, k2=v2, (:k3,v3), v4 ]"
+    local src = "@{ v1, k2=v2, [:k3]=v3, v4 }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), '[(1,v1), (:k2,v2), (:k3,v3), (2,v4)]')
+    assertx(tosource(e), '@{[1]=v1, [:k2]=v2, [:k3]=v3, [2]=v4}')
 
-    local src = "[ ]"
+    local src = "@{ }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), '[]')
+    assertx(tosource(e), '@{}')
 
-    local src = "[ [], k2=[1,2,3], ([1],v3) ]"
+    local src = "@{ @{}, k2=@{1,2,3}, [@{1}]=v3 }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == '[(1,[]), (:k2,[(1,1), (2,2), (3,3)]), ([(1,1)],v3)]')
+    assertx(tosource(e), '@{[1]=@{}, [:k2]=@{[1]=1, [2]=2, [3]=3}, [@{[1]=1}]=v3}')
 
-    local src = "[1,]"
+    local src = "@{1,}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == '[(1,1)]')
+    assert(tosource(e) == '@{[1]=1}')
 
-    local src = "[f()]"
+    local src = "@{f()}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), '[(1,f())]')
+    assertx(tosource(e), '@{[1]=f()}')
 
-    local src = "[{"
+    local src = "@{["
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    --assertx(msg, "anon : line 1 : near '<eof>' : expected expression")
-    assertx(msg, "anon : line 1 : near '{' : expected expression")
+    assertx(msg, "anon : line 1 : near '<eof>' : expected expression")
+    --assertx(msg, "anon : line 1 : near '{' : expected expression")
 
-    local src = "[({"
+    local src = "@{(["
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    --assertx(msg, "anon : line 1 : near '[' : expected expression")
-    assertx(msg, "anon : line 1 : near '{' : expected expression")
+    assertx(msg, "anon : line 1 : near '[' : expected expression")
+    --assertx(msg, "anon : line 1 : near '{' : expected expression")
 
-    local src = "[("
+    local src = "@{("
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -221,13 +221,13 @@ do
     local ok, msg = pcall(parser)
     assert(not ok and msg=="anon : line 1 : near '<eof>' : expected expression")
 
-    local src = "[(1,2]"
+    local src = "@{(1,2}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near ']' : expected ')'")
+    assertx(msg, "anon : line 1 : near '}' : expected ')'")
     --assertx(msg, "anon : line 1 : near '<eof>' : expected '='")
 
     local src = "x[1]"
@@ -321,14 +321,14 @@ do
     assert(check('<eof>'))
     assert(tosource(e) == '-x[0]')
 
-    local src = ":X []"
+    local src = ":X @{}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), 'atm_tag_do(:X, [])')
+    assertx(tosource(e), 'atm_tag_do(:X, @{})')
 
     local src = ":X (x)"
     print("Testing...", src)
@@ -523,13 +523,14 @@ do
     assert(stringify(e) == "{args={{tag=acc, tk={lin=1, str=x, tag=id}}, {tag=acc, tk={lin=1, str=y, tag=id}}}, f={tag=acc, tk={lin=1, str=f, tag=id}}, tag=call}")
     assert(tosource(e) == "f(x, y)")
 
-    local src = "f({"
+    local src = "f(["
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near '{' : expected expression")
+    assertx(msg, "anon : line 1 : near '[' : expected expression")
+    --assertx(msg, "anon : line 1 : near '{' : expected expression")
 
     local src = "f(10"
     print("Testing...", src)
@@ -596,14 +597,14 @@ do
     --local ok, msg = pcall(parser_stmt)
     --assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
 
-    local src = "f '10' {20}"
+    local src = "f '10' @{20}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assert(not check('<eof>'))
-    assertx(tosource(e), "f")
+    check_err('<eof>')
+    assertx(tosource(e), 'f("10")(@{[1]=20})')
 
     local src = "(o+o)::f(10)"
     print("Testing...", src)

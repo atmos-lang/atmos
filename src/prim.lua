@@ -120,16 +120,16 @@ function parser_1_prim ()
     elseif accept(nil,'id') then
         return { tag='acc', tk=TK0 }
 
-    -- table: [...]
-    elseif accept('[') then
+    -- table: @{...}
+    elseif accept('@{') then
         local idx = 1
-        local ps = parser_list(',', ']', function ()
+        local ps = parser_list(',', '}', function ()
             local key
-            if accept('(') then
+            if accept('[') then
                 key = parser()
-                accept_err(',')
+                accept_err(']')
+                accept_err('=')
                 val = parser()
-                accept_err(')')
             else
                 local e = parser()
                 if e.tag=='acc' and accept('=') then
@@ -144,7 +144,7 @@ function parser_1_prim ()
             end
             return { k=key, v=val }
         end)
-        accept_err(']')
+        accept_err('}')
         return { tag='table', ps=ps }
 
     -- parens: (...)
