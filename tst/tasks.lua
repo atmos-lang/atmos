@@ -698,21 +698,21 @@ do
             (func (x) {
                 set x[0] = v[0]
                 dump(x[0])
-            }) (@{0})
+            }) (#{0})
         }
         var T = func () {
             f(await(true))
         }
         spawn T()
-        emit (:t,@{@{1}})
+        emit (:t,#{#{1}})
     ]]
     print("Testing...", "emit scope 7")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{1}\n")
+    assertx(out, "{1, tag=vector}\n")
 
     local src = [[
         val f = func (v) {
-            dump(v[0])
+            dump(v[1])
         }
         var T = func () {
             f(await(true))
@@ -727,8 +727,8 @@ do
     local src = [[
         val f = func (v) {
             (func (x) {
-                set x[0] = v[0]
-                dump(x[0])
+                set x[1] = v[1]
+                dump(x[1])
             }) (@{0})
         }
         var T = func () {
@@ -887,7 +887,7 @@ do
         spawn (func () {
             val evt = await(true)
             val x = @{nil}
-            set x[0] = evt
+            set x[1] = evt
             dump(x)
         }) ()
         do {
@@ -924,17 +924,17 @@ do
             dump(x)
         }) ()
         do {
-            val e = @{@{10}}
+            val e = #{#{10}}
             emit(:t,e)
         }
     ]]
     print("Testing...", "alien 5")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{10}\n")
+    assertx(out, "{10, tag=vector}\n")
 
     local src = [=[
         var f = func (v) {  ;; *** v is no longer fleeting ***
-            val x = v[0]    ;; v also holds x, both are fleeting -> unsafe
+            val x = v[1]    ;; v also holds x, both are fleeting -> unsafe
             dump(x)      ;; x will be freed and v would contain dangling pointer
         }
         var T = func () {
@@ -949,7 +949,7 @@ do
 
     local src = [=[
         var f = func (v) {
-            val x = v[0]    ;; v also holds x, both are fleeting -> unsafe
+            val x = v[1]    ;; v also holds x, both are fleeting -> unsafe
             dump(x)      ;; x will be freed and v would contain dangling pointer
         }
         var T = func () {

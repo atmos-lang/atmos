@@ -140,7 +140,7 @@ function parser_2_suf (pre)
     end
 
     local ret = nil
-    if e.tag=='tag' and (check'(' or check'@{') then
+    if e.tag=='tag' and (check'(' or check'@{' or check'#{') then
         local t = parser()
         local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
         ret = { tag='call', f=f, args={e,t} }
@@ -148,7 +148,7 @@ function parser_2_suf (pre)
         local args = parser_list(',', ')', parser)
         accept_err(')')
         ret = { tag='call', f=e, args=args }
-    elseif check('@{') or check(nil,'str') then
+    elseif check('@{') or check('#{') or check(nil,'str') then
         local v = parser_1_prim()
         ret = { tag='call', f=e, args={v} }
     elseif accept('[') then
@@ -165,7 +165,13 @@ function parser_2_suf (pre)
         accept_err('(')
         local args = parser_list(',', ')', parser)
         accept_err(')')
-        ret = { tag='met', o=e, met=id, args=args }
+        table.insert(args, 1, copy(e))
+        local f = {
+            tag = 'index',
+            t   = e,
+            idx = { tag='str', tk=id },
+        }
+        ret = { tag='call', f=f, args=args }
     else
         -- nothing consumed, not a suffix
         return e

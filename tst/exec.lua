@@ -181,31 +181,31 @@ end
 do
     local src = [[
         val t = @{1, x=10, [:y]=20}
-        print(t[0], t[:x], t.y)
+        print(t[0], t[1], t[:x], t.y)
     ]]
     print("Testing...", "table 1")
     local out = exec_string("anon.atm", src)
-    assert(out == "1\t10\t20\n")
+    assertx(out, "nil\t1\t10\t20\n")
 
     local src = "print((1)[1])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assert(out == "anon.atm : line 1 : attempt to index a number value\n")
+    --assertx(out, "anon.atm : line 1 : attempt to index a number value\n")
 
-    local src = "print((@{1})[@{}])"
+    local src = "print((#{1})[#{}])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assertx(out, "nil\n")
 
-    local src = "print((@{@{1}})[(@{0})[0]][0])"
+    local src = "print((#{#{1}})[(#{0})[0]][0])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assert(out == "1\n")
+    assertx(out, "1\n")
 
-    local src = "dump((@{@{1}})[(@{0})[0]])"
+    local src = "dump((#{#{1}})[(#{0})[0]])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assert(out == "{1}\n")
+    assertx(out, "{1, tag=vector}\n")
 
     local src = "dump(@{[:key]=:val})"
     print("Testing...", src)

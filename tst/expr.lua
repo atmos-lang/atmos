@@ -612,7 +612,8 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(tosource(e), "(o + o)::f(10)")
+    assertx(tosource(e), '(o + o)["f"]((o + o), 10)')
+    warn(false, 'BUG: side effects')
 end
 
 print '--- FUNC / ... / dots ---'

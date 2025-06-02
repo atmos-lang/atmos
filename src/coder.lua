@@ -55,12 +55,15 @@ function coder (e)
     elseif e.tag == 'nat' then
         return L(e.tk) .. e.tk.str
     elseif e.tag == 'index' then
-        return '(' .. coder(e.t) .. ")[atm_idx(" .. coder(e.idx) .. ')]'
+        return '(' .. coder(e.t) .. ")[atm_idx(" .. coder(e.t) ..','..coder(e.idx) .. ')]'
     elseif e.tag == 'table' then
         local ps = join(", ", map(e.ps, function (t)
             return '['..coder(t.k)..'] = '..coder(t.v)
         end))
         return '{' .. ps .. '}'
+    elseif e.tag == 'vector' then
+        local ps = coder_args(e.ps)
+        return "{ tag='vector', " .. ps .. '}'
     elseif e.tag == 'uno' then
         return '('..(OPS.lua[e.op.str] or e.op.str)..' '..coder(e.e)..')'
     elseif e.tag == 'bin' then
@@ -83,8 +86,8 @@ function coder (e)
         end
     elseif e.tag == 'call' then
         return coder(e.f) .. '(' .. coder_args(e.args) .. ')'
-    elseif e.tag == 'met' then
-        return coder(e.o) .. ':' .. e.met.str .. '(' .. coder_args(e.args) .. ')'
+    --elseif e.tag == 'met' then
+        --return coder(e.o) .. ':' .. e.met.str .. '(' .. coder_args(e.args) .. ')'
     elseif e.tag == 'func' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
