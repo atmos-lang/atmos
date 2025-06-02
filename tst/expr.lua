@@ -92,7 +92,7 @@ end
 print '--- STRING / NATIVE ---'
 
 do
-    local src = ":x :1:_"
+    local src = ":x :1._"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -101,7 +101,7 @@ do
     assert(stringify(e1) == "{tag=tag, tk={lin=1, str=:x, tag=tag}}")
     local e2 = parser()
     assert(check('<eof>'))
-    assert(stringify(e2) == "{tag=tag, tk={lin=1, str=:1:_, tag=tag}}")
+    assert(stringify(e2) == "{tag=tag, tk={lin=1, str=:1._, tag=tag}}")
 
     local src = "'xxx'\n'''1\n2\n'''"
     print("Testing...", "string 1")
@@ -604,6 +604,14 @@ do
     local e = parser()
     assert(not check('<eof>'))
     assertx(tosource(e), "f")
+
+    local src = "(o+o)::f(10)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(tosource(e), "(o + o)::f(10)")
 end
 
 print '--- FUNC / ... / dots ---'

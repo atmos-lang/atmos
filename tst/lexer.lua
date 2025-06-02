@@ -5,12 +5,13 @@ require "lexer"
 -- SYMBOLS
 
 do
-    local src = "{ } ( ; {{ () ) , ][ ."
+    local src = "{ } ( :: ; {{ () ) , ][ ."
     print("Testing...", src)
     lexer_init("anon", src)
     assert(stringify(LEX()) == "{lin=1, str={, tag=sym}")
     assert(LEX().str == '}')
     assert(LEX().str == '(')
+    assert(LEX().str == '::')
     assert(LEX().str == '{')
     assert(LEX().str == '{')
     assert(LEX().str == '(')
@@ -269,12 +270,13 @@ end
 -- TAGS
 
 do
-    local src = ":X :a:X:1 ::"
+    local src = ":X :a.X.1 :::"
     print("Testing...", src)
     lexer_init("anon", src)
     assert(stringify(LEX()) == "{lin=1, str=:X, tag=tag}")
-    assert(stringify(LEX()) == "{lin=1, str=:a:X:1, tag=tag}")
-    assert(stringify(LEX()) == "{lin=1, str=::, tag=tag}")
+    assert(stringify(LEX()) == "{lin=1, str=:a.X.1, tag=tag}")
+    assert(stringify(LEX()) == "{lin=1, str=::, tag=sym}")
+    assert(stringify(LEX()) == "{lin=1, str=:, tag=tag}")
 
     local src = ":() :"
     print("Testing...", src)

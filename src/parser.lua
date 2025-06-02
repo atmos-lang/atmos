@@ -118,7 +118,7 @@ end
 -- 5_bin : a + b
 -- 4_pre : -a    :T [...]
 -- 3_met : v->f    f<-v
--- 2_suf : v[0]    v.x    v.1    v.(:T).x    f()
+-- 2_suf : v[0]    v.x    v.1    v.(:T).x    f()    x::m()
 -- 1_prim
 
 local function is_prefix (e)
@@ -162,6 +162,12 @@ function parser_2_suf (pre)
         id = { tag='tag', str=':'..id.str }
         local idx = { tag='tag', tk=id }
         ret = { tag='index', t=e, idx=idx }
+    elseif accept('::') then
+        local id = accept_err(nil,'id')
+        accept_err('(')
+        local args = parser_list(',', ')', parser)
+        accept_err(')')
+        ret = { tag='met', o=e, met=id, args=args }
     else
         -- nothing consumed, not a suffix
         return e

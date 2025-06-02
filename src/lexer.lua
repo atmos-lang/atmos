@@ -167,14 +167,20 @@ local function _lexer_ (str)
 
         -- tags:  :X  :a:b:c
         elseif c == ':' then
-            local tag = read_while(':', M"[%w_:]")
-            --[[
-            local hier = {}
-            for x in string.gmatch(tag, ":([^:]*)") do
-                hier[#hier+1] = x
+            local c2 = read()
+            if c2 == ':' then
+                coroutine.yield { tag='sym', str='::', lin=LIN }
+            else
+                unread()
+                local tag = read_while(':', M"[%w_%.]")
+                --[[
+                local hier = {}
+                for x in string.gmatch(tag, ":([^:]*)") do
+                    hier[#hier+1] = x
+                end
+                ]]
+                coroutine.yield { tag='tag', str=tag, lin=LIN }
             end
-            ]]
-            coroutine.yield { tag='tag', str=tag, lin=LIN }
 
         -- keywords:  await  if
         -- variables:  x  a_10

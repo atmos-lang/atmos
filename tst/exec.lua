@@ -400,7 +400,7 @@ do
     assertx(out, "a\nx\t1\t2\t3\n")
 end
 
--- IF-ELSE / LOOP
+-- IF-ELSE / LOOP / ITER
 
 do
     local src = [[
@@ -504,6 +504,20 @@ do
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assertx(out, "nil\n") -- TODO: true=>nil
+
+    local src = [[
+        var i = 3
+        func f () {
+            set i = i - 1
+            if i == 0 => nil => i
+        }
+        loop v in f {
+            print(v)
+        }
+    ]]
+    print("Testing...", "iter 1: func")
+    local out = exec_string("anon.atm", src)
+    assert(out == "2\n1\n")
 end
 
 -- CATCH / THROW
@@ -1303,6 +1317,15 @@ do
     print("Testing...", "method 6")
     local out = exec_string("anon.atm", src)
     assertx(out, "-10\n")
+
+    local src = [[
+        func f (self,v) { self.v+v }
+        val o = [v=10,f=f]
+        print(o::f(20))
+    ]]
+    print("Testing...", "method 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "30\n")
 end
 
 -- ERROR / LINE NUMBER

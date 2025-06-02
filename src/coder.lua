@@ -9,7 +9,7 @@ local function L (tk)
     local ls = ''
     if tk and tk.lin then
         if tk.lin < _l_ then
-            --return ls           -- TODO: workaround for watching
+            return ls           -- TODO: workaround for watching
         end
         assert(tk.lin >= _l_)
         while tk.lin > _l_ do
@@ -83,6 +83,8 @@ function coder (e)
         end
     elseif e.tag == 'call' then
         return coder(e.f) .. '(' .. coder_args(e.args) .. ')'
+    elseif e.tag == 'met' then
+        return coder(e.o) .. ':' .. e.met.str .. '(' .. coder_args(e.args) .. ')'
     elseif e.tag == 'func' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
