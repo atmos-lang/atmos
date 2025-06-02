@@ -448,10 +448,9 @@ do
     assert(check('<eof>'))
     --assertx(tosource(e), "(x and 10) or 20")
     assertx(trim(tosource(e)), trim [[
-        if x {
-            10
-        } else {
-            20
+        ifs {
+            x => 10
+            else => 20
         }
     ]])
 
@@ -464,17 +463,10 @@ do
     assert(check('<eof>'))
     --assertx(tosource(e), "(x and 10) or ((y and nil) or ((true and 20) or (nil)))")
     assertx(trim(tosource(e)), trim [[
-        if x {
-            10
-        } else {
-            if y {
-                nil
-            } else {
-                if true {
-                    20
-                } else {
-                }
-            }
+        ifs {
+            x => 10
+            y => nil
+            else => 20
         }
     ]])
 end

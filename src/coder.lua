@@ -152,15 +152,23 @@ function coder (e)
                     coder_stmts(e.blk.es,true) ..
                 " end" ..
             "})"
-    elseif e.tag == 'if' then
-        return
-            "(function () " ..
-                "if " .. coder(e.cnd) .. " then " ..
-                    coder_stmts(e.t.es) ..
-                " else " ..
-                    coder_stmts(e.f.es) ..
+    elseif e.tag == 'ifs' then
+        local function f (case)
+            local cnd,e = table.unpack(case)
+            if cnd == true then
+                cnd = "true"
+            else
+                cnd = coder(cnd)
+            end
+            return "elseif " .. cnd .. " then " .. coder(e)
+        end
+        return (
+            "(function (it) " ..
+                "if false then " ..
+                    concat(';', map(e.cases,f)) ..
                 " end" ..
-            " end)()"
+            " end)(" .. coder(e.cnd) .. ")"
+        )
     elseif e.tag == 'loop' then
         local ids = join(', ', map(e.ids or {{str="_"}}, function(id) return id.str end))
         local itr = e.itr and coder(e.itr) or ''

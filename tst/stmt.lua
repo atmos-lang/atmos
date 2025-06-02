@@ -70,7 +70,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
-    assert(stringify(s) == "{es={}, tag=block}")
+    assertx(stringify(s), "{blk={es={}, tag=block}, tag=do}")
 
     local src = "do { var x }"
     print("Testing...", src)
@@ -331,7 +331,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(stringify(s) == "{cnd={tag=acc, tk={lin=1, str=cnd, tag=id}}, f={es={{ids={{lin=1, str=f, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, t={es={}, tag=block}, tag=if}")
+    assertx(stringify(s), "{cases={{{tag=acc, tk={lin=1, str=cnd, tag=id}}, {es={}, tag=block}}, {true, {es={{ids={{lin=1, str=f, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}}}, tag=ifs}")
 
     local src = "if true { }"
     print("Testing...", src)
@@ -340,7 +340,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(stringify(s) == "{cnd={tag=bool, tk={lin=1, str=true, tag=key}}, f={es={}, tag=block}, t={es={}, tag=block}, tag=if}")
+    assertx(stringify(s), "{cases={{{tag=bool, tk={lin=1, str=true, tag=key}}, {es={}, tag=block}}}, tag=ifs}")
 
     local src = "if f() { if (cnd) { val x } else { val y } }"
     print("Testing...", src)
@@ -350,14 +350,17 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        if f() {
-            if (cnd) {
-                val x
-            } else {
-                val y
+        ifs {
+            f() => {
+                ifs {
+                    (cnd) => {
+                        val x
+                    }
+                    else => {
+                        val y
+                    }
+                }
             }
-        } else {
-
         }
     ]])
 
@@ -385,7 +388,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(trim(tosource(s)) == trim [[
+    assertx(trim(tosource(s)), trim [[
         loop x in f() {
         }
     ]])
@@ -421,11 +424,14 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(trim(tosource(s)) == trim [[
+    assertx(trim(tosource(s)), trim [[
         loop {
-            if x {
-                break
-            } else {
+            ifs {
+                x => {
+                    break
+                }
+                else => {
+                }
             }
         }
     ]])
@@ -437,11 +443,14 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(trim(tosource(s)) == trim [[
+    assertx(trim(tosource(s)), trim [[
         loop {
-            if x {
-            } else {
-                break
+            ifs {
+                x => {
+                }
+                else => {
+                    break
+                }
             }
         }
     ]])
@@ -454,15 +463,12 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        if a {
-            print(b)
-        } else {
-            if c {
-            } else {
-                if true {
-                    f()
-                } else {
-                }
+        ifs {
+            a => print(b)
+            c => {
+            }
+            else => {
+                f()
             }
         }
     ]])
@@ -472,8 +478,14 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser_main)
-    assertx(msg, "anon : line 1 : near '{' : invalid ifs : expected case")
+    --local _,msg = pcall(parser_main)
+    --assertx(msg, "anon : line 1 : near '{' : invalid ifs : expected case")
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        ifs {
+        }
+    ]])
 
     local src = "ifs { nil }"
     print("Testing...", src)
@@ -491,9 +503,8 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        if f() {
-            g()
-        } else {
+        ifs {
+            f() => g()
         }
     ]])
 end

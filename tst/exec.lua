@@ -400,7 +400,7 @@ do
     assertx(out, "a\nx\t1\t2\t3\n")
 end
 
--- IF-ELSE / LOOP / ITER
+-- IF-ELSE / LOOP / ITER / IFS / MATCH
 
 do
     local src = [[
@@ -518,6 +518,16 @@ do
     print("Testing...", "iter 1: func")
     local out = exec_string("anon.atm", src)
     assert(out == "2\n1\n")
+
+    local src = [[
+        match 100 {
+            10 => {}
+            100 => print(:ok)
+        }
+    ]]
+    print("Testing...", "match 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "100\n")
 end
 
 -- CATCH / THROW

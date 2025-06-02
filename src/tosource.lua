@@ -1,16 +1,14 @@
---[[
-function tostr_stmt (e)
-    if false then
-    elseif e.tag == 'escape' then
-        return "escape (" .. e.esc.str .. ', ' .. tosource(e.e) .. ')'
-    elseif e.tag == 'expr' then
-        return tosource(e.e)
-    else
-        print(e.tag)
-        error("TODO")
-    end
+function tosource_stmts (es)
+    return join('\n', map(es,tosource)) ..'\n'
 end
-]]
+
+function tosource_block (e)
+    return '{\n' .. join('\n', map(e.es,tosource)) .. '\n}'
+end
+
+function tosource_args (es)
+    return join(', ', map(es,tosource))
+end
 
 function tosource (e)
     if e.tag=='nil' or e.tag=='bool' or e.tag=='tag' or e.tag=='num' or e.tag=='acc' or e.tag=='dots' then
@@ -31,14 +29,13 @@ function tosource (e)
         end))
         return '@{' .. ps .. '}'
     elseif e.tag == 'vector' then
-        local ps = join(", ", map(e.args, tosource))
-        return '#{' .. ps .. '}'
+        return '#{' .. tosource_args(e.args) .. '}'
     elseif e.tag == 'es' then
-        return '('..join(", ", map(e.es, tosource))..')'
+        return '(' .. tosource_args(e.es) .. ')'
     elseif e.tag == 'parens' then
         return '('..tosource(e.e)..')'
     elseif e.tag == 'call' then
-        return tosource(e.f) .. '(' .. join(", ", map(e.args, tosource)) .. ')'
+        return tosource(e.f) .. '(' .. tosource_args(e.args) .. ')'
     --elseif e.tag == 'met' then
         --return tosource(e.o) .. '::' .. e.met.str .. '(' .. join(", ", map(e.args, tosource)) .. ')'
     elseif e.tag == 'func' then
@@ -52,17 +49,14 @@ function tosource (e)
                 end
             end
         end
-        local es = join('\n', map(e.blk.es,tostr_stmt))
-        return "func (" .. pars .. dots .. ") {\n" ..
-            es ..'\n' ..
-        "}"
+        return "func (" .. pars .. dots .. ") " .. tosource_block(e.blk)
     elseif e.tag == 'return' then
-        return "return(" .. join(',',map(e.es,tosource)) .. ")"
+        return "return(" .. tosource_args(e.es) .. ")"
 
     elseif e.tag == 'dcl' then
         local f = function (se)
             if e.custom then
-                return tostr_stmt(se)
+                return tosource(se)
             else
                 return tosource(se)
             end
@@ -71,41 +65,38 @@ function tosource (e)
         local set = e.set and (' = '..f(e.set)) or ''
         return e.tk.str .. " " .. ids .. set
     elseif e.tag == 'set' then
-        return "set " .. join(', ',map(e.dsts,tosource)) .. " = " .. tosource(e.src)
+        return "set " .. tosource_args(e.dsts) .. " = " .. tosource(e.src)
     elseif e.tag == 'block' then
-        return "do " .. (e.esc and e.esc.str.." " or "") .. "{\n" ..
-            join('\n', map(e.es,tostr_stmt)) ..'\n' ..
-        "}"
+        return tosource_block(e)
+    elseif e.tag == 'do' then
+        return "do " .. (e.esc and e.esc.str.." " or "") .. tosource(e.blk)
     elseif e.tag == 'defer' then
-        return "defer {\n" ..
-            join('\n', map(e.blk.es,tostr_stmt)) ..'\n' ..
-        "}"
-    elseif e.tag == 'if' then
-        return "if " .. tosource(e.cnd) .. " {\n" ..
-            join('\n', map(e.t.es,tosource)) ..'\n' ..
-        "} else {\n" ..
-            join('\n', map(e.f.es,tosource)) ..'\n' ..
-        "}"
+        return "defer " .. tosource_block(e.blk)
+    elseif e.tag == 'ifs' then
+        local function f (t,i)
+            local cnd, e = table.unpack(t)
+            if cnd == true then
+                cnd = "else"
+            else
+                cnd = tosource(cnd)
+            end
+            return cnd .. " => " .. tosource(e) .. '\n'
+        end
+        return "ifs {\n" .. join('',map(e.cases,f)) .. "}"
     elseif e.tag == 'loop' then
         local ids = e.ids and (' '..join(', ', map(e.ids, function(id) return id.str end))) or ''
-        local itr = e.itr and ' in '..tosource(e.itr) or ''
-        return "loop" .. ids .. itr .. " {\n" ..
-            join('\n', map(e.blk.es,tostr_stmt)) ..'\n' ..
-        "}"
+        local itr = e.itr and (' in '..tosource(e.itr)) or ''
+        return "loop" .. ids .. itr .. ' ' .. tosource_block(e.blk)
     elseif e.tag == 'break' then
         return "break"
     elseif e.tag == 'catch' then
         local esc = e.esc and (e.esc.str..' ') or ''
         local xf = e.cnd.f and (', '..tosource(e.cnd.f)) or ''
-        return "catch " .. tosource(e.cnd.e) .. xf .. " {\n" ..
-            join('\n', map(e.blk.es,tostr_stmt)) ..'\n' ..
-        "}"
+        return "catch " .. tosource(e.cnd.e) .. xf .. " " .. tosource_block(e.blk)
     elseif e.tag == 'throw' then
-        return 'throw('..join(", ", map(e.args, tosource))..')'
+        return 'throw(' .. tosource_args(e.args) .. ')'
     else
         print(e.tag)
         error("TODO")
     end
 end
-
-tostr_stmt = tosource

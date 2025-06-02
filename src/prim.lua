@@ -53,10 +53,10 @@ function parser_await (lin)
     end
 end
 
-local function spawn (lin, es)
+local function spawn (lin, blk)
     local cmd = { tag='acc', tk={tag='id', str='spawn', lin=lin} }
     local ts = { tag='nil', tk={tag='key',str='nil'} }
-    local f = { tag='func', pars={}, blk={tag='block',es=es} }
+    local f = { tag='func', pars={}, blk=blk }
     return { tag='call', f=cmd, args={ts,f} }
 end
 
@@ -64,7 +64,7 @@ function parser_spawn ()
     accept_err('spawn')
     if check('{') then
         -- spawn { ... }
-        return spawn(TK0.lin, parser_curly())
+        return spawn(TK0.lin, parser_block())
     else
         -- spawn T(...) [in ...]
         local tk = TK0
@@ -247,15 +247,15 @@ function parser_1_prim ()
             if accept('(') then
                 local dots, pars = parser_dots_pars()
                 accept_err(')')
-                local es = parser_curly()
-                return { tag='func', dots=dots, pars=pars, blk={tag='block',es=es} }
+                local blk = parser_block()
+                return { tag='func', dots=dots, pars=pars, blk=blk }
             else
                 local id = accept_err(nil,'id')
                 accept_err('(')
                 local dots, pars = parser_dots_pars()
                 accept_err(')')
-                local es = parser_curly()
-                local f = { tag='func', dots=dots, pars=pars, blk={tag='block',es=es} }
+                local blk = parser_block()
+                local f = { tag='func', dots=dots, pars=pars, blk=blk }
                 return { tag='dcl', tk={tag='key',str='var'}, ids={id}, set=f, custom='func' }
             end
         -- return(...)
@@ -345,8 +345,8 @@ function parser_1_prim ()
         -- do :X {...}
         if accept('do') then
             local tag = accept(nil, 'tag')
-            local es = parser_curly()
-            return { tag='block', esc=tag, es=es }
+            local blk = parser_block()
+            return { tag='do', esc=tag, blk=blk }
         -- catch
         elseif accept('catch') then
             local xe = parser()
@@ -359,8 +359,8 @@ function parser_1_prim ()
                 local e = parser()
                 xf = { tag='func', pars={it}, blk={tag='block',es={e}} }
             end
-            local es = parser_curly()
-            return { tag='catch', cnd={e=xe,f=xf}, blk={tag='block',es=es} }
+            local blk = parser_block()
+            return { tag='catch', cnd={e=xe,f=xf}, blk=blk }
         -- escape :X()
         elseif accept('escape') then
             local args = tag_args(true)
@@ -371,43 +371,41 @@ function parser_1_prim ()
             return { tag='throw', args=args }
         -- defer {...}
         elseif accept('defer') then
-            local es = parser_curly()
-            return { tag='defer', blk={tag='block',es=es} }
+            local blk = parser_block()
+            return { tag='defer', blk=blk }
         else
             error "bug found"
         end
 
-    -- if, ifs
-    elseif check('if') or check('ifs') then
+    -- if, ifs, match
+    elseif check('if') or check('ifs') or check('match') then
         -- if x {...} else {...}
         -- if x => y => z
         if accept('if') then
             local cnd = parser()
-            local t, f
+            local cases = {}
             if check('{') then
-                t = parser_curly()
+                cases[#cases+1] = { cnd, parser_block() }
                 if accept('else') then
-                    f = parser_curly()
-                else
-                    f = {}
+                    cases[#cases+1] = { true, parser_block() }
                 end
             else
                 accept_err('=>')
-                t = { parser() }
+                cases[#cases+1] = { cnd, parser() }
                 accept_err('=>')
-                f = { parser() }
+                cases[#cases+1] = { true, parser() }
             end
-            return { tag='if', cnd=cnd, t={tag='block',es=t}, f={tag='block',es=f} }
+            return { tag='ifs', cases=cases }
         -- ifs { x => a ; y => b ; else => c }
         elseif accept('ifs') then
-            local t = {}
+            local ts = {}
             local tk = accept_err('{')
             while not check('}') do
                 local brk = false
                 local cnd; do
                     if accept('else') then
                         brk = true
-                        cnd = { tag='bool', tk={str='true'} }
+                        cnd = true
                     else
                         cnd = parser()
                     end
@@ -415,32 +413,21 @@ function parser_1_prim ()
                 accept_err('=>')
                 local es; do
                     if check('{') then
-                        es = parser_curly()
+                        es = parser_block()
                     else
-                        es = { parser() }
+                        es = parser()
                     end
                 end
-                t[#t+1] = { cnd, es }
+                ts[#ts+1] = { cnd, es }
                 if brk then
                     break
                 end
             end
             accept_err('}')
-            if #t == 0 then
-                err(tk, "invalid ifs : expected case")
-            end
-            local function F (i)
-                local cnd, es = table.unpack(t[i])
-                local f; do
-                    if i < #t then
-                        f = { tag='block', es={F(i+1)} }
-                    else
-                        f = { tag='block', es={} }
-                    end
-                end
-                return { tag='if', cnd=cnd, t={tag='block',es=es}, f=f }
-            end
-            return F(1)
+            return { tag='ifs', cases=ts }
+        -- match e { x => a ; y => b ; else => c }
+        elseif accept('match') then
+            error 'TODO'
         else
             error "bug found"
         end
@@ -454,8 +441,8 @@ function parser_1_prim ()
             if accept('in') then
                 itr = parser()
             end
-            local es = parser_curly()
-            return { tag='loop', ids=ids, itr=itr, blk={tag='block',es=es} }
+            local blk = parser_block()
+            return { tag='loop', ids=ids, itr=itr, blk=blk }
         -- break
         elseif accept('break') then
             accept_err('(')
@@ -471,7 +458,7 @@ function parser_1_prim ()
             if whi then
                 t, f = f, t
             end
-            return { tag='if', cnd=cnd, t=t, f=f }
+            return { tag='ifs', cases={{cnd,t}, {true,f}} }
         else
             error "bug found"
         end
@@ -486,18 +473,18 @@ function parser_1_prim ()
             if par then
                 accept_err(')')
             end
-            local es = parser_curly()
+            local blk = parser_block()
             local dcl = {
                 tag='dcl', tk={tag='key',str='val'},
                 ids={{tag='id',str='evt'}}, set=awt
             }
-            table.insert(es, 1, dcl)
-            return { tag='loop', ids=nil, itr=nil, blk={tag='block',es=es} }
+            table.insert(blk.es, 1, dcl)
+            return { tag='loop', ids=nil, itr=nil, blk=blk }
         -- par
         elseif accept('par') then
-            local sss = { { TK1.lin, parser_curly() } }
+            local sss = { { TK1.lin, parser_block() } }
             while accept('with') do
-                sss[#sss+1] = { TK1.lin, parser_curly() }
+                sss[#sss+1] = { TK1.lin, parser_block() }
             end
             local es = map(sss, function (t) return spawn(t[1],t[2]) end)
             es[#es+1] = {
@@ -511,9 +498,9 @@ function parser_1_prim ()
         -- par_and
         elseif accept('par_and') then
             local n = N()
-            local sss = { { TK1.lin, parser_curly() } }
+            local sss = { { TK1.lin, parser_block() } }
             while accept('with') do
-                sss[#sss+1] = { TK1.lin, parser_curly() }
+                sss[#sss+1] = { TK1.lin, parser_block() }
             end
             local function f1 (t,i)
                 return {
@@ -551,9 +538,9 @@ function parser_1_prim ()
         -- par_or
         elseif accept('par_or') then
             local n = N()
-            local sss = { { TK1.lin, parser_curly() } }
+            local sss = { { TK1.lin, parser_block() } }
             while accept('with') do
-                sss[#sss+1] = { TK1.lin, parser_curly() }
+                sss[#sss+1] = { TK1.lin, parser_block() }
             end
             local function f1 (t,i)
                 return {
@@ -588,7 +575,7 @@ function parser_1_prim ()
                 accept_err(')')
             end
             local lin = TK1.lin
-            local es = parser_curly()
+            local es = parser_block()
             local spw = {
                 tag = 'dcl',
                 tk  = { tag='key', str='val' },

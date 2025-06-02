@@ -99,17 +99,17 @@ function parser_dots_pars ()
     end
 end
 
-function parser_curly ()
+function parser_block ()
     accept_err('{')
     local es = parser_list(null, '}', parser)
     accept_err('}')
-    return es
+    return { tag='block', es=es }
 end
 
 function parser_main ()
     local es = parser_list(null, '<eof>', parser)
     accept_err('<eof>')
-    return { tag='block', es=es }
+    return { tag='do', blk={tag='block',es=es} }
 end
 
 -------------------------------------------------------------------------------
