@@ -77,6 +77,17 @@ function any (t, f)
     return false
 end
 
+function copy (v)
+    if type(v) ~= 'table' then
+        return v
+    end
+    local ret = {}
+    for k,x in pairs(v) do
+        ret[k] = copy(x)
+    end
+    return ret
+end
+
 function map (t, f)
     local ret = {}
     for i,v in ipairs(t) do
