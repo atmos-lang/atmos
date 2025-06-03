@@ -427,7 +427,42 @@ function parser_1_prim ()
             return { tag='ifs', cases=ts }
         -- match e { x => a ; y => b ; else => c }
         elseif accept('match') then
-            error 'TODO'
+            local ts = {}
+            local head = parser()
+            local tk = accept_err('{')
+            while not check('}') do
+                local brk = false
+                local cnd; do
+                    if accept('else') then
+                        brk = true
+                        cmp = true
+                    else
+                        cmp = parser()
+                    end
+                end
+                accept_err('=>')
+                local es; do
+                    if check('{') then
+                        es = parser_block()
+                    else
+                        es = { tag='block', es={parser()} }
+                    end
+                end
+                local cnd = {
+                    tag = 'call',
+                    f = { tag='acc', tk={str="atm_is"} },
+                    args = {
+                        { tag='acc', tk={str="it"} },
+                        cmp
+                    },
+                }
+                ts[#ts+1] = { cnd, es }
+                if brk then
+                    break
+                end
+            end
+            accept_err('}')
+            return { tag='ifs', head=head, cases=ts }
         else
             error "bug found"
         end

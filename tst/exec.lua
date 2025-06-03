@@ -527,7 +527,7 @@ do
     ]]
     print("Testing...", "match 1")
     local out = exec_string("anon.atm", src)
-    --assertx(out, "100\n")
+    assertx(out, "ok\n")
 end
 
 -- CATCH / THROW

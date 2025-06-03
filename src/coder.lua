@@ -164,12 +164,16 @@ function coder (e)
             end
             return " elseif " .. cnd .. " then " .. coder(e)
         end
+        local head = ""
+        if e.head then
+            head = coder(e.head)
+        end
         return (
-            "(function () " ..
+            "(function (it) " ..
                 "if false then " ..
                     join(' ', map(e.cases,f)) ..
                 " end" ..
-            " end)()"
+            " end)(" .. head .. ")"
         )
     elseif e.tag == 'loop' then
         local ids = join(', ', map(e.ids or {{str="_"}}, function(id) return id.str end))

@@ -82,7 +82,11 @@ function tosource (e)
             end
             return cnd .. " => " .. tosource(e) .. '\n'
         end
-        return "ifs {\n" .. join('',map(e.cases,f)) .. "}"
+        local head = ' '
+        if e.head then
+            head = ' ' .. tosource(e.head) .. ' '
+        end
+        return "ifs" .. head .. "{\n" .. join('',map(e.cases,f)) .. "}"
     elseif e.tag == 'loop' then
         local ids = e.ids and (' '..join(', ', map(e.ids, function(id) return id.str end))) or ''
         local itr = e.itr and (' in '..tosource(e.itr)) or ''
