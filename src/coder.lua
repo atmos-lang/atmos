@@ -102,7 +102,7 @@ function coder (e)
         return (
             "atm_func(" ..
                 "function (" .. pars .. dots .. ") " ..
-                    coder_stmts(e.blk.es) ..
+                    coder(e.blk) ..
                 " end" ..
             ")"
         )
@@ -131,16 +131,18 @@ function coder (e)
         end
     elseif e.tag == 'set' then
         return coder_args(e.dsts) .. ' = ' .. coder(e.src)
-    elseif e.tag == 'block' then
+    elseif e.tag == 'do' then
         if e.esc then
             return (
                 "atm_do(" .. coder_tag(e.esc) .. ',' ..
-                    "function () " .. coder_stmts(e.es) .. " end" ..
+                    "function () " .. coder(e.blk) .. " end" ..
                 ")"
             )
         else
-            return "(function () " .. coder_stmts(e.es) .. " end)()"
+            return "(function () " .. coder(e.blk) .. " end)()"
         end
+    elseif e.tag == 'block' then
+        return coder_stmts(e.es)
     elseif e.tag == 'escape' then
         return "error({up='do', " .. coder_args(e.args) .. "}, 0)"
     elseif e.tag == 'defer' then
@@ -160,14 +162,14 @@ function coder (e)
             else
                 cnd = coder(cnd)
             end
-            return "elseif " .. cnd .. " then " .. coder(e)
+            return " elseif " .. cnd .. " then " .. coder(e)
         end
         return (
-            "(function (it) " ..
+            "(function () " ..
                 "if false then " ..
-                    concat(';', map(e.cases,f)) ..
+                    join(' ', map(e.cases,f)) ..
                 " end" ..
-            " end)(" .. coder(e.cnd) .. ")"
+            " end)()"
         )
     elseif e.tag == 'loop' then
         local ids = join(', ', map(e.ids or {{str="_"}}, function(id) return id.str end))
@@ -188,7 +190,7 @@ function coder (e)
         local xf  = e.cnd.f and coder(e.cnd.f) or 'nil'
         return (
             "atm_catch(" .. xe .. ',' .. xf .. ',' ..
-                "function () " .. coder_stmts(e.blk.es) .. " end" ..
+                "function () " .. coder(e.blk) .. " end" ..
             ")"
         )
     elseif e.tag == 'throw' then

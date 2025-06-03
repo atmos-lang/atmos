@@ -464,7 +464,9 @@ do
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
         ifs {
-            a => print(b)
+            a => {
+                print(b)
+            }
             c => {
             }
             else => {
@@ -504,7 +506,9 @@ do
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
         ifs {
-            f() => g()
+            f() => {
+                g()
+            }
         }
     ]])
 end

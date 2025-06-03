@@ -449,8 +449,12 @@ do
     --assertx(tosource(e), "(x and 10) or 20")
     assertx(trim(tosource(e)), trim [[
         ifs {
-            x => 10
-            else => 20
+            x => {
+                10
+            }
+            else => {
+                20
+            }
         }
     ]])
 
@@ -464,9 +468,15 @@ do
     --assertx(tosource(e), "(x and 10) or ((y and nil) or ((true and 20) or (nil)))")
     assertx(trim(tosource(e)), trim [[
         ifs {
-            x => 10
-            y => nil
-            else => 20
+            x => {
+                10
+            }
+            y => {
+                nil
+            }
+            else => {
+                20
+            }
         }
     ]])
 end

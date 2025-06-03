@@ -51,7 +51,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(tostr_stmt(s) == "set y = await(:X)")
+    assert(tosource(s) == "set y = await(:X)")
 
     local src = "set x = spawn f()"
     print("Testing...", src)

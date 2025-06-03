@@ -391,9 +391,9 @@ function parser_1_prim ()
                 end
             else
                 accept_err('=>')
-                cases[#cases+1] = { cnd, parser() }
+                cases[#cases+1] = { cnd, {tag='block', es={parser()}} }
                 accept_err('=>')
-                cases[#cases+1] = { true, parser() }
+                cases[#cases+1] = { true, {tag='block', es={parser()}} }
             end
             return { tag='ifs', cases=cases }
         -- ifs { x => a ; y => b ; else => c }
@@ -415,7 +415,7 @@ function parser_1_prim ()
                     if check('{') then
                         es = parser_block()
                     else
-                        es = parser()
+                        es = { tag='block', es={parser()} }
                     end
                 end
                 ts[#ts+1] = { cnd, es }
