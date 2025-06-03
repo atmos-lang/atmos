@@ -16,7 +16,7 @@ KEYS = {
     'every', 'false', 'func', 'if', 'ifs', 'in', 'loop', 'match', 'nil', 'par',
     'par_and', 'par_or', 'pin', 'resume', 'return', 'set', 'spawn', 'task',
     'tasks', 'test', 'throw', 'true', 'until', 'val', 'var', 'yield',
-    'watching', 'with', 'while',
+    'watching', 'with', 'where', 'while',
 }
 
 OPS = {

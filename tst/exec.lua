@@ -1338,6 +1338,15 @@ do
     assertx(out, "30\n")
 end
 
+print '--- WHERE ---'
+
+do
+    local src = "print(x+y where { x=10 ; y=20 })"
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assertx(out, "30\n")
+end
+
 -- ERROR / LINE NUMBER
 
 do

@@ -42,9 +42,9 @@ function do_string (file, src)
     init()
     lexer_init(file, src)
     lexer_next()
-    local ok, blk = pcall(parser_main)
+    local ok, do_ = pcall(parser_main)
     if not ok then
-        return ok, blk
+        return ok, do_
     end
 
     local f = assert(io.open(file..".lua", "w"))
@@ -53,7 +53,7 @@ function do_string (file, src)
         require 'runtime'
         return atm_exec (
             "]] .. file .. [[",
-            ]] .. string.format('%q', coder_stmts(blk.es)) .. [[
+            ]] .. string.format('%q', coder_stmts(do_.blk.es)) .. [[
         )
     ]])
     f:close()

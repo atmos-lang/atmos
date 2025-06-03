@@ -101,13 +101,13 @@ end
 
 function parser_block ()
     accept_err('{')
-    local es = parser_list(null, '}', parser)
+    local es = parser_list(nil, '}', parser)
     accept_err('}')
     return { tag='block', es=es }
 end
 
 function parser_main ()
-    local es = parser_list(null, '<eof>', parser)
+    local es = parser_list(nil, '<eof>', parser)
     accept_err('<eof>')
     return { tag='do', blk={tag='block',es=es} }
 end
@@ -139,7 +139,7 @@ function parser_2_suf (pre)
         return e
     end
 
-    local ret = nil
+    local ret
     if e.tag=='tag' and (check'(' or check'@{' or check'#{') then
         local t = parser()
         local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
@@ -228,4 +228,47 @@ function parser_5_bin (pre)
     return parser_5_bin { tag='bin', op=op, e1=e1, e2=e2 }
 end
 
-parser = parser_5_bin
+function parser_6_out (pre)
+    local e = pre or parser_5_bin()
+    local ok = (TK0.lin==TK1.lin)
+    if not ok then
+        return e
+    end
+
+    local ret
+    if accept('where') then
+        accept_err("{")
+        local ss = parser_list(nil, '}',
+            function ()
+                local id = accept(nil, 'id')
+                accept_err('=')
+                local set = parser()
+                return { tag='dcl', tk={str='val'}, ids={id}, set=set }
+            end
+        )
+        accept_err("}")
+        ss[#ss+1] = e
+        ret = {
+            tag = 'parens',
+            e = {
+                tag = 'call',
+                f = {
+                    tag = 'func',
+                    pars = {},
+                    blk = {
+                        tag = 'block',
+                        es = ss,
+                    },
+                },
+                args = {}
+            },
+        }
+    else
+        -- nothing consumed, not an out
+        return e
+    end
+
+    return parser_6_out(ret)
+end
+
+parser = parser_6_out

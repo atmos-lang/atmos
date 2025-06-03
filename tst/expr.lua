@@ -739,6 +739,25 @@ do
     assertx(tosource(e), "10(10)")
 end
 
+print '--- WHERE ---'
+
+do
+    local src = "x+y where { x=10 ; y=20 }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(e)), trim [[
+        (func () {
+            val x = 10
+            val y = 20
+            x + y
+        }())
+    ]])
+end
+
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME / PUB
 
 do
