@@ -3008,6 +3008,18 @@ do
     local src = [[
         spawn {
             par {
+            } with {
+            }
+        }
+        print(:X)
+    ]]
+    print("Testing...", "par 0")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "X\n")
+
+    local src = [[
+        spawn {
+            par {
                 every :X {
                     print(:X)
                 }

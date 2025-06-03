@@ -494,7 +494,7 @@ function parser_1_prim ()
                     { tag='bool', tk={str='false'} },
                 },
             }
-            return { tag='block', es=es }
+            return { tag='do', blk={tag='block',es=es} }
         -- par_and
         elseif accept('par_and') then
             local n = N()
@@ -534,7 +534,7 @@ function parser_1_prim ()
             local ss3 = {
                 { tag='table', ps=map(sss,f3) },
             }
-            return { tag='block', es=concat(ss1,ss2,ss3) }
+            return { tag='do', blk={tag='block', es=concat(ss1,ss2,ss3)} }
         -- par_or
         elseif accept('par_or') then
             local n = N()
@@ -565,7 +565,7 @@ function parser_1_prim ()
                 args = concat(xe_xf,tsks),
             }
             es[#es+1] = awt
-            return { tag='block', es=es }
+            return { tag='do', blk={tag='block', es=es} }
         -- watching
         elseif accept('watching') then
             local lin = TK0.lin
@@ -582,7 +582,7 @@ function parser_1_prim ()
                 ids = { {tag='id', str='_'} },
                 set = spawn(lin,es),
             }
-            return { tag='block', es={spw, awt} }
+            return { tag='do', blk={tag='block', es={spw, awt}} }
 
         else
             error "bug found"
