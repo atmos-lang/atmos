@@ -488,12 +488,15 @@ function parser_1_prim ()
         elseif accept('until') or accept('while') then
             local whi = (TK0.str == 'while')
             local cnd = parser()
-            local t = { tag='block', es={{tag='break'}} }
-            local f = { tag='block', es={} }
             if whi then
-                t, f = f, t
+                cnd = { tag='uno', op={str='!'}, e=cnd }
             end
-            return { tag='ifs', cases={{cnd,t}, {true,f}} }
+            return {
+                tag = 'ifs',
+                cases = {
+                    { cnd, {tag='break', es={}} }
+                },
+            }
         else
             error "bug found"
         end

@@ -427,11 +427,7 @@ do
     assertx(trim(tosource(s)), trim [[
         loop {
             ifs {
-                x => {
-                    break
-                }
-                else => {
-                }
+                x => break
             }
         }
     ]])
@@ -446,11 +442,7 @@ do
     assertx(trim(tosource(s)), trim [[
         loop {
             ifs {
-                x => {
-                }
-                else => {
-                    break
-                }
+                (!x) => break
             }
         }
     ]])
