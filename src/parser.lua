@@ -249,19 +249,16 @@ function parser_6_out (pre)
         accept_err("}")
         ss[#ss+1] = e
         ret = {
-            tag = 'parens',
-            e = {
-                tag = 'call',
-                f = {
-                    tag = 'func',
-                    pars = {},
-                    blk = {
-                        tag = 'block',
-                        es = ss,
-                    },
+            tag = 'call',
+            f = {
+                tag = 'func',
+                pars = {},
+                blk = {
+                    tag = 'block',
+                    es = ss,
                 },
-                es = {}
             },
+            es = {}
         }
     else
         -- nothing consumed, not an out

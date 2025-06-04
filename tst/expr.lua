@@ -750,11 +750,11 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(e)), trim [[
-        (func () {
+        func () {
             val x = 10
             val y = 20
             x + y
-        }())
+        }()
     ]])
 end
 

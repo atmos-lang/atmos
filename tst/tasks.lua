@@ -3000,6 +3000,22 @@ do
     print("Testing...", "every 2")
     local out = exec_string("anon.atm", src)
     assertx(out, "X\t10\n")
+
+    local src = [[
+        spawn {
+            every :X {
+                x where {
+                    x = match x {
+                        x => x
+                    }
+                }
+            }
+        }
+        print(:ok)
+    ]]
+    print("Testing...", "every-where")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
 end
 
 print '--- PAR / PAR_AND / PAR_OR / WATCHING ---'
