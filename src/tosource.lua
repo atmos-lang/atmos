@@ -18,9 +18,9 @@ function tosource (e)
     elseif e.tag == 'nat' then
         return '`' .. e.tk.str .. '`'
     elseif e.tag == 'uno' then
-        return e.op.str..tosource(e.e)
+        return '(' .. e.op.str .. tosource(e.e) .. ')'
     elseif e.tag == 'bin' then
-        return tosource(e.e1)..' '..e.op.str..' '..tosource(e.e2)
+        return '('..tosource(e.e1)..' '..e.op.str..' '..tosource(e.e2)..')'
     elseif e.tag == 'index' then
         return tosource(e.t)..'['..tosource(e.idx)..']'
     elseif e.tag == 'table' then
@@ -33,7 +33,12 @@ function tosource (e)
     elseif e.tag == 'es' then
         return '(' .. tosource_args(e.es) .. ')'
     elseif e.tag == 'parens' then
-        return '('..tosource(e.e)..')'
+        local e = tosource(e.e)
+        if e:sub(1,1)=='(' and e:sub(#e,#e)==')' then
+            return e
+        else
+            return '(' .. e .. ')'
+        end
     elseif e.tag == 'call' then
         return tosource(e.f) .. '(' .. tosource_args(e.es) .. ')'
     --elseif e.tag == 'met' then

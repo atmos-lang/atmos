@@ -541,7 +541,7 @@ do
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
         catch true, func (err) {
-            err > 0
+            (err > 0)
         } {
         }
     ]])

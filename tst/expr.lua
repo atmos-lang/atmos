@@ -319,7 +319,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == '-x[0]')
+    assert(tosource(e) == '(-x[0])')
 
     local src = ":X @{}"
     print("Testing...", src)
@@ -359,7 +359,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == "!-x")
+    assert(tosource(e) == "(!(-x))")
 end
 
 -- BIN
@@ -398,7 +398,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == "(2 == -1)")
+    assert(tosource(e) == "(2 == (-1))")
 
     local src = "x || y"
     print("Testing...", src)
@@ -407,7 +407,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == "x || y")
+    assert(tosource(e) == "(x || y)")
 
     local src = "- -1"
     print("Testing...", src)
@@ -416,7 +416,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == "--1")
+    assert(tosource(e) == "(-(-1))")
 
     local src = "x++y++z"
     print("Testing...", src)
@@ -425,7 +425,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "x ++ y ++ z")
+    assertx(tosource(e), "((x ++ y) ++ z)")
 
     local src = "(10+)"
     print("Testing...", src)
@@ -491,7 +491,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "a ?? b")
+    assertx(tosource(e), "(a ?? b)")
 
     local src = "a ?> b"
     print("Testing...", src)
@@ -500,7 +500,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "a ?> b")
+    assertx(tosource(e), "(a ?> b)")
 
     local src = "(a !? b) || (a <? b) || (a !> b) || (a <! b)"
     print("Testing...", src)
@@ -509,7 +509,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "(a !? b) || (a <? b) || (a !> b) || (a <! b)")
+    assertx(tosource(e), "((((a !? b) || (a <? b)) || (a !> b)) || (a <! b))")
 end
 
 -- CALL / FUNC / RETURN / THROW
@@ -753,7 +753,7 @@ do
         func () {
             val x = 10
             val y = 20
-            x + y
+            (x + y)
         }()
     ]])
 
@@ -816,9 +816,9 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), [[
+    assertx(trim(tosource(e)), trim [[
         func () {
-            (10 + 1(f))
+            (10 + 1)(f)
         }()
     ]])
 end
@@ -921,7 +921,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), trim [[
         await(:X, func (evt) {
-            x + 10
+            (x + 10)
         })
     ]])
 
@@ -932,7 +932,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await(:clock, 0 * 3600000 + 20 * 60000 + x * 1000 + 100 * 1)")
+    assertx(tosource(e), "await(:clock, ((0 * 3600000) + ((20 * 60000) + ((x * 1000) + (100 * 1)))))")
 
     local src = "await(@10,x)"
     print("Testing...", src)
