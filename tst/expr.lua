@@ -380,7 +380,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assert(not ok and msg=="anon : line 1 : near '-' : binary operation error : use parentheses to disambiguate")
+    assert(not ok and msg=="anon : line 1 : near '-' : operation error : use parentheses to disambiguate")
 
     local src = "2 * (a - 1)"
     print("Testing...", src)
@@ -389,7 +389,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "2 * (a - 1)")
+    assertx(tosource(e), "(2 * (a - 1))")
 
     local src = "2 == -1"
     print("Testing...", src)
@@ -398,7 +398,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == "2 == -1")
+    assert(tosource(e) == "(2 == -1)")
 
     local src = "x || y"
     print("Testing...", src)
@@ -715,7 +715,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "(f(10))(20)")
+    assertx(tosource(e), "(f(10, 20))")
 
     local src = "(func() {}) <- 20"
     print("Testing...", src)
@@ -739,7 +739,7 @@ do
     assertx(tosource(e), "10(10)")
 end
 
-print '--- WHERE ---'
+print '--- WHERE / PIPE ---'
 
 do
     local src = "x+y where { x=10 ; y=20 }"
@@ -754,6 +754,71 @@ do
             val x = 10
             val y = 20
             x + y
+        }()
+    ]])
+
+    local src = "10-->f()"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "f(10)")
+
+    local src = "10-->f-->g"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "g(f(10))")
+
+    local src = "f<--10"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "f(10)")
+
+    local src = "10-->(f<--20)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "(f(10, 20))")
+
+    local src = "10+1 --> f where { }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'where' : operation error : use parentheses to disambiguate")
+
+    local src = "10+1 <-- f where { }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'where' : operation error : use parentheses to disambiguate")
+
+    local src = "(10+1 <-- f) where { }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), [[
+        func () {
+            (10 + 1(f))
         }()
     ]])
 end

@@ -181,15 +181,19 @@ function parser_2_suf (pre)
 end
 
 local function method (f, e, pre)
+    local out = f
+    while f.tag == 'parens' do
+        f = f.e
+    end
     if f.tag == 'call' then
         if pre then
             table.insert(f.es, 1, e)
         else
             f.es[#f.es+1] = e
         end
-        return f
+        return out
     else
-        return { tag='call', f=f, es={e} }
+        return { tag='call', f=out, es={e} }
     end
 end
 
@@ -221,8 +225,8 @@ function parser_5_bin (pre)
         return e1
     end
     local op = accept_err(nil,'op')
-    if pre and pre.op.str ~= op.str then
-        err(op, "binary operation error : use parentheses to disambiguate")
+    if pre and pre.op.str~=op.str then
+        err(op, "operation error : use parentheses to disambiguate")
     end
     local e2 = parser_4_pre()
     return parser_5_bin { tag='bin', op=op, e1=e1, e2=e2 }
@@ -235,8 +239,22 @@ function parser_6_out (pre)
         return e
     end
 
+    local op = check('-->') or check('<--') or check('where')
+    if pre and op and pre.op.str~=op.str then
+        err(op, "operation error : use parentheses to disambiguate")
+    end
+
     local ret
-    if accept('where') then
+    if accept('-->') then
+        ret = method(parser_5_bin(), e, true)
+    elseif accept('<--') then
+        -- right to left
+        local pre = parser_6_out()
+        if pre.op and pre.op.str ~= '<--' then
+            err(pre.op, "operation error : use parentheses to disambiguate")
+        end
+        return method(e, pre, false)
+    elseif accept('where') then
         accept_err("{")
         local ss = parser_list(nil, '}',
             function ()
@@ -265,6 +283,7 @@ function parser_6_out (pre)
         return e
     end
 
+    ret.op = op
     return parser_6_out(ret)
 end
 
