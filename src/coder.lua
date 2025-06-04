@@ -48,7 +48,7 @@ function coder (e)
         return coder_tag(e.tk)
     elseif e.tag == 'acc' then
         if e.tk.str == 'pub' then
-            return L(e.tk) .. "atm_me().pub"
+            return L(e.tk) .. "atm_me(true).pub"
         else
             return L(e.tk) .. tosource(e)
         end

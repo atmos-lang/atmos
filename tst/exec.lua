@@ -757,7 +757,7 @@ do
     ]]
     print("Testing...", "coro 1")
     local out = exec_string("anon.atm", src)
-    assert(out == "1\tnil\t2\ntrue\ttrue\ttrue\n")
+    assertx(out, "1\tnil\t2\ntrue\ttrue\ttrue\n")
 
     local src = [[
         emit(true)
@@ -1165,6 +1165,22 @@ do
     print("Testing...", "tasks 11: iter")
     local out = exec_string("anon.atm", src)
     assertx(out, "true\ntrue\n")
+
+    local src = [[
+        val T = func () {
+            set pub = 10
+            print(pub)
+            spawn {
+                set pub = 20
+                print(pub)
+            }
+            print(pub)
+        }
+        spawn T()
+    ]]
+    print("Testing...", "tasks 12: fake")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n20\n20\n")
 end
 
 print '--- AWAIT / TASK ---'

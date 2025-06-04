@@ -54,10 +54,15 @@ function parser_await (lin)
 end
 
 local function spawn (lin, blk)
-    local cmd = { tag='acc', tk={tag='id', str='spawn', lin=lin} }
-    local ts = { tag='nil', tk={tag='key',str='nil'} }
-    local f = { tag='func', pars={}, blk=blk }
-    return { tag='call', f=cmd, es={ts,f} }
+    return {
+        tag = 'call',
+        f = { tag='acc', tk={tag='id', str='spawn', lin=lin} },
+        es = {
+            { tag='nil', tk={tag='key',str='nil'} },
+            { tag='func', pars={}, blk=blk },
+            { tag='bool', tk={str='true'} },    -- fake=true
+        },
+    }
 end
 
 function parser_spawn ()
@@ -68,7 +73,7 @@ function parser_spawn ()
     else
         -- spawn T(...) [in ...]
         local tk = TK0
-        local cmd = { tag='acc', tk={tag='id', str=TK0.str, lin=TK0.lin} }
+        local cmd = { tag='acc', tk={tag='id', str='spawn', lin=TK0.lin} }
         local call = parser()
         local ts; do
             if accept('in') then
@@ -82,6 +87,7 @@ function parser_spawn ()
         end
         table.insert(call.es, 1, ts)
         table.insert(call.es, 2, call.f)
+        table.insert(call.es, 3, {tag='bool',tk={str='false'}})
         return { tag='call', f=cmd, es=call.es }
     end
 end

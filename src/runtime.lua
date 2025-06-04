@@ -314,9 +314,17 @@ TASKS = {
     cache = setmetatable({}, {__mode='k'}),
 }
 
-function atm_me ()
+local function aux (skip_fake, t)
+    if skip_fake and t.fake then
+        return aux(skip_fake, t.up)
+    else
+        return t
+    end
+end
+
+function atm_me (skip_fake)
     local th = coroutine.running()
-    return th and TASKS.cache[th]
+    return th and TASKS.cache[th] and aux(skip_fake, TASKS.cache[th])
 end
 
 local meta = { __close=close }
@@ -341,13 +349,14 @@ function tasks (max)
     return ts
 end
 
-function task (f)
+function task (f, fake)
     local t = {
         tag = 'task',
         co  = coro(f),
         i   = nil,
         up  = nil,
         dns = {},
+        fake = fake,
         status = nil, -- aborted, toggled
         ing = 0,
         gc  = false,
@@ -404,13 +413,13 @@ local function atm_task_awake_check (t, a, b)
     end
 end
 
-function spawn (up, t, ...)
+function spawn (up, t, fake, ...)
     if atm_tag_is(t,'func') then
-        t = task(t)
+        t = task(t,fake)
         if t == nil then
             return nil
         else
-            return spawn(up, t, ...)
+            return spawn(up, t, fake, ...)
         end
     end
     if atm_tag_is(t,'task') and t.co.th then

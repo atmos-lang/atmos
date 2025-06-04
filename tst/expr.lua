@@ -821,6 +821,37 @@ do
             (10 + 1)(f)
         }()
     ]])
+
+    local src = "10+1 where { }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(e)), trim [[
+        func () {
+            (10 + 1)
+        }()
+    ]])
+
+    local src = "f<--10->g"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "f(g(10))")
+
+    local src = "spawn T(v) where {v=10}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    warn(false, "spawn vs where")
 end
 
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME / PUB
@@ -895,7 +926,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "pin _ = spawn(nil, T, 1, 2, 3)")
+    assertx(tosource(e), "pin _ = spawn(nil, T, false, 1, 2, 3)")
     --local ok, msg = pcall(parser)
     --assertx(msg, "anon : line 1 : near 'spawn' : expected expression")
 

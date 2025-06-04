@@ -559,7 +559,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "spawn(ts, X)")
+    assertx(tosource(s), "spawn(ts, X, false)")
 
     local src = "spawn T(1,2,3)"
     print("Testing...", src)
@@ -568,7 +568,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "pin _ = spawn(nil, T, 1, 2, 3)")
+    assertx(tosource(s), "pin _ = spawn(nil, T, false, 1, 2, 3)")
 
     local src = "spawn (x+10)"
     print("Testing...", src)
