@@ -34,7 +34,7 @@ function parser_await (lin)
          }
         local f   = { tag='acc', tk={tag='id',str='await',lin=lin} }
         local tag = { tag='tag', tk={str=':clock'} }
-        return { tag='call', f=f, args={tag,sum} }
+        return { tag='call', f=f, es={tag,sum} }
     else
         local xe = parser()
         local xf = nil
@@ -49,7 +49,7 @@ function parser_await (lin)
             xf = { tag='func', pars={it}, blk={tag='block',es={cnd}} }
         end
         local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
-        return { tag='call', f=f, args={xe,xf} }
+        return { tag='call', f=f, es={xe,xf} }
     end
 end
 
@@ -57,7 +57,7 @@ local function spawn (lin, blk)
     local cmd = { tag='acc', tk={tag='id', str='spawn', lin=lin} }
     local ts = { tag='nil', tk={tag='key',str='nil'} }
     local f = { tag='func', pars={}, blk=blk }
-    return { tag='call', f=cmd, args={ts,f} }
+    return { tag='call', f=cmd, es={ts,f} }
 end
 
 function parser_spawn ()
@@ -80,9 +80,9 @@ function parser_spawn ()
         if call.tag ~= 'call' then
             err(tk, "expected call")
         end
-        table.insert(call.args, 1, ts)
-        table.insert(call.args, 2, call.f)
-        return { tag='call', f=cmd, args=call.args }
+        table.insert(call.es, 1, ts)
+        table.insert(call.es, 2, call.f)
+        return { tag='call', f=cmd, es=call.es }
     end
 end
 
@@ -123,7 +123,7 @@ function parser_1_prim ()
     -- table: @{...}
     elseif accept('@{') then
         local idx = 1
-        local ps = parser_list(',', '}', function ()
+        local vs = parser_list(',', '}', function ()
             local key
             if accept('[') then
                 key = parser()
@@ -145,13 +145,13 @@ function parser_1_prim ()
             return { k=key, v=val }
         end)
         accept_err('}')
-        return { tag='table', ps=ps }
+        return { tag='table', vs=vs }
 
     -- vector: #{...}
     elseif accept('#{') then
-        local ps = parser_list(',', '}', parser)
+        local vs = parser_list(',', '}', parser)
         accept_err('}')
-        return { tag='vector', ps=ps }
+        return { tag='vector', vs=vs }
 
     -- parens: (...)
     elseif accept('(') then
@@ -172,7 +172,7 @@ function parser_1_prim ()
             accept_err('(')
             local e = parser()
             accept_err(')')
-            return { tag='call', f=f, args={e} }
+            return { tag='call', f=f, es={e} }
         -- resume co(...)
         elseif accept('resume') then
             local tk = TK0
@@ -181,15 +181,15 @@ function parser_1_prim ()
             if call.tag ~= 'call' then
                 err(tk, "expected call")
             end
-            table.insert(call.args, 1, call.f)
-            return { tag='call', f=cmd, args=call.args }
+            table.insert(call.es, 1, call.f)
+            return { tag='call', f=cmd, es=call.es }
         -- yield(...)
         elseif accept('yield') then
             local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
             accept_err('(')
-            local args = parser_list(',', ')', parser)
+            local es = parser_list(',', ')', parser)
             accept_err(')')
-            return { tag='call', f=f, args=args }
+            return { tag='call', f=f, es=es }
         else
             error "bug found"
         end
@@ -202,12 +202,12 @@ function parser_1_prim ()
             accept_err('(')
             local e = parser()
             accept_err(')')
-            return { tag='call', f=f, args={e} }
+            return { tag='call', f=f, es={e} }
         -- emit(...) in t
         elseif accept('emit') then
             local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
             accept_err('(')
-            local args = parser_list(',', ')', parser)
+            local es = parser_list(',', ')', parser)
             accept_err(')')
             local to; do
                 if accept('in') then
@@ -216,8 +216,8 @@ function parser_1_prim ()
                     to = { tag='nil', tk={tag='key',str='nil',lin=TK0.lin} }
                 end
             end
-            table.insert(args, 1, to)
-            return { tag='call', f=f, args=args }
+            table.insert(es, 1, to)
+            return { tag='call', f=f, es=es }
         -- await(...)
         elseif accept('await') then
             local lin = TK0.lin
@@ -228,7 +228,7 @@ function parser_1_prim ()
         -- spawn {}, spawn T()
         elseif check('spawn') then
             local spw = parser_spawn()
-            if spw.args[1].tag == 'nil' then
+            if spw.es[1].tag == 'nil' then
                 -- force "pin" if no "in" target
                 local pin = {tag='key',str='pin'}
                 local id = { tag='id',str='_' }
@@ -277,9 +277,9 @@ function parser_1_prim ()
             if check('spawn') then
                 local tk1 = TK1
                 local spw = parser_spawn()
-                if tk.str=='pin' and spw.args[1].tag~='nil' then
+                if tk.str=='pin' and spw.es[1].tag~='nil' then
                     err(tk1, "invalid spawn in : unexpected pin declaraion")
-                elseif tk.str~='pin' and spw.args[1].tag=='nil' then
+                elseif tk.str~='pin' and spw.es[1].tag=='nil' then
                     err(tk1, "invalid spawn : expected pin declaraion")
                 end
                 set = spw
@@ -294,7 +294,7 @@ function parser_1_prim ()
                     e = parser()
                 end
                 accept_err(')')
-                local ts = { tag='call', f=f, args={e} }
+                local ts = { tag='call', f=f, es={e} }
                 set = ts
 
             else
@@ -323,7 +323,7 @@ function parser_1_prim ()
     -- catch, throw
     elseif check('do') or check('escape') or check('catch') or check('throw') or check('defer') then
         local function tag_args (err)
-            local args; do
+            local es; do
                 if check(nil,'tag') then
                     local tk = TK1
                     local e = parser()
@@ -363,12 +363,12 @@ function parser_1_prim ()
             return { tag='catch', cnd={e=xe,f=xf}, blk=blk }
         -- escape :X()
         elseif accept('escape') then
-            local args = tag_args(true)
-            return { tag='escape', args=args }
+            local es = tag_args(true)
+            return { tag='escape', es=es }
         -- throw(err)
         elseif accept('throw') then
-            local args = tag_args()
-            return { tag='throw', args=args }
+            local es = tag_args()
+            return { tag='throw', es=es }
         -- defer {...}
         elseif accept('defer') then
             local blk = parser_block()
@@ -451,7 +451,7 @@ function parser_1_prim ()
                 local cnd = {
                     tag = 'call',
                     f = { tag='acc', tk={str="atm_is"} },
-                    args = {
+                    es = {
                         { tag='acc', tk={str="it"} },
                         cmp
                     },
@@ -481,9 +481,9 @@ function parser_1_prim ()
         -- break
         elseif accept('break') then
             accept_err('(')
-            local args = parser_list(',', ')', parser)
+            local es = parser_list(',', ')', parser)
             accept_err(')')
-            return { tag='break', args=args }
+            return { tag='break', es=es }
         -- until, while
         elseif accept('until') or accept('while') then
             local whi = (TK0.str == 'while')
@@ -525,7 +525,7 @@ function parser_1_prim ()
             es[#es+1] = {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='await'} },
-                args = {
+                es = {
                     { tag='bool', tk={str='false'} },
                 },
             }
@@ -549,7 +549,7 @@ function parser_1_prim ()
                 return {
                     tag = 'call',
                     f = { tag='acc', tk={tag='id',str='await'} },
-                    args = {
+                    es = {
                         { tag='acc', tk={str='atm_'..n..'_'..i} },
                     },
                 }
@@ -567,7 +567,7 @@ function parser_1_prim ()
             local ss1 = map(sss,f1)
             local ss2 = map(sss,f2)
             local ss3 = {
-                { tag='table', ps=map(sss,f3) },
+                { tag='table', vs=map(sss,f3) },
             }
             return { tag='do', blk={tag='block', es=concat(ss1,ss2,ss3)} }
         -- par_or
@@ -597,7 +597,7 @@ function parser_1_prim ()
             local awt = {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='await'} },
-                args = concat(xe_xf,tsks),
+                es = concat(xe_xf,tsks),
             }
             es[#es+1] = awt
             return { tag='do', blk={tag='block', es=es} }

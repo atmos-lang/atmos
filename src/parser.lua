@@ -143,14 +143,14 @@ function parser_2_suf (pre)
     if e.tag=='tag' and (check'(' or check'@{' or check'#{') then
         local t = parser()
         local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
-        ret = { tag='call', f=f, args={e,t} }
+        ret = { tag='call', f=f, es={e,t} }
     elseif accept('(') then
-        local args = parser_list(',', ')', parser)
+        local es = parser_list(',', ')', parser)
         accept_err(')')
-        ret = { tag='call', f=e, args=args }
+        ret = { tag='call', f=e, es=es }
     elseif check('@{') or check('#{') or check(nil,'str') then
         local v = parser_1_prim()
-        ret = { tag='call', f=e, args={v} }
+        ret = { tag='call', f=e, es={v} }
     elseif accept('[') then
         local idx = parser()
         accept_err(']')
@@ -163,15 +163,15 @@ function parser_2_suf (pre)
     elseif accept('::') then
         local id = accept_err(nil,'id')
         accept_err('(')
-        local args = parser_list(',', ')', parser)
+        local es = parser_list(',', ')', parser)
         accept_err(')')
-        table.insert(args, 1, copy(e))
+        table.insert(es, 1, copy(e))
         local f = {
             tag = 'index',
             t   = e,
             idx = { tag='str', tk=id },
         }
-        ret = { tag='call', f=f, args=args }
+        ret = { tag='call', f=f, es=es }
     else
         -- nothing consumed, not a suffix
         return e
@@ -183,13 +183,13 @@ end
 local function method (f, e, pre)
     if f.tag == 'call' then
         if pre then
-            table.insert(f.args, 1, e)
+            table.insert(f.es, 1, e)
         else
-            f.args[#f.args+1] = e
+            f.es[#f.es+1] = e
         end
         return f
     else
-        return { tag='call', f=f, args={e} }
+        return { tag='call', f=f, es={e} }
     end
 end
 
@@ -260,7 +260,7 @@ function parser_6_out (pre)
                         es = ss,
                     },
                 },
-                args = {}
+                es = {}
             },
         }
     else

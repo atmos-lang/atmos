@@ -24,20 +24,20 @@ function tosource (e)
     elseif e.tag == 'index' then
         return tosource(e.t)..'['..tosource(e.idx)..']'
     elseif e.tag == 'table' then
-        local ps = join(", ", map(e.ps, function (t)
+        local vs = join(", ", map(e.vs, function (t)
             return '['..tosource(t.k)..']='..tosource(t.v)
         end))
-        return '@{' .. ps .. '}'
+        return '@{' .. vs .. '}'
     elseif e.tag == 'vector' then
-        return '#{' .. tosource_args(e.args) .. '}'
+        return '#{' .. tosource_args(e.vs) .. '}'
     elseif e.tag == 'es' then
         return '(' .. tosource_args(e.es) .. ')'
     elseif e.tag == 'parens' then
         return '('..tosource(e.e)..')'
     elseif e.tag == 'call' then
-        return tosource(e.f) .. '(' .. tosource_args(e.args) .. ')'
+        return tosource(e.f) .. '(' .. tosource_args(e.es) .. ')'
     --elseif e.tag == 'met' then
-        --return tosource(e.o) .. '::' .. e.met.str .. '(' .. join(", ", map(e.args, tosource)) .. ')'
+        --return tosource(e.o) .. '::' .. e.met.str .. '(' .. join(", ", map(e.es, tosource)) .. ')'
     elseif e.tag == 'func' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
@@ -52,6 +52,8 @@ function tosource (e)
         return "func (" .. pars .. dots .. ") " .. tosource_block(e.blk)
     elseif e.tag == 'return' then
         return "return(" .. tosource_args(e.es) .. ")"
+    elseif e.tag == 'escape' then
+        return "escape(" .. tosource_args(e.es) .. ")"
 
     elseif e.tag == 'dcl' then
         local f = function (se)
@@ -98,7 +100,7 @@ function tosource (e)
         local xf = e.cnd.f and (', '..tosource(e.cnd.f)) or ''
         return "catch " .. tosource(e.cnd.e) .. xf .. " " .. tosource_block(e.blk)
     elseif e.tag == 'throw' then
-        return 'throw(' .. tosource_args(e.args) .. ')'
+        return 'throw(' .. tosource_args(e.es) .. ')'
     else
         print(e.tag)
         error("TODO")

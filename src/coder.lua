@@ -27,12 +27,12 @@ end
 function coder_stmts (es, noret)
     local function f (e, i)
         if noret or i<#es or is_stmt(e) then
-            return coder(e)
+            return "; " .. coder(e)
         else
-            return "return "..coder(e)
+            return "; return " .. coder(e)
         end
     end
-    return join(" ; ", map(es,f)) .. " ; "
+    return join('', map(es,f))
 end
 
 function coder_args (es)
@@ -57,13 +57,13 @@ function coder (e)
     elseif e.tag == 'index' then
         return '(' .. coder(e.t) .. ")[atm_idx(" .. coder(e.t) ..','..coder(e.idx) .. ')]'
     elseif e.tag == 'table' then
-        local ps = join(", ", map(e.ps, function (t)
+        local vs = join(", ", map(e.vs, function (t)
             return '['..coder(t.k)..'] = '..coder(t.v)
         end))
-        return '{' .. ps .. '}'
+        return '{' .. vs .. '}'
     elseif e.tag == 'vector' then
-        local ps = coder_args(e.ps)
-        return "{ tag='vector', " .. ps .. '}'
+        local vs = coder_args(e.vs)
+        return "{ tag='vector', " .. vs .. '}'
     elseif e.tag == 'uno' then
         return '('..(OPS.lua[e.op.str] or e.op.str)..' '..coder(e.e)..')'
     elseif e.tag == 'bin' then
@@ -85,9 +85,9 @@ function coder (e)
             return '('..coder(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder(e.e2)..')'
         end
     elseif e.tag == 'call' then
-        return coder(e.f) .. '(' .. coder_args(e.args) .. ')'
+        return coder(e.f) .. '(' .. coder_args(e.es) .. ')'
     --elseif e.tag == 'met' then
-        --return coder(e.o) .. ':' .. e.met.str .. '(' .. coder_args(e.args) .. ')'
+        --return coder(e.o) .. ':' .. e.met.str .. '(' .. coder_args(e.es) .. ')'
     elseif e.tag == 'func' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
@@ -144,7 +144,7 @@ function coder (e)
     elseif e.tag == 'block' then
         return coder_stmts(e.es)
     elseif e.tag == 'escape' then
-        return "error({up='do', " .. coder_args(e.args) .. "}, 0)"
+        return "error({up='do', " .. coder_args(e.es) .. "}, 0)"
     elseif e.tag == 'defer' then
         local n = N()
         local def = "atm_"..n
@@ -188,7 +188,7 @@ function coder (e)
             ")"
         )
     elseif e.tag == 'break' then
-        return "error({up='loop'," .. coder_args(e.args) .. "}, 0)"
+        return "error({up='loop'," .. coder_args(e.es) .. "}, 0)"
     elseif e.tag == 'catch' then
         local xe  = coder(e.cnd.e)
         local xf  = e.cnd.f and coder(e.cnd.f) or 'nil'
@@ -198,7 +198,7 @@ function coder (e)
             ")"
         )
     elseif e.tag == 'throw' then
-        return "error({up='catch', " .. coder_args(e.args) .. "}, 0)"
+        return "error({up='catch', " .. coder_args(e.es) .. "}, 0)"
 
     else
         --print(e.tag)
