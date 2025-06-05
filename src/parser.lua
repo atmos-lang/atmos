@@ -118,7 +118,7 @@ end
 -- 5_bin : a + b
 -- 4_pre : -a    :T [...]
 -- 3_met : v->f    f<-v
--- 2_suf : v[0]    v.x    v.1    v.(:T).x    f()    x::m()
+-- 2_suf : v[0]    v.x    v.1    v.(:T).x    f()    x::m
 -- 1_prim
 
 local function is_prefix (e)
@@ -127,6 +127,7 @@ local function is_prefix (e)
         e.tag == 'acc'    or
         e.tag == 'nat'    or
         e.tag == 'call'   or
+        e.tag == 'met'    or
         e.tag == 'index'  or
         e.tag == 'parens'
     )
@@ -139,6 +140,7 @@ function parser_2_suf (pre)
         return e
     end
 
+    local tk0 = TK0
     local ret
     if e.tag=='tag' and (check'(' or check'@{' or check'#{') then
         local t = parser()
@@ -162,16 +164,13 @@ function parser_2_suf (pre)
         ret = { tag='index', t=e, idx=idx }
     elseif accept('::') then
         local id = accept_err(nil,'id')
-        accept_err('(')
-        local es = parser_list(',', ')', parser)
-        accept_err(')')
-        table.insert(es, 1, copy(e))
-        local f = {
-            tag = 'index',
-            t   = e,
-            idx = { tag='str', tk=id },
-        }
-        ret = { tag='call', f=f, es=es }
+        if TK1.str == '(' then
+        elseif tk0.str=='->' or tk0.str=='-->' then
+        elseif TK1.str=='<-' or TK1.str=='<--' or TK1.str=='(' then
+        else
+            err(TK1, "invalid method call : expected '('")
+        end
+        ret = { tag='met', o=e, met=id }
     else
         -- nothing consumed, not a suffix
         return e
@@ -180,7 +179,7 @@ function parser_2_suf (pre)
     return parser_2_suf(ret)
 end
 
-local function method (f, e, pre)
+local function pipe (f, e, pre)
     local out = f
     while f.tag == 'parens' do
         f = f.e
@@ -200,9 +199,9 @@ end
 function parser_3_met (pre)
     local e = pre or parser_2_suf()
     if accept('->') then
-        return parser_3_met(method(parser_2_suf(), e, true))
+        return parser_3_met(pipe(parser_2_suf(), e, true))
     elseif accept('<-') then
-        return method(e, parser_3_met(parser_2_suf()), false)
+        return pipe(e, parser_3_met(parser_2_suf()), false)
     else
         return e
     end
@@ -246,14 +245,14 @@ function parser_6_out (pre)
 
     local ret
     if accept('-->') then
-        ret = method(parser_5_bin(), e, true)
+        ret = pipe(parser_5_bin(), e, true)
     elseif accept('<--') then
         -- right to left
         local pre = parser_6_out()
         if pre.op and pre.op.str ~= '<--' then
             err(pre.op, "operation error : use parentheses to disambiguate")
         end
-        return method(e, pre, false)
+        return pipe(e, pre, false)
     elseif accept('where') then
         accept_err("{")
         local ss = parser_list(nil, '}',

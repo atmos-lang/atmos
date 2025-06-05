@@ -86,8 +86,8 @@ function coder (e)
         end
     elseif e.tag == 'call' then
         return coder(e.f) .. '(' .. coder_args(e.es) .. ')'
-    --elseif e.tag == 'met' then
-        --return coder(e.o) .. ':' .. e.met.str .. '(' .. coder_args(e.es) .. ')'
+    elseif e.tag == 'met' then
+        return coder(e.o) .. ':' .. e.met.str
     elseif e.tag == 'func' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do

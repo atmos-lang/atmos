@@ -41,8 +41,8 @@ function tosource (e)
         end
     elseif e.tag == 'call' then
         return tosource(e.f) .. '(' .. tosource_args(e.es) .. ')'
-    --elseif e.tag == 'met' then
-        --return tosource(e.o) .. '::' .. e.met.str .. '(' .. join(", ", map(e.es, tosource)) .. ')'
+    elseif e.tag == 'met' then
+        return tosource(e.o) .. '::' .. e.met.str
     elseif e.tag == 'func' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do

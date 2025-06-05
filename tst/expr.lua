@@ -608,14 +608,21 @@ do
     check_err('<eof>')
     assertx(tosource(e), 'f("10")(@{[1]=20})')
 
+    local src = "o::f"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local _,msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '<eof>' : invalid method call : expected '('")
+
     local src = "(o+o)::f(10)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(tosource(e), '(o + o)["f"]((o + o), 10)')
-    warn(false, 'BUG: side effects')
+    assertx(tosource(e), '(o + o)::f(10)')
 end
 
 print '--- FUNC / ... / dots ---'
