@@ -444,33 +444,15 @@ function parser_1_prim ()
             error "bug found"
         end
 
-    -- loop, until, while
-    elseif check('loop') or check('until') or check('while') then
-        -- loop
-        if accept('loop') then
-            local ids = check(nil,'id') and parser_ids('=') or nil
-            local itr = nil
-            if accept('in') then
-                itr = parser()
-            end
-            local blk = parser_block()
-            return { tag='loop', ids=ids, itr=itr, blk=blk }
-        -- until, while
-        elseif accept('until') or accept('while') then
-            local whi = (TK0.str == 'while')
-            local cnd = parser()
-            if whi then
-                cnd = { tag='uno', op={str='!'}, e=cnd }
-            end
-            return {
-                tag = 'ifs',
-                cases = {
-                    { cnd, {tag='break', es={}} }
-                },
-            }
-        else
-            error "bug found"
+    -- loop
+    if accept('loop') then
+        local ids = check(nil,'id') and parser_ids('=') or nil
+        local itr = nil
+        if accept('in') then
+            itr = parser()
         end
+        local blk = parser_block()
+        return { tag='loop', ids=ids, itr=itr, blk=blk }
 
     -- every
     elseif check('every') or check('par') or check('par_and') or check('par_or') or check('watching') then

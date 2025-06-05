@@ -43,16 +43,16 @@ function coder_tag (tag)
     return L(tag) .. '"' .. tag.str:sub(2) .. '"'
 end
 
+local ids = { 'break', 'until', 'while', 'return' }
+
 function coder (e)
     if e.tag == 'tag' then
         return coder_tag(e.tk)
     elseif e.tag == 'acc' then
         if e.tk.str == 'pub' then
             return L(e.tk) .. "atm_me(true).pub"
-        elseif e.tk.str == 'break' then
-            return L(e.tk) .. "atm_break"
-        elseif e.tk.str == 'return' then
-            return L(e.tk) .. "atm_return"
+        elseif contains(ids, e.tk.str) then
+            return L(e.tk) .. "atm_"..e.tk.str
         else
             return L(e.tk) .. tosource(e)
         end

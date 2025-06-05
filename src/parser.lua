@@ -133,8 +133,11 @@ local function is_prefix (e)
     )
 end
 
+local ids = { 'break', 'escape', 'throw' }
+
 function parser_2_suf (pre)
     local e = pre or parser_1_prim()
+
     local ok = (TK0.lin==TK1.lin) and is_prefix(e)
     if not ok then
         return e

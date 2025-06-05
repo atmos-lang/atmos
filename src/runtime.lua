@@ -448,6 +448,18 @@ function atm_break (...)
     return error({up='loop',...}, 0)
 end
 
+function atm_until (cnd, ...)
+    if cnd then
+        return atm_break(...)
+    end
+end
+
+function atm_while (...)
+    if not cnd then
+        return atm_break(...)
+    end
+end
+
 function atm_return (...)
     return error({up='func',...}, 0)
 end
