@@ -445,7 +445,7 @@ function parser_1_prim ()
         end
 
     -- loop
-    if accept('loop') then
+    elseif accept('loop') then
         local ids = check(nil,'id') and parser_ids('=') or nil
         local itr = nil
         if accept('in') then

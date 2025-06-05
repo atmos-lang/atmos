@@ -116,9 +116,12 @@ end
 
 -- 6_out : v --> f     f <-- v    v where {...}    v thus {...}
 -- 5_bin : a + b
--- 4_pre : -a    :T [...]
+-- 4_pre : -a
 -- 3_met : v->f    f<-v
--- 2_suf : v[0]    v.x    v.1    v.(:T).x    f()    x::m
+-- 2_suf : v[0]    v.x    x::m   f()
+--         :X() :X@{} :X#{}
+--         f@{} f#{} f""
+--         f :X...
 -- 1_prim
 
 local function is_prefix (e)
@@ -145,25 +148,7 @@ function parser_2_suf (pre)
 
     local tk0 = TK0
     local ret
-    if e.tag=='tag' and (check'(' or check'@{' or check'#{') then
-        -- (:X) @{...}
-        local t = parser()
-        local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
-        ret = { tag='call', f=f, es={e,t} }
-    elseif accept('(') then
-        -- (f) (...)
-        local es = parser_list(',', ')', parser)
-        accept_err(')')
-        ret = { tag='call', f=e, es=es }
-    elseif check('@{') or check('#{') or check(nil,'str') then
-        -- (f) @{...}
-        local v = parser_1_prim()
-        ret = { tag='call', f=e, es={v} }
-    elseif check(nil,'tag') then
-        -- (f) :X ...
-        local v = parser()
-        ret = { tag='call', f=e, es={v} }
-    elseif accept('[') then
+    if accept('[') then
         -- (t) [...]
         local idx = parser()
         accept_err(']')
@@ -184,6 +169,24 @@ function parser_2_suf (pre)
             err(TK1, "invalid method call : expected '('")
         end
         ret = { tag='met', o=e, met=id }
+    elseif e.tag=='tag' and (check'(' or check'@{' or check'#{') then
+        -- (:X) @{...}
+        local t = parser()
+        local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
+        ret = { tag='call', f=f, es={e,t} }
+    elseif check('@{') or check('#{') or check(nil,'str') then
+        -- (f) @{...}
+        local v = parser_1_prim()
+        ret = { tag='call', f=e, es={v} }
+    elseif check(nil,'tag') then
+        -- (f) :X ...
+        local v = parser()
+        ret = { tag='call', f=e, es={v} }
+    elseif accept('(') then
+        -- (f) (...)
+        local es = parser_list(',', ')', parser)
+        accept_err(')')
+        ret = { tag='call', f=e, es=es }
     else
         -- nothing consumed, not a suffix
         return e
