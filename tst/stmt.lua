@@ -423,8 +423,17 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'until' : invalid until : expected call")
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        loop {
+            until
+            x
+        }
+    ]])
+    warn(false, "until as expr")
+    --local ok, msg = pcall(parser)
+    --assertx(msg, "anon : line 1 : near 'until' : invalid until : expected call")
 
     local src = "loop { until(x) }"
     print("Testing...", src)

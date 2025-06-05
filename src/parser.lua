@@ -162,12 +162,6 @@ function parser_2_suf (pre)
     elseif accept('::') then
         -- (o) ::m
         local id = accept_err(nil,'id')
-        if TK1.str == '(' then
-        elseif tk0.str=='->' or tk0.str=='-->' then
-        elseif TK1.str=='<-' or TK1.str=='<--' or TK1.str=='(' then
-        else
-            err(TK1, "invalid method call : expected '('")
-        end
         ret = { tag='met', o=e, met=id }
     elseif e.tag=='tag' and (check'(' or check'@{' or check'#{') then
         -- (:X) @{...}

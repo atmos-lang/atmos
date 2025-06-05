@@ -629,8 +629,12 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local _,msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near '<eof>' : invalid method call : expected '('")
+    local e = parser()
+    assert(check('<eof>'))
+    --local _,msg = pcall(parser)
+    --assertx(msg, "anon : line 1 : near '<eof>' : invalid method call : expected '('")
+    assertx(tosource(e), 'o::f')
+    warn(false, "met as expr")
 
     local src = "(o+o)::f(10)"
     print("Testing...", src)
