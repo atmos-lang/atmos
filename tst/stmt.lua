@@ -423,17 +423,10 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local s = parser()
-    assert(check('<eof>'))
-    assertx(trim(tosource(s)), trim [[
-        loop {
-            ifs {
-                x => break
-            }
-        }
-    ]])
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'until' : invalid until : expected call")
 
-    local src = "loop { while x }"
+    local src = "loop { until(x) }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -442,9 +435,20 @@ do
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
         loop {
-            ifs {
-                (!x) => break
-            }
+            until(x)
+        }
+    ]])
+
+    local src = "loop { while <- x }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        loop {
+            while(x)
         }
     ]])
 
