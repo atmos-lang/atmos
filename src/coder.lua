@@ -49,6 +49,8 @@ function coder (e)
     elseif e.tag == 'acc' then
         if e.tk.str == 'pub' then
             return L(e.tk) .. "atm_me(true).pub"
+        elseif e.tk.str == 'break' then
+            return L(e.tk) .. "atm_break"
         elseif e.tk.str == 'return' then
             return L(e.tk) .. "atm_return"
         else
@@ -185,8 +187,6 @@ function coder (e)
                 " end" ..
             ")"
         )
-    elseif e.tag == 'break' then
-        return "error({up='loop'," .. coder_args(e.es) .. "}, 0)"
     elseif e.tag == 'catch' then
         local xe  = coder(e.cnd.e)
         local xf  = e.cnd.f and coder(e.cnd.f) or 'nil'

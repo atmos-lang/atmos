@@ -370,7 +370,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser_main)
-    assertx(msg, "anon : line 1 : near '<eof>' : expected '('")
+    --assertx(msg, "anon : line 1 : near '<eof>' : expected '('")
 
     local src = "loop { break() }"
     print("Testing...", src)
@@ -379,7 +379,8 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{blk={es={{es={}, tag=break}}, tag=block}, tag=loop}")
+    --assertx(stringify(s), "{blk={es={{es={}, tag=break}}, tag=block}, tag=loop}")
+    assertx(stringify(s), "{blk={es={{es={}, f={tag=acc, tk={lin=1, str=break, tag=id}}, tag=call}}, tag=block}, tag=loop}")
 
     local src = "loop x in f() {}"
     print("Testing...", src)

@@ -444,6 +444,10 @@ end
 -- COMMANDS
 -------------------------------------------------------------------------------
 
+function atm_break (...)
+    return error({up='loop',...}, 0)
+end
+
 function atm_return (...)
     return error({up='func',...}, 0)
 end

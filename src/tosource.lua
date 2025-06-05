@@ -94,8 +94,6 @@ function tosource (e)
         local ids = e.ids and (' '..join(', ', map(e.ids, function(id) return id.str end))) or ''
         local itr = e.itr and (' in '..tosource(e.itr)) or ''
         return "loop" .. ids .. itr .. ' ' .. tosource_block(e.blk)
-    elseif e.tag == 'break' then
-        return "break"
     elseif e.tag == 'catch' then
         local esc = e.esc and (e.esc.str..' ') or ''
         local xf = e.cnd.f and (', '..tosource(e.cnd.f)) or ''
