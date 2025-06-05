@@ -69,12 +69,12 @@ function parser_spawn ()
     accept_err('spawn')
     if check('{') then
         -- spawn { ... }
-        return spawn(TK0.lin, parser_block())
+        local spw = spawn(TK0.lin, parser_block())
+        return spw, spw
     else
         -- spawn T(...) [in ...]
         local tk = TK0
         local cmd = { tag='acc', tk={tag='id', str='spawn', lin=TK0.lin} }
-        local call = parser()
         local ts; do
             if accept('[') then
                 ts = parser()
@@ -83,13 +83,16 @@ function parser_spawn ()
                 ts = { tag='nil', tk={tag='key',str='nil'} }
             end
         end
+        local call = parser_6_pip()
         if call.tag ~= 'call' then
             err(tk, "expected call")
         end
         table.insert(call.es, 1, ts)
         table.insert(call.es, 2, call.f)
         table.insert(call.es, 3, {tag='bool',tk={str='false'}})
-        return { tag='call', f=cmd, es=call.es }
+        local spw = { tag='call', f=cmd, es=call.es }
+        local out = parser_7_out(spw)
+        return out, spw
     end
 end
 
@@ -171,51 +174,24 @@ function parser_1_prim ()
             return { tag='es', tk=tk, es=es }
         end
 
-    -- coro, resume, yield
-    elseif check('coro') or check('yield') or check('resume') then
-        -- coro(f)
-        if accept('coro') then
-            local f = { tag='acc', tk={tag='id',str="coro",lin=TK0.lin} }
-            accept_err('(')
-            local e = parser()
-            accept_err(')')
-            return { tag='call', f=f, es={e} }
-        -- resume co(...)
-        elseif accept('resume') then
-            local tk = TK0
-            local cmd = { tag='acc', tk={tag='id', str='resume', lin=TK0.lin} }
-            local call = parser()
-            if call.tag ~= 'call' then
-                err(tk, "expected call")
-            end
-            table.insert(call.es, 1, call.f)
-            return { tag='call', f=cmd, es=call.es }
-        -- yield(...)
-        elseif accept('yield') then
-            local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
-            accept_err('(')
-            local es = parser_list(',', ')', parser)
-            accept_err(')')
-            return { tag='call', f=f, es=es }
-        else
-            error "bug found"
+    -- resume co(...)
+    elseif accept('resume') then
+        local tk = TK0
+        local cmd = { tag='acc', tk={tag='id', str='resume', lin=TK0.lin} }
+        local call = parser_6_pip()
+        if call.tag ~= 'call' then
+            err(tk, "expected call")
         end
+        table.insert(call.es, 1, call.f)
+        return parser_7_out({ tag='call', f=cmd, es=call.es })
 
-    -- task, emit, await, spawn
-    elseif check('task') or check('emit') or check('await') or check('spawn') then
-        -- task(T)
-        if accept('task') then
-            local f = { tag='acc', tk={tag='id',str="task",lin=TK0.lin} }
-            accept_err('(')
-            local e = parser()
-            accept_err(')')
-            return { tag='call', f=f, es={e} }
+    -- emit, await, spawn
+    elseif check('emit') or check('await') or check('spawn') then
         -- emit [t] (...)
-        elseif accept('emit') then
-            local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
-            accept_err('(')
-            local es = parser_list(',', ')', parser)
-            accept_err(')')
+        -- emit [t] <- :X (...)
+        if accept('emit') then
+            local tk = TK0
+            local cmd = { tag='acc', tk={tag='id',str='emit',lin=TK0.lin} }
             local to; do
                 if accept('[') then
                     to = parser()
@@ -224,8 +200,13 @@ function parser_1_prim ()
                     to = { tag='nil', tk={tag='key',str='nil',lin=TK0.lin} }
                 end
             end
-            table.insert(es, 1, to)
-            return { tag='call', f=f, es=es }
+            --local call = parser_4_pre(parser_3_met(parser_2_suf(cmd)))
+            local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
+            if call.tag ~= 'call' then
+                err(tk, "expected call")
+            end
+            table.insert(call.es, 1, to)
+            return parser_7_out(call)
         -- await(...)
         elseif accept('await') then
             local lin = TK0.lin
@@ -235,14 +216,14 @@ function parser_1_prim ()
             return awt
         -- spawn {}, spawn T()
         elseif check('spawn') then
-            local spw = parser_spawn()
+            local out,spw = parser_spawn()
             if spw.es[1].tag == 'nil' then
                 -- force "pin" if no "in" target
                 local pin = {tag='key',str='pin'}
                 local id = { tag='id',str='_' }
-                spw = { tag='dcl', tk=pin, ids={id}, set=spw }
+                out = { tag='dcl', tk=pin, ids={id}, set=out }
             end
-            return spw
+            return out
         else
             error "bug found"
         end
@@ -284,13 +265,13 @@ function parser_1_prim ()
         if accept('=') then
             if check('spawn') then
                 local tk1 = TK1
-                local spw = parser_spawn()
+                local out,spw = parser_spawn()
                 if tk.str=='pin' and spw.es[1].tag~='nil' then
                     err(tk1, "invalid spawn in : unexpected pin declaraion")
                 elseif tk.str~='pin' and spw.es[1].tag=='nil' then
                     err(tk1, "invalid spawn : expected pin declaraion")
                 end
-                set = spw
+                set = out
             elseif accept('tasks') then
                 if tk.str ~= 'pin' then
                     err(TK0, "invalid tasks : expected pin declaraion")

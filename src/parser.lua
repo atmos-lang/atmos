@@ -114,7 +114,8 @@ end
 
 -------------------------------------------------------------------------------
 
--- 6_out : v --> f     f <-- v    v where {...}    v thus {...}
+-- 7_out : v where {...}    v thus {...}
+-- 6_pip : v --> f     f <-- v
 -- 5_bin : a + b
 -- 4_pre : -a
 -- 3_met : v->f    f<-v
@@ -217,10 +218,10 @@ function parser_3_met (pre)
     end
 end
 
-function parser_4_pre ()
+function parser_4_pre (pre)
     local ok = check(nil,'op') and contains(OPS.unos, TK1.str)
     if not ok then
-        return parser_3_met()
+        return parser_3_met(pre)
     end
     local op = accept_err(nil,'op')
     local e = parser_4_pre()
@@ -241,15 +242,15 @@ function parser_5_bin (pre)
     return parser_5_bin { tag='bin', op=op, e1=e1, e2=e2 }
 end
 
-function parser_6_out (pre)
+function parser_6_pip (pre)
     local e = pre or parser_5_bin()
     local ok = (TK0.lin==TK1.lin)
     if not ok then
         return e
     end
 
-    local op = check('-->') or check('<--') or check('where')
-    if pre and op and pre.op.str~=op.str then
+    local op = check('-->') or check('<--')
+    if pre and op and pre.op and pre.op.str~=op.str then
         err(op, "operation error : use parentheses to disambiguate")
     end
 
@@ -258,12 +259,34 @@ function parser_6_out (pre)
         ret = pipe(parser_5_bin(), e, true)
     elseif accept('<--') then
         -- right to left
-        local pre = parser_6_out()
+        local pre = parser_6_pip()
         if pre.op and pre.op.str ~= '<--' then
             err(pre.op, "operation error : use parentheses to disambiguate")
         end
         return pipe(e, pre, false)
-    elseif accept('where') then
+    else
+        -- nothing consumed, not an out
+        return e
+    end
+
+    ret.op = op
+    return parser_6_pip(ret)
+end
+
+function parser_7_out (pre)
+    local e = pre or parser_6_pip()
+    local ok = (TK0.lin==TK1.lin)
+    if not ok then
+        return e
+    end
+
+    local op = check('where')
+    if pre and op and pre.op and pre.op.str~=op.str then
+        err(op, "operation error : use parentheses to disambiguate")
+    end
+
+    local ret
+    if accept('where') then
         accept_err("{")
         local ss = parser_list(nil, '}',
             function ()
@@ -293,7 +316,7 @@ function parser_6_out (pre)
     end
 
     ret.op = op
-    return parser_6_out(ret)
+    return parser_7_out(ret)
 end
 
-parser = parser_6_out
+parser = parser_7_out

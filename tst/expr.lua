@@ -825,16 +825,31 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'where' : operation error : use parentheses to disambiguate")
+    --local ok, msg = pcall(parser)
+    --assertx(msg, "anon : line 1 : near 'where' : operation error : use parentheses to disambiguate")
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(e)), trim [[
+        func () {
+            f((10 + 1))
+        }()
+    ]])
 
     local src = "10+1 <-- f where { }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'where' : operation error : use parentheses to disambiguate")
+    --local ok, msg = pcall(parser)
+    --assertx(msg, "anon : line 1 : near 'where' : operation error : use parentheses to disambiguate")
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(e)), trim [[
+        func () {
+            (10 + 1)(f)
+        }()
+    ]])
+
 
     local src = "(10+1 <-- f) where { }"
     print("Testing...", src)
@@ -878,7 +893,12 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    warn(false, "spawn vs where")
+    assertx(trim(tosource(e)), trim [[
+        pin _ = func () {
+            val v = 10
+            spawn(nil, T, false, v)
+        }()
+    ]])
 end
 
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME / PUB
@@ -928,14 +948,14 @@ do
     assert(check('<eof>'))
     assert(tosource(e) == "emit(nil, :X, 10)")
 
-    local src = "emit(:X,10) in x"
+    local src = "emit [xs] (:X,10)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == "emit(x, :X, 10)")
+    assertx(tosource(e), "emit(xs, :X, 10)")
 
     local src = "resume co()"
     print("Testing...", src)
@@ -945,6 +965,15 @@ do
     local e = parser()
     assert(check('<eof>'))
     assert(tosource(e) == "resume(co)")
+
+    local src = "resume co(x) <- y"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assert(tosource(e) == "resume(co, x, y)")
 
     local src = "spawn T(1,2,3)"
     print("Testing...", src)

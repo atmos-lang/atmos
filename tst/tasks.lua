@@ -977,7 +977,7 @@ do
             }
         }
         spawn T ()
-        emit(:t @{2})
+        emit <- :t @{2}
         print(:ok)
     ]]
     print("Testing...", "payload 1")
@@ -1101,7 +1101,7 @@ do
                 set evt = await(true)
             }
         }
-        emit(:T @{})
+        emit <- :T @{}
     ]]
     print("Testing...", "payload 7")
     local out = exec_string("anon.atm", src)
