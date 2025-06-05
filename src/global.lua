@@ -14,7 +14,7 @@ end
 KEYS = {
     'await', 'break', 'catch', 'coro', 'defer', 'do', 'else', 'emit', 'escape',
     'every', 'false', 'func', 'if', 'ifs', 'in', 'loop', 'match', 'nil', 'par',
-    'par_and', 'par_or', 'pin', 'resume', 'return', 'set', 'spawn', 'task',
+    'par_and', 'par_or', 'pin', 'resume', --[['return',]] 'set', 'spawn', 'task',
     'tasks', 'test', 'throw', 'true', 'until', 'val', 'var', 'yield',
     'watching', 'with', 'where', 'while',
 }

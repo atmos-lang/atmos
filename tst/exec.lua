@@ -262,7 +262,7 @@ do
     local src = [[
         val f = func (x, y) {
             print(:1)
-            return(x, y)
+            return <- (x, y)
             print(:2)
         }
         print(f(10,20))
@@ -453,7 +453,7 @@ do
 
     local src = [[
         print(:1)
-        loop x in (func () { return(nil) }) {
+        loop x in (func () { return<-nil }) {
             print(x)
         }
         print(:2)
@@ -746,7 +746,7 @@ do
             val b = yield(10)
             val c = yield()
             print(a, b, c)
-            return(20)
+            return <-- 20
             ;;20
         }
         val f = coro(F)
@@ -1369,14 +1369,14 @@ do
     local src = [[
         val f = func (x) {
             return (func (y) {
-                return(x+nil)
+                return (x+nil)
             })
         }
         print(f(10)(20))
     ]]
     print("Testing...", "func 4")
     local out = exec_string("anon.atm", src)
-    assert(out == "anon.atm : line 3 : attempt to perform arithmetic on a nil value\n")
+    assertx(out, "anon.atm : line 3 : attempt to perform arithmetic on a nil value\n")
 
     local src = [[ error("hello") ]]
     print("Testing...", src)

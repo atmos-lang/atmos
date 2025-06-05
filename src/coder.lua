@@ -49,6 +49,8 @@ function coder (e)
     elseif e.tag == 'acc' then
         if e.tk.str == 'pub' then
             return L(e.tk) .. "atm_me(true).pub"
+        elseif e.tk.str == 'return' then
+            return L(e.tk) .. "atm_return"
         else
             return L(e.tk) .. tosource(e)
         end
@@ -106,8 +108,6 @@ function coder (e)
                 " end" ..
             ")"
         )
-    elseif e.tag == 'return' then
-        return "error({up='func'," .. coder_args(e.es) .. "}, 0)"
     elseif e.tag == 'parens' then
         return L(e.tk) .. '(' .. coder(e.e) .. ')'
     elseif e.tag == 'es' then

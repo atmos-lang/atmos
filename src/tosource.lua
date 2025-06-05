@@ -55,8 +55,6 @@ function tosource (e)
             end
         end
         return "func (" .. pars .. dots .. ") " .. tosource_block(e.blk)
-    elseif e.tag == 'return' then
-        return "return(" .. tosource_args(e.es) .. ")"
     elseif e.tag == 'escape' then
         return "escape(" .. tosource_args(e.es) .. ")"
 
