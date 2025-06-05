@@ -55,8 +55,6 @@ function tosource (e)
             end
         end
         return "func (" .. pars .. dots .. ") " .. tosource_block(e.blk)
-    elseif e.tag == 'escape' then
-        return "escape(" .. tosource_args(e.es) .. ")"
 
     elseif e.tag == 'dcl' then
         local f = function (se)
@@ -102,8 +100,6 @@ function tosource (e)
         local esc = e.esc and (e.esc.str..' ') or ''
         local xf = e.cnd.f and (', '..tosource(e.cnd.f)) or ''
         return "catch " .. tosource(e.cnd.e) .. xf .. " " .. tosource_block(e.blk)
-    elseif e.tag == 'throw' then
-        return 'throw(' .. tosource_args(e.es) .. ')'
     else
         print(e.tag)
         error("TODO")

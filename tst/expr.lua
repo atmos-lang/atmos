@@ -92,16 +92,16 @@ end
 print '--- STRING / NATIVE ---'
 
 do
-    local src = ":x :1._"
+    local src = ":x\n:1._"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e1 = parser()
-    assert(stringify(e1) == "{tag=tag, tk={lin=1, str=:x, tag=tag}}")
+    assertx(stringify(e1), "{tag=tag, tk={lin=1, str=:x, tag=tag}}")
     local e2 = parser()
     assert(check('<eof>'))
-    assert(stringify(e2) == "{tag=tag, tk={lin=1, str=:1._, tag=tag}}")
+    assertx(stringify(e2), "{tag=tag, tk={lin=2, str=:1._, tag=tag}}")
 
     local src = "'xxx'\n'''1\n2\n'''"
     print("Testing...", "string 1")
@@ -584,7 +584,23 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(stringify(e), "{es={{tag=tag, tk={lin=1, str=:X, tag=tag}}}, tag=throw}")
+    assertx(stringify(e), "{es={{tag=tag, tk={lin=1, str=:X, tag=tag}}}, f={tag=acc, tk={lin=1, str=throw, tag=id}}, tag=call}")
+
+    local src = ":X -> throw"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(stringify(e), "{es={{tag=tag, tk={lin=1, str=:X, tag=tag}}}, f={tag=acc, tk={lin=1, str=throw, tag=id}}, tag=call}")
+
+    local src = ":X -> escape"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(stringify(e), "{es={{tag=tag, tk={lin=1, str=:X, tag=tag}}}, f={tag=acc, tk={lin=1, str=escape, tag=id}}, tag=call}")
 
     local src = "func (it) {}"
     print("Testing...", src)

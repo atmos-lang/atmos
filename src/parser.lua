@@ -143,26 +143,36 @@ function parser_2_suf (pre)
     local tk0 = TK0
     local ret
     if e.tag=='tag' and (check'(' or check'@{' or check'#{') then
+        -- (:X) @{...}
         local t = parser()
         local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
         ret = { tag='call', f=f, es={e,t} }
     elseif accept('(') then
+        -- (f) (...)
         local es = parser_list(',', ')', parser)
         accept_err(')')
         ret = { tag='call', f=e, es=es }
     elseif check('@{') or check('#{') or check(nil,'str') then
+        -- (f) @{...}
         local v = parser_1_prim()
         ret = { tag='call', f=e, es={v} }
+    elseif check(nil,'tag') then
+        -- (f) :X ...
+        local v = parser()
+        ret = { tag='call', f=e, es={v} }
     elseif accept('[') then
+        -- (t) [...]
         local idx = parser()
         accept_err(']')
         ret = { tag='index', t=e, idx=idx }
     elseif accept('.') then
+        -- (t) .id
         local id = accept_err(nil,'id')
         id = { tag='tag', str=':'..id.str }
         local idx = { tag='tag', tk=id }
         ret = { tag='index', t=e, idx=idx }
     elseif accept('::') then
+        -- (o) ::m
         local id = accept_err(nil,'id')
         if TK1.str == '(' then
         elseif tk0.str=='->' or tk0.str=='-->' then

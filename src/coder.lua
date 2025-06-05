@@ -143,8 +143,6 @@ function coder (e)
         end
     elseif e.tag == 'block' then
         return coder_stmts(e.es)
-    elseif e.tag == 'escape' then
-        return "error({up='do', " .. coder_args(e.es) .. "}, 0)"
     elseif e.tag == 'defer' then
         local n = N()
         local def = "atm_"..n
@@ -197,8 +195,6 @@ function coder (e)
                 "function () " .. coder(e.blk) .. " end" ..
             ")"
         )
-    elseif e.tag == 'throw' then
-        return "error({up='catch', " .. coder_args(e.es) .. "}, 0)"
 
     else
         --print(e.tag)

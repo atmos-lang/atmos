@@ -325,29 +325,8 @@ function parser_1_prim ()
         local src = parser()
         return { tag='set', dsts=dsts, src=src }
 
-    -- do, escape, defer
-    -- catch, throw
-    elseif check('do') or check('escape') or check('catch') or check('throw') or check('defer') then
-        local function tag_args (err)
-            local es; do
-                if check(nil,'tag') then
-                    local tk = TK1
-                    local e = parser()
-                    if e.tag~='call' or e.f.tag~='acc' or e.f.tk.str~="atm_tag_do" then
-                        err(tk, "invalid escape : expected tag constructor")
-                    end
-                    return { e }
-                else
-                    accept_err('(')
-                    if err then
-                        check_err(nil, 'tag')
-                    end
-                    local es = parser_list(',', ')', parser)
-                    accept_err(')')
-                    return es
-                end
-            end
-        end
+    -- do, defer, catch
+    elseif check('do') or check('catch') or check('defer') then
         -- do :X {...}
         if accept('do') then
             local tag = accept(nil, 'tag')
@@ -367,14 +346,6 @@ function parser_1_prim ()
             end
             local blk = parser_block()
             return { tag='catch', cnd={e=xe,f=xf}, blk=blk }
-        -- escape :X()
-        elseif accept('escape') then
-            local es = tag_args(true)
-            return { tag='escape', es=es }
-        -- throw(err)
-        elseif accept('throw') then
-            local es = tag_args()
-            return { tag='throw', es=es }
         -- defer {...}
         elseif accept('defer') then
             local blk = parser_block()

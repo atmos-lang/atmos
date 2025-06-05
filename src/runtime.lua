@@ -448,6 +448,14 @@ function atm_return (...)
     return error({up='func',...}, 0)
 end
 
+function escape (...)
+    return error({up='do',...}, 0)
+end
+
+function throw (...)
+    return error({up='catch',...}, 0)
+end
+
 -------------------------------------------------------------------------------
 -- AWAIT
 -------------------------------------------------------------------------------
