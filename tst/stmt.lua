@@ -567,7 +567,7 @@ end
 -- TASK / TASKS
 
 do
-    local src = "spawn X() in ts"
+    local src = "spawn [ts] X()"
     print("Testing...", src)
     lexer_init("anon", src)
     lexer_next()

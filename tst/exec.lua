@@ -856,7 +856,7 @@ do
     assertx(out, "1\t1\n2\t2\n")
 
     local src = [[
-        emit(:1) in false
+        emit [false] (:1)
         nil
     ]]
     print("Testing...", "emit 1")
@@ -1042,7 +1042,7 @@ do
             print(:in)
         }
         pin ts = tasks()
-        spawn T() in ts
+        spawn [ts] T()
         print(:out)
     ]]
     print("Testing...", "tasks 3")
@@ -1054,8 +1054,8 @@ do
             print(:ok)
         }
         pin ts = tasks(2)
-        spawn T() in ts
-        spawn T() in ts
+        spawn [ts] T()
+        spawn [ts] T()
     ]]
     print("Testing...", "tasks 4")
     local out = exec_string("anon.atm", src)
@@ -1067,8 +1067,8 @@ do
             await(true)
         }
         pin ts = tasks()
-        spawn T(1) in ts
-        spawn T(2) in ts
+        spawn [ts] T(1)
+        spawn [ts] T(2)
         print(1)
     ]]
     print("Testing...", "tasks 5")
@@ -1084,8 +1084,8 @@ do
             await(true)
         }
         pin ts = tasks()
-        spawn T(1) in ts
-        spawn T(2) in ts
+        spawn [ts] T(1)
+        spawn [ts] T(2)
         print(0)
     ]]
     print("Testing...", "tasks 6")
@@ -1101,7 +1101,7 @@ do
                 val vx = await(true)
                 print(vx)
             }
-            spawn T(1) in ts
+            spawn [ts] T(1)
         }
         emit(:2)
     ]]
@@ -1118,7 +1118,7 @@ do
                 val vx = await(true)
                 print(vx)
             }
-            spawn T(1) in ts
+            spawn [ts] T(1)
         }
         emit(:2)
     ]]
@@ -1130,8 +1130,8 @@ do
         val T = func () {
         }
         pin ts = tasks(1)
-        val ok1 = spawn T() in ts
-        val ok2 = spawn T() in ts
+        val ok1 = spawn [ts] T()
+        val ok2 = spawn [ts] T()
         print(type(ok1)=='table', type(ok2)=='table')
     ]]
     print("Testing...", "tasks 9: max")
@@ -1143,8 +1143,8 @@ do
             await(true)
         }
         pin ts = tasks(1)
-        val ok1 = spawn T() in ts
-        val ok2 = spawn T() in ts
+        val ok1 = spawn [ts] T()
+        val ok2 = spawn [ts] T()
         print(type(ok1)=='table', ok2)
     ]]
     print("Testing...", "tasks 10: max")
@@ -1156,8 +1156,8 @@ do
             await(true)
         }
         pin ts = tasks()
-        spawn T() in ts
-        spawn T() in ts
+        spawn [ts] T()
+        spawn [ts] T()
         loop t in ts {
             print(t ?? :task)
         }

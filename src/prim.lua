@@ -76,8 +76,9 @@ function parser_spawn ()
         local cmd = { tag='acc', tk={tag='id', str='spawn', lin=TK0.lin} }
         local call = parser()
         local ts; do
-            if accept('in') then
+            if accept('[') then
                 ts = parser()
+                accept_err(']')
             else
                 ts = { tag='nil', tk={tag='key',str='nil'} }
             end
@@ -209,15 +210,16 @@ function parser_1_prim ()
             local e = parser()
             accept_err(')')
             return { tag='call', f=f, es={e} }
-        -- emit(...) in t
+        -- emit [t] (...)
         elseif accept('emit') then
             local f = { tag='acc', tk={tag='id',str=TK0.str,lin=TK0.lin} }
             accept_err('(')
             local es = parser_list(',', ')', parser)
             accept_err(')')
             local to; do
-                if accept('in') then
+                if accept('[') then
                     to = parser()
+                    accept_err(']')
                 else
                     to = { tag='nil', tk={tag='key',str='nil',lin=TK0.lin} }
                 end
