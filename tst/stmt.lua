@@ -331,7 +331,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{cases={{{tag=acc, tk={lin=1, str=cnd, tag=id}}, {es={}, tag=block}}, {true, {es={{ids={{lin=1, str=f, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}}}, tag=ifs}")
+    assertx(stringify(s), "{cases={{{tag=acc, tk={lin=1, str=cnd, tag=id}}, {es={}, tag=block}}, {else, {es={{ids={{lin=1, str=f, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}}}, tag=ifs}")
 
     local src = "if true { }"
     print("Testing...", src)

@@ -61,13 +61,13 @@ function coder (e)
     elseif e.tag == 'index' then
         return '(' .. coder(e.t) .. ")[atm_idx(" .. coder(e.t) ..','..coder(e.idx) .. ')]'
     elseif e.tag == 'table' then
-        local vs = join(", ", map(e.vs, function (t)
+        local es = join(", ", map(e.es, function (t)
             return '['..coder(t.k)..'] = '..coder(t.v)
         end))
-        return '{' .. vs .. '}'
+        return '{' .. es .. '}'
     elseif e.tag == 'vector' then
-        local vs = coder_args(e.vs)
-        return "{ tag='vector', " .. vs .. '}'
+        local es = coder_args(e.es)
+        return "{ tag='vector', " .. es .. '}'
     elseif e.tag == 'uno' then
         return '('..(OPS.lua[e.op.str] or e.op.str)..' '..coder(e.e)..')'
     elseif e.tag == 'bin' then
@@ -157,7 +157,7 @@ function coder (e)
     elseif e.tag == 'ifs' then
         local function f (case)
             local cnd,e = table.unpack(case)
-            if cnd == true then
+            if cnd == 'else' then
                 cnd = "true"
             else
                 cnd = coder(cnd)

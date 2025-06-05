@@ -24,12 +24,12 @@ function tosource (e)
     elseif e.tag == 'index' then
         return tosource(e.t)..'['..tosource(e.idx)..']'
     elseif e.tag == 'table' then
-        local vs = join(", ", map(e.vs, function (t)
+        local es = join(", ", map(e.es, function (t)
             return '['..tosource(t.k)..']='..tosource(t.v)
         end))
-        return '@{' .. vs .. '}'
+        return '@{' .. es .. '}'
     elseif e.tag == 'vector' then
-        return '#{' .. tosource_args(e.vs) .. '}'
+        return '#{' .. tosource_args(e.es) .. '}'
     elseif e.tag == 'es' then
         return '(' .. tosource_args(e.es) .. ')'
     elseif e.tag == 'parens' then
@@ -77,13 +77,11 @@ function tosource (e)
         return "defer " .. tosource_block(e.blk)
     elseif e.tag == 'ifs' then
         local function f (t,i)
-            local cnd, e = table.unpack(t)
-            if cnd == true then
-                cnd = "else"
-            else
+            local cnd, x = table.unpack(t)
+            if cnd ~= "else" then
                 cnd = tosource(cnd)
             end
-            return cnd .. " => " .. tosource(e) .. '\n'
+            return cnd .. " => " .. tosource(x) .. '\n'
         end
         local head = ' '
         if e.head then

@@ -15,7 +15,7 @@ function parser_await (lin)
             clk[4] = f(clk[4], 1)
         end
 
-        local vs = map(clk, f)
+        local es = map(clk, f)
         local sum = {
             tag = 'bin',
             op  = {str='+'},
@@ -129,7 +129,7 @@ function parser_1_prim ()
     -- table: @{...}
     elseif accept('@{') then
         local idx = 1
-        local vs = parser_list(',', '}', function ()
+        local es = parser_list(',', '}', function ()
             local key
             if accept('[') then
                 key = parser()
@@ -151,13 +151,13 @@ function parser_1_prim ()
             return { k=key, v=val }
         end)
         accept_err('}')
-        return { tag='table', vs=vs }
+        return { tag='table', es=es }
 
     -- vector: #{...}
     elseif accept('#{') then
-        local vs = parser_list(',', '}', parser)
+        local es = parser_list(',', '}', parser)
         accept_err('}')
-        return { tag='vector', vs=vs }
+        return { tag='vector', es=es }
 
     -- parens: (...)
     elseif accept('(') then
@@ -364,13 +364,13 @@ function parser_1_prim ()
             if check('{') then
                 cases[#cases+1] = { cnd, parser_block() }
                 if accept('else') then
-                    cases[#cases+1] = { true, parser_block() }
+                    cases[#cases+1] = { 'else', parser_block() }
                 end
             else
                 accept_err('=>')
                 cases[#cases+1] = { cnd, {tag='block', es={parser()}} }
                 accept_err('=>')
-                cases[#cases+1] = { true, {tag='block', es={parser()}} }
+                cases[#cases+1] = { 'else', {tag='block', es={parser()}} }
             end
             return { tag='ifs', cases=cases }
         -- ifs { x => a ; y => b ; else => c }
@@ -382,7 +382,7 @@ function parser_1_prim ()
                 local cnd; do
                     if accept('else') then
                         brk = true
-                        cnd = true
+                        cnd = 'else'
                     else
                         cnd = parser()
                     end
@@ -412,7 +412,7 @@ function parser_1_prim ()
                 local cnd; do
                     if accept('else') then
                         brk = true
-                        cmp = true
+                        cmp = 'else'
                     else
                         cmp = parser()
                     end
@@ -523,7 +523,7 @@ function parser_1_prim ()
             local ss1 = map(sss,f1)
             local ss2 = map(sss,f2)
             local ss3 = {
-                { tag='table', vs=map(sss,f3) },
+                { tag='table', es=map(sss,f3) },
             }
             return { tag='do', blk={tag='block', es=concat(ss1,ss2,ss3)} }
         -- par_or

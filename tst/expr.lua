@@ -139,7 +139,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(stringify(e), "{tag=table, vs={{k={tag=num, tk={str=1, tag=num}}, v={tag=acc, tk={lin=1, str=a, tag=id}}}}}")
+    assertx(stringify(e), "{es={{k={tag=num, tk={str=1, tag=num}}, v={tag=acc, tk={lin=1, str=a, tag=id}}}}, tag=table}")
 
     local src = "@{:x=10}"
     print("Testing...", src)
