@@ -411,12 +411,9 @@ local function atm_task_awake_check (t, a, b)
         -- never awakes
         return false
     elseif t.await.e==true or atm_is(a,t.await.e) then
-        if t.await.f==nil or atm_call(t.await.f, b or a) then
-            -- a=:X, b={...}, choose b
-            return true
-        else
-            return false
-        end
+        return true
+    else
+        return false
     end
 end
 
@@ -495,13 +492,22 @@ function yield (...)
 end
 
 local function _aux_ (err, a, b, ...)
-    a = (atm_tag_is(a,'task') and a.ret) or a
+    local me = assert(atm_me())
     if err then
         error(a, 0)
-    elseif b then
-        return a, b, ...
     else
-        return a    -- avoids repetition of a/b or a/nil
+        -- must call t.await.f here (vs atm_task_awake_check) bc of atm_me
+        -- a=:X, b={...}, choose b over a, me.await.f(b)
+        if me.await.f==nil or atm_call(me.await.f, b or a) then
+            b = (atm_tag_is(b,'task') and b.ret) or b
+            if b then
+                return b, a, ...
+            else
+                return a    -- avoids repetition of a/b or a/nil
+            end
+        else
+            return _aux_(coroutine.yield())
+        end
     end
 end
 
@@ -588,13 +594,13 @@ function atm_task_gc (t)
     end
 end
 
-local function femit (t, a, b, ...)
+local function femit (t, ...)
     local ok, err = true, nil
 
     t.ing = t.ing + 1
     for _, dn in ipairs(t.dns) do
         --f(dn, ...)
-        ok, err = pcall(femit, dn, a, b, ...)
+        ok, err = pcall(femit, dn, ...)
         if not ok then
             --[[
             if dn.status == 'aborted' then
@@ -616,9 +622,8 @@ local function femit (t, a, b, ...)
                 assertn(0, ok, err)
             end
         else
-            if atm_task_awake_check(t,a,b) then
-                -- a=:X, b={...}, choose b on resume(t,b)
-                atm_task_resume_result(t, resume(t.co, nil, b or a, b and a or nil, ...))
+            if atm_task_awake_check(t,...) then
+                atm_task_resume_result(t, resume(t.co, nil, ...))
             end
         end
     else

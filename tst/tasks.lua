@@ -1394,6 +1394,26 @@ do
     print("Testing...", "pub 5")
     local out = exec_string("anon.atm", src)
     assertx(out, "{}\n")
+
+    local src = [[
+        print(pub)
+    ]]
+    print("Testing...", "pub 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 1 : invalid pub : expected enclosing task\n")
+
+    local src = [[
+        val T = func () {
+            set pub = 10
+            await(:X, evt==pub)
+            print(pub)
+        }
+        pin t = spawn T()
+        emit(:X, 10)
+    ]]
+    print("Testing...", "pub 7")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
 end
 
 print '--- NESTED ---'
