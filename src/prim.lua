@@ -559,7 +559,7 @@ function parser_1_prim ()
             local es = parser_block()
             local spw = {
                 tag = 'dcl',
-                tk  = { tag='key', str='val' },
+                tk  = { tag='key', str='pin' },
                 ids = { {tag='id', str='_'} },
                 set = spawn(lin,es),
             }

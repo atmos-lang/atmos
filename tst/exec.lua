@@ -1025,6 +1025,23 @@ do
     print("Testing...", "task - throw")
     local out = exec_string("anon.atm", src)
     warnx(out, "ok\n")  -- TODO: call stack
+
+    local src = [[
+        spawn {
+            loop {
+                pin t = spawn {
+                    await(:X)
+                    print(:in)
+                }
+                await(t)
+            }
+        }
+        emit :X
+        print :out
+    ]]
+    print("Testing...", "task abort loop")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "in\nout\n")
 end
 
 print '--- TASKS ---'
@@ -1190,6 +1207,55 @@ do
     print("Testing...", "tasks 12: fake")
     local out = exec_string("anon.atm", src)
     assertx(out, "10\n20\n20\n")
+
+    local src = [[
+        spawn {
+            watching :X {
+                defer {
+                    print:defer
+                }
+                await(false)
+            }
+            print:abort
+        }
+        print:antes
+        emit :X
+        print:depois
+    ]]
+    print("Testing...", "tasks 13: abort")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "antes\ndefer\nabort\ndepois\n")
+
+    local src = [[
+        val T = func (i) {
+            every :X {
+                print(:X, i)
+            }
+        }
+        spawn {
+            var i = 1
+            loop {
+                watching :Y {
+                    pin ts = tasks()
+                    do {
+                        spawn [ts] T(i)
+                        spawn [ts] T(i+1)
+                    }
+                    print '---'
+                    emit(:X)
+                    await(false)
+                }
+                set i = i + 8
+            }
+        }
+        print '==='
+        emit :Y
+        emit :X
+        print :ok
+    ]]
+    print("Testing...", "tasks 13: abort")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "X\nX\nok\n")
 end
 
 print '--- AWAIT / TASK ---'

@@ -594,7 +594,8 @@ local function femit (t, ...)
     local ok, err = true, nil
 
     t.ing = t.ing + 1
-    for _, dn in ipairs(t.dns) do
+    for i=1, #t.dns do
+        local dn = t.dns[i]
         --f(dn, ...)
         ok, err = pcall(femit, dn, ...)
         if not ok then
