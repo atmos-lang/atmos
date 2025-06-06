@@ -1,5 +1,15 @@
 resume = coroutine.resume
 
+function assertn (n, cnd, err)
+    if n > 0 then
+        n = n + 1
+    end
+    if not cnd then
+        error(err, n)
+    end
+    return cnd
+end
+
 function coro (f)
     if atm_tag_is(f,'func') then
         return { tag='coro', th=coroutine.create(f.func) }
@@ -48,9 +58,7 @@ function atm_tag_is (t, a, b)
 end
 
 function atm_tag_do (tag, t)
-    if type(t) ~= 'table' then
-        error('invalid tag operation : expected table', 2)
-    end
+    assertn(2, type(t)=='table', 'invalid tag operation : expected table', 2)
     t.tag = tag
     return t
 end
@@ -186,9 +194,7 @@ end
 function atm_cat (v1, v2)
     local t1 = type(v1)
     local t2 = type(v2)
-    if t1 ~= t2 then
-        error('invalid ++ : incompatible types', 2)
-    end
+    assertn(2, t1==t2, 'invalid ++ : incompatible types', 2)
     if t1 == 'string' then
         return v1 .. v2
     elseif t1 == 'table' then
@@ -331,9 +337,7 @@ local meta = { __close=close }
 
 function tasks (max)
     local n = max and tonumber(max) or nil
-    if max and (not n) then
-        error('invalid tasks limit : expected number', 2)
-    end
+    assertn(2, (not max) or n, 'invalid tasks limit : expected number')
     local up = atm_me() or TASKS
     local ts = {
         tag = 'tasks',
@@ -422,11 +426,8 @@ function spawn (up, t, fake, ...)
             return spawn(up, t, fake, ...)
         end
     end
-    if atm_tag_is(t,'task') and t.co.th then
-        -- ok
-    else
-        error('invalid spawn : expected task prototype', 2)
-    end
+    assertn(2, atm_tag_is(t,'task') and t.co.th,
+        'invalid spawn : expected task prototype')
 
     up = up or atm_me() or TASKS
     if up.max and #up.dns>=up.max then
@@ -486,9 +487,7 @@ end
 ]]
 
 function yield (...)
-    if atm_me() then
-        error('invalid yield : unexpected enclosing task instance', 2)
-    end
+    assertn(2, not atm_me(), 'invalid yield : unexpected enclosing task instance')
     return coroutine.yield(...)
 end
 
@@ -505,9 +504,7 @@ end
 
 function await (e, f, ...)
     local t = atm_me()
-    if not t then
-        error('invalid await : expected enclosing task instance', 2)
-    end
+    assertn(2, t, 'invalid await : expected enclosing task instance', 2)
     local tsk = atm_tag_is(e, 'task')
     if tsk then
         if status(e)=='dead' then
@@ -565,9 +562,7 @@ local function fto (me, to)
         to = me or TASKS
         while n > 0 do
             to = to.up
-            if to == nil then
-                error('invalid emit : invalid target', 3)
-            end
+            assertn(3, to~=nil, 'invalid emit : invalid target')
             n = n - 1
         end
     elseif atm_tag_is(to,'task','tasks') then
@@ -615,9 +610,7 @@ local function femit (t, a, b, ...)
         if not ok then
             if status(t) ~= 'dead' then
                 local ok, err = resume(t.co, 'atm_error', err)
-                if not ok then
-                    error(err, 0)
-                end
+                assertn(0, ok, err)
             end
         else
             if atm_task_awake_check(t,a,b) then
@@ -627,18 +620,14 @@ local function femit (t, a, b, ...)
         end
     else
         assert(t.tag == 'tasks')
-        if not ok then
-            error(err, 0)
-        end
+        assertn(0, ok, err)
     end
 end
 
 function emit (to, e, ...)
     local ist = atm_tag_is(e)
     local tag = ist or e
-    if type(tag) ~= 'string' then
-        error('invalid emit : expected tag', 2)
-    end
+    assertn(2, type(tag)=='string', 'invalid emit : expected tag')
     local me = atm_me()
 
     if ist then
@@ -647,9 +636,7 @@ function emit (to, e, ...)
         femit(fto(me,to), e, ...)
     end
 
-    if me and me.status=='aborted' then
-        error('atm_aborted', 0)
-    end
+    assertn(0, (not me) or me.status~='aborted', 'atm_aborted')
 
     return ...
 end

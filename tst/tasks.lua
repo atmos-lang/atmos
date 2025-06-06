@@ -158,7 +158,7 @@ do
     local src = "spawn (nil)()"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assert(out == "anon.atm : line 1 : invalid spawn : expected task prototype\n")
+    assertx(out, "anon.atm : line 1 : invalid spawn : expected task prototype\n")
 
     local src = [[
         val T = func () { yield();nil }
