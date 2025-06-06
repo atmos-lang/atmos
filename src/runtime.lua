@@ -316,7 +316,6 @@ TASKS = {
     tag = 'tasks',
     max = nil,
     up  = nil,
-    i   = nil,
     dns = {},
     ing = 0,
     gc  = false,
@@ -346,7 +345,6 @@ function tasks (max)
         tag = 'tasks',
         max = n,
         up  = up,
-        i   = #up.dns+1,
         dns = {},
         ing = 0,
         gc  = false,
@@ -360,7 +358,6 @@ function task (f, fake)
     local t = {
         tag = 'task',
         co  = coro(f),
-        i   = nil,
         up  = nil,
         dns = {},
         fake = fake,
@@ -434,7 +431,6 @@ function spawn (up, t, fake, ...)
         return nil
     end
     up.dns[#up.dns+1] = t
-    t.i = #up.dns
     t.up = assert(t.up==nil and up)
 
     atm_task_resume_result(t, resume(t.co, ...))
@@ -588,7 +584,7 @@ function atm_task_gc (t)
         for i=#t.dns, 1, -1 do
             local s = t.dns[i]
             if s.tag=='task' and status(s)=='dead' then
-                table.remove(t.dns, s.i)
+                table.remove(t.dns, i)
             end
         end
     end
