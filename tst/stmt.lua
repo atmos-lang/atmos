@@ -294,6 +294,14 @@ do
     assert(not check('<eof>'))
     assert(TK1.str == ',')
 
+    local src = "set x, t[1] = 10, 20"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local _,msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '=' : invalid set : multiple assignment with index is not supported")
+
     local src = "val x, y = ((10, 20), 30)"
     print("Testing...", src)
     init()

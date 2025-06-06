@@ -59,7 +59,7 @@ function coder (e)
     elseif e.tag == 'nat' then
         return L(e.tk) .. e.tk.str
     elseif e.tag == 'index' then
-        return '(' .. coder(e.t) .. ")[atm_idx(" .. coder(e.t) ..','..coder(e.idx) .. ')]'
+        return "atm_idx(" .. coder(e.t) ..','..coder(e.idx) .. ')'
     elseif e.tag == 'table' then
         local es = join(", ", map(e.es, function (t)
             return '['..coder(t.k)..'] = '..coder(t.v)
@@ -132,7 +132,12 @@ function coder (e)
             return 'local ' .. ids .. mod .. set
         end
     elseif e.tag == 'set' then
-        return coder_args(e.dsts) .. ' = ' .. coder(e.src)
+        local x = e.dsts[1]
+        if x.tag == 'index' then
+            return "atm_idx(" .. coder(x.t) .. ',' .. coder(x.idx) .. ',' .. coder(e.src) .. ')'
+        else
+            return coder_args(e.dsts) .. ' = ' .. coder(e.src)
+        end
     elseif e.tag == 'do' then
         if e.esc then
             return (

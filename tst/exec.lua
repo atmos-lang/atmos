@@ -229,6 +229,15 @@ do
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assertx(out, "{10, tag=X}\n")
+
+    local src = [[
+        val t = #{}
+        set t[#t] = 10
+        print(t[0])
+    ]]
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\n")
 end
 
 -- CALL / FUNC / RETURN

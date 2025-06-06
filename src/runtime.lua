@@ -63,13 +63,16 @@ function atm_tag_do (tag, t)
     return t
 end
 
-function atm_idx (t, idx)
+function atm_idx (t, idx, ...)
     if type(idx) == 'number' then
         if atm_tag_is(t, 'vector') then
             idx = idx + 1
         end
     end
-    return idx
+    if select('#',...) > 0 then
+        t[idx] = ...
+    end
+    return t[idx]
 end
 
 function atm_call (f, ...)
