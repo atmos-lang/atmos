@@ -382,15 +382,6 @@ local function atm_task_resume_result (t, ok, err)
         error(err, 0)
     end
 
---[[
-    assert(resume(t.co, e, ...))
-    local ok, err = resume(t.co, e, ...)
-    if not ok then
-        -- TODO: close
-        return ok, {t=t,o=err}
-    end
-]]
-
     if status(t) == 'dead' then
         t.ret = err
         t.up.gc = true

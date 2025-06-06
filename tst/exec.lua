@@ -1241,7 +1241,6 @@ do
                         spawn [ts] T(i)
                         spawn [ts] T(i+1)
                     }
-                    print '---'
                     emit(:X)
                     await(false)
                 }
@@ -1250,12 +1249,13 @@ do
         }
         print '==='
         emit :Y
+        print '---'
         emit :X
         print :ok
     ]]
     print("Testing...", "tasks 13: abort")
     local out = exec_string("anon.atm", src)
-    assertx(out, "X\nX\nok\n")
+    assertx(out, "X\t1\nX\t2\n===\nX\t9\nX\t10\n---\nX\t9\nX\t10\nok\n")
 end
 
 print '--- AWAIT / TASK ---'
