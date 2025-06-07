@@ -550,6 +550,7 @@ function parser_1_prim ()
         -- watching
         elseif accept('watching') then
             local lin = TK0.lin
+            local n = N()
             local par = accept('(')
             local awt = parser_await(lin)
             if par then
@@ -557,14 +558,36 @@ function parser_1_prim ()
             end
             local lin = TK1.lin
             local es = parser_block()
-            local spw = {
-                tag = 'dcl',
-                tk  = { tag='key', str='pin' },
-                ids = { {tag='id', str='_'} },
-                set = spawn(lin,es),
+            return {
+                tag = 'do',
+                blk = {
+                    tag = 'block',
+                    es = {
+                        {
+                            tag = 'dcl',
+                            tk  = { tag='key', str='pin' },
+                            ids = { {tag='id', str='atm_grd_'..n} },
+                            set = spawn(lin,awt),
+                        },
+                        {
+                            tag = 'dcl',
+                            tk  = { tag='key', str='pin' },
+                            ids = { {tag='id', str='atm_blk_'..n} },
+                            set = spawn(lin,es),
+                        },
+                        {
+                            tag = 'call',
+                            f = { tag='acc', tk={tag='id',str='await'} },
+                            es = {
+                                { tag='tag', tk={str=':par_or'} },
+                                { tag='nil', tk={tag='key',str='nil'} },
+                                { tag='acc', tk={str='atm_grd_'..n} },
+                                { tag='acc', tk={str='atm_blk_'..n} },
+                            },
+                        },
+                    }
+                }
             }
-            return { tag='do', blk={tag='block', es={spw, awt}} }
-
         else
             error "bug found"
         end

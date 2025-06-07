@@ -3233,4 +3233,16 @@ do
     print("Testing...", "par_and 3: return")
     local out = exec_string("anon.atm", src)
     assertx(out, "{10, 20}\n")
+
+    local src = [[
+        spawn {
+            watching :X {
+                print :Y
+            }
+            print :X
+        }
+    ]]
+    print("Testing...", "watching 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "Y\nX\n")
 end
