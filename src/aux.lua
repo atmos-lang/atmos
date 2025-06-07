@@ -33,6 +33,17 @@ end
 function stringify (v)
     if type(v) ~= 'table' then
         return tostring(v)
+    elseif v.tag == 'vector' then
+        local vs = ""
+        local fst = true
+        for i=0, #v-1 do
+            local x = v[i]
+            if not fst then
+                vs = vs .. ', '
+            end
+            vs = vs .. stringify(x)
+        end
+        return "#{" .. vs .. "}"
     else
         local fst = true
         local vs = ""

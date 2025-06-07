@@ -63,17 +63,11 @@ function atm_tag_do (tag, t)
     return t
 end
 
-function atm_idx (t, idx, ...)
-    if type(idx) == 'number' then
-        if atm_tag_is(t, 'vector') then
-            idx = idx + 1
-        end
+atm_vector = {
+    __len = function (t)
+        return rawlen(t) + (t[0]~=nil and 1 or 0)
     end
-    if select('#',...) > 0 then
-        t[idx] = ...
-    end
-    return t[idx]
-end
+}
 
 function atm_call (f, ...)
     if not atm_tag_is(f,'func') then

@@ -294,24 +294,17 @@ function parser_1_prim ()
 
     -- set x = 10
     elseif accept('set') then
-        local has_idx = false
         local dsts = parser_list(',', '=', function ()
             local tk = TK1
             local e = parser()
             if e.tag=='acc' or e.tag=='index' or e.tag=='nat' then
                 -- ok
-                if e.tag == 'index' then
-                    has_idx = true
-                end
             else
                 err(tk, "expected assignable expression")
             end
             return e
         end)
         accept_err('=')
-        if has_idx and #dsts>1 then
-            err(TK0, "invalid set : multiple assignment with index is not supported")
-        end
         local src = parser()
         return { tag='set', dsts=dsts, src=src }
 

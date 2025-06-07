@@ -711,7 +711,7 @@ do
     ]]
     print("Testing...", "emit scope 7")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{1, tag=vector}\n")
+    assertx(out, "#{1}\n")
 
     local src = [[
         val f = func (v) {
@@ -933,7 +933,7 @@ do
     ]]
     print("Testing...", "alien 5")
     local out = exec_string("anon.atm", src)
-    assertx(out, "{10, tag=vector}\n")
+    assertx(out, "#{10}\n")
 
     local src = [=[
         var f = func (v) {  ;; *** v is no longer fleeting ***

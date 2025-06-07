@@ -205,7 +205,7 @@ do
     local src = "dump((#{#{1}})[(#{0})[0]])"
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assertx(out, "{1, tag=vector}\n")
+    assertx(out, "#{1}\n")
 
     local src = "dump(@{[:key]=:val})"
     print("Testing...", src)
@@ -232,12 +232,14 @@ do
 
     local src = [[
         val t = #{}
+        print(#t)
         set t[#t] = 10
         print(t[0])
+        print(#t)
     ]]
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
-    assertx(out, "10\n")
+    assertx(out, "0\n10\n1\n")
 end
 
 -- CALL / FUNC / RETURN
@@ -1457,4 +1459,13 @@ do
     print("Testing...", src)
     local out = exec_string("anon.atm", src)
     assert(out == "anon.atm : line 1 : hello\n")
+
+    local src = [[
+        spawn {
+            print(t.x)
+        }
+    ]]
+    print("Testing...", src)
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 2 : attempt to index a nil value (global 't')\n")
 end

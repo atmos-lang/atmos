@@ -9,7 +9,7 @@ local function L (tk)
     local ls = ''
     if tk and tk.lin then
         if tk.lin < _l_ then
-            return ls           -- TODO: workaround for watching
+            return ls           -- TODO: workaround for where (tasks.lua,every-where)
         end
         assert(tk.lin >= _l_)
         while tk.lin > _l_ do
@@ -60,7 +60,7 @@ function coder (e)
     elseif e.tag == 'nat' then
         return L(e.tk) .. e.tk.str
     elseif e.tag == 'index' then
-        return "atm_idx(" .. coder(e.t) ..','..coder(e.idx) .. ')'
+        return coder(e.t) ..'['..coder(e.idx) .. ']'
     elseif e.tag == 'table' then
         local es = join(", ", map(e.es, function (t)
             return '['..coder(t.k)..'] = '..coder(t.v)
@@ -68,7 +68,11 @@ function coder (e)
         return '{' .. es .. '}'
     elseif e.tag == 'vector' then
         local es = coder_args(e.es)
-        return "{ tag='vector', " .. es .. '}'
+        local pre = ''
+        if #es > 0 then
+            pre = '[0]='
+        end
+        return "setmetatable({ tag='vector', " .. pre..es .. "}, atm_vector)"
     elseif e.tag == 'uno' then
         return '('..(OPS.lua[e.op.str] or e.op.str)..' '..coder(e.e)..')'
     elseif e.tag == 'bin' then
@@ -133,12 +137,7 @@ function coder (e)
             return 'local ' .. ids .. mod .. set
         end
     elseif e.tag == 'set' then
-        local x = e.dsts[1]
-        if x.tag == 'index' then
-            return "atm_idx(" .. coder(x.t) .. ',' .. coder(x.idx) .. ',' .. coder(e.src) .. ')'
-        else
-            return coder_args(e.dsts) .. ' = ' .. coder(e.src)
-        end
+        return coder_args(e.dsts) .. ' = ' .. coder(e.src)
     elseif e.tag == 'do' then
         if e.esc then
             return (
