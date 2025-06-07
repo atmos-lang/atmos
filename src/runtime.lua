@@ -233,6 +233,16 @@ function atm_in (v, t)
     end
 end
 
+function inext (t, i)
+    i = i + 1
+    local v = t[i]
+    if v then
+        return i, v
+    else
+        return nil
+    end
+end
+
 function iter (t)
     if t == nil then
         return coroutine.wrap(function ()
@@ -278,19 +288,10 @@ function iter (t)
             )
             local close = setmetatable({}, {__close=function() coroutine.close(co) end})
             return wr, co, nil, close
-        elseif t[1] ~= nil then
-            -- TODO: check #vector, use len
-            return coroutine.wrap(function ()
-                for i,v in ipairs(t) do
-                    coroutine.yield(i-1,v)
-                end
-            end)
+        elseif t.tag == 'vector' then
+            return inext, t, -1
         else
-            return coroutine.wrap(function ()
-                for k,v in pairs(t) do
-                    coroutine.yield(k,v)
-                end
-            end)
+            return next, t, nil
         end
     else
         error("TODO - iter(t)")

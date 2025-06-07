@@ -474,13 +474,22 @@ do
     assertx(out, "1\n2\n")
 
     local src = [[
-        loop i,v in @{1,2,3} {
+        loop k,v in @{1,2,3} {
+            print(k,v)
+        }
+    ]]
+    print("Testing...", "loop 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "3\t3\n1\t1\n2\t2\n")
+
+    local src = [[
+        loop i,v in #{1,2,3} {
             print(i,v)
         }
     ]]
     print("Testing...", "loop 5")
     local out = exec_string("anon.atm", src)
-    assert(out == "0\t1\n1\t2\n2\t3\n")
+    assertx(out, "0\t1\n1\t2\n2\t3\n")
 
     local src = [[
         loop k,v in @{x=1,y=2} {
