@@ -398,7 +398,11 @@ local function atm_task_resume_result (t, ok, err)
         t.ret = err
         t.up.gc = true
         --if t.status ~= 'aborted' then
-            emit(t.up, 'task', t)
+            local up = t.up
+            while atm_is(up,'tasks') do
+                up = up.up
+            end
+            emit(up, 'task', t)
         --end
     end
 end

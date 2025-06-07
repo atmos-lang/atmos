@@ -3008,6 +3008,25 @@ do
     print("Testing...", "tasks 22")
     local out = exec_string("anon.atm", src)
     assertx(out, "0\n")
+
+    local src = [[
+        func T () {
+            await(true)
+        }
+        pin ts = tasks()
+        spawn [ts] T()
+        spawn {
+            val x = loop t in ts {
+                break(t)
+            }
+            await(x)
+            print :ok
+        }
+        emit(:X)
+    ]]
+    print("Testing...", "tasks 23: awake t.up.up")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "ok\n")
 end
 
 print '--- EVERY ---'
