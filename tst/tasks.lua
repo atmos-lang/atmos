@@ -2991,6 +2991,23 @@ do
     print("Testing...", "tasks 21")
     local out = exec_string("anon.atm", src)
     assertx(out, "t\t1\nnil\nt\t2\nnil\nt\t1\n")
+
+    local src = [[
+        func T () {
+            await(true)
+        }
+        pin ts = tasks()
+        spawn [ts] T()
+        spawn {
+            loop _ in ts {
+                break()
+            }
+        }
+        print(ts.ing)
+    ]]
+    print("Testing...", "tasks 22")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "0\n")
 end
 
 print '--- EVERY ---'

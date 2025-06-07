@@ -240,50 +240,67 @@ function atm_in (v, t)
 end
 
 function iter (t)
-    local f
     if t == nil then
-        f = function ()
+        return coroutine.wrap(function ()
             local i = 0
             while true do
                 coroutine.yield(i)
                 i = i + 1
             end
-        end
+        end)
     elseif type(t)=='function' or atm_tag_is(t,'func') then
         return t
     elseif type(t) == 'number' then
-        f = function ()
+        return coroutine.wrap(function ()
             for i=0, t-1 do
                 coroutine.yield(i)
             end
-        end
+        end)
     elseif type(t) == 'table' then
         if t.tag == 'tasks' then
-            f = function ()
-                t.ing = t.ing + 1
-                for _,v in ipairs(t.dns) do
-                    coroutine.yield(v)
+            local co = coroutine.create (
+                function ()
+                    t.ing = t.ing + 1
+                    local _ <close> = setmetatable({}, {
+                        __close = function()
+                            t.ing = t.ing - 1
+                            atm_task_gc(t)
+                        end
+                    })
+                    for _,v in ipairs(t.dns) do
+                        coroutine.yield(v)
+                    end
                 end
-                t.ing = t.ing - 1
-                atm_task_gc(t)
-            end
+            )
+            local wr = (
+                function ()
+                    return (function (ok, ...)
+                        if not ok then
+                            error(..., 0)
+                        end
+                        return ...
+                    end)(coroutine.resume(co))
+                end
+            )
+            local close = setmetatable({}, {__close=function() coroutine.close(co) end})
+            return wr, co, nil, close
         elseif t[1] ~= nil then
-            f = function ()
+            -- TODO: check #vector, use len
+            return coroutine.wrap(function ()
                 for i,v in ipairs(t) do
                     coroutine.yield(i-1,v)
                 end
-            end
+            end)
         else
-            f = function ()
+            return coroutine.wrap(function ()
                 for k,v in pairs(t) do
                     coroutine.yield(k,v)
                 end
-            end
+            end)
         end
     else
         error("TODO - iter(t)")
     end
-    return coroutine.wrap(f)
 end
 
 -------------------------------------------------------------------------------
@@ -572,6 +589,7 @@ end
 
 function atm_task_gc (t)
     if t.gc and t.ing==0 then
+        t.gc = false
         for i=#t.dns, 1, -1 do
             local s = t.dns[i]
             if s.tag=='task' and status(s)=='dead' then
