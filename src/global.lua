@@ -11,6 +11,11 @@ function init ()
     _l_ = 1
 end
 
+function N ()
+    _n_ = _n_ + 1
+    return _n_
+end
+
 KEYS = {
     'await', 'catch', 'defer', 'do', 'else', 'emit', 'every', 'false', 'func',
     'if', 'ifs', 'in', 'loop', 'match', 'nil', 'par', 'par_and', 'par_or',

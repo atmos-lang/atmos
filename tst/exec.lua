@@ -1315,6 +1315,19 @@ do
     print("Testing...", "await task 2")
     local out = exec_string("anon.atm", src)
     assertx(out, "ok\t10\n")
+
+    local src = [[
+        func T (v) {
+            v * 2
+        }
+        spawn {
+            val x = await T(10)
+            print(x)
+        }
+    ]]
+    print("Testing...", "await task 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "20\n")
 end
 
 print '--- AWAIT / CLOCK ---'

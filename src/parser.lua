@@ -122,7 +122,7 @@ end
 -- 2_suf : v[0]    v.x    x::m   f()
 --         :X() :X@{} :X#{}
 --         f@{} f#{} f""
---         f :X...
+--         f :X...  ;; TODO: remove only this? (f'x''y')
 -- 1_prim
 
 local function is_prefix (e)

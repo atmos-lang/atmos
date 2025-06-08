@@ -1028,6 +1028,20 @@ do
     lexer_next()
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near ',' : expected ')'")
+
+    local src = "await T()"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(e)), trim [[
+        do {
+            pin atm_1 = spawn(nil, T, false)
+            await(atm_1)
+        }
+    ]])
 end
 
 print '-=- TOGGLE -=-'

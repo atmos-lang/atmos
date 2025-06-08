@@ -85,7 +85,6 @@ function parser_spawn ()
     else
         -- spawn T(...) [in ...]
         local tk = TK0
-        local cmd = { tag='acc', tk={tag='id', str='spawn', lin=TK0.lin} }
         local ts; do
             if accept('[') then
                 ts = parser()
@@ -101,7 +100,11 @@ function parser_spawn ()
         table.insert(call.es, 1, ts)
         table.insert(call.es, 2, call.f)
         table.insert(call.es, 3, {tag='bool',tk={str='false'}})
-        local spw = { tag='call', f=cmd, es=call.es }
+        local spw = {
+            tag = 'call',
+            f   = { tag='acc', tk={tag='id', str='spawn', lin=tk.lin} },
+            es  = call.es,
+        }
         local out = parser_7_out(spw)
         return out, spw
     end
@@ -188,13 +191,16 @@ function parser_1_prim ()
     -- resume co(...)
     elseif accept('resume') then
         local tk = TK0
-        local cmd = { tag='acc', tk={tag='id', str='resume', lin=TK0.lin} }
         local call = parser_6_pip()
         if call.tag ~= 'call' then
             err(tk, "expected call")
         end
         table.insert(call.es, 1, call.f)
-        return parser_7_out({ tag='call', f=cmd, es=call.es })
+        return parser_7_out {
+            tag = 'call',
+            f = { tag='acc', tk={tag='id', str='resume', lin=tk.lin} },
+            es = call.es,
+        }
 
     -- emit, await, spawn, toggle
     elseif check('emit') or check('await') or check('spawn') or check('toggle') then
@@ -220,19 +226,58 @@ function parser_1_prim ()
             return parser_7_out(call)
         -- await(...)
         elseif accept('await') then
-            local lin = TK0.lin
-            accept_err('(')
-            local awt = parser_await(lin)
-            accept_err(')')
-            return awt
+            local tk = TK0
+            if accept('(') then
+                local awt = parser_await(tk.lin)
+                accept_err(')')
+                return awt
+            else
+                local n = N()
+                local call = parser_6_pip()
+                if call.tag ~= 'call' then
+                    err(tk, "expected call")
+                end
+                return parser_7_out {
+                    tag = 'do',
+                    blk = {
+                        tag = 'block',
+                        es = {
+                            {
+                                tag = 'dcl',
+                                tk  = {tag='key',str='pin'},
+                                ids = { {tag='id',str="atm_"..n} },
+                                set = {
+                                    tag = 'call',
+                                    f   = { tag='acc', tk={tag='id', str='spawn', lin=tk.lin} },
+                                    es  = concat({
+                                        { tag='nil', tk={tag='key',str='nil'} },
+                                        call.f,
+                                        { tag='bool', tk={str='false'} }, -- fake=true
+                                    }, call.es),
+                                }
+                            },
+                            {
+                                tag = 'call',
+                                f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
+                                es  = {
+                                    { tag='acc', tk={tag='id',str="atm_"..n} },
+                                },
+                            },
+                        },
+                    },
+                }
+            end
         -- spawn {}, spawn T()
         elseif check('spawn') then
             local out,spw = parser_spawn()
             if spw.es[1].tag == 'nil' then
                 -- force "pin" if no "in" target
-                local pin = {tag='key',str='pin'}
-                local id = { tag='id',str='_' }
-                out = { tag='dcl', tk=pin, ids={id}, set=out }
+                out = {
+                    tag = 'dcl',
+                    tk  = {tag='key',str='pin'},
+                    ids = { {tag='id',str='_'} },
+                    set = out,
+                }
             end
             return out
         elseif accept('toggle') then

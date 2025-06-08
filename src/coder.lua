@@ -1,10 +1,5 @@
 require "tosource"
 
-function N ()
-    _n_ = _n_ + 1
-    return _n_
-end
-
 local function L (tk)
     local ls = ''
     if tk and tk.lin then
