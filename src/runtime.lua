@@ -1,3 +1,4 @@
+local TIME = 1
 resume = coroutine.resume
 
 function assertn (n, cnd, err)
@@ -407,9 +408,12 @@ local function atm_task_resume_result (t, ok, err)
     end
 end
 
-local function atm_task_awake_check (t, a)
+local function atm_task_awake_check (time, t, a)
     if status(t) ~= 'suspended' then
         -- nothing to awake
+        return false
+    elseif t.await.time >= time then
+        -- await after emit
         return false
     elseif t.await.e == false then
         -- never awakes
@@ -550,7 +554,7 @@ function await (e, f, ...)
             return tsk.ret
         end
     end
-    t.await = { e=e, f=f }
+    t.await = { e=e, f=f, time=TIME }
     return _aux_(coroutine.yield())
 end
 
@@ -610,18 +614,21 @@ function atm_task_gc (t)
     end
 end
 
-local function femit (t, ...)
+local function femit (time, t, ...)
     local ok, err = true, nil
 
     if t.state == 'toggled' then
         return ok, err
     end
 
+    --local chk = (t.tag=='task') and atm_task_awake_check(t,...)
+
     t.ing = t.ing + 1
     for i=1, #t.dns do
         local dn = t.dns[i]
+--print(t, dn, i)
         --f(dn, ...)
-        ok, err = pcall(femit, dn, ...)
+        ok, err = pcall(femit, time, dn, ...)
         if not ok then
             --[[
             if dn.status == 'aborted' then
@@ -643,7 +650,9 @@ local function femit (t, ...)
                 assertn(0, ok, err)
             end
         else
-            if atm_task_awake_check(t,...) then
+            --if chk then
+            if atm_task_awake_check(time,t,...) then
+--print('awake', t.up,t)
                 atm_task_resume_result(t, resume(t.co, nil, ...))
             end
         end
@@ -654,15 +663,17 @@ local function femit (t, ...)
 end
 
 function emit (to, e, ...)
+    TIME = TIME + 1
+    local time = TIME
     local ist = atm_tag_is(e)
     local tag = ist or e
     assertn(2, type(tag)=='string', 'invalid emit : expected tag')
     local me = atm_me(true)
 
     if ist then
-        femit(fto(me,to), tag, e, ...)
+        femit(time, fto(me,to), tag, e, ...)
     else
-        femit(fto(me,to), e, ...)
+        femit(time, fto(me,to), e, ...)
     end
 
     assertn(0, (not me) or me.status~='aborted', 'atm_aborted')

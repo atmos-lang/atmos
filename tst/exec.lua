@@ -1267,6 +1267,24 @@ do
     print("Testing...", "tasks 13: abort")
     local out = exec_string("anon.atm", src)
     assertx(out, "X\t1\nX\t2\n===\nX\t9\nX\t10\n---\nX\t9\nX\t10\nok\n")
+
+    local src = [[
+        spawn {
+            loop {
+                await(:X)
+                print :1
+                watching(:X) {
+                    await(:Y)
+                }
+                print :2
+            }
+        }
+        emit(:X)
+        emit(:X)
+    ]]
+    print("Testing...", "tasks 14: loop")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n2\n")
 end
 
 print '--- AWAIT / TASK ---'

@@ -1129,7 +1129,7 @@ do
                 print(:3)
             }) ()
             await(true)                  ;; 2. awakes from nested task
-            await(true)                  ;; 3. awakes from outer bcast
+            ;;await(true)                  ;; 3. awakes from outer bcast
             print(:ok)
         }) ()
         print(:2)
@@ -1138,7 +1138,7 @@ do
     ]]
     print("Testing...", "order 1")
     local out = exec_string("anon.atm", src)
-    assert(out == "1\n2\n3\nok\n4\n")
+    assertx(out, "1\n2\n3\nok\n4\n")
 
     local src = [[
         spawn (func () {
@@ -1158,7 +1158,7 @@ do
     ]]
     print("Testing...", "order 2")
     local out = exec_string("anon.atm", src)
-    assert(out == "1\n2\n3\nno\n4\n")
+    assert(out == "1\n2\n3\n4\n")
 
     local src = [[
         spawn (func () {
@@ -1679,7 +1679,7 @@ do
     ]]
     print("Testing...", "abort 7")
     local out = exec_string("anon.atm", src)
-    assertx(out, "0\n1\n2\n3\n4\n5\n6\n")
+    assertx(out, "0\n1\n2\n3\n4\n6\n")
 
     local src = [[
         spawn (func () {
