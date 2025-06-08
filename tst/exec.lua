@@ -1435,6 +1435,42 @@ do
     print("Testing...", "toggle 7")
     local out = exec_string("anon.atm", src)
     assertx(out, "1\n2\n3\n4\n")
+
+    local src = [[
+        func T (v) {
+            set pub = v
+            toggle :Show {
+                print(pub)
+                every :Draw {
+                    print(evt)
+                }
+            }
+        }
+        spawn T(0)
+        emit(:Draw, 1)
+        emit(:Show, false)
+        emit(:Show, false)
+        emit(:Draw, 99)
+        emit(:Show, true)
+        emit(:Show, true)
+        emit(:Draw, 2)
+    ]]
+    print("Testing...", "toggle 8")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "0\n1\n2\n")
+
+    local src = [[
+        spawn {
+            val x = toggle :Show {
+                10
+            }
+            print(x)
+        }
+        print(:ok)
+    ]]
+    print("Testing...", "toggle 9")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "10\nok\n")
 end
 
 print '--- IS / IN ---'

@@ -44,12 +44,23 @@ function parser_await (lin)
                     return $xe
                 }
             ]]
-            local it = { tag='id', str="evt" }
             local cnd = parser()
-            xf = { tag='func', pars={it}, blk={tag='block',es={cnd}} }
+            xf = {
+                tag = 'func',
+                pars = {
+                    { tag='id', str="evt" }
+                },
+                blk = { tag='block', es={cnd} },
+            }
         end
-        local f = { tag='acc', tk={tag='id',str='await',lin=lin} }
-        return { tag='call', f=f, es={xe,xf} }
+        return {
+            tag = 'call',
+            f = {
+                tag = 'acc',
+                tk = {tag='id',str='await',lin=lin}
+            },
+            es = {xe,xf},
+        }
     end
 end
 
@@ -225,14 +236,116 @@ function parser_1_prim ()
             end
             return out
         elseif accept('toggle') then
-            local tk = TK0
-            local cmd = { tag='acc', tk={tag='id', str='toggle', lin=TK0.lin} }
-            local call = parser_6_pip()
-            if call.tag ~= 'call' then
-                err(tk, "expected call")
+            local tag = accept(nil, 'tag')
+            if tag then
+                local lin = TK0.lin
+                local blk = parser_block()
+                local id = "atm_" .. N()
+                local loop = {
+                    tag = 'loop',
+                    ids = nil,
+                    itr = nil,
+                    blk = {
+                        tag = 'block',
+                        es = {
+                            {
+                                tag = 'call',
+                                f = { tag='acc', tk={tag='id',str='await'} },
+                                es = {
+                                    { tag='tag', tk=tag },
+                                    {
+                                        tag = 'func',
+                                        dots = false,
+                                        pars = {
+                                            { tag='id', str="evt" }
+                                        },
+                                        blk = {
+                                            tag = 'block',
+                                            es = {
+                                                {
+                                                    tag = 'uno',
+                                                    op  = { tag='op', str='!' },
+                                                    e = { tag='acc', tk={tag='id',str='evt'} },
+                                                },
+                                            },
+                                        }
+                                    },
+                                },
+                            },
+                            {
+                                tag = 'call',
+                                f = { tag='acc', tk={tag='id',str='toggle'} },
+                                es = {
+                                    { tag='acc', tk={str=id} },
+                                    { tag='bool', tk={str='false'} },
+                                },
+                            },
+                            {
+                                tag = 'call',
+                                f = { tag='acc', tk={tag='id',str='await'} },
+                                es = {
+                                    { tag='tag', tk=tag },
+                                    {
+                                        tag = 'func',
+                                        dots = false,
+                                        pars = {
+                                            { tag='id', str="evt" }
+                                        },
+                                        blk = {
+                                            tag = 'block',
+                                            es = {
+                                                { tag='acc', tk={tag='id',str='evt'} },
+                                            },
+                                        }
+                                    },
+                                },
+                            },
+                            {
+                                tag = 'call',
+                                f = { tag='acc', tk={tag='id',str='toggle'} },
+                                es = {
+                                    { tag='acc', tk={str=id} },
+                                    { tag='bool', tk={str='true'} },
+                                },
+                            },
+                        },
+                    },
+                }
+                return {
+                    tag = 'do',
+                    blk = {
+                        tag = 'block',
+                        es = {
+                            {
+                                tag = 'dcl',
+                                tk  = { tag='key', str='pin' },
+                                ids = { {tag='id', str=id} },
+                                set = spawn(lin, blk),
+                            },
+                            spawn(lin, {
+                                tag = 'block',
+                                es = { loop },
+                            }),
+                            {
+                                tag = 'call',
+                                f = { tag='acc', tk={tag='id',str='await'} },
+                                es = {
+                                    { tag='acc', tk={str=id} },
+                                },
+                            }
+                        },
+                    }
+                }
+            else
+                local tk = TK0
+                local cmd = { tag='acc', tk={tag='id', str='toggle', lin=TK0.lin} }
+                local call = parser_6_pip()
+                if call.tag ~= 'call' then
+                    err(tk, "expected call")
+                end
+                table.insert(call.es, 1, call.f)
+                return parser_7_out({ tag='call', f=cmd, es=call.es })
             end
-            table.insert(call.es, 1, call.f)
-            return parser_7_out({ tag='call', f=cmd, es=call.es })
         else
             error "bug found"
         end

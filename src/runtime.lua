@@ -407,7 +407,7 @@ local function atm_task_resume_result (t, ok, err)
     end
 end
 
-local function atm_task_awake_check (t, a, b)
+local function atm_task_awake_check (t, a)
     if status(t) ~= 'suspended' then
         -- nothing to awake
         return false
@@ -501,7 +501,7 @@ local function _aux_ (err, a, b, ...)
     else
         -- must call t.await.f here (vs atm_task_awake_check) bc of atm_me
         -- a=:X, b={...}, choose b over a, me.await.f(b)
-        if me.await.f==nil or atm_call(me.await.f, b or a) then
+        if me.await.f==nil or atm_call(me.await.f, b==nil and a or b) then
             b = (atm_tag_is(b,'task') and b.ret) or b
             if b then
                 return b, a, ...
