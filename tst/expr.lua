@@ -1029,3 +1029,50 @@ do
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near ',' : expected ')'")
 end
+
+print '-=- TOGGLE -=-'
+
+do
+    local src = "toggle t(true)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "toggle(t, true)")
+
+    local src = "toggle x"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'toggle' : expected call")
+
+    local src = "toggle"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '<eof>' : expected expression")
+
+    local src = "toggle x(1,2)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "toggle(x, 1, 2)")
+
+    local src = "toggle f()"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "toggle(f)")
+end

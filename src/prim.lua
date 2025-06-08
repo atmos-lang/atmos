@@ -185,8 +185,8 @@ function parser_1_prim ()
         table.insert(call.es, 1, call.f)
         return parser_7_out({ tag='call', f=cmd, es=call.es })
 
-    -- emit, await, spawn
-    elseif check('emit') or check('await') or check('spawn') then
+    -- emit, await, spawn, toggle
+    elseif check('emit') or check('await') or check('spawn') or check('toggle') then
         -- emit [t] (...)
         -- emit [t] <- :X (...)
         if accept('emit') then
@@ -224,6 +224,15 @@ function parser_1_prim ()
                 out = { tag='dcl', tk=pin, ids={id}, set=out }
             end
             return out
+        elseif accept('toggle') then
+            local tk = TK0
+            local cmd = { tag='acc', tk={tag='id', str='toggle', lin=TK0.lin} }
+            local call = parser_6_pip()
+            if call.tag ~= 'call' then
+                err(tk, "expected call")
+            end
+            table.insert(call.es, 1, call.f)
+            return parser_7_out({ tag='call', f=cmd, es=call.es })
         else
             error "bug found"
         end

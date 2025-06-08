@@ -554,6 +554,18 @@ function await (e, f, ...)
     return _aux_(coroutine.yield())
 end
 
+function toggle (t, on)
+    assertn(2, atm_is(t,'task','tasks'), "invalid toggle : expected task")
+    assertn(2, type(on) == 'boolean', "invalid toggle : expected bool argument")
+    if on then
+        assertn(2, t.state=='toggled', "invalid toggle : expected toggled off task")
+        t.state = nil
+    else
+        assertn(2, t.state==nil and status(t)=='suspended', "invalid toggle : expected awaiting task")
+        t.state = 'toggled'
+    end
+end
+
 -------------------------------------------------------------------------------
 -- EMIT
 -------------------------------------------------------------------------------
@@ -600,6 +612,10 @@ end
 
 local function femit (t, ...)
     local ok, err = true, nil
+
+    if t.state == 'toggled' then
+        return ok, err
+    end
 
     t.ing = t.ing + 1
     for i=1, #t.dns do

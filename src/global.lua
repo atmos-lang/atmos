@@ -12,11 +12,12 @@ function init ()
 end
 
 KEYS = {
-    'await', --[['break',]] 'catch', --[['coro',]] 'defer', 'do', 'else', 'emit', --[['escape',]]
-    'every', 'false', 'func', 'if', 'ifs', 'in', 'loop', 'match', 'nil', 'par',
-    'par_and', 'par_or', 'pin', 'resume', --[['return',]] 'set', 'spawn', --[['task',]]
-    'tasks', 'test', --[['throw',]] 'true', --[['until',]] 'val', 'var', --[['yield',]]
-    'watching', 'with', 'where', --[['while',]]
+    'await', 'catch', 'defer', 'do', 'else', 'emit', 'every', 'false', 'func',
+    'if', 'ifs', 'in', 'loop', 'match', 'nil', 'par', 'par_and', 'par_or',
+    'pin', 'resume', 'set', 'spawn', 'tasks', 'test', 'toggle', 'true', 'val',
+    'var', 'watching', 'with', 'where',
+    -- 'break', 'coro', 'escape', 'return', 'task', 'throw', 'until',
+    -- 'yield', 'while'
 }
 
 OPS = {

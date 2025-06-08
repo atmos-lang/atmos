@@ -1327,6 +1327,116 @@ do
     assertx(out, "x\ny\n")
 end
 
+print '--- TOGGLE ---'
+
+do
+    local src = "toggle (1)(true) ; nil"
+    print("Testing...", "toggle 1")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 1 : invalid toggle : expected task\n")
+
+    local src = [[
+        val f = task(func () {})
+        toggle f() ; nil
+    ]]
+    print("Testing...", "toggle 2")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 2 : invalid toggle : expected bool argument\n")
+
+    local src = [[
+        val T = func () {
+            print :1
+            await(true)
+            print :2
+        }
+        pin t = task(T)
+
+        print :A
+        toggle t (false)
+        emit :X
+
+        print :B
+        spawn t()
+        emit :X
+
+        print :C
+        toggle t (true)
+        emit :X
+    ]]
+    print("Testing...", "toggle 3")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "A\nB\n1\nC\n2\n")
+
+    local src = [[
+        val T = func () {
+            await(true)
+            print(10)
+        }
+        pin t = spawn T()
+        toggle t (false)
+        print(1)
+        emit(:X)
+        emit(:X)
+        toggle t (true)
+        print(2)
+        emit(:X)
+    ]]
+    print("Testing...", "toggle 4")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n2\n10\n")
+
+    local src = [[
+        var T
+        set T = func () {
+            defer {
+                print(10)
+            }
+            await(true)
+            print(999)
+        }
+        pin t = spawn T()
+        toggle t (false)
+        print(1)
+        emit (:nil)
+        print(2)
+    ]]
+    print("Testing...", "toggle 5")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n2\n10\n")
+
+    local src = [[
+        val T = func () {
+            nil
+        }
+        pin t = spawn T()
+        toggle t (false)
+    ]]
+    print("Testing...", "toggle 6")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "anon.atm : line 5 : invalid toggle : expected awaiting task\n")
+
+    local src = [[
+        val T = func () {
+            spawn (func () {
+                await(:nil)
+                print(3)
+            }) ()
+            await(:nil)
+            print(4)
+        }
+        print(1)
+        pin t = spawn T()
+        toggle t (false)
+        emit (:nil)
+        print(2)
+        toggle t (true)
+        emit (:nil)
+    ]]
+    print("Testing...", "toggle 7")
+    local out = exec_string("anon.atm", src)
+    assertx(out, "1\n2\n3\n4\n")
+end
+
 print '--- IS / IN ---'
 
 do
@@ -1474,7 +1584,16 @@ do
             print(t.x)
         }
     ]]
-    print("Testing...", src)
+    print("Testing...", "error 1")
     local out = exec_string("anon.atm", src)
     assertx(out, "anon.atm : line 2 : attempt to index a nil value (global 't')\n")
+
+    local src = [[
+        print <- spawn T()
+    ]]
+    print("Testing...", "error 2")
+    local out = exec_string("anon.atm", src)
+    --assertx(out, "anon.atm : line 2 : attempt to index a nil value (global 't')\n")
+    warn(false, "TODO: check spawn up")
+
 end
