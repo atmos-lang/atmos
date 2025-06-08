@@ -657,7 +657,7 @@ function emit (to, e, ...)
     local ist = atm_tag_is(e)
     local tag = ist or e
     assertn(2, type(tag)=='string', 'invalid emit : expected tag')
-    local me = atm_me()
+    local me = atm_me(true)
 
     if ist then
         femit(fto(me,to), tag, e, ...)
