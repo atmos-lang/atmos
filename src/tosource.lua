@@ -57,15 +57,8 @@ function tosource (e)
         return "func (" .. pars .. dots .. ") " .. tosource_block(e.blk)
 
     elseif e.tag == 'dcl' then
-        local f = function (se)
-            if e.custom then
-                return tosource(se)
-            else
-                return tosource(se)
-            end
-        end
         local ids = join(', ', map(e.ids,  function(id) return id.str end))
-        local set = e.set and (' = '..f(e.set)) or ''
+        local set = e.set and (' = '..tosource(e.set)) or ''
         return e.tk.str .. " " .. ids .. set
     elseif e.tag == 'set' then
         return "set " .. tosource_args(e.dsts) .. " = " .. tosource(e.src)

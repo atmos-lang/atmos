@@ -409,8 +409,13 @@ function parser_1_prim ()
                 local dots, pars = parser_dots_pars()
                 accept_err(')')
                 local blk = parser_block()
-                local f = { tag='func', dots=dots, pars=pars, blk=blk }
-                return { tag='dcl', tk={tag='key',str='var'}, ids={id}, set=f, custom='func' }
+                return {
+                    tag  = 'set',
+                    dsts = {
+                        { tag='acc', tk=id }
+                    },
+                    src  = { tag='func', dots=dots, pars=pars, blk=blk }
+                }
             end
         -- return(...)
         elseif accept('return') then

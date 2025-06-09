@@ -123,14 +123,9 @@ function coder (e)
                 mod = " <close>"
             end
         end
-        if e.custom == 'func' then
-            local id = e.ids[1]
-            return 'local ' .. id.str .. ' ; ' .. id.str .. mod .. ' = ' .. coder(e.set)
-        else
-            local ids = join(', ', map(e.ids,  function(id) return id.str end))
-            local set = e.set and (' = '..coder(e.set)) or ''
-            return 'local ' .. ids .. mod .. set
-        end
+        local ids = join(', ', map(e.ids,  function(id) return id.str end))
+        local set = e.set and (' = '..coder(e.set)) or ''
+        return 'local ' .. ids .. mod .. set
     elseif e.tag == 'set' then
         return coder_args(e.dsts) .. ' = ' .. coder(e.src)
     elseif e.tag == 'do' then

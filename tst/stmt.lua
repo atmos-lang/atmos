@@ -23,7 +23,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{custom=func, ids={{lin=1, sep=1, str=f, tag=id}}, set={blk={es={{ids={{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=dcl, tk={str=var, tag=key}}")
+    assertx(stringify(s), "{dsts={{tag=acc, tk={lin=1, sep=1, str=f, tag=id}}}, src={blk={es={{ids={{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=set}")
 
     local src = [[
         val e = @{}
