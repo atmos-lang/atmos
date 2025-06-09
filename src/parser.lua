@@ -99,9 +99,8 @@ function parser_dots_pars ()
     end
 end
 
-function parser_block ()
-    accept_err('{')
-    local es = parser_list(nil, '}',
+function parser_stmts (clo)
+    return parser_list(nil, clo,
         function (i)
             if i>1 and TK0.sep==TK1.sep then
                 err(TK1, "sequence error : expected ';' or new line")
@@ -109,12 +108,17 @@ function parser_block ()
             return parser()
         end
     )
+end
+
+function parser_block ()
+    accept_err('{')
+    local es = parser_stmts('}')
     accept_err('}')
     return { tag='block', es=es }
 end
 
 function parser_main ()
-    local es = parser_list(nil, '<eof>', parser)
+    local es = parser_stmts('<eof>')
     accept_err('<eof>')
     return { tag='do', blk={tag='block',es=es} }
 end

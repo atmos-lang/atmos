@@ -65,6 +65,14 @@ end
 -- BLOCK / DO / ESCAPE / DEFER / SEQ / ; / MAIN
 
 do
+    local src = "a b"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local _,msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near 'b' : sequence error : expected ';' or new line")
+
     local src = "do {}"
     print("Testing...", src)
     init()
@@ -86,6 +94,14 @@ do
     ]])
 
     local src = "catch :X { throw :X@{} }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local _,msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near '@{' : sequence error : expected ';' or new line")
+
+    local src = "catch :X { throw :X;@{} }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -141,7 +157,7 @@ do
         }
     ]])
 
-    local src = "; f () ; g () h()\ni() ;\n;"
+    local src = "; f () ; g ();h()\ni() ;\n;"
     print("Testing...", "seq 1")
     init()
     lexer_init("anon", src)
@@ -436,6 +452,14 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
+    local _,msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'x' : sequence error : expected ';' or new line")
+
+    local src = "loop { until;x }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
@@ -444,9 +468,6 @@ do
             x
         }
     ]])
-    warn(false, "until as expr")
-    --local ok, msg = pcall(parser)
-    --assertx(msg, "anon : line 1 : near 'until' : invalid until : expected call")
 
     local src = "loop { until(x) }"
     print("Testing...", src)

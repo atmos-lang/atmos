@@ -64,8 +64,9 @@ do
     --local ok, msg = pcall(parser)
     --assertx(msg, "anon : line 1 : near 'set' : expected expression")
     lexer_next()
-    local ok, msg = pcall(parser_main)
-    assertx(msg, "anon : line 1 : near '=' : expected expression")
+    local _,msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near '=' : sequence error : expected ';' or new line")
+    --assertx(msg, "anon : line 1 : near '=' : expected expression")
 
     local src = "spawn nil()"
     print("Testing...", src)
@@ -83,7 +84,8 @@ do
     lexer_next()
     local ok, msg = pcall(parser_main)
     --assertx(msg, "anon : line 1 : near '.' : field error : expected prefix expression")
-    assertx(msg, "anon : line 1 : near '.' : expected expression")
+    --assertx(msg, "anon : line 1 : near '.' : expected expression")
+    assertx(msg, "anon : line 1 : near '.' : sequence error : expected ';' or new line")
 end
 
 -- EXEC
