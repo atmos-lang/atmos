@@ -337,7 +337,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == 'atm_tag_do(:X, (x))')
+    assertx(tosource(e), 'atm_tag_do(:X, (x))')
 end
 
 -- UNO
@@ -621,20 +621,22 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    check_err('<eof>')
-    assertx(tosource(e), 'f("10")(@{[1]=20})')
+    check_err('@{')
+    assertx(tosource(e), 'f("10")')
+    --local _,msg = pcall(parser)
+    --assertx(msg, "anon : line 1 : near '@{' : expected '<eof>'\n")
 
     local src = "o::f"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
-    local e = parser()
-    assert(check('<eof>'))
-    --local _,msg = pcall(parser)
-    --assertx(msg, "anon : line 1 : near '<eof>' : invalid method call : expected '('")
-    assertx(tosource(e), 'o::f')
-    warn(false, "met as expr")
+    --local e = parser()
+    --assert(check('<eof>'))
+    local _,msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '<eof>' : expected '('")
+    --assertx(tosource(e), 'o::f')
+    --warn(false, "met as expr")
 
     local src = "(o+o)::f(10)"
     print("Testing...", src)
@@ -643,6 +645,16 @@ do
     lexer_next()
     local e = parser()
     assertx(tosource(e), '(o + o)::f(10)')
+
+    local src = "o::f::g(10)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    --local e = parser()
+    --assertx(tosource(e), 'o::f::g(10)')
+    local _,msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '::' : expected '('")
 end
 
 print '--- FUNC / ... / dots ---'

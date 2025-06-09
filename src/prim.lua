@@ -110,8 +110,9 @@ function parser_spawn ()
     end
 end
 
+local lits = { {'nil','true','false','...'}, {'tag','num','str','nat'} }
+
 function parser_1_prim ()
-    local lits = { {'nil','true','false','...'}, {'tag','num','str','nat'} }
     local function check_(tag)
         return check(nil, tag)
     end
@@ -125,17 +126,15 @@ function parser_1_prim ()
             return { tag='bool', tk=TK0 }
         elseif accept('...') then
             return { tag='dots', tk=TK0 }
-
-        -- :tag, 0xFF, 'xxx'
-        elseif accept(nil,'tag') then
-            return { tag='tag', tk=TK0 }
+        -- 0xFF, 'xxx', `xxx`, :X
         elseif accept(nil,'num') then
             return { tag='num', tk=TK0 }
         elseif accept(nil,'str') then
             return { tag='str', tk=TK0 }
         elseif accept(nil,'nat') then
             return { tag='nat', tk=TK0 }
-
+        elseif accept(nil,'tag') then
+            return { tag='tag', tk=TK0 }
         else
             error "bug found"
         end

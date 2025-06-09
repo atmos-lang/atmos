@@ -119,10 +119,9 @@ end
 -- 5_bin : a + b
 -- 4_pre : -a
 -- 3_met : v->f    f<-v
--- 2_suf : v[0]    v.x    x::m   f()
+-- 2_suf : v[0]    v.x    x::m()   f()
 --         :X() :X@{} :X#{}
 --         f@{} f#{} f""
---         f :X...  ;; TODO: remove only this? (f'x''y')
 -- 1_prim
 
 local function is_prefix (e)
@@ -137,8 +136,6 @@ local function is_prefix (e)
     )
 end
 
-local ids = { 'break', 'escape', 'throw' }
-
 function parser_2_suf (pre)
     local e = pre or parser_1_prim()
 
@@ -149,7 +146,19 @@ function parser_2_suf (pre)
 
     local tk0 = TK0
     local ret
-    if accept('[') then
+
+    -- END
+    if (e.tag == 'tag') and (check'(' or check'@{' or check'#{') then
+        -- (:X) @{...}
+        local t = parser()
+        local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
+        return { tag='call', f=f, es={e,t} }
+    elseif check('@{') or check('#{') or check(nil,'str') or check(nil,'tag') then
+        local v = parser_1_prim()
+        return { tag='call', f=e, es={v} }
+
+    -- MID
+    elseif accept('[') then
         -- (t) [...]
         local idx = parser()
         accept_err(']')
@@ -163,25 +172,15 @@ function parser_2_suf (pre)
     elseif accept('::') then
         -- (o) ::m
         local id = accept_err(nil,'id')
+        local _ = check('@{') or check(nil,'#{') or check(nil,'str') or
+                  check(nil,'tag') or check_err('(')
         ret = { tag='met', o=e, met=id }
-    elseif e.tag=='tag' and (check'(' or check'@{' or check'#{') then
-        -- (:X) @{...}
-        local t = parser()
-        local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
-        ret = { tag='call', f=f, es={e,t} }
-    elseif check('@{') or check('#{') or check(nil,'str') then
-        -- (f) @{...}
-        local v = parser_1_prim()
-        ret = { tag='call', f=e, es={v} }
-    elseif check(nil,'tag') then
-        -- (f) :X ...
-        local v = parser()
-        ret = { tag='call', f=e, es={v} }
     elseif accept('(') then
         -- (f) (...)
         local es = parser_list(',', ')', parser)
         accept_err(')')
         ret = { tag='call', f=e, es=es }
+
     else
         -- nothing consumed, not a suffix
         return e

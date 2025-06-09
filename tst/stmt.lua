@@ -92,7 +92,8 @@ do
     local s = parser()
     assertx(tosource(s), trim [[
         catch :X {
-            throw(atm_tag_do(:X, @{}))
+            throw(:X)
+            @{}
         }
     ]])
     --local ok, msg = pcall(parser_main)

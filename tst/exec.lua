@@ -681,7 +681,7 @@ do
     local src = [[
         val _,x = catch :X {
             catch :Y {
-                throw :X @{10}
+                throw <- :X @{10}
             }
         }
         dump(x)
@@ -693,7 +693,7 @@ do
     local src = [[
         val x = catch :X {
             catch :Y {
-                throw :Z @{10}
+                throw (:Z @{10})
             }
             :ok
         }
@@ -749,7 +749,7 @@ do
 
     local src = [[
         val x = do :X {
-            escape :X @{10}
+            escape <- :X @{10}
         }
         dump(x)
     ]]
