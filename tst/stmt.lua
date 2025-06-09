@@ -2,6 +2,7 @@
 
 require "lexer"
 require "parser"
+require "tosource"
 
 print '--- CALL / FUNC / NATIVE ---'
 

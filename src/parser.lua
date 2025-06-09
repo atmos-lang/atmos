@@ -40,7 +40,7 @@ function parser_list (sep, clo, f)
     if clo and check(clo) then
         return l
     end
-    l[#l+1] = f()
+    l[#l+1] = f(#l+1)
     while true do
         if clo and check(clo) then
             return l
@@ -70,7 +70,7 @@ function parser_list (sep, clo, f)
             l[#l+1] = f()
         end
         ]]
-        l[#l+1] = f()
+        l[#l+1] = f(#l+1)
     end
     return l
 end
@@ -101,7 +101,14 @@ end
 
 function parser_block ()
     accept_err('{')
-    local es = parser_list(nil, '}', parser)
+    local es = parser_list(nil, '}',
+        function (i)
+            if i>1 and TK0.sep==TK1.sep then
+                err(TK1, "sequence error : expected ';' or new line")
+            end
+            return parser()
+        end
+    )
     accept_err('}')
     return { tag='block', es=es }
 end
@@ -318,4 +325,7 @@ function parser_7_out (pre)
     return parser_7_out(ret)
 end
 
-parser = parser_7_out
+function parser (...)
+    -- regardless of ..., must pass nothing to out()
+    return parser_7_out()
+end
