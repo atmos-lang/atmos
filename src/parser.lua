@@ -144,9 +144,10 @@ local function is_prefix (e)
 end
 
 function parser_2_suf (pre)
+    local no = check('resume') or check('emit') or check('spawn') or check('toggle')
     local e = pre or parser_1_prim()
 
-    local ok = (TK0.sep==TK1.sep) and is_prefix(e)
+    local ok = (not no) and (TK0.sep==TK1.sep) and is_prefix(e)
     if not ok then
         return e
     end

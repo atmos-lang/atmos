@@ -570,6 +570,15 @@ do
     assert(check('<eof>'))
     assert(stringify(e) == "{es={}, f={es={}, f={tag=acc, tk={lin=1, sep=1, str=f, tag=id}}, tag=call}, tag=call}")
 
+    local src = "f;()"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('('))
+    assertx(stringify(e), "{tag=acc, tk={lin=1, sep=1, str=f, tag=id}}")
+
     local src = "func (1) {}"
     print("Testing...", src)
     init()
@@ -968,6 +977,24 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(tosource(e), "emit(xs, :X, 10)")
+
+    local src = "emit :X @{}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('@{'))
+    assertx(tosource(e), "emit(nil, :X)")
+
+    local src = "emit :X(10)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('('))
+    assertx(tosource(e), "emit(nil, :X)")
 
     local src = "resume co()"
     print("Testing...", src)

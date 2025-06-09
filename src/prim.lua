@@ -216,7 +216,6 @@ function parser_1_prim ()
                     to = { tag='nil', tk={tag='key',str='nil',lin=TK0.lin} }
                 end
             end
-            --local call = parser_4_pre(parser_3_met(parser_2_suf(cmd)))
             local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
             if call.tag ~= 'call' then
                 err(tk, "expected call")
