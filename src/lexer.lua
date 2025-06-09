@@ -16,6 +16,9 @@ local function _lexer_ (str)
         local c = string.sub(str,i,i)
         if c == '\n' then
             LIN = LIN + 1
+            SEP = SEP + 1
+        elseif c == ';' then
+            SEP = SEP + 1
         end
         i = i + 1
         return c
@@ -25,6 +28,9 @@ local function _lexer_ (str)
         local c = string.sub(str,i,i)
         if c == '\n' then
             LIN = LIN - 1
+            SEP = SEP - 1
+        elseif c == ';' then
+            SEP = SEP - 1
         end
         return c
     end

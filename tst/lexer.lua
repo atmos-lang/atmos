@@ -7,6 +7,7 @@ require "lexer"
 do
     local src = "{ } ( :: ; {{ () ) , ][ ."
     print("Testing...", src)
+    init()
     lexer_init("anon", src)
     assert(stringify(LEX()) == "{lin=1, str={, tag=sym}")
     assert(LEX().str == '}')

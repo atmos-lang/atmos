@@ -3,10 +3,12 @@ LEX  = nil
 TK0  = nil
 TK1  = nil
 LIN  = nil
+SEP  = nil
 _n_  = nil
 _l_  = nil
 
 function init ()
+    SEP = 0
     _n_ = 0
     _l_ = 1
 end
