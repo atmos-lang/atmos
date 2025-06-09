@@ -2,6 +2,7 @@ require "global"
 require "lexer"
 require "parser"
 require "coder"
+
 function exec_file (file)
     local f = assert(io.open(file))
     local src = f:read('*a')
@@ -42,10 +43,7 @@ function do_string (file, src)
     init()
     lexer_init(file, src)
     lexer_next()
-    local ok, do_ = pcall(parser_main)
-    if not ok then
-        return ok, do_
-    end
+    local main = parser_main()
 
     local f = assert(io.open(file..".lua", "w"))
     f:write([[
@@ -53,10 +51,10 @@ function do_string (file, src)
         require 'runtime'
         return atm_exec (
             "]] .. file .. [[",
-            ]] .. string.format('%q', coder_stmts(do_.blk.es)) .. [[
+            ]] .. string.format('%q', coder_stmts(main.blk.es)) .. [[
         )
     ]])
     f:close()
 
-    return pcall(dofile, file..".lua")
+    return dofile(file..".lua")
 end
