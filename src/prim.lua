@@ -398,22 +398,44 @@ function parser_1_prim ()
         if accept('func') then
             -- func () { ... }
             -- func f () { ... }
+            -- func M.f () { ... }
+            -- func o::f () { ... }
             if accept('(') then
                 local dots, pars = parser_dots_pars()
                 accept_err(')')
                 local blk = parser_block()
                 return { tag='func', dots=dots, pars=pars, blk=blk }
             else
-                local id = accept_err(nil,'id')
+                local id = accept_err(nil, 'id')
+
+                local idxs = {}
+                while accept('.') do
+                    idxs[#idxs+1] = accept_err(nil, 'id')
+                end
+
+                local met = nil
+                if accept('::') then
+                    met = accept_err(nil, 'id')
+                    idxs[#idxs+1] = met
+                end
+
                 accept_err('(')
                 local dots, pars = parser_dots_pars()
                 accept_err(')')
+
+                if met then
+                    table.insert(pars, 1, {tag='id',str="self"})
+                end
+
+                local dst = { tag='acc', tk=id }
+                for _, idx in ipairs(idxs) do
+                    dst = { tag='index', t=dst, idx={tag='str',tk=idx} }
+                end
+
                 local blk = parser_block()
                 return {
                     tag  = 'set',
-                    dsts = {
-                        { tag='acc', tk=id }
-                    },
+                    dsts = { dst },
                     src  = { tag='func', dots=dots, pars=pars, blk=blk }
                 }
             end

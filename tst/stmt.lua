@@ -62,6 +62,35 @@ do
     assertx(tosource(s), "`print('ok')`")
 end
 
+print '--- FUNC / DEF / M.F / o::f ---'
+
+do
+    local src = "func M.f (v) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(stringify(s), "{dsts={{idx={tag=str, tk={lin=1, sep=1, str=f, tag=id}}, t={tag=acc, tk={lin=1, sep=1, str=M, tag=id}}, tag=index}}, src={blk={es={}, tag=block}, dots=false, pars={{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=set}")
+    assertx(trim(tosource(s)), trim [[
+        set M["f"] = func (v) {
+        }
+    ]])
+
+    local src = "func M.o::f (v) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        set M["o"]["f"] = func (self, v) {
+        }
+    ]])
+end
+
 -- BLOCK / DO / ESCAPE / DEFER / SEQ / ; / MAIN
 
 do
