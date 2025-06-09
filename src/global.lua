@@ -8,7 +8,7 @@ _n_  = nil
 _l_  = nil
 
 function init ()
-    SEP = 0
+    SEP = 1
     _n_ = 0
     _l_ = 1
 end

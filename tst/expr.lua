@@ -14,7 +14,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(stringify(e) == "{tag=acc, tk={lin=1, str=a, tag=id}}")
+    assert(stringify(e) == "{tag=acc, tk={lin=1, sep=1, str=a, tag=id}}")
 
     local src = "1.5"
     print("Testing...", src)
@@ -23,7 +23,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(stringify(e) == "{tag=num, tk={lin=1, str=1.5, tag=num}}")
+    assert(stringify(e) == "{tag=num, tk={lin=1, sep=1, str=1.5, tag=num}}")
 
     local src = "@{"
     print("Testing...", src)
@@ -58,7 +58,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(stringify(e), "{e={tag=acc, tk={lin=1, str=a, tag=id}}, tag=parens, tk={lin=1, str=(, tag=sym}}")
+    assertx(stringify(e), "{e={tag=acc, tk={lin=1, sep=1, str=a, tag=id}}, tag=parens, tk={lin=1, sep=1, str=(, tag=sym}}")
 
     local src = " ( a "
     print("Testing...", src)
@@ -75,7 +75,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(stringify(e) == "{tag=nil, tk={lin=1, str=nil, tag=key}}")
+    assert(stringify(e) == "{tag=nil, tk={lin=1, sep=1, str=nil, tag=key}}")
 
     local src = "false true"
     print("Testing...", src)
@@ -83,10 +83,10 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e1 = parser()
-    assert(stringify(e1) == "{tag=bool, tk={lin=1, str=false, tag=key}}")
+    assert(stringify(e1) == "{tag=bool, tk={lin=1, sep=1, str=false, tag=key}}")
     local e2 = parser()
     assert(check('<eof>'))
-    assert(stringify(e2) == "{tag=bool, tk={lin=1, str=true, tag=key}}")
+    assert(stringify(e2) == "{tag=bool, tk={lin=1, sep=1, str=true, tag=key}}")
 end
 
 print '--- STRING / NATIVE ---'
@@ -98,10 +98,10 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e1 = parser()
-    assertx(stringify(e1), "{tag=tag, tk={lin=1, str=:x, tag=tag}}")
+    assertx(stringify(e1), "{tag=tag, tk={lin=1, sep=1, str=:x, tag=tag}}")
     local e2 = parser()
     assert(check('<eof>'))
-    assertx(stringify(e2), "{tag=tag, tk={lin=2, str=:1._, tag=tag}}")
+    assertx(stringify(e2), "{tag=tag, tk={lin=2, sep=2, str=:1._, tag=tag}}")
 
     local src = "'xxx'\n'''1\n2\n'''"
     print("Testing...", "string 1")
@@ -109,9 +109,9 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e1 = parser()
-    assert(stringify(e1) == "{tag=str, tk={lin=1, str=xxx, tag=str}}")
+    assert(stringify(e1) == "{tag=str, tk={lin=1, sep=1, str=xxx, tag=str}}")
     local e2 = parser()
-    assert(stringify(e2) == "{tag=str, tk={lin=2, str=1\n2\n, tag=str}}")
+    assert(stringify(e2) == "{tag=str, tk={lin=2, sep=2, str=1\n2\n, tag=str}}")
 
     local src = "```f()```"
     print("Testing...", "native 1")
@@ -119,7 +119,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(stringify(e), "{tag=nat, tk={lin=1, str=f(), tag=nat}}")
+    assertx(stringify(e), "{tag=nat, tk={lin=1, sep=1, str=f(), tag=nat}}")
 
     local src = "`f`()"
     print("Testing...", "native 2")
@@ -139,7 +139,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(stringify(e), "{es={{k={tag=num, tk={str=1, tag=num}}, v={tag=acc, tk={lin=1, str=a, tag=id}}}}, tag=table}")
+    assertx(stringify(e), "{es={{k={tag=num, tk={str=1, tag=num}}, v={tag=acc, tk={lin=1, sep=1, str=a, tag=id}}}}, tag=table}")
 
     local src = "@{:x=10}"
     print("Testing...", src)
@@ -237,7 +237,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(stringify(e) == "{idx={tag=num, tk={lin=1, str=1, tag=num}}, t={tag=acc, tk={lin=1, str=x, tag=id}}, tag=index}")
+    assert(stringify(e) == "{idx={tag=num, tk={lin=1, sep=1, str=1, tag=num}}, t={tag=acc, tk={lin=1, sep=1, str=x, tag=id}}, tag=index}")
 
     local src = "x.a"
     print("Testing...", src)
@@ -288,7 +288,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(stringify(e) == "{e={tag=acc, tk={lin=1, str=t, tag=id}}, op={lin=1, str=#, tag=op}, tag=uno}")
+    assert(stringify(e) == "{e={tag=acc, tk={lin=1, sep=1, str=t, tag=id}}, op={lin=1, sep=1, str=#, tag=op}, tag=uno}")
 
     local src = "1[1]"
     print("Testing...", src)
@@ -350,7 +350,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(stringify(e) == "{e={tag=acc, tk={lin=1, str=v, tag=id}}, op={lin=1, str=#, tag=op}, tag=uno}")
+    assert(stringify(e) == "{e={tag=acc, tk={lin=1, sep=1, str=v, tag=id}}, op={lin=1, sep=1, str=#, tag=op}, tag=uno}")
 
     local src = "! - x"
     print("Testing...", src)
@@ -372,7 +372,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(stringify(e) == "{e1={tag=acc, tk={lin=1, str=a, tag=id}}, e2={tag=num, tk={lin=1, str=10, tag=num}}, op={lin=1, str=+, tag=op}, tag=bin}")
+    assert(stringify(e) == "{e1={tag=acc, tk={lin=1, sep=1, str=a, tag=id}}, e2={tag=num, tk={lin=1, sep=1, str=10, tag=num}}, op={lin=1, sep=1, str=+, tag=op}, tag=bin}")
 
     local src = "2 + 3 - 1"
     print("Testing...", src)
@@ -522,7 +522,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(stringify(e) == "{es={{tag=acc, tk={lin=1, str=x, tag=id}}, {tag=acc, tk={lin=1, str=y, tag=id}}}, f={tag=acc, tk={lin=1, str=f, tag=id}}, tag=call}")
+    assert(stringify(e) == "{es={{tag=acc, tk={lin=1, sep=1, str=x, tag=id}}, {tag=acc, tk={lin=1, sep=1, str=y, tag=id}}}, f={tag=acc, tk={lin=1, sep=1, str=f, tag=id}}, tag=call}")
     assert(tosource(e) == "f(x, y)")
 
     local src = "f(["
@@ -568,7 +568,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(stringify(e) == "{es={}, f={es={}, f={tag=acc, tk={lin=1, str=f, tag=id}}, tag=call}, tag=call}")
+    assert(stringify(e) == "{es={}, f={es={}, f={tag=acc, tk={lin=1, sep=1, str=f, tag=id}}, tag=call}, tag=call}")
 
     local src = "func (1) {}"
     print("Testing...", src)
@@ -584,7 +584,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(stringify(e), "{es={{tag=tag, tk={lin=1, str=:X, tag=tag}}}, f={tag=acc, tk={lin=1, str=throw, tag=id}}, tag=call}")
+    assertx(stringify(e), "{es={{tag=tag, tk={lin=1, sep=1, str=:X, tag=tag}}}, f={tag=acc, tk={lin=1, sep=1, str=throw, tag=id}}, tag=call}")
 
     local src = ":X -> throw"
     print("Testing...", src)
@@ -592,7 +592,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(stringify(e), "{es={{tag=tag, tk={lin=1, str=:X, tag=tag}}}, f={tag=acc, tk={lin=1, str=throw, tag=id}}, tag=call}")
+    assertx(stringify(e), "{es={{tag=tag, tk={lin=1, sep=1, str=:X, tag=tag}}}, f={tag=acc, tk={lin=1, sep=1, str=throw, tag=id}}, tag=call}")
 
     local src = ":X -> escape"
     print("Testing...", src)
@@ -600,7 +600,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(stringify(e), "{es={{tag=tag, tk={lin=1, str=:X, tag=tag}}}, f={tag=acc, tk={lin=1, str=escape, tag=id}}, tag=call}")
+    assertx(stringify(e), "{es={{tag=tag, tk={lin=1, sep=1, str=:X, tag=tag}}}, f={tag=acc, tk={lin=1, sep=1, str=escape, tag=id}}, tag=call}")
 
     local src = "func (it) {}"
     print("Testing...", src)
@@ -923,7 +923,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(stringify(e), "{es={{tag=acc, tk={lin=1, str=f, tag=id}}}, f={tag=acc, tk={lin=1, str=coro, tag=id}}, tag=call}")
+    assertx(stringify(e), "{es={{tag=acc, tk={lin=1, sep=1, str=f, tag=id}}}, f={tag=acc, tk={lin=1, sep=1, str=coro, tag=id}}, tag=call}")
 
     local src = "task(T)"
     print("Testing...", src)

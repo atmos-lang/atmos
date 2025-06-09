@@ -13,7 +13,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{es={{tag=acc, tk={lin=1, str=x, tag=id}}, {tag=acc, tk={lin=1, str=y, tag=id}}}, f={tag=acc, tk={lin=1, str=f, tag=id}}, tag=call}")
+    assertx(stringify(s), "{es={{tag=acc, tk={lin=1, sep=1, str=x, tag=id}}, {tag=acc, tk={lin=1, sep=1, str=y, tag=id}}}, f={tag=acc, tk={lin=1, sep=1, str=f, tag=id}}, tag=call}")
 
     local src = "func f (v) { val x }"
     print("Testing...", src)
@@ -22,7 +22,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{custom=func, ids={{lin=1, str=f, tag=id}}, set={blk={es={{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, str=v, tag=id}}, tag=func}, tag=dcl, tk={str=var, tag=key}}")
+    assertx(stringify(s), "{custom=func, ids={{lin=1, sep=1, str=f, tag=id}}, set={blk={es={{ids={{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=dcl, tk={str=var, tag=key}}")
 
     local src = [[
         val e = @{}
@@ -222,7 +222,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
-    assert(stringify(s) == "{ids={{lin=1, str=x, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}")
+    assert(stringify(s) == "{ids={{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}")
 
     local src = "set y = 10"
     print("Testing...", src)
@@ -231,7 +231,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{dsts={{tag=acc, tk={lin=1, str=y, tag=id}}}, src={tag=num, tk={lin=1, str=10, tag=num}}, tag=set}")
+    assertx(stringify(s), "{dsts={{tag=acc, tk={lin=1, sep=1, str=y, tag=id}}}, src={tag=num, tk={lin=1, sep=1, str=10, tag=num}}, tag=set}")
 
     local src = "var y = 10"
     print("Testing...", src)
@@ -240,7 +240,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(stringify(s) == "{ids={{lin=1, str=y, tag=id}}, set={tag=num, tk={lin=1, str=10, tag=num}}, tag=dcl, tk={lin=1, str=var, tag=key}}")
+    assert(stringify(s) == "{ids={{lin=1, sep=1, str=y, tag=id}}, set={tag=num, tk={lin=1, sep=1, str=10, tag=num}}, tag=dcl, tk={lin=1, sep=1, str=var, tag=key}}")
 
     local src = "val [10]"
     print("Testing...", src)
@@ -343,7 +343,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{cases={{{tag=acc, tk={lin=1, str=cnd, tag=id}}, {es={}, tag=block}}, {else, {es={{ids={{lin=1, str=f, tag=id}}, tag=dcl, tk={lin=1, str=val, tag=key}}}, tag=block}}}, tag=ifs}")
+    assertx(stringify(s), "{cases={{{tag=acc, tk={lin=1, sep=1, str=cnd, tag=id}}, {es={}, tag=block}}, {else, {es={{ids={{lin=1, sep=1, str=f, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}}}, tag=ifs}")
 
     local src = "if true { }"
     print("Testing...", src)
@@ -352,7 +352,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{cases={{{tag=bool, tk={lin=1, str=true, tag=key}}, {es={}, tag=block}}}, tag=ifs}")
+    assertx(stringify(s), "{cases={{{tag=bool, tk={lin=1, sep=1, str=true, tag=key}}, {es={}, tag=block}}}, tag=ifs}")
 
     local src = "if f() { if (cnd) { val x } else { val y } }"
     print("Testing...", src)
@@ -392,7 +392,7 @@ do
     local s = parser()
     assert(check('<eof>'))
     --assertx(stringify(s), "{blk={es={{es={}, tag=break}}, tag=block}, tag=loop}")
-    assertx(stringify(s), "{blk={es={{es={}, f={tag=acc, tk={lin=1, str=break, tag=id}}, tag=call}}, tag=block}, tag=loop}")
+    assertx(stringify(s), "{blk={es={{es={}, f={tag=acc, tk={lin=1, sep=1, str=break, tag=id}}, tag=call}}, tag=block}, tag=loop}")
 
     local src = "loop x in f() {}"
     print("Testing...", src)
@@ -540,7 +540,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(stringify(s) == "{blk={es={}, tag=block}, cnd={e={tag=tag, tk={lin=1, str=:X, tag=tag}}}, tag=catch}")
+    assert(stringify(s) == "{blk={es={}, tag=block}, cnd={e={tag=tag, tk={lin=1, sep=1, str=:X, tag=tag}}}, tag=catch}")
 
     local src = "catch { }"
     print("Testing...", src)

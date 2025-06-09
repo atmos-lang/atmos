@@ -139,7 +139,7 @@ end
 function parser_2_suf (pre)
     local e = pre or parser_1_prim()
 
-    local ok = (TK0.lin==TK1.lin) and is_prefix(e)
+    local ok = (TK0.sep==TK1.sep) and is_prefix(e)
     if not ok then
         return e
     end

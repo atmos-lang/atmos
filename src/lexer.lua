@@ -79,7 +79,7 @@ local function _lexer_ (str)
                 if s == ";;" then
                     read_until(s, M"[\n\0]")
                 else
-                    local lin = LIN
+                    local lin,sep = LIN,SEP
                     local stk = {}
                     while true do
                         if stk[#stk] == s then
@@ -92,7 +92,7 @@ local function _lexer_ (str)
                         end
                         repeat
                             if not read_until("", C';') then
-                                err({str=s,lin=lin}, "unterminated comment")
+                                err({str=s,lin=lin,sep=sep}, "unterminated comment")
                             end
                             s = read_while("", C';')
                         until #s>2 and #s>=#stk[#stk]
@@ -107,20 +107,20 @@ local function _lexer_ (str)
         elseif c == '#' then
             local c2 = read()
             if c2 == '{' then
-                coroutine.yield { tag='sym', str=c..'{', lin=LIN }
+                coroutine.yield { tag='sym', str=c..'{', lin=LIN,sep=SEP }
             elseif contains(OPS.cs, c2) then
                 local op = read_while(c..c2, function (c) return contains(OPS.cs,c) end)
-                err({str=op,lin=LIN}, "invalid operator")
+                err({str=op,lin=LIN,sep=SEP}, "invalid operator")
             else
                 unread()
-                coroutine.yield { tag='op', str='#', lin=LIN }
+                coroutine.yield { tag='op', str='#', lin=LIN,sep=SEP }
             end
 
         -- @{, @clk
         elseif c == '@' then
             local c2 = read()
             if c2 == '{' then
-                coroutine.yield { tag='sym', str=c..'{', lin=LIN }
+                coroutine.yield { tag='sym', str=c..'{', lin=LIN,sep=SEP }
             else -- clock
                 unread()
                 local t = read_while('', M"[%w_:%.]")
@@ -138,7 +138,7 @@ local function _lexer_ (str)
                                     if not s then
                                         ms = match(t, '^%.([^:%.]+)$')
                                         if not ms then
-                                            err({str='@',lin=LIN}, "invalid clock")
+                                            err({str='@',lin=LIN,sep=SEP}, "invalid clock")
                                         end
                                     end
                                 end
@@ -146,24 +146,24 @@ local function _lexer_ (str)
                         end
                     end
                 end
-                coroutine.yield { tag='clk', str=t, clk={h or 0, min or 0, s or 0, ms or 0}, lin=LIN }
+                coroutine.yield { tag='clk', str=t, clk={h or 0, min or 0, s or 0, ms or 0}, lin=LIN,sep=SEP }
             end
 
         -- symbols:  {  (  ,  ;
         elseif contains(syms, c) then
-            coroutine.yield { tag='sym', str=c, lin=LIN }
+            coroutine.yield { tag='sym', str=c, lin=LIN,sep=SEP }
 
         elseif c == '.' then
             local c2 = read()
             if c2 ~= '.' then
                 unread()
-                coroutine.yield { tag='sym', str='.', lin=LIN }
+                coroutine.yield { tag='sym', str='.', lin=LIN,sep=SEP }
             else
                 local c3 = read()
                 if c3 ~= '.' then
                     unread()
-                    coroutine.yield { tag='sym', str='.', lin=LIN }
-                    coroutine.yield { tag='sym', str='.', lin=LIN }
+                    coroutine.yield { tag='sym', str='.', lin=LIN,sep=SEP }
+                    coroutine.yield { tag='sym', str='.', lin=LIN,sep=SEP }
                 else
                     coroutine.yield { tag='sym', str='...', lin=LIN }
                 end
@@ -173,10 +173,10 @@ local function _lexer_ (str)
         elseif contains(OPS.cs, c) then
             local op = read_while(c, function (c) return contains(OPS.cs,c) end)
             if not contains(OPS.vs,op) then
-                err({str=op,lin=LIN}, "invalid operator")
+                err({str=op,lin=LIN,sep=SEP}, "invalid operator")
             end
             if not (op=='~~' or op=='!~') then
-                coroutine.yield { tag='op', str=op, lin=LIN }
+                coroutine.yield { tag='op', str=op, lin=LIN,sep=SEP }
             else
                 local lin = LIN
                 local pre = read_until('', '/')
@@ -188,7 +188,7 @@ local function _lexer_ (str)
                 end
                 local pos = read_while('', '%a')
                 if not (pre and reg and sub and pos) then
-                    err({str=TK0.str,lin=lin}, "invalid regex")
+                    err({str=TK0.str,lin=lin,sep=SEP}, "invalid regex")
                 end
                 coroutine.yield { tag='op', str=op, pre=pre, reg=reg, sub=sub, pos=pos }
             end
@@ -197,7 +197,7 @@ local function _lexer_ (str)
         elseif c == ':' then
             local c2 = read()
             if c2 == ':' then
-                coroutine.yield { tag='sym', str='::', lin=LIN }
+                coroutine.yield { tag='sym', str='::', lin=LIN,sep=SEP }
             else
                 unread()
                 local tag = read_while(':', M"[%w_%.]")
@@ -207,7 +207,7 @@ local function _lexer_ (str)
                     hier[#hier+1] = x
                 end
                 ]]
-                coroutine.yield { tag='tag', str=tag, lin=LIN }
+                coroutine.yield { tag='tag', str=tag, lin=LIN,sep=SEP }
             end
 
         -- keywords:  await  if
@@ -215,9 +215,9 @@ local function _lexer_ (str)
         elseif match(c, "[%a_]") then
             local id = read_while(c, M"[%w_]")
             if contains(KEYS, id) then
-                coroutine.yield { tag='key', str=id, lin=LIN }
+                coroutine.yield { tag='key', str=id, lin=LIN,sep=SEP }
             else
-                coroutine.yield { tag='id', str=id, lin=LIN }
+                coroutine.yield { tag='id', str=id, lin=LIN,sep=SEP }
             end
 
         -- numbers:  0xFF  10.1
@@ -227,13 +227,13 @@ local function _lexer_ (str)
                 num = read_while(num, M"[%w%.%-%+]")
             end
             if not tonumber(num) then
-                err({str=num,lin=LIN}, "invalid number")
+                err({str=num,lin=LIN,sep=SEP}, "invalid number")
             else
-                coroutine.yield { tag='num', str=num, lin=LIN }
+                coroutine.yield { tag='num', str=num, lin=LIN,sep=SEP }
             end
 
         elseif c=='`' then
-            local lin = LIN
+            local lin,sep = LIN,SEP
             local pre = read_while(c, C(c))
             local n1 = string.len(pre)
             local v = ''
@@ -242,14 +242,14 @@ local function _lexer_ (str)
             elseif n1 == 1 then
                 v = read_until(v, M("[\n"..c.."]"))
                 if string.sub(str,i,i) == '\n' then
-                    err({str=string.sub(str,i-1,i-1),lin=lin}, "unterminated native")
+                    err({str=string.sub(str,i-1,i-1),lin=lin,sep=sep}, "unterminated native")
                 end
                 assert(c == read())
             else
                 while true do
                     v = read_until(v, C(c))
                     if not v then
-                        err({str=pre,lin=lin}, "unterminated native")
+                        err({str=pre,lin=lin,sep=sep}, "unterminated native")
                     end
                     local pos = read_while('', C(c))
                     local n2 = string.len(pos)
@@ -259,10 +259,10 @@ local function _lexer_ (str)
                     v = v .. pos
                 end
             end
-            coroutine.yield { tag='nat', str=v, lin=lin }
+            coroutine.yield { tag='nat', str=v, lin=lin,sep=sep }
 
         elseif c=='"' or c=="'" then
-            local lin = LIN
+            local lin,sep = LIN,SEP
             local pre = read_while(c, C(c))
             local n1 = string.len(pre)
             local v = ''
@@ -271,14 +271,14 @@ local function _lexer_ (str)
             elseif n1 == 1 then
                 v = read_until(v, M("[\n"..c.."]"))
                 if string.sub(str,i,i) == '\n' then
-                    err({str=string.sub(str,i-1,i-1),lin=lin}, "unterminated string")
+                    err({str=string.sub(str,i-1,i-1),lin=lin,sep=sep}, "unterminated string")
                 end
                 assert(c == read())
             else
                 while true do
                     v = read_until(v, C(c))
                     if not v then
-                        err({str=pre,lin=lin}, "unterminated string")
+                        err({str=pre,lin=lin,sep=sep}, "unterminated string")
                     end
                     local pos = read_while('', C(c))
                     local n2 = string.len(pos)
@@ -288,15 +288,15 @@ local function _lexer_ (str)
                     v = v .. pos
                 end
             end
-            coroutine.yield { tag='str', str=v, lin=lin }
+            coroutine.yield { tag='str', str=v, lin=lin,sep=sep }
 
         -- eof
         elseif c == '\0' then
-            coroutine.yield { tag='eof', str='<eof>', lin=LIN }
+            coroutine.yield { tag='eof', str='<eof>', lin=LIN,sep=SEP }
 
         -- error
         else
-            err({str=c,lin=LIN}, "invalid character")
+            err({str=c,lin=LIN,sep=SEP}, "invalid character")
         end
     end
 end
