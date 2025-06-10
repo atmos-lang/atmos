@@ -1,16 +1,6 @@
 local TIME = 1
 resume = coroutine.resume
 
-function assertn (n, cnd, err)
-    if n > 0 then
-        n = n + 1
-    end
-    if not cnd then
-        error(err, n)
-    end
-    return cnd
-end
-
 function coro (f)
     if atm_tag_is(f,'func') then
         return { tag='coro', th=coroutine.create(f.func) }
