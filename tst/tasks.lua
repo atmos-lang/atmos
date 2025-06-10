@@ -96,7 +96,7 @@ do
         print(T)
     ]]
     print("Testing...", "task 1: proto")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertfx(out, "table: 0x")
 
     local src = [[
@@ -106,7 +106,7 @@ do
         print(T1 == T2)
     ]]
     print("Testing...", "task 2: proto equal")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(string.find(out, "true\nfalse\n"))
 
     local src = [[
@@ -116,14 +116,14 @@ do
         print(t1, t2)
     ]]
     print("Testing...", "task 3: coro/task")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertfx(out, "table: 0x.*table: 0x")
 
     local src = [[
         yield()
     ]]
     print("Testing...", "yield 1: no enclosing exec")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     warn(string.find(out, "thread: 0x.*table: 0x"), "yield error message")
 end
 
@@ -136,7 +136,7 @@ do
         print(t)
     ]]
     print("Testing...", "spawn 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(string.find(out, "table: 0x"))
 
     local src = [[
@@ -145,7 +145,7 @@ do
         resume t()
     ]]
     print("Testing...", "spawn 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     warn(out == "anon.atm : line 2 : bad argument #1 to 'resume' (thread expected, got table)\n", "(\\nresume)(...)")
 
     local src = [[
@@ -154,13 +154,13 @@ do
         })()
     ]]
     print("Testing...", "spawn 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "ok\n")
 
     local src = "spawn (nil)()"
     print("Testing...", src)
-    local out = exec_string("anon.atm", src)
-    assertx(out, "anon.atm : line 1 : invalid spawn : expected task prototype\n")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 1 : invalid spawn : expected task prototype")
 
     local src = [[
         val T = func () { yield();nil }
@@ -168,8 +168,8 @@ do
         print(t)
     ]]
     print("Testing...", "yield 2 : error : yield inside task")
-    local out = exec_string("anon.atm", src)
-    assertx(out, "anon.atm : line 1 : invalid yield : unexpected enclosing task instance\n")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 1 : invalid yield : unexpected enclosing task instance")
     warn(false, "tail call in yield hides line")
 
     local src = [[
@@ -178,8 +178,8 @@ do
         print(t)
     ]]
     print("Testing...", "yield 3 : error : await without enclosing task")
-    local out = exec_string("anon.atm", src)
-    assertx(out, "anon.atm : line 1 : invalid await : expected enclosing task instance\n")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 1 : invalid await : expected enclosing task instance")
     warn(false, "tail call in yield hides line")
 
     local src = [[
@@ -188,7 +188,7 @@ do
         resume t()
     ]]
     print("Testing...", "resume 1 : error : resume task")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     warn(out == "anon.atm : line 2 : bad argument #1 to 'resume' (thread expected, got table)\n", "(\\nresume)(...)")
 
     local src = [[
@@ -199,7 +199,7 @@ do
         spawn T(1,2)
     ]]
     print("Testing...", "spawn 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\t2\n")
 
     local src = [[
@@ -207,14 +207,14 @@ do
         print(:ok)
     ]]
     print("Testing...", "spawn 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
         spawn (func () {})
     ]]
     print("Testing...", "spawn 3: error")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "anon.atm : line 1 : near 'spawn' : expected call")
 
     local src = [[
@@ -228,7 +228,7 @@ do
         spawn T(2)
     ]]
     print("Testing...", "spawn 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -243,7 +243,7 @@ do
         print(1)
     ]]
     print("Testing...", "spawn 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n")
 
     local src = [[
@@ -265,7 +265,7 @@ do
         print(1)
     ]]
     print("Testing...", "spawn 7")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n")
 
     local src = [[
@@ -283,7 +283,7 @@ do
         f()
     ]]
     print("Testing...", "spawn 8")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -298,7 +298,7 @@ do
         ;;f()
     ]]
     print("Testing...", "spawn 9")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\tx\n")
 
     local src = [[
@@ -313,7 +313,7 @@ do
         ;;print(:2222)
     ]]
     print("Testing...", "spawn 10")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\tx\n")
 end
 
@@ -327,7 +327,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "spawn 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "ok\n")
 
     local src = [[
@@ -337,7 +337,7 @@ do
         print(co)
     ]]
     print("Testing...", "spawn 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     --assertfx(out, "anon.atm : line 3 : near 'spawn' : expected expression")
     assertfx(out, "nil\n")
 
@@ -349,7 +349,7 @@ do
         f()
     ]]
     print("Testing...", "spawn 6")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "ok\n")
 
     local src = [[
@@ -367,7 +367,7 @@ do
         print(t)
     ]]
     print("Testing...", "spawn 7")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertfx(out, "10\ntable: 0x")
 end
 
@@ -384,7 +384,7 @@ do
         emit(:1)
     ]]
     print("Testing...", "emit 1 : task term")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(string.find(out, "1\t1\n2\ttable: 0x"))
 
     local src = [[
@@ -401,7 +401,7 @@ do
         emit(:3)
     ]]
     print("Testing...", "emit 2 : task term")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(string.find(out, "1\t1\n2\t1\n1\t2\n2\ttable: 0x"))
 
     local src = [[
@@ -418,7 +418,7 @@ do
         emit(:ok)
     ]]
     print("Testing...", "emit 3 : task term")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "bcast\n2\n1\n")
 
     local src = [[
@@ -432,7 +432,7 @@ do
         }
     ]]
     print("Testing...", "emit 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "ok\n")
 
     local src = [[
@@ -451,7 +451,7 @@ do
         }
     ]]
     print("Testing...", "emit 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(string.find(out, "2\ntable: 0x"))
 
     local src = [[
@@ -477,7 +477,7 @@ do
         emit(:4)
     ]]
     print("Testing...", "emit 6")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "1\n2\n2\n3\n")
 
     local src = [[
@@ -498,7 +498,7 @@ do
         emit (:20)
     ]]
     print("Testing...", "emit 7")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "10\n10\n20\n")
 
     local src = [[
@@ -514,7 +514,7 @@ do
         }
     ]]
     print("Testing...", "emit 8")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -532,7 +532,7 @@ do
         ;;print(:2222)
     ]]
     print("Testing...", "emit 9")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -553,7 +553,7 @@ do
         }
     ]]
     print("Testing...", "emit 10")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -567,7 +567,7 @@ do
         }
     ]]
     print("Testing...", "emit 11")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\tt\n")
 
     local src = [[
@@ -581,7 +581,7 @@ do
         emit (:t, @{1})
     ]]
     print("Testing...", "emit 12")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{1}\n")
 end
 
@@ -599,7 +599,7 @@ do
         }) ()
     ]]
     print("Testing...", "emit scope 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -613,7 +613,7 @@ do
         }) ()
     ]]
     print("Testing...", "emit scope 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -627,7 +627,7 @@ do
         emit (:t, @{})
     ]]
     print("Testing...", "emit scope 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n{}\n")
 
     local src = [[
@@ -639,7 +639,7 @@ do
         emit(:ok)
     ]]
     print("Testing...", "emit scope 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -658,7 +658,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "emit scope 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{20}\nok\n")
 
     local src = [[
@@ -685,7 +685,7 @@ do
         print(e)
     ]]
     print("Testing...", "emit scope 6")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(trim(out), trim [[
         1
         10
@@ -712,7 +712,7 @@ do
         emit (:t,#{#{1}})
     ]]
     print("Testing...", "emit scope 7")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "#{1}\n")
 
     local src = [[
@@ -726,7 +726,7 @@ do
         emit (:t,@{@{1}})
     ]]
     print("Testing...", "emit scope 8")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{1}\n")
 
     local src = [[
@@ -743,7 +743,7 @@ do
         emit (:t,@{@{1}})
     ]]
     print("Testing...", "emit scope 9")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{1}\n")
 
     local src = [[
@@ -767,7 +767,7 @@ do
         }
     ]]
     print("Testing...", "emit scope 10")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -789,7 +789,7 @@ do
         }
     ]]
     print("Testing...", "emit scope 11")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -811,7 +811,7 @@ do
         ;;print(:2222)
     ]]
     print("Testing...", "emit scope 12")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -839,7 +839,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "emit scope 13")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 end
 
@@ -853,7 +853,7 @@ do
         dump(x)
     ]]
     print("Testing...", "alien 0")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -869,7 +869,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "alien 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "{}\nok\n")
 
     local src = [[
@@ -885,7 +885,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "alien 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "{}\nok\n")
 
     local src = [[
@@ -901,7 +901,7 @@ do
         }
     ]]
     print("Testing...", "alien 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{{10}}\n")
 
     local src = [[
@@ -919,7 +919,7 @@ do
         }
     ]]
     print("Testing...", "alien 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{10}\n")
 
     local src = [[
@@ -934,7 +934,7 @@ do
         }
     ]]
     print("Testing...", "alien 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "#{10}\n")
 
     local src = [=[
@@ -949,7 +949,7 @@ do
         emit (:t,@{@{1}})
     ]=]
     print("Testing...", "alien 6")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{1}\n")
 
     local src = [=[
@@ -965,7 +965,7 @@ do
         emit (:t @{@{1}})
     ]=]
     print("Testing...", "alien 7")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{1}\n")
 end
 
@@ -983,7 +983,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "payload 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "ok\n")
 
     local src = [[
@@ -1008,7 +1008,7 @@ do
         }
     ]]
     print("Testing...", "payload 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "1\n10\n10\n2\ne1\t20\ne1\t20\n3\ne2\t30\ne2\t30\n")
 
     local src = [[
@@ -1028,7 +1028,7 @@ do
         emit(:10)
     ]]
     print("Testing...", "payload 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "in\t10\n")
 
     local src = [[
@@ -1046,7 +1046,7 @@ do
         emit(:ok)
     ]]
     print("Testing...", "payload 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{10}\n{10}\n")
 
     local src = [[
@@ -1071,7 +1071,7 @@ do
         print(3)
     ]]
     print("Testing...", "payload 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n99\n3\n")
 
     local src = [[
@@ -1092,7 +1092,7 @@ do
         emit (:T @{[:type]=:x})
     ]]
     print("Testing...", "payload 6")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\n4\n99\n")
 
     local src = [[
@@ -1106,7 +1106,7 @@ do
         emit <- :T @{}
     ]]
     print("Testing...", "payload 7")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "nil\n{tag=T}\n")
 
     local src = [[
@@ -1116,7 +1116,7 @@ do
         emit(:10,:20)
     ]]
     print("Testing...", "payload 8: multi emit/await args")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "20\t10\n")
 end
 
@@ -1139,7 +1139,7 @@ do
         print(:4)
     ]]
     print("Testing...", "order 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\nok\n4\n")
 
     local src = [[
@@ -1159,7 +1159,7 @@ do
         print(:4)
     ]]
     print("Testing...", "order 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(out == "1\n2\n3\n4\n")
 
     local src = [[
@@ -1177,7 +1177,7 @@ do
         emit(:out)
     ]]
     print("Testing...", "order 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(string.find(out, "1\tout\n2\ttable: 0x"))
 
     local src = [[
@@ -1195,7 +1195,7 @@ do
         emit(:ok)
     ]]
     print("Testing...", "order 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n1\n2\n")
 end
 
@@ -1207,7 +1207,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "emit-in 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -1220,7 +1220,7 @@ do
         }) ()
     ]]
     print("Testing...", "emit-in 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\t10\n")
 
     local src = [[
@@ -1235,7 +1235,7 @@ do
         }) ()
     ]]
     print("Testing...", "emit-in 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "no\nok\t20\n")
 
     local src = [[
@@ -1254,7 +1254,7 @@ do
         }
     ]]
     print("Testing...", "emit-in 4: in t2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "2\n")
 
     warn(false, 'TODO :parent')
@@ -1273,7 +1273,7 @@ do
         emit(:T, t)
     ]]
     print("Testing...", "task-term 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(string.find(out, "ok\ttable: 0x"))
 
     local src = [[
@@ -1286,7 +1286,7 @@ do
         emit(t)
     ]]
     print("Testing...", "task-term 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(string.find(out, "ok\ttable: 0x"))
 
     local src = [[
@@ -1304,7 +1304,7 @@ do
         emit(:T, t)
     ]]
     print("Testing...", "task-term 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assert(string.find(out, "1\n2\nok\ttable: 0x"))
 
     local src = [[
@@ -1324,7 +1324,7 @@ do
         emit(:b)
     ]]
     print("Testing...", "task-term 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n1\ta\n2\ttrue\n")
 end
 
@@ -1341,7 +1341,7 @@ do
         dump(x)
     ]]
     print("Testing...", "pub 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -1353,7 +1353,7 @@ do
         print(t.pub)
     ]]
     print("Testing...", "pub 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "nil\nnil\n")
 
     local src = [[
@@ -1365,7 +1365,7 @@ do
         print(t.pub)
     ]]
     print("Testing...", "pub 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "10\n")
 
     local src = [[
@@ -1380,7 +1380,7 @@ do
         dump(t.pub)
     ]]
     print("Testing...", "pub 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -1394,15 +1394,15 @@ do
         dump(t.pub)
     ]]
     print("Testing...", "pub 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
         print(pub)
     ]]
     print("Testing...", "pub 6")
-    local out = exec_string("anon.atm", src)
-    assertx(out, "anon.atm : line 1 : invalid pub : expected enclosing task\n")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 1 : invalid pub : expected enclosing task")
 
     local src = [[
         val T = func () {
@@ -1414,7 +1414,7 @@ do
         emit(:X, 10)
     ]]
     print("Testing...", "pub 7")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "10\n")
 end
 
@@ -1431,7 +1431,7 @@ do
         }) ()
     ]]
     print("Testing...", "nested 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "10\n")
 
     local src = [[
@@ -1445,7 +1445,7 @@ do
         print(F())
     ]]
     print("Testing...", "nested 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "10\n")
 
     local src = [[
@@ -1461,7 +1461,7 @@ do
         emit(:true)
     ]]
     print("Testing...", "nested 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{}\n")
 
     local src = [[
@@ -1473,7 +1473,7 @@ do
         }
     ]]
     print("Testing...", "nested 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "10\n")
 
     local src = [[
@@ -1490,7 +1490,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "nested 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -1508,7 +1508,7 @@ do
         emit(:true)
     ]]
     print("Testing...", "nested 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -1530,7 +1530,7 @@ do
         print(:END)
     ]]
     print("Testing...", "nested 6")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\nEND\n")
 end
 
@@ -1548,7 +1548,7 @@ do
         ) ()
     ]]
     print("Testing...", "abort 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "defer\n")
 
     local src = [[
@@ -1562,7 +1562,7 @@ do
         ) ()
     ]]
     print("Testing...", "abort 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "defer\n")
 
     local src = [[
@@ -1587,7 +1587,7 @@ do
         print(:4)
     ]]
     print("Testing...", "abort 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\ndefer\n2\n3\ndefer\n4\n")
 
     local src = [[
@@ -1601,7 +1601,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "abort 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -1628,7 +1628,7 @@ do
         }
     ]]
     print("Testing...", "abort 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n1\n2\n3\n4\n")
 
     local src = [[
@@ -1654,7 +1654,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "abort 6")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -1680,7 +1680,7 @@ do
         print(:6)
     ]]
     print("Testing...", "abort 7")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n1\n2\n3\n4\n6\n")
 
     local src = [[
@@ -1695,7 +1695,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "abort 8")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -1721,7 +1721,7 @@ do
         emit(:)
     ]]
     print("Testing...", "abort 9")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\na\nb\nok\n")
 
     local src = [[
@@ -1742,7 +1742,7 @@ do
         emit(:)
     ]]
     print("Testing...", "abort 10")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -1762,7 +1762,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "abort 11")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "A\ntrue\nC\nok\n")
 
     local src = [[
@@ -1780,7 +1780,7 @@ do
         spawn T()
     ]]
     print("Testing...", "abort 12")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\nok\n")
 
     local src = [[
@@ -1799,7 +1799,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "abort 13")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -1818,7 +1818,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "abort 14")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -1844,7 +1844,7 @@ do
         emit(:)
     ]]
     print("Testing...", "abort 15")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\na\nb\nok\n")
 
     local src = [[
@@ -1872,7 +1872,7 @@ do
         print(:4)
     ]]
     print("Testing...", "abort 16")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n1\n2\n3\n4\n")
 
     local src = [[
@@ -1891,7 +1891,7 @@ do
         print(:2)
     ]]
     print("Testing...", "abort 17")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n1\n2\n")
 
     local src = [[
@@ -1922,7 +1922,7 @@ do
         print(:4)
     ]]
     print("Testing...", "abort 18")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n1\n2\n3\nok\n4\n")
 
     local src = [[
@@ -1955,7 +1955,7 @@ do
         print(:4)
     ]]
     print("Testing...", "abort 19")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n1\n2\n3\nok\n4\n")
 
     local src = [[
@@ -1990,7 +1990,7 @@ do
         print(:4)
     ]]
     print("Testing...", "abort 20")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n1\n2\n3\nok\n4\n")
 
     local src = [[
@@ -2012,7 +2012,7 @@ do
         emit[ :global ](:)
     ]]
     print("Testing...", "abort 21")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\n")
 
     local src = [[
@@ -2030,7 +2030,7 @@ do
         print(:3)
     ]]
     print("Testing...", "abort 22")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\n")
 
     local src = [[
@@ -2045,7 +2045,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "abort 23")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -2076,7 +2076,7 @@ do
         emit[:global] (:)
     ]]
     print("Testing...", "abort 24")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n4\n3\n")
 
     local src = [[
@@ -2101,7 +2101,7 @@ do
         emit[:global](:)
     ]]
     print("Testing...", "abort 25")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     warnx(out, "TODO - coro - emit") --":1\n:2\n:3\n")
 
     local src = [[
@@ -2118,7 +2118,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "abort 26")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -2142,7 +2142,7 @@ do
         emit[:global](:)
     ]]
     print("Testing...", "abort 27")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\n")
 
     local src = [[
@@ -2175,7 +2175,7 @@ do
         emit[:global](:)
     ]]
     print("Testing...", "abort 28")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n4\n3\n")
 
     local src = [[
@@ -2195,7 +2195,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "abort 29")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -2228,7 +2228,7 @@ do
         emit[:global](:)
     ]]
     print("Testing...", "abort 30")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n4\n3\n")
 
     local src = [[
@@ -2254,7 +2254,7 @@ do
         emit[:global](:)
     ]]
     print("Testing...", "abort 31")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\n")
 
     local src = [[
@@ -2280,7 +2280,7 @@ do
         emit[:global](:)
     ]]
     print("Testing...", "abort 32")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\n")
 
     local src = [[
@@ -2301,7 +2301,7 @@ do
         }) ()
     ]]
     print("Testing...", "abort 33")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     --assertx(out, ":1\n:2\n:ok\n:3\n")
     assertx(out, "1\n2\n3\nok\n")
 
@@ -2322,7 +2322,7 @@ do
         }) ()
     ]]
     print("Testing...", "abort 34")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n3\nok\n")
 
     local src = [[
@@ -2345,7 +2345,7 @@ do
         print(:4)
     ]]
     print("Testing...", "abort 35")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\nok\n3\n4\n")
 
     local src = [[
@@ -2375,7 +2375,7 @@ do
         print(:8)
     ]]
     print("Testing...", "abort 36")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     --assertx(out, ":1\n:2\n:3\n:ok\n:4\n:5\n:6\n:7\n:8\n")
     assertx(out, "1\n2\n3\n4\n5\n6\nok\n7\n8\n")
 end
@@ -2400,7 +2400,7 @@ do
         print(:e2)
     ]]
     print("Testing...", "catch 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "e1\ne2\n")
 
     local src = [[
@@ -2426,7 +2426,7 @@ do
         print(:e2)
     ]]
     print("Testing...", "catch 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "e1\ne2\n")
 
     local src = [[
@@ -2447,7 +2447,7 @@ do
         print(:ok3)
     ]]
     print("Testing...", "catch 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok1\nok2\nok3\n")
 
     local src = [[
@@ -2464,7 +2464,7 @@ do
         print(:ok2)
     ]]
     print("Testing...", "catch 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok1\nok2\n")
 
     local src = [[
@@ -2490,7 +2490,7 @@ do
         print(:ok3)
     ]]
     print("Testing...", "catch 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok1\nok2\nok3\n")
 
     local src = [[
@@ -2523,7 +2523,7 @@ do
         print(:ok3)
     ]]
     print("Testing...", "catch 6")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok1\nok2\nok3\n")
 
     local src = [[
@@ -2537,7 +2537,7 @@ do
         print(1)
     ]]
     print("Testing...", "catch 7")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n")
 
     local src = [[
@@ -2549,7 +2549,7 @@ do
         print(1)
     ]]
     print("Testing...", "catch 8")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n")
 
     local src = [[
@@ -2578,7 +2578,7 @@ do
         print(1)
     ]]
     print("Testing...", "catch 9")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n")
 
     local src = [[
@@ -2602,7 +2602,7 @@ do
         print(99)
     ]]
     print("Testing...", "catch 10")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n2\n99\n")
 end
 
@@ -2620,7 +2620,7 @@ do
         dump(status(t), t.pub, t.ret)
     ]]
     print("Testing...", "return 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "suspended\t{1}\ndead\t{1}\t{2}\n")
 
     local src = [[
@@ -2635,7 +2635,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "return 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "10\nok\n")
 end
 
@@ -2647,7 +2647,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "tasks 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -2657,7 +2657,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "tasks 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -2666,7 +2666,7 @@ do
         print(:out)
     ]]
     print("Testing...", "tasks 3")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "in\nout\n")
 
     local src = [[
@@ -2680,7 +2680,7 @@ do
         emit(:)
     ]]
     print("Testing...", "tasks 4")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "out\nin\n")
 
     local src = [[
@@ -2692,7 +2692,7 @@ do
         print(ok)
     ]]
     print("Testing...", "tasks 5")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertfx(out, "table: 0x")
 
     local src = [[
@@ -2700,7 +2700,7 @@ do
         print(ts == nil)
     ]]
     print("Testing...", "tasks 6")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "false\n")
 
     local src = [[
@@ -2719,7 +2719,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "tasks 7")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -2737,7 +2737,7 @@ do
         emit(:2)
     ]]
     print("Testing...", "tasks 8")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "table\n1\n2\n")
 
     local src = [[
@@ -2768,7 +2768,7 @@ do
         }
     ]]
     print("Testing...", "tasks 9")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -2781,7 +2781,7 @@ do
         print(1)
     ]]
     print("Testing...", "tasks 10")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n")
 
     local src = [[
@@ -2807,7 +2807,7 @@ do
         print(3)
     ]]
     print("Testing...", "tasks 11")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n10\n10\n1\n20\n30\n2\n20\n30\n3\n")
 
     local src = [[
@@ -2834,7 +2834,7 @@ do
         print(3)
     ]]
     print("Testing...", "tasks 12")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n10\n10\n1\n20\n30\n2\n20\n30\n3\n")
 
     local src = [[
@@ -2863,7 +2863,7 @@ do
         print(999)
     ]]
     print("Testing...", "tasks 13")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "1\n1\n999\n2\n")
 
     local src = [[
@@ -2892,7 +2892,7 @@ do
         print(999)
     ]]
     print("Testing...", "tasks 14")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "2\n2\n999\n1\n")
 
     local src = [[
@@ -2907,7 +2907,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "tasks 15")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 
     local src = [[
@@ -2925,7 +2925,7 @@ do
         print(999)
     ]]
     print("Testing...", "tasks 16")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{10}\n999\n")
 
     local src = [[
@@ -2935,15 +2935,15 @@ do
         print(x)
     ]]
     print("Testing...", "tasks 17")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "nil\n")
 
     local src = [[
         pin x = tasks(true)
     ]]
     print("Testing...", "tasks 18")
-    local out = exec_string("anon.atm", src)
-    assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number\n")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
 
     local src = [[
         pin ts = tasks(1)
@@ -2956,7 +2956,7 @@ do
         print(t1??:task, t2??:task, t3??:task, t4??:task)
     ]]
     print("Testing...", "tasks 19")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "true\tfalse\ttrue\tfalse\n")
 
     local src = [[
@@ -2969,7 +2969,7 @@ do
         print(status(ok1), status(ok2))
     ]]
     print("Testing...", "tasks 20")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "dead\tsuspended\n")
 
     local src = [[
@@ -2991,7 +2991,7 @@ do
         }
     ]]
     print("Testing...", "tasks 21")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "t\t1\nnil\nt\t2\nnil\nt\t1\n")
 
     local src = [[
@@ -3008,7 +3008,7 @@ do
         print(ts.ing)
     ]]
     print("Testing...", "tasks 22")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "0\n")
 
     local src = [[
@@ -3027,7 +3027,7 @@ do
         emit(:X)
     ]]
     print("Testing...", "tasks 23: awake t.up.up")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 end
 
@@ -3045,7 +3045,7 @@ do
         emit(:X)
     ]]
     print("Testing...", "every 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "X\nX\n")
 
     local src = [[
@@ -3059,7 +3059,7 @@ do
         emit(:X,10)
     ]]
     print("Testing...", "every 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "X\t10\n")
 
     local src = [[
@@ -3075,7 +3075,7 @@ do
         print(:ok)
     ]]
     print("Testing...", "every-where")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\n")
 end
 
@@ -3091,7 +3091,7 @@ do
         print(:X)
     ]]
     print("Testing...", "par 0")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "X\n")
 
     local src = [[
@@ -3111,7 +3111,7 @@ do
         emit(:X)
     ]]
     print("Testing...", "par 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "X\nY\nX\n")
 
     local src = [[
@@ -3130,7 +3130,7 @@ do
         print(:depois)
     ]]
     print("Testing...", "par 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "antes\ndepois\n")
 
     local src = [[
@@ -3149,7 +3149,7 @@ do
         print(:depois)
     ]]
     print("Testing...", "par_and 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "antes\nok\ndepois\n")
 
     local src = [[
@@ -3168,7 +3168,7 @@ do
         print(:depois)
     ]]
     print("Testing...", "par_or 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "ok\nantes\ndepois\n")
 
     local src = [[
@@ -3192,7 +3192,7 @@ do
         print(:depois)
     ]]
     print("Testing...", "par_or 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "x\ny\nok\nantes\ndepois\n")
 
     local src = [[
@@ -3212,7 +3212,7 @@ do
         print(:depois)
     ]]
     print("Testing...", "watching 1")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "antes\ny\nx\ndepois\n")
 
     local src = [[
@@ -3222,7 +3222,7 @@ do
         print(x)
     ]]
     print("Testing...", "do: return")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "10\n")
 
     local src = [[
@@ -3236,7 +3236,7 @@ do
         }
     ]]
     print("Testing...", "par_or 3: return")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "10\n")
 
     local src = [[
@@ -3252,7 +3252,7 @@ do
         }
     ]]
     print("Testing...", "par_and 3: return")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "{10, 20}\n")
 
     local src = [[
@@ -3264,6 +3264,6 @@ do
         }
     ]]
     print("Testing...", "watching 2")
-    local out = exec_string("anon.atm", src)
+    local out = atm_test(src)
     assertx(out, "Y\nX\n")
 end

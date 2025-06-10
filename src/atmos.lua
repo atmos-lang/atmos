@@ -2,4 +2,4 @@ require "exec"
 
 local file = ...
 
-do_file(file)
+atm_dofile(file)
