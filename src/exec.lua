@@ -28,11 +28,10 @@ function atm_searcher (name)
     if not f then
         return f, err
     end
-PRINT('x',path)
-PRINT('y',f, err)
-PRINT('z',atm_loadfile, f)
-    return atm_loadfile, f
+    return function(_,x) return assert(atm_loadfile(x))() end, f
 end
+
+package.searchers[#package.searchers+1] = atm_searcher
 
 function atm_loadstring (src, file)
     init()
@@ -81,20 +80,10 @@ function atm_loadstring (src, file)
 end
 
 function atm_loadfile (file)
-PRINT('atm_loadfile', file)
     local f = assert(io.open(file))
     local src = f:read('*a')
     return atm_loadstring(src, file)
 end
-
-PRINT = print
-package.searchers[#package.searchers+1] = atm_searcher
-local f,n = package.searchers[#package.searchers]("x")
-f(n)
-print('aaa', f, n)
-local f,n = package.searchers[2]("y")
-print('bbb', f, n)
---error'ok'
 
 function atm_dostring (src, file)
     assertn(0, atm_loadstring(src,file))()

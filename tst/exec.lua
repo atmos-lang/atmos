@@ -1673,5 +1673,5 @@ do
     ]]
     print("Testing...", "require 1")
     local out = atm_test(src)
-    assertx(out, "anon.atm : line 3 : attempt to perform arithmetic on a nil value")
+    assertx(out, "./x.atm\t20\n")
 end
