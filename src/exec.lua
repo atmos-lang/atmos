@@ -3,6 +3,25 @@ require "lexer"
 require "parser"
 require "coder"
 
+function atm_test (src)
+    local p = print
+    local out = ""
+    print = function (...)
+        local t = {}
+        for i=1, select('#',...) do
+            t[#t+1] = tostring(select(i,...))
+        end
+        out = out .. join('\t', t) .. '\n'
+    end
+    local ok, err = pcall(atm_dostring, src, "anon.atm")
+    print = p
+    if ok then
+        return out
+    else
+        return err
+    end
+end
+
 function atm_searcher (name)
     local path = package.path:gsub('%?%.lua','?.atm'):gsub('init%.lua','init.atm')
     local f, err = package.searchpath(name, path)
