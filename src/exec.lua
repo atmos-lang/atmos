@@ -4,7 +4,7 @@ require "parser"
 require "coder"
 
 function atm_test (src)
-    local p = print
+    PRINT = print
     local out = ""
     print = function (...)
         local t = {}
@@ -14,7 +14,7 @@ function atm_test (src)
         out = out .. join('\t', t) .. '\n'
     end
     local ok, err = pcall(atm_dostring, src, "anon.atm")
-    print = p
+    print = PRINT
     if ok then
         return out
     else
@@ -28,6 +28,9 @@ function atm_searcher (name)
     if not f then
         return f, err
     end
+PRINT('x',path)
+PRINT('y',f, err)
+PRINT('z',atm_loadfile, f)
     return atm_loadfile, f
 end
 
@@ -76,6 +79,22 @@ function atm_loadstring (src, file)
         return v
     end
 end
+
+function atm_loadfile (file)
+PRINT('atm_loadfile', file)
+    local f = assert(io.open(file))
+    local src = f:read('*a')
+    return atm_loadstring(src, file)
+end
+
+PRINT = print
+package.searchers[#package.searchers+1] = atm_searcher
+local f,n = package.searchers[#package.searchers]("x")
+f(n)
+print('aaa', f, n)
+local f,n = package.searchers[2]("y")
+print('bbb', f, n)
+--error'ok'
 
 function atm_dostring (src, file)
     assertn(0, atm_loadstring(src,file))()

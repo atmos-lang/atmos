@@ -1662,5 +1662,16 @@ do
     local out = atm_test(src)
     --assertx(out, "anon.atm : line 2 : attempt to index a nil value (global 't')\n")
     warn(false, "TODO: check spawn up")
+end
 
+print "-=- REQUIRE -=-"
+
+do
+    local src = [[
+        val X,f = require "x"
+        print(f, X.f(10))
+    ]]
+    print("Testing...", "require 1")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 3 : attempt to perform arithmetic on a nil value")
 end
