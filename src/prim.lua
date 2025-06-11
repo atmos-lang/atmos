@@ -225,9 +225,12 @@ function parser_1_prim ()
         -- await(...)
         elseif accept('await') then
             local tk = TK0
-            if accept('(') then
+            local par = accept('(')
+            if par or check(nil,'str') or check(nil,'tag') or check(nil,'clk') then
                 local awt = parser_await(tk.lin)
-                accept_err(')')
+                if par then
+                    accept_err(')')
+                end
                 return awt
             else
                 local n = N()

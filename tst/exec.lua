@@ -190,7 +190,7 @@ do
     local src = "print((1)[1])"
     print("Testing...", src)
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 1 : attempt to index a number value\n")
+    assertx(out, "anon.atm : line 1 : attempt to index a number value")
 
     local src = "print((#{1})[#{}])"
     print("Testing...", src)

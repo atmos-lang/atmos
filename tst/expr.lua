@@ -1051,7 +1051,7 @@ do
         })
     ]])
 
-    local src = "await (@20:x.100)"
+    local src = "await @20:x.100"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
