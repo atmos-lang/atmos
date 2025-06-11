@@ -920,6 +920,20 @@ do
             spawn(nil, T, false, v)
         }()
     ]])
+
+    local src = "(a,b) where {a,b=(10,10)}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(e)), trim [[
+        func () {
+            val a, b = (10, 10)
+            (a, b)
+        }()
+    ]])
 end
 
 -- EXEC / CORO / TASK / TASKS / YIELD / SPAWN / RESUME / PUB

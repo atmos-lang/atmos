@@ -301,10 +301,10 @@ function parser_7_out (pre)
         accept_err("{")
         local ss = parser_list(nil, '}',
             function ()
-                local id = accept(nil, 'id')
+                local ids = parser_ids('=')
                 accept_err('=')
                 local set = parser()
-                return { tag='dcl', tk={str='val'}, ids={id}, set=set }
+                return { tag='dcl', tk={str='val'}, ids=ids, set=set }
             end
         )
         accept_err("}")
