@@ -1,9 +1,11 @@
 local TIME = 1
 resume = coroutine.resume
 
+local meta = { __close=function (co) coroutine.close(co.th) end }
+
 function coro (f)
     if atm_tag_is(f,'func') then
-        return { tag='coro', th=coroutine.create(f.func) }
+        return setmetatable({ tag='coro', th=coroutine.create(f.func) }, meta)
     else
         return coroutine.create(f)
     end

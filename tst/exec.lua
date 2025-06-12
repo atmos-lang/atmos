@@ -82,7 +82,7 @@ do
     assertx(out, "ok\n")
 end
 
--- BLOCK / DO / ESCAPE / DEFER
+-- BLOCK / DO / ESCAPE
 
 do
     local src = [[
@@ -133,17 +133,6 @@ do
     assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')")
 
     local src = [[
-        print(:1)
-        defer {
-            print(:2)
-        }
-        print(:3)
-    ]]
-    print("Testing...", "defer 1")
-    local out = atm_test(src)
-    assert(out == "1\n3\n2\n")
-
-    local src = [[
         val x = do {
             10
         }
@@ -172,6 +161,60 @@ do
     print("Testing...", "do 2")
     local out = atm_test(src)
     assertx(out, "20\n")
+end
+
+print "-=- DEFER -=-"
+
+do
+    local src = [[
+        print(:1)
+        defer {
+            print(:2)
+        }
+        print(:3)
+    ]]
+    print("Testing...", "defer 1")
+    local out = atm_test(src)
+    assert(out == "1\n3\n2\n")
+
+    local src = [[
+        print(:1)
+        defer { print(:2) }
+        defer { print(:3) }
+        print(:4)
+    ]]
+    print("Testing...", "defer 2")
+    local out = atm_test(src)
+    assert(out == "1\n4\n3\n2\n")
+
+    local src = [[
+        print(1)
+        defer { print(2) }
+        do {
+            defer { print(3) }
+            defer { print(4) }
+            nil ;; TODO
+        }
+        defer { print(5) }
+        print(6)
+    ]]
+    print("Testing...", "defer 3")
+    local out = atm_test(src)
+    assertx(out, "1\n4\n3\n6\n5\n2\n")
+    warn(false, "TODO: defer as last stmt")
+
+    local src = [[
+        do {
+            defer {
+                print(10)
+            }
+            throw(:X)
+            print(99)
+        }
+    ]]
+    print("Testing...", "defer 4")
+    local out = atm_test(src)
+    assertx(out, "10\nuncaught throw : X\n")
 end
 
 -- DCL / VAL / VAR / SET
@@ -242,7 +285,7 @@ do
     assert(out == "20\t10\tnil\n")
 end
 
--- TABLE / INDEX
+-- TABLE / INDEX / VECTOR
 
 do
     local src = [[
@@ -306,6 +349,43 @@ do
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "0\n10\n1\n")
+
+    local src = [[
+        val t = #{}
+        print(#t)
+        set t[#t] = 1
+        print(#t)
+        set t[#t-1] = nil
+        print(#t)
+    ]]
+    print("Testing...", src)
+    local out = atm_test(src)
+    assertx(out, "0\n1\n0\n")
+
+    local src = [[
+        val t = #{}
+        val x = t
+        print(#x)
+        set t[#t] = 1
+        print(#x)
+        set t[#t-1] = nil
+        print(#x)
+    ]]
+    print("Testing...", src)
+    local out = atm_test(src)
+    assertx(out, "0\n1\n0\n")
+
+    local src = [[
+        val x = #{1,2,3}
+        val t = #{}
+        set t[#t] = 4
+        set t[#t] = 5
+        set t[#t-1] = nil
+        dump(x ++ t ++ #{5,6,7})
+    ]]
+    print("Testing...", src)
+    local out = atm_test(src)
+    assertx(out, "#{1, 2, 3, 4, 5, 6, 7}\n")
 end
 
 -- CALL / FUNC / RETURN
@@ -904,6 +984,32 @@ do
     assertx(out, "uncaught throw : {10, tag=Z}")
 
     local src = [[
+        val x = catch :Y.X {
+            catch :Z {
+                throw (:Y @{10})
+            }
+            :ok
+        }
+        print(:ok)
+    ]]
+    print("Testing...", "catch 13")
+    local out = atm_test(src)
+    assertx(out, "uncaught throw : {10, tag=Y}")
+
+    local src = [[
+        val _,x = catch :Y {
+            catch :Z {
+                (func() { throw (:Y.X @{10}) })()
+            }
+            :ok
+        }
+        dump(x)
+    ]]
+    print("Testing...", "catch 14")
+    local out = atm_test(src)
+    assertx(out, "{10, tag=Y.X}\n")
+
+    local src = [[
         val x = do :X {
             do :Y {
                 escape(:X,10)
@@ -1018,7 +1124,7 @@ do
     local src = [[
         val F = func (a,b) {
             val c,d = yield(a+1,b*2)
-            return(c+1, d*2)
+            (c+1, d*2)
         }
         val f = coro(F)
         val _,a,b = resume f(1,2)
@@ -1051,6 +1157,34 @@ do
     print("Testing...", "coro 3: multi")
     local out = atm_test(src)
     assert(out == "1\n2\n3\n4\n5\n6\n")
+
+    local src = [[
+        val t = func () {
+            defer {
+                print :ok
+            }
+            yield()
+        }
+        val a = coro(t)
+        print :end
+    ]]
+    print("Testing...", "coro 4")
+    local out = atm_test(src)
+    assertx(out, "end\n")
+
+    local src = [[
+        val t = func () {
+            defer {
+                print :ok
+            }
+            yield()
+        }
+        pin a = coro(t)
+        print :end
+    ]]
+    print("Testing...", "coro 5")
+    local out = atm_test(src)
+    assertx(out, "end\n")
 
     local src = [[
         print(emit(1))
