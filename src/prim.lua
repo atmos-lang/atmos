@@ -506,10 +506,17 @@ function parser_1_prim ()
     -- do, defer, catch
     elseif check('do') or check('catch') or check('defer') then
         -- do :X {...}
+        -- do(...)
         if accept('do') then
-            local tag = accept(nil, 'tag')
-            local blk = parser_block()
-            return { tag='do', esc=tag, blk=blk }
+            if accept('(') then
+                local e = parser()
+                accept_err(')')
+                return { tag='do', blk={tag='block',es={e}} }
+            else
+                local tag = accept(nil, 'tag')
+                local blk = parser_block()
+                return { tag='do', esc=tag, blk=blk }
+            end
         -- catch
         elseif accept('catch') then
             local xe = parser()

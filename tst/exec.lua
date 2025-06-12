@@ -107,6 +107,26 @@ do
     print("Testing...", "do 1")
     local out = atm_test(src)
     assertx(out, "10\n")
+
+    local src = [[
+        val x = do {
+            10 ; 20
+        }
+        print(x)
+    ]]
+    print("Testing...", "do 2")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 2 : unexpected symbol near '10'\n")
+
+    local src = [[
+        val x = do {
+            do(10) ; 20
+        }
+        print(x)
+    ]]
+    print("Testing...", "do 2")
+    local out = atm_test(src)
+    assertx(out, "20\n")
 end
 
 -- DCL / VAL / VAR / SET
