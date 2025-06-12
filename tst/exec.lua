@@ -33,7 +33,7 @@ do
     assertx(out, "true\n")
 end
 
-print "-=- NATIVE -=-"
+print "--- NATIVE ---"
 
 do
     local src = [[
@@ -163,7 +163,7 @@ do
     assertx(out, "20\n")
 end
 
-print "-=- DO / ESCAPE -=-"
+print "--- DO / ESCAPE ---"
 
 do
     local src = [[
@@ -235,7 +235,7 @@ do
     assertx(out, "10\n")
 end
 
-print "-=- DEFER -=-"
+print "--- DEFER ---"
 
 do
     local src = [[
@@ -662,9 +662,14 @@ do
     print("Testing...", "func 8: nested")
     local out = atm_test(src)
     assertx(out, "30\n")
+
+    local src = "return()"
+    print("Testing...", "return")
+    local out = atm_test(src)
+    assertx(out, "")
 end
 
-print "-=- IF-ELSE / IFS / MATCH -=-"
+print "--- IF-ELSE / IFS / MATCH ---"
 
 do
     local src = [[
@@ -737,7 +742,7 @@ do
     assertx(out, "10\n")
 end
 
-print "-=- LOOP / BREAK / UNTIL / WHILE / ITER -=-"
+print "--- LOOP / BREAK / UNTIL / WHILE / ITER ---"
 
 do
     local src = [[
@@ -2024,7 +2029,7 @@ do
     warn(false, "TODO: check spawn up")
 end
 
-print "-=- REQUIRE -=-"
+print "--- REQUIRE ---"
 
 do
     local src = [[

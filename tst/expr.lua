@@ -1057,7 +1057,7 @@ do
     assertx(tosource(e), 'pub')
 end
 
-print '-=- AWAIT -=-'
+print '--- AWAIT ---'
 
 do
     local src = "await(:X, x+10)"
@@ -1105,7 +1105,7 @@ do
     ]])
 end
 
-print '-=- TOGGLE -=-'
+print '--- TOGGLE ---'
 
 do
     local src = "toggle t(true)"

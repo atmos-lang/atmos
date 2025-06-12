@@ -584,6 +584,26 @@ do
     print("Testing...", "emit 12")
     local out = atm_test(src)
     assertx(out, "{1}\n")
+
+    local src = [[
+        func t2 () {
+            print(">>> B")
+            await(:X)
+            print("<<< B")
+            ;;emit(Event.Task [`mar_exe`])
+        }
+        spawn {
+            var exe = task(t2)
+            spawn exe()
+            print(">>> A")
+            var e = await(exe)
+            print("<<< A")
+        }
+        emit(:X)
+    ]]
+    print("Testing...", "emit 13")
+    local out = atm_test(src)
+    assertx(out, ">>> B\n>>> A\n<<< B\n<<< A\n")
 end
 
 print "--- EMIT / SCOPE ---"
@@ -1119,6 +1139,34 @@ do
     print("Testing...", "payload 8: multi emit/await args")
     local out = atm_test(src)
     assertx(out, "20\t10\n")
+
+    local src = [[
+        func tsk () {
+            var e = await(:X, evt==10)
+            print(e)
+        }
+        spawn tsk()
+        emit(:X,99)
+        emit(:X,10)
+        emit(:X,99)
+    ]]
+    print("Testing...", "payload 9")
+    local out = atm_test(src)
+    assertx(out, "10\n")
+
+    local src = [[
+        func tsk () {
+            var e = await(:X, evt.v==10)
+            dump(e)
+        }
+        spawn tsk()
+        emit(:X @{v=99})
+        emit <-- :X @{v=10}
+        emit(:X @{v=10})
+    ]]
+    print("Testing...", "payload 9")
+    local out = atm_test(src)
+    assertx(out, "{tag=X, v=10}\n")
 end
 
 -- LEXICAL ORDER
@@ -1327,6 +1375,24 @@ do
     print("Testing...", "task-term 4")
     local out = atm_test(src)
     assertx(out, "0\n1\ta\n2\ttrue\n")
+
+    local src = [[
+        func t2 () {
+            print(">>> B")
+            await(:X)
+            print("<<< B")
+            ;;emit(Event.Task [`mar_exe`])
+        }
+        spawn {
+            print(">>> A")
+            await t2()
+            print("<<< A")
+        }
+        emit(:X)
+    ]]
+    print("Testing...", "task await 5")
+    local out = atm_test(src)
+    assertx(out, ">>> A\n>>> B\n<<< B\n<<< A\n")
 end
 
 print '--- PUB ---'
@@ -2379,6 +2445,25 @@ do
     local out = atm_test(src)
     --assertx(out, ":1\n:2\n:3\n:ok\n:4\n:5\n:6\n:7\n:8\n")
     assertx(out, "1\n2\n3\n4\n5\n6\nok\n7\n8\n")
+
+    local src = [[
+        func t2 () {
+            defer {
+                print("first")
+            }
+            await(true)
+        }
+        spawn {
+            defer {
+                print("last")
+            }
+            var exe = task(t2)
+            spawn exe()
+        }
+    ]]
+    print("Testing...", "abort 37")
+    local out = atm_test(src)
+    assertx(out, "first\nlast\n")
 end
 
 print '--- THROW / CATCH ---'
@@ -3078,6 +3163,28 @@ do
     print("Testing...", "every-where")
     local out = atm_test(src)
     assertx(out, "ok\n")
+
+    local src = [[
+        spawn {
+            par {
+                every :X {
+                    print("x")
+                }
+            } with {
+                every @.10 {
+                    print("ms")
+                }
+            }
+        }
+        emit(:clock, 10)
+        emit(:X)
+        emit(:clock, 5)
+        emit(:X)
+        emit(:clock, 5)
+    ]]
+    print("Testing...", "every-clock")
+    local out = atm_test(src)
+    assertx(out, "ms\nx\nx\nms\n")
 end
 
 print '--- PAR / PAR_AND / PAR_OR / WATCHING ---'
@@ -3267,4 +3374,45 @@ do
     print("Testing...", "watching 2")
     local out = atm_test(src)
     assertx(out, "Y\nX\n")
+
+    local src = [[
+        spawn {
+            par_or {
+                await(:X)
+                print("x")
+            } with {
+                every :X {
+                    print("no")
+                }
+            }
+            print("or")
+        }
+        emit(:X)
+        emit(:X)
+        emit(:X)
+        emit(:X)
+        print("ok")
+    ]]
+    print("Testing...", "par_or 4")
+    local out = atm_test(src)
+    assertx(out, "x\nor\nok\n")
+
+    local src = [[
+        spawn {
+            par_or {
+                await(:X)
+                print("x")
+            } with {
+                every :X {
+                    print("no")
+                }
+            }
+            print("or")
+        }
+        emit(:X)
+        print("ok")
+    ]]
+    print("Testing...", "par_or 5")
+    local out = atm_test(src)
+    assertx(out, "x\nor\nok\n")
 end
