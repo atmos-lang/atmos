@@ -458,11 +458,15 @@ end
 
 function atm_until (cnd, ...)
     if cnd then
-        return atm_break(...)
+        if ... then
+            return atm_break(...)
+        else
+            return atm_break(cnd)
+        end
     end
 end
 
-function atm_while (...)
+function atm_while (cnd, ...)
     if not cnd then
         return atm_break(...)
     end

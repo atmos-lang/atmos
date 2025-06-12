@@ -475,9 +475,44 @@ do
     print("Testing...", "func 6: dots ...")
     local out = atm_test(src)
     assertx(out, "a\nx\t1\t2\t3\n")
+
+    local src = [[
+        var i = 10
+        func f () {
+            var j = 20
+            func g () {
+                return(i + j)
+            }
+            print(g())
+        }
+        f()
+    ]]
+    print("Testing...", "func 7: nested")
+    local out = atm_test(src)
+    assertx(out, "30\n")
+
+    local src = [[
+        do {
+            var i = 10
+            func f () {
+                do {
+                    var j = 20
+                    func g () {
+                        return(i + j)
+                    }
+                    return(g)
+                }
+            }
+            var gg = f()
+            print(gg())
+        }
+    ]]
+    print("Testing...", "func 8: nested")
+    local out = atm_test(src)
+    assertx(out, "30\n")
 end
 
--- IF-ELSE / LOOP / ITER / IFS / MATCH
+print "-=- IF-ELSE / IFS / MATCH -=-"
 
 do
     local src = [[
@@ -493,6 +528,66 @@ do
     local out = atm_test(src)
     assert(out == "t\nf\n")
 
+    local src = "print(if false => 1 => 2)"
+    print("Testing...", src)
+    local out = atm_test(src)
+    assertx(out, "2\n")
+
+    local src = "print(if true => 1 => 2)"
+    print("Testing...", src)
+    local out = atm_test(src)
+    assert(out=="1\n")
+
+    local src = "print(if true => if true => 1 => 99 => 99)"
+    print("Testing...", src)
+    local out = atm_test(src)
+    assert(out=="1\n")
+
+    local src = "print(ifs { false=>99 ; true=>100 })"
+    print("Testing...", src)
+    local out = atm_test(src)
+    assertx(out, "100\n")
+
+    local src = "print(ifs { false=>0 ; true=>nil ; else=>99 })"
+    print("Testing...", src)
+    local out = atm_test(src)
+    assertx(out, "nil\n") -- TODO: true=>nil
+
+    local src = [[
+        match 100 {
+            10 => {}
+            100 => print(:ok)
+        }
+    ]]
+    print("Testing...", "match 1")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        match :a.b.c {
+            :a.b => 10
+            else => 99
+        } --> print
+    ]]
+    print("Testing...", "match 2")
+    local out = atm_test(src)
+    assertx(out, "10\n")
+
+    local src = [[
+        var x = :X.A @{a=10}
+        match x {
+            :X.A => { print(x.a) }
+            else => { throw()  }
+        }
+    ]]
+    print("Testing...", "match 3")
+    local out = atm_test(src)
+    assertx(out, "10\n")
+end
+
+print "-=- LOOP / BREAK / UNTIL / WHILE / ITER -=-"
+
+do
     local src = [[
         print(:1)
         val x = loop {
@@ -566,31 +661,6 @@ do
     local out = atm_test(src)
     assert(out=="x\t1\ny\t2\n" or out=="y\t2\nx\t1\n")
 
-    local src = "print(if false => 1 => 2)"
-    print("Testing...", src)
-    local out = atm_test(src)
-    assertx(out, "2\n")
-
-    local src = "print(if true => 1 => 2)"
-    print("Testing...", src)
-    local out = atm_test(src)
-    assert(out=="1\n")
-
-    local src = "print(if true => if true => 1 => 99 => 99)"
-    print("Testing...", src)
-    local out = atm_test(src)
-    assert(out=="1\n")
-
-    local src = "print(ifs { false=>99 ; true=>100 })"
-    print("Testing...", src)
-    local out = atm_test(src)
-    assertx(out, "100\n")
-
-    local src = "print(ifs { false=>0 ; true=>nil ; else=>99 })"
-    print("Testing...", src)
-    local out = atm_test(src)
-    assertx(out, "nil\n") -- TODO: true=>nil
-
     local src = [[
         var i = 3
         func f () {
@@ -606,24 +676,78 @@ do
     assert(out == "2\n1\n")
 
     local src = [[
-        match 100 {
-            10 => {}
-            100 => print(:ok)
+        var n = 0
+        var i = 5
+        loop {
+            if i == 0 {
+                break()
+            }
+            set n = n + i
+            set i = i - 1
         }
+        print(n)
     ]]
-    print("Testing...", "match 1")
+    print("Testing...", "loop 7")
     local out = atm_test(src)
-    assertx(out, "ok\n")
+    assertx(out, "15\n")
 
     local src = [[
-        match :a.b.c {
-            :a.b => 10
-            else => 99
-        } --> print
+        print(1)
+        val x = loop {
+            print(2)
+            if true {
+                break(10)
+            }
+            print(99)
+        }
+        print(3)
+        print(x)
     ]]
-    print("Testing...", "match 2")
+    print("Testing...", "loop 8")
     local out = atm_test(src)
-    assertx(out, "10\n")
+    assertx(out, "1\n2\n3\n10\n")
+
+    local src = [[
+        print(1)
+        val x = loop {
+            print(2)
+            until <- (true,10)
+            print(99)
+        }
+        print(3)
+        print(x)
+    ]]
+    print("Testing...", "loop 9")
+    local out = atm_test(src)
+    assertx(out, "1\n2\n3\n10\n")
+
+    local src = [[
+        print(1)
+        val x = loop {
+            print(2)
+            until <- 10
+            print(99)
+        }
+        print(3)
+        print(x)
+    ]]
+    print("Testing...", "loop 10")
+    local out = atm_test(src)
+    assertx(out, "1\n2\n3\n10\n")
+
+    local src = [[
+        print(1)
+        val x = loop {
+            print(2)
+            while(false,10)
+            print(99)
+        }
+        print(3)
+        print(x)
+    ]]
+    print("Testing...", "loop 11")
+    local out = atm_test(src)
+    assertx(out, "1\n2\n3\n10\n")
 end
 
 -- CATCH / THROW
