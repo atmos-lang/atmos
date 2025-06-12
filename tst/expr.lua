@@ -128,6 +128,14 @@ do
     lexer_next()
     local e = parser()
     assertx(tosource(e), "`f`()")
+
+    local src = "f`v`"
+    print("Testing...", "native 3")
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(tosource(e), "f(`v`)")
 end
 
 -- TABLE / INDEX

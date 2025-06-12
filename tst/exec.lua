@@ -6,7 +6,7 @@ require "tosource"
 require "coder"
 require "exec"
 
--- EXPR / STRING / TAG / NATIVE
+-- EXPR / STRING / TAG
 
 do
     local src = [[
@@ -27,12 +27,57 @@ do
     local out = atm_test(src)
     assertx(out, "abc\n{x=1, y=2, z=3}\n#{1, 2, 3}\n")
 
+    local src = "print(!false)"
+    print("Testing...", src)
+    local out = atm_test(src)
+    assertx(out, "true\n")
+end
+
+print "-=- NATIVE -=-"
+
+do
     local src = [[
         ```
         print 'ok'
         ```
     ]]
     print("Testing...", "native 1")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        var x = 1 + `10`
+        `print(x)`
+    ]]
+    print("Testing...", "native 2")
+    local out = atm_test(src)
+    assertx(out, "11\n")
+
+    local src = [[
+        ```
+        _xy = { 10,20 }
+        ```
+        print(_xy[2])
+    ]]
+    print("Testing...", "native 3")
+    local out = atm_test(src)
+    assertx(out, "20\n")
+
+    local src = "`print`(10)"
+    print("Testing...", src)
+    local out = atm_test(src)
+    assertx(out, "10\n")
+
+    local src = "`print`(`10`+10)"
+    print("Testing...", src)
+    local out = atm_test(src)
+    assertx(out, "20\n")
+
+    local src = [[
+        assert(10 == `10`)
+        print `'ok'`
+    ]]
+    print("Testing...", "native 3")
     local out = atm_test(src)
     assertx(out, "ok\n")
 end
