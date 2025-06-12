@@ -1615,6 +1615,14 @@ do
     print("Testing...", "method 6")
     local out = atm_test(src)
     assertx(out, "30\n")
+
+    local src = [[
+        func f (...) { print(...) }
+        (10,20) --> f(30,40)
+    ]]
+    print("Testing...", "method 6")
+    local out = atm_test(src)
+    assertx(out, "10\t20\t30\t40\n")
 end
 
 print '--- WHERE ---'

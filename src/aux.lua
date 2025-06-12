@@ -27,6 +27,16 @@ function warn (ok, msg)
     end
 end
 
+function totable (...)
+    local t = {}
+    local n = select('#',...) / 2
+    assert((n*2) == select('#',...))
+    for i=1, n do
+        t[select(i,...)] = select(i+n,...)
+    end
+    return t
+end
+
 function trim (s)
     return (s:gsub("^%s*",""):gsub("\n%s*","\n"):gsub("%s*$",""))
 end
