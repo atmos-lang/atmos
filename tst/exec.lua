@@ -549,6 +549,16 @@ do
     print("Testing...", "match 1")
     local out = atm_test(src)
     assertx(out, "ok\n")
+
+    local src = [[
+        match :a.b.c {
+            :a.b => 10
+            else => 99
+        } --> print
+    ]]
+    print("Testing...", "match 2")
+    local out = atm_test(src)
+    assertx(out, "10\n")
 end
 
 -- CATCH / THROW
