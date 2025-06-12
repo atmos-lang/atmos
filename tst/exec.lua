@@ -20,11 +20,12 @@ do
 
     local src = [[
         print('a' ++ 'b' ++ 'c')
-        dump(@{1} ++ @{2} ++ @{3})
+        dump(@{x=1} ++ @{y=2} ++ @{z=3})
+        dump(#{1} ++ #{2} ++ #{3})
     ]]
     print("Testing...", "expr 2")
     local out = atm_test(src)
-    assertx(out, "abc\n{1, 2, 3}\n")
+    assertx(out, "abc\n{x=1, y=2, z=3}\n#{1, 2, 3}\n")
 
     local src = [[
         ```

@@ -62,6 +62,7 @@ function stringify (v)
                 vs = vs .. ', '
             end
             vs = vs .. stringify(x)
+            fst = false
         end
         return "#{" .. vs .. "}"
     else

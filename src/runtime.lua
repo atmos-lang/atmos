@@ -185,20 +185,28 @@ function atm_cat (v1, v2)
     assertn(2, t1==t2, 'invalid ++ : incompatible types', 2)
     if t1 == 'string' then
         return v1 .. v2
-    elseif t1 == 'table' then
-        local ret = {}
-        for k,v in pairs(v1) do
-            ret[k] = v
+    elseif t1 ~= 'table' then
+        error('invalid ++ : unsupported type', 2)
+    elseif t2 ~= 'table' then
+        error('invalid ++ : unsupported type', 2)
+    elseif v1.tag=='vector' and v2.tag=='vector' then
+        local ret = setmetatable({ tag='vector' }, atm_vector)
+        for i=1, #v1 do
+            ret[#ret] = v1[i-1]
         end
-        local n1 = #v1
-        for k,v in pairs(v2) do
-            if type(k) == 'number' then
-                ret[n1+k] = v
-            end
+        for i=1, #v2 do
+            ret[#ret] = v2[i-1]
         end
         return ret
     else
-        error('invalid ++ : unsupported type', 2)
+        local ret = {}
+        for k,x in pairs(v1) do
+            ret[k] = x
+        end
+        for k,x in pairs(v2) do
+            ret[k] = x
+        end
+        return ret
     end
 end
 
