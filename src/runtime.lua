@@ -173,6 +173,8 @@ function atm_is (v, x)
     local tp = type(v)
     if tp == x then
         return true
+    elseif tp=='string' and type(x)=='string' then
+        return (string.find(v, '^'..x) == 1)
     elseif tp=='table' and type(x)=='string' then
         return (string.find(v.tag or '', '^'..x) == 1)
     end

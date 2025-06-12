@@ -590,9 +590,17 @@ function parser_1_prim ()
                 local cnd; do
                     if accept('else') then
                         brk = true
-                        cmp = 'else'
+                        cnd = 'else'
                     else
-                        cmp = parser()
+                        local cmp = parser()
+                        cnd = {
+                            tag = 'call',
+                            f = { tag='acc', tk={str="atm_is"} },
+                            es = {
+                                { tag='acc', tk={str="it"} },
+                                cmp
+                            },
+                        }
                     end
                 end
                 accept_err('=>')
@@ -603,14 +611,6 @@ function parser_1_prim ()
                         es = { tag='block', es={parser()} }
                     end
                 end
-                local cnd = {
-                    tag = 'call',
-                    f = { tag='acc', tk={str="atm_is"} },
-                    es = {
-                        { tag='acc', tk={str="it"} },
-                        cmp
-                    },
-                }
                 ts[#ts+1] = { cnd, es }
                 if brk then
                     break

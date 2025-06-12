@@ -584,6 +584,20 @@ do
             }
         }
     ]])
+
+    local src = "match x { else=>{} }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        ifs x {
+            else => {
+            }
+        }
+    ]])
 end
 
 -- CATCH
