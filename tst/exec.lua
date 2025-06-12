@@ -82,7 +82,7 @@ do
     assertx(out, "ok\n")
 end
 
--- BLOCK / DO / ESCAPE
+-- BLOCK / DO
 
 do
     local src = [[
@@ -163,6 +163,78 @@ do
     assertx(out, "20\n")
 end
 
+print "-=- DO / ESCAPE -=-"
+
+do
+    local src = [[
+        val x = do :X {
+            do :Y {
+                escape(:X,10)
+            }
+        }
+        dump(x)
+    ]]
+    print("Testing...", "do 0")
+    local out = atm_test(src)
+    assertx(out, "10\n")
+
+    local src = [[
+        val x = do :X {
+            var x
+            set x = @{0}
+            escape(:X,x)   ;; escape but no access
+        }
+        dump(x)
+    ]]
+    print("Testing...", "do 1")
+    local out = atm_test(src)
+    assertx(out, "{0}\n")
+
+    local src = [[
+        val a,b = do :X {
+            escape(:X,10,20)
+        }
+        print(a,b)
+    ]]
+    print("Testing...", "do 2")
+    local out = atm_test(src)
+    assertx(out, "10\t20\n")
+
+    local src = [[
+        val a,b = do :X {
+            (10,20)
+        }
+        print(a,b)
+    ]]
+    print("Testing...", "do 3")
+    local out = atm_test(src)
+    assertx(out, "10\t20\n")
+
+    local src = [[
+        val x = do :X {
+            escape <- :X @{10}
+        }
+        dump(x)
+    ]]
+    print("Testing...", "do 4")
+    local out = atm_test(src)
+    assertx(out, "{10, tag=X}\n")
+
+    local src = [[
+        do :X.Z {
+            do :X.Y {
+                escape(:X.Z)
+                print(99)
+            }
+            print(99)
+        }
+        print(10)
+    ]]
+    print("Testing...", "do 5")
+    local out = atm_test(src)
+    assertx(out, "10\n")
+end
+
 print "-=- DEFER -=-"
 
 do
@@ -214,7 +286,7 @@ do
     ]]
     print("Testing...", "defer 4")
     local out = atm_test(src)
-    assertx(out, "10\nuncaught throw : X\n")
+    assertx(out, "10\nuncaught throw : X")
 end
 
 -- DCL / VAL / VAR / SET
@@ -1008,60 +1080,6 @@ do
     print("Testing...", "catch 14")
     local out = atm_test(src)
     assertx(out, "{10, tag=Y.X}\n")
-
-    local src = [[
-        val x = do :X {
-            do :Y {
-                escape(:X,10)
-            }
-        }
-        dump(x)
-    ]]
-    print("Testing...", "do 0")
-    local out = atm_test(src)
-    assertx(out, "10\n")
-
-    local src = [[
-        val x = do :X {
-            var x
-            set x = @{0}
-            escape(:X,x)   ;; escape but no access
-        }
-        dump(x)
-    ]]
-    print("Testing...", "do 1")
-    local out = atm_test(src)
-    assertx(out, "{0}\n")
-
-    local src = [[
-        val a,b = do :X {
-            escape(:X,10,20)
-        }
-        print(a,b)
-    ]]
-    print("Testing...", "do 2")
-    local out = atm_test(src)
-    assertx(out, "10\t20\n")
-
-    local src = [[
-        val a,b = do :X {
-            (10,20)
-        }
-        print(a,b)
-    ]]
-    print("Testing...", "do 3")
-    local out = atm_test(src)
-    assertx(out, "10\t20\n")
-
-    local src = [[
-        val x = do :X {
-            escape <- :X @{10}
-        }
-        dump(x)
-    ]]
-    print("Testing...", "do 4")
-    local out = atm_test(src)
-    assertx(out, "{10, tag=X}\n")
 end
 
 -- EXEC / CORO / TASK / YIELD / SPAWN / RESUME

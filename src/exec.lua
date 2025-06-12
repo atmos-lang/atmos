@@ -18,7 +18,7 @@ function atm_test (src, tst)
     if ok then
         return out
     else
-        return err
+        return out..err
     end
 end
 
