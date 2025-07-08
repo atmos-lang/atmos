@@ -1,5 +1,3 @@
--- LUA_PATH="/x/atmos/src/?.lua;" lua5.4 tasks.lua
-
 -- PARSER
 
 do

@@ -1,5 +1,3 @@
--- LUA_PATH="/x/atmos/src/?.lua;" lua5.4 exec.lua
-
 require "lexer"
 require "parser"
 require "tosource"
@@ -2038,5 +2036,5 @@ do
     ]]
     print("Testing...", "require 1")
     local out = atm_test(src)
-    assertx(out, "./x.atm\t20\n")
+    assertx(out, "x.atm\t20\n")
 end
