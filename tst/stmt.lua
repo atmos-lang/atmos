@@ -1,5 +1,3 @@
--- LUA_PATH="/x/atmos/src/?.lua;" lua5.4 stmt.lua
-
 require "lexer"
 require "parser"
 require "tosource"
@@ -255,6 +253,36 @@ do
     assertx(tosource(s), trim [[
         val x = do :X {
             escape(atm_tag_do(:X, @{[1]=10}))
+        }
+    ]])
+
+    local src = "do { 1 ; 2 }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), trim [[
+        do {
+            1
+            2
+        }
+    ]])
+
+    local src = "do { do(1) ; 2 }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), trim [[
+        do {
+            do {
+                1
+            }
+            2
         }
     ]])
 end
@@ -584,6 +612,45 @@ do
             }
         }
     ]])
+
+    local src = "match x { else=>{} }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        ifs x {
+            else => {
+            }
+        }
+    ]])
+
+    local src = [[
+        match x {
+            :X.Y => {}
+            1 => {}
+            else => x
+        }
+    ]]
+    print("Testing...", "match 1")
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        ifs x {
+            atm_is(it, :X.Y) => {
+            }
+            atm_is(it, 1) => {
+            }
+            else => {
+                x
+            }
+        }
+    ]])
 end
 
 -- CATCH
@@ -591,14 +658,16 @@ end
 do
     local src = "catch :X { }"
     print("Testing...", src)
+    init()
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(stringify(s) == "{blk={es={}, tag=block}, cnd={e={tag=tag, tk={lin=1, sep=1, str=:X, tag=tag}}}, tag=catch}")
+    assertx(stringify(s), "{blk={es={}, tag=block}, cnd={e={tag=tag, tk={lin=1, sep=1, str=:X, tag=tag}}}, tag=catch}")
 
     local src = "catch { }"
     print("Testing...", src)
+    init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser_main)
@@ -608,6 +677,7 @@ do
 
     local src = "catch true, err>0 { }"
     print("Testing...", src)
+    init()
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
@@ -621,6 +691,7 @@ do
 
     local src = "val x = catch :X { }"
     print("Testing...", src)
+    init()
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
@@ -636,6 +707,7 @@ end
 do
     local src = "spawn [ts] X()"
     print("Testing...", src)
+    init()
     lexer_init("anon", src)
     lexer_next()
     local s = parser()

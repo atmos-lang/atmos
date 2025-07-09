@@ -1,3 +1,5 @@
+-- LUA_PATH="/x/atmos/atmos/src/?.lua;?.lua;" lua5.4 all.lua
+
 print "===== LEXER ====="
 dofile "lexer.lua"
 print "===== EXPR ====="

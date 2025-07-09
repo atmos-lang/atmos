@@ -62,6 +62,7 @@ function stringify (v)
                 vs = vs .. ', '
             end
             vs = vs .. stringify(x)
+            fst = false
         end
         return "#{" .. vs .. "}"
     else
@@ -70,7 +71,9 @@ function stringify (v)
         local t = {}
         for k,x in pairs(v) do
             assert(type(k)=='number' or type(k)=='string')
-            t[#t+1] = { k, x }
+            --if k ~= 'tag' then
+                t[#t+1] = { k, x }
+            --end
         end
         table.sort(t, function (x, y) return (tostring(x[1]) < tostring(y[1])) end)
         local i = 1
@@ -87,7 +90,8 @@ function stringify (v)
             end
             fst = false
         end
-        return "{" .. vs .. "}"
+        --local tag = v.tag and (':'..v.tag..' ') or ''
+        return --[[tag ..]] "{" .. vs .. "}"
     end
 end
 

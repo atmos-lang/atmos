@@ -1,9 +1,11 @@
 local TIME = 1
 resume = coroutine.resume
 
+local meta = { __close=function (co) coroutine.close(co.th) end }
+
 function coro (f)
     if atm_tag_is(f,'func') then
-        return { tag='coro', th=coroutine.create(f.func) }
+        return setmetatable({ tag='coro', th=coroutine.create(f.func) }, meta)
     else
         return coroutine.create(f)
     end
@@ -173,6 +175,8 @@ function atm_is (v, x)
     local tp = type(v)
     if tp == x then
         return true
+    elseif tp=='string' and type(x)=='string' then
+        return (string.find(v, '^'..x) == 1)
     elseif tp=='table' and type(x)=='string' then
         return (string.find(v.tag or '', '^'..x) == 1)
     end
@@ -185,20 +189,28 @@ function atm_cat (v1, v2)
     assertn(2, t1==t2, 'invalid ++ : incompatible types', 2)
     if t1 == 'string' then
         return v1 .. v2
-    elseif t1 == 'table' then
-        local ret = {}
-        for k,v in pairs(v1) do
-            ret[k] = v
+    elseif t1 ~= 'table' then
+        error('invalid ++ : unsupported type', 2)
+    elseif t2 ~= 'table' then
+        error('invalid ++ : unsupported type', 2)
+    elseif v1.tag=='vector' and v2.tag=='vector' then
+        local ret = setmetatable({ tag='vector' }, atm_vector)
+        for i=1, #v1 do
+            ret[#ret] = v1[i-1]
         end
-        local n1 = #v1
-        for k,v in pairs(v2) do
-            if type(k) == 'number' then
-                ret[n1+k] = v
-            end
+        for i=1, #v2 do
+            ret[#ret] = v2[i-1]
         end
         return ret
     else
-        error('invalid ++ : unsupported type', 2)
+        local ret = {}
+        for k,x in pairs(v1) do
+            ret[k] = x
+        end
+        for k,x in pairs(v2) do
+            ret[k] = x
+        end
+        return ret
     end
 end
 
@@ -448,11 +460,15 @@ end
 
 function atm_until (cnd, ...)
     if cnd then
-        return atm_break(...)
+        if ... then
+            return atm_break(...)
+        else
+            return atm_break(cnd)
+        end
     end
 end
 
-function atm_while (...)
+function atm_while (cnd, ...)
     if not cnd then
         return atm_break(...)
     end

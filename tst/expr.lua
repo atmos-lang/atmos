@@ -1,5 +1,3 @@
--- LUA_PATH="/x/atmos/src/?.lua;" lua5.4 expr.lua
-
 require "lexer"
 require "parser"
 require "tosource"
@@ -128,6 +126,14 @@ do
     lexer_next()
     local e = parser()
     assertx(tosource(e), "`f`()")
+
+    local src = "f`v`"
+    print("Testing...", "native 3")
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(tosource(e), "f(`v`)")
 end
 
 -- TABLE / INDEX
@@ -1049,7 +1055,7 @@ do
     assertx(tosource(e), 'pub')
 end
 
-print '-=- AWAIT -=-'
+print '--- AWAIT ---'
 
 do
     local src = "await(:X, x+10)"
@@ -1097,7 +1103,7 @@ do
     ]])
 end
 
-print '-=- TOGGLE -=-'
+print '--- TOGGLE ---'
 
 do
     local src = "toggle t(true)"

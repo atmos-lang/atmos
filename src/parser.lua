@@ -160,12 +160,12 @@ function parser_2_suf (pre)
     local ret
 
     -- END
-    if (e.tag == 'tag') and (check'(' or check'@{' or check'#{') then
+    if (e.tag == 'tag') and (check'(' or check'@{' or check'#{' or check(nil,'nat')) then
         -- (:X) @{...}
         local t = parser()
         local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
         return { tag='call', f=f, es={e,t} }
-    elseif check('@{') or check('#{') or check(nil,'str') or check(nil,'tag') then
+    elseif check('@{') or check('#{') or check(nil,'str') or check(nil,'tag') or check(nil,'nat') then
         local v = parser_1_prim()
         return { tag='call', f=e, es={v} }
 

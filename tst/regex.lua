@@ -1,5 +1,3 @@
--- LUA_PATH="/x/atmos/src/?.lua;" lua5.4 regex.lua
-
 require "lexer"
 require "expr"
 

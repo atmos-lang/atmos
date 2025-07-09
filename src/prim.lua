@@ -506,10 +506,17 @@ function parser_1_prim ()
     -- do, defer, catch
     elseif check('do') or check('catch') or check('defer') then
         -- do :X {...}
+        -- do(...)
         if accept('do') then
-            local tag = accept(nil, 'tag')
-            local blk = parser_block()
-            return { tag='do', esc=tag, blk=blk }
+            if accept('(') then
+                local e = parser()
+                accept_err(')')
+                return { tag='do', blk={tag='block',es={e}} }
+            else
+                local tag = accept(nil, 'tag')
+                local blk = parser_block()
+                return { tag='do', esc=tag, blk=blk }
+            end
         -- catch
         elseif accept('catch') then
             local xe = parser()
@@ -590,9 +597,17 @@ function parser_1_prim ()
                 local cnd; do
                     if accept('else') then
                         brk = true
-                        cmp = 'else'
+                        cnd = 'else'
                     else
-                        cmp = parser()
+                        local cmp = parser()
+                        cnd = {
+                            tag = 'call',
+                            f = { tag='acc', tk={str="atm_is"} },
+                            es = {
+                                { tag='acc', tk={str="it"} },
+                                cmp
+                            },
+                        }
                     end
                 end
                 accept_err('=>')
@@ -603,14 +618,6 @@ function parser_1_prim ()
                         es = { tag='block', es={parser()} }
                     end
                 end
-                local cnd = {
-                    tag = 'call',
-                    f = { tag='acc', tk={str="atm_is"} },
-                    es = {
-                        { tag='acc', tk={str="it"} },
-                        cmp
-                    },
-                }
                 ts[#ts+1] = { cnd, es }
                 if brk then
                     break

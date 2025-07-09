@@ -3,22 +3,22 @@ require "lexer"
 require "parser"
 require "coder"
 
-function atm_test (src)
+function atm_test (src, tst)
     PRINT = print
     local out = ""
-    print = function (...)
+    print = (tst and print) or (function (...)
         local t = {}
         for i=1, select('#',...) do
             t[#t+1] = tostring(select(i,...))
         end
         out = out .. join('\t', t) .. '\n'
-    end
+    end)
     local ok, err = pcall(atm_dostring, src, "anon.atm")
     print = PRINT
     if ok then
         return out
     else
-        return err
+        return out..err
     end
 end
 
@@ -33,12 +33,16 @@ end
 
 package.searchers[#package.searchers+1] = atm_searcher
 
-function atm_loadstring (src, file)
+function atm_to_lua (file, src)
     init()
     lexer_init(file, src)
     lexer_next()
     local ast = parser_main()
-    local lua = coder_stmts(ast.blk.es)
+    return coder_stmts(ast.blk.es)
+end
+
+function atm_loadstring (src, file)
+    local lua = atm_to_lua(file, src)
     --io.stderr:write(lua)
     local f,msg1 = load(lua, file)
     if not f then
@@ -50,7 +54,7 @@ function atm_loadstring (src, file)
         return f, (file..' : line '..lin..' : '..msg2..'\n')
     end
     return function ()
-        require 'runtime'
+        require "runtime"
         local v, msg1 = pcall(f)
         --print(v, msg1)
         if not v then
