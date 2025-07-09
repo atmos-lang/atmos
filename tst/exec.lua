@@ -666,6 +666,7 @@ do
     ]]
     print("Testing...", "catch 9")
     local out = atm_test(src)
+    assertx(out, "3\n")
 
     local src = [[
         val a = 1
@@ -919,7 +920,7 @@ do
         print(:1)
         do {
             print(:2)
-            pin x = spawn (func () {
+            spawn (func () {
                 defer {
                     print(:defer)
                 }
