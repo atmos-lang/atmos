@@ -54,7 +54,7 @@ function atm_loadstring (src, file)
         return f, (file..' : line '..lin..' : '..msg2..'\n')
     end
     return function ()
-        require "runtime"
+        require "run"
         local v, msg1 = pcall(f)
         --print(v, msg1)
         if not v then

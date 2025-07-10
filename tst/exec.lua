@@ -94,7 +94,7 @@ do
     lexer_next()
     local s = parser()
     local f = assert(io.open("/tmp/anon.lua", 'w'))
-    f:write('require "runtime";\n')
+    f:write('require "run";\n')
     f:write(coder(s))
     f:close()
     local exe = assert(io.popen("lua5.4 /tmp/anon.lua", 'r'))
@@ -2037,5 +2037,5 @@ do
     ]]
     print("Testing...", "require 1")
     local out = atm_test(src)
-    assertx(out, "x.atm\t20\n")
+    assertx(out, "./x.atm\t20\n")
 end
