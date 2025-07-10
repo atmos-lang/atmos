@@ -13,12 +13,12 @@ function atm_test (src, tst)
         end
         out = out .. join('\t', t) .. '\n'
     end)
-    local ok, err = pcall(atm_dostring, src, "anon.atm")
+    local ok, err = atm_dostring(src, "anon.atm")
     print = PRINT
     if ok then
         return out
     else
-        return out..err
+        return out .. err
     end
 end
 
@@ -56,6 +56,8 @@ function atm_loadstring (src, file)
     return function ()
         local atmos = require "atmos"
         require "run"
+        return pcall(atmos.call,nil,f)
+--[[
         local v, msg1 = pcall(f)
         --print(v, msg1)
         if not v then
@@ -81,6 +83,7 @@ function atm_loadstring (src, file)
         end
         atmos.close(TASKS)
         return v
+]]
     end
 end
 
@@ -91,7 +94,7 @@ function atm_loadfile (file)
 end
 
 function atm_dostring (src, file)
-    assertn(0, atm_loadstring(src,file))()
+    return assertn(0, atm_loadstring(src,file))()
 end
 
 function atm_dofile (file)
