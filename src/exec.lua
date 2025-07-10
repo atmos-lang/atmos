@@ -54,6 +54,7 @@ function atm_loadstring (src, file)
         return f, (file..' : line '..lin..' : '..msg2..'\n')
     end
     return function ()
+        local atmos = require "atmos"
         require "run"
         local v, msg1 = pcall(f)
         --print(v, msg1)
@@ -78,7 +79,7 @@ function atm_loadstring (src, file)
             end
             return nil
         end
-        close(TASKS)
+        atmos.close(TASKS)
         return v
     end
 end
