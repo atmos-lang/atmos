@@ -519,18 +519,9 @@ function parser_1_prim ()
             end
         -- catch
         elseif accept('catch') then
-            local xe = parser()
-            if not (xe.tag=='bool' or xe.tag=='tag') then
-                err(tk, "invalid catch : expected tag")
-            end
-            local xf = nil
-            if accept(',') then
-                local it = { tag='id', str="err" }
-                local e = parser()
-                xf = { tag='func', pars={it}, blk={tag='block',es={e}} }
-            end
+            local cnd = parser()
             local blk = parser_block()
-            return { tag='catch', cnd={e=xe,f=xf}, blk=blk }
+            return { tag='catch', cnd=cnd, blk=blk }
         -- defer {...}
         elseif accept('defer') then
             local blk = parser_block()

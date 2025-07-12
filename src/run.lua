@@ -75,22 +75,6 @@ end
 -- CATCH/THROW, LOOP/UNTIL/WHILE/BREAK, FUNC/RETURN, DO/ESCAPE
 -------------------------------------------------------------------------------
 
-function atm_catch (xe, xf, blk, ...)
-    return (function (ok, err, ...)
-        if ok then
-            return true, err, ...
-        elseif err.up == 'catch' then
-            if (xe==true or atm_is(err[1],xe)) and (xf==nil or atm_call(xf,table.unpack(err))) then
-                return false, table.unpack(err)
-            else
-                error(err, 0)
-            end
-        else
-            error(err, 0)
-        end
-    end)(pcall(blk, ...))
-end
-
 function atm_loop (f, ...)
     return (function (ok, err, ...)
         if ok then

@@ -86,9 +86,7 @@ function tosource (e)
         local itr = e.itr and (' in '..tosource(e.itr)) or ''
         return "loop" .. ids .. itr .. ' ' .. tosource_block(e.blk)
     elseif e.tag == 'catch' then
-        local esc = e.esc and (e.esc.str..' ') or ''
-        local xf = e.cnd.f and (', '..tosource(e.cnd.f)) or ''
-        return "catch " .. tosource(e.cnd.e) .. xf .. " " .. tosource_block(e.blk)
+        return "catch " .. tosource(e.cnd) .. " " .. tosource_block(e.blk)
     else
         print(e.tag)
         error("TODO")

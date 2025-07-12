@@ -48,6 +48,7 @@ end
 
 function atm_loadstring (src, file)
     local lua = atm_to_lua(file, src)
+--io.stderr:write(lua)
     local f,msg1 = load(lua, file)
     if not f then
         local filex, lin, msg2 = string.match(msg1, '%[string "(.-)"%]:(%d+): (.-) at line %d+$')

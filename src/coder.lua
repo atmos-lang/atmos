@@ -183,10 +183,9 @@ function coder (e)
             ")"
         )
     elseif e.tag == 'catch' then
-        local xe  = coder(e.cnd.e)
-        local xf  = e.cnd.f and coder(e.cnd.f) or 'nil'
+        local xe = coder(e.cnd)
         return (
-            "atm_catch(" .. xe .. ',' .. xf .. ',' ..
+            "catch(" .. xe .. ',' ..
                 "function () " .. coder(e.blk) .. " end" ..
             ")"
         )
