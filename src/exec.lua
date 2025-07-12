@@ -4,8 +4,8 @@ require "parser"
 require "coder"
 
 function atm_test (src, tst)
-    PRINT = print
     local out = ""
+    PRINT = print
     print = (tst and print) or (function (...)
         local t = {}
         for i=1, select('#',...) do
@@ -13,7 +13,12 @@ function atm_test (src, tst)
         end
         out = out .. join('\t', t) .. '\n'
     end)
-    local ok, err = atm_dostring(src, "anon.atm")
+    local f, err = atm_loadstring(src, "anon.atm")
+    if not f then
+        print = PRINT
+        return err
+    end
+    local ok, err = pcall(f)
     print = PRINT
     if ok then
         return out
@@ -43,7 +48,6 @@ end
 
 function atm_loadstring (src, file)
     local lua = atm_to_lua(file, src)
-    --io.stderr:write(lua)
     local f,msg1 = load(lua, file)
     if not f then
         local filex, lin, msg2 = string.match(msg1, '%[string "(.-)"%]:(%d+): (.-) at line %d+$')
@@ -56,34 +60,7 @@ function atm_loadstring (src, file)
     return function ()
         local atmos = require "atmos"
         require "run"
-        return pcall(atmos.call,nil,f)
---[[
-        local v, msg1 = pcall(f)
-        --print(v, msg1)
-        if not v then
-            if type(msg1) == 'table' then
-                if msg1.up == 'func' then
-                    return table.unpack(msg1)
-                elseif msg1.up == 'catch' then
-                    assert(msg1.up)
-                    error("uncaught throw : " .. stringify(msg1[1]), 0)
-                else
-                    error "bug found"
-                end
-            else
-                assert(type(msg1) == 'string')
-                local filex, lin, msg2 = string.match(msg1, '%[string "(.-)"%]:(%d+): (.*)$')
-                --print(file, filex, lin, msg1)
-                if file ~= filex then
-                    error('internal error : ' .. msg1)
-                end
-                error(file..' : line '..lin..' : '..msg2, 0)
-            end
-            return nil
-        end
-        atmos.close(TASKS)
-        return v
-]]
+        return atmos.call(nil,f)
     end
 end
 

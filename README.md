@@ -50,9 +50,15 @@ main {
 
 We first import the builtin `clock` environment, which provides timers to
 applications.
-The `main` primitive starts a task in Atmos that behaves as follows:
+The `main` block is a task in Atmos that behaves as follows:
 
-- The `watching` command will execute its body during 5 seconds.
-- The `every` loop will execute its body every second.
-- After the `watching` terminates, the `main` reaches its end and program
-  terminates.
+- The `watching` command will execute its block during 5 seconds.
+- The `every` loop will execute its block every second.
+- Once the `watching` terminates, the `main` block reaches its end, and the
+  program exits cleanly.
+
+[sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
+[events]:       https://en.wikipedia.org/wiki/Event-driven_programming
+[sync]:         https://fsantanna.github.io/sc.html
+[ceu]:          http://www.ceu-lang.org/
+[esterel]:      https://en.wikipedia.org/wiki/Esterel
