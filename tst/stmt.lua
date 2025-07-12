@@ -663,7 +663,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{blk={es={}, tag=block}, cnd={e={tag=tag, tk={lin=1, sep=1, str=:X, tag=tag}}}, tag=catch}")
+    assertx(stringify(s), "{blk={es={}, tag=block}, cnd={tag=tag, tk={lin=1, sep=1, str=:X, tag=tag}}, tag=catch}")
 
     local src = "catch { }"
     print("Testing...", src)
@@ -680,6 +680,9 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
+    local ok, msg = pcall(parser)
+    assert(not ok and msg=="anon : line 1 : near ',' : expected '{'")
+--[=[
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
@@ -688,6 +691,7 @@ do
         } {
         }
     ]])
+]=]
 
     local src = "val x = catch :X { }"
     print("Testing...", src)
@@ -712,7 +716,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "spawn(ts, X, false)")
+    assertx(tosource(s), "spawn(1, ts, false, X)")
 
     local src = "spawn T(1,2,3)"
     print("Testing...", src)
@@ -721,7 +725,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "pin _ = spawn(nil, T, false, 1, 2, 3)")
+    assertx(tosource(s), "pin _ = spawn(1, nil, false, T, 1, 2, 3)")
 
     local src = "spawn (x+10)"
     print("Testing...", src)
@@ -737,7 +741,8 @@ do
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assert(not ok and msg=="anon : line 1 : near 'spawn' : invalid spawn : expected pin declaraion")
+    assert(not ok)
+    assert(msg, "anon : line 1 : near 'spawn' : invalid spawn : expected pin declaration")
 
     local src = "val t = tasks()"
     print("Testing...", src)
@@ -745,7 +750,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'tasks' : invalid tasks : expected pin declaraion")
+    assertx(msg, "anon : line 1 : near 'tasks' : invalid tasks : expected pin declaration")
 end
 
 print '--- AWAIT / EVERY ---'

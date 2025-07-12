@@ -69,9 +69,10 @@ local function spawn (lin, blk)
         tag = 'call',
         f = { tag='acc', tk={tag='id', str='spawn', lin=lin} },
         es = {
+            { tag='num', tk={tag='num',str='1'} },
             { tag='nil', tk={tag='key',str='nil'} },
+            { tag='bool', tk={str='true'} },            -- invisible=true
             { tag='func', pars={}, blk=blk },
-            { tag='bool', tk={str='true'} },    -- fake=true
         },
     }
 end
@@ -97,9 +98,10 @@ function parser_spawn ()
         if call.tag ~= 'call' then
             err(tk, "expected call")
         end
-        table.insert(call.es, 1, ts)
-        table.insert(call.es, 2, call.f)
+        table.insert(call.es, 1, {tag='num',tk={tag='num',str='1'}})
+        table.insert(call.es, 2, ts)
         table.insert(call.es, 3, {tag='bool',tk={str='false'}})
+        table.insert(call.es, 4, call.f)
         local spw = {
             tag = 'call',
             f   = { tag='acc', tk={tag='id', str='spawn', lin=tk.lin} },
@@ -271,7 +273,7 @@ function parser_1_prim ()
         -- spawn {}, spawn T()
         elseif check('spawn') then
             local out,spw = parser_spawn()
-            if spw.es[1].tag == 'nil' then
+            if spw.es[2].tag == 'nil' then
                 -- force "pin" if no "in" target
                 out = {
                     tag = 'dcl',
@@ -461,15 +463,15 @@ function parser_1_prim ()
             if check('spawn') then
                 local tk1 = TK1
                 local out,spw = parser_spawn()
-                if tk.str=='pin' and spw.es[1].tag~='nil' then
-                    err(tk1, "invalid spawn in : unexpected pin declaraion")
-                elseif tk.str~='pin' and spw.es[1].tag=='nil' then
-                    err(tk1, "invalid spawn : expected pin declaraion")
+                if tk.str=='pin' and spw.es[2].tag~='nil' then
+                    err(tk1, "invalid spawn in : unexpected pin declaration")
+                elseif tk.str~='pin' and spw.es[2].tag=='nil' then
+                    err(tk1, "invalid spawn : expected pin declaration")
                 end
                 set = out
             elseif accept('tasks') then
                 if tk.str ~= 'pin' then
-                    err(TK0, "invalid tasks : expected pin declaraion")
+                    err(TK0, "invalid tasks : expected pin declaration")
                 end
                 local f = { tag='acc', tk={tag='id',str="tasks",lin=TK0.lin} }
                 accept_err('(')
