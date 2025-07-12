@@ -72,8 +72,24 @@ function atm_cat (v1, v2)
 end
 
 -------------------------------------------------------------------------------
--- LOOP, FUNC, DO, BREAK, RETURN, ESCAPE
+-- CATCH/THROW, LOOP/UNTIL/WHILE/BREAK, FUNC/RETURN, DO/ESCAPE
 -------------------------------------------------------------------------------
+
+function atm_catch (xe, xf, blk, ...)
+    return (function (ok, err, ...)
+        if ok then
+            return true, err, ...
+        elseif err.up == 'catch' then
+            if (xe==true or atm_is(err[1],xe)) and (xf==nil or atm_call(xf,table.unpack(err))) then
+                return false, table.unpack(err)
+            else
+                error(err, 0)
+            end
+        else
+            error(err, 0)
+        end
+    end)(pcall(blk, ...))
+end
 
 function atm_loop (f, ...)
     return (function (ok, err, ...)
@@ -141,6 +157,10 @@ function atm_do (xt, blk, ...)
     end)(pcall(blk, ...))
 end
 
+function throw (...)
+    return error({up='catch',...}, 0)
+end
+
 function atm_break (...)
     return error({up='loop',...}, 0)
 end
@@ -153,6 +173,40 @@ function escape (...)
     return error({up='do',...}, 0)
 end
 
+-------------------------------------------------------------------------------
+-- CORO
+-------------------------------------------------------------------------------
+
+resume = coroutine.resume
+
+local meta_coro = { __close=function (co) coroutine.close(co._.th) end }
+
+function coro (f)
+    if atm_tag_is(f,'func') then
+        return setmetatable({ _={th=coroutine.create(f.func)} }, meta_coro)
+    else
+        return coroutine.create(f)
+    end
+end
+
+function resume (co, ...)
+    if atm_tag_is(co,'coro') then
+        return (function (ok, err, ...)
+            if ok then
+                return ok, err, ...
+            elseif err.up == 'func' then
+                return true, table.unpack(err)
+            else
+                return false, err, ...
+            end
+        end)(coroutine.resume(co._.th, ...))
+    else
+        return coroutine.resume(co._.th, ...)
+    end
+end
+
+-------------------------------------------------------------------------------
+-- ITER
 -------------------------------------------------------------------------------
 
 function inext (t, i)
@@ -219,3 +273,29 @@ function iter (t)
         error("TODO - iter(t)")
     end
 end
+
+-------------------------------------------------------------------------------
+-- CEU
+-------------------------------------------------------------------------------
+
+--[[
+local function aux (skip_fake, t)
+    if skip_fake and t.fake then
+        return aux(skip_fake, t.up)
+    else
+        return t
+    end
+end
+
+function atm_me (skip_fake)
+    local th = coroutine.running()
+    return th and TASKS.cache[th] and aux(skip_fake, TASKS.cache[th])
+end
+]]
+
+function yield (...)
+    --assertn(2, not atm_me(), 'invalid yield : unexpected enclosing task instance')
+    return coroutine.yield(...)
+end
+
+
