@@ -595,7 +595,7 @@ function parser_1_prim ()
                         local cmp = parser()
                         cnd = {
                             tag = 'call',
-                            f = { tag='acc', tk={str="atm_is"} },
+                            f = { tag='acc', tk={str="_is_"} },
                             es = {
                                 { tag='acc', tk={str="it"} },
                                 cmp
