@@ -1,18 +1,3 @@
-function atm_is (v, x)
-    if v == x then
-        return true
-    end
-    local tp = type(v)
-    if tp == x then
-        return true
-    elseif tp=='string' and type(x)=='string' then
-        return (string.find(v, '^'..x) == 1)
-    elseif tp=='table' and type(x)=='string' then
-        return (string.find(v.tag or '', '^'..x) == 1)
-    end
-    return false
-end
-
 function atm_tag_is (t, a, b)
     local ist = (type(t) == 'table')
     if not ist then
@@ -103,10 +88,9 @@ function atm_while (cnd, ...)
     end
 end
 
-function atm_call (f, ...)
-    if not atm_tag_is(f,'func') then
-        return f(...)
-    else
+--[[
+function atm_func (f)
+    return function (...)
         return (function (ok, err, ...)
             if ok then
                 return err, ...
@@ -115,46 +99,51 @@ function atm_call (f, ...)
             else
                 error(err, 0)
             end
-        end)(pcall(f.func, ...))
+        end)(pcall(f, ...))
+    end
+end
+]]
+
+function atm_func (f)
+    return function (...)
+        local args = { ... }
+        return (function (ok, ...)
+            if ok then
+                return ...
+            else
+                -- atm-do, ...
+                return select(2, ...)
+            end
+        end)(catch('atm-func', function () return f(table.unpack(args)) end))
     end
 end
 
-__atm_func = { __call=atm_call }
 
-function atm_func (f)
-    return setmetatable({ tag='func', func=f }, __atm_func)
-end
-
-function atm_do (xt, blk, ...)
-    return (function (ok, err, ...)
+function atm_do (tag, blk, ...)
+    return (function (ok, ...)
         if ok then
-            return err, ...
-        elseif err.up == 'do' then
-            if atm_is(err[1],xt) then
-                return table.unpack(err, (#err==1 and 1) or 2)
-            else
-                error(err, 0)
-            end
+            return ...
         else
-            error(err, 0)
+            -- atm-do, tag, ...
+            if select('#',...) == 2 then
+                return select(2, ...)
+            else
+                return select(3, ...)
+            end
         end
-    end)(pcall(blk, ...))
-end
-
-function throw (...)
-    return error({up='catch',...}, 0)
+    end)(catch('atm-do', tag, blk))
 end
 
 function atm_break (...)
-    return error({up='loop',...}, 0)
+    return error({'atm-loop',...}, 0)
 end
 
 function atm_return (...)
-    return error({up='func',...}, 0)
+    return throw('atm-func', ...)
 end
 
 function escape (...)
-    return error({up='do',...}, 0)
+    return throw('atm-do', ...)
 end
 
 -------------------------------------------------------------------------------
@@ -162,16 +151,7 @@ end
 -------------------------------------------------------------------------------
 
 resume = coroutine.resume
-
-local meta_coro = { __close=function (co) coroutine.close(co._.th) end }
-
-function coro (f)
-    if atm_tag_is(f,'func') then
-        return setmetatable({ _={th=coroutine.create(f.func)} }, meta_coro)
-    else
-        return coroutine.create(f)
-    end
-end
+coro   = coroutine.create
 
 function resume (co, ...)
     if atm_tag_is(co,'coro') then
