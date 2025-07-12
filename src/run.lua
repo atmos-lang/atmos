@@ -60,16 +60,15 @@ end
 -- CATCH/THROW, LOOP/UNTIL/WHILE/BREAK, FUNC/RETURN, DO/ESCAPE
 -------------------------------------------------------------------------------
 
-function atm_loop (f, ...)
-    return (function (ok, err, ...)
+function atm_loop (blk)
+    return (function (ok, ...)
         if ok then
-            return err, ...
-        elseif err.up == 'loop' then
-            return table.unpack(err)
+            return ...
         else
-            error(err, 0)
+            -- atm-loop, ...
+            return select(2, ...)
         end
-    end)(pcall(f, ...))
+    end)(catch('atm-loop', blk))
 end
 
 function atm_until (cnd, ...)
@@ -88,22 +87,6 @@ function atm_while (cnd, ...)
     end
 end
 
---[[
-function atm_func (f)
-    return function (...)
-        return (function (ok, err, ...)
-            if ok then
-                return err, ...
-            elseif err.up == 'func' then
-                return table.unpack(err)
-            else
-                error(err, 0)
-            end
-        end)(pcall(f, ...))
-    end
-end
-]]
-
 function atm_func (f)
     return function (...)
         local args = { ... }
@@ -119,7 +102,7 @@ function atm_func (f)
 end
 
 
-function atm_do (tag, blk, ...)
+function atm_do (tag, blk)
     return (function (ok, ...)
         if ok then
             return ...
@@ -135,7 +118,7 @@ function atm_do (tag, blk, ...)
 end
 
 function atm_break (...)
-    return error({'atm-loop',...}, 0)
+    return throw('atm-loop', ...)
 end
 
 function atm_return (...)
