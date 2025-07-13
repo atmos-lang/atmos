@@ -146,7 +146,17 @@ local function _lexer_ (str)
                         end
                     end
                 end
-                coroutine.yield { tag='clk', str=t, clk={h or 0, min or 0, s or 0, ms or 0}, lin=LIN,sep=SEP }
+                coroutine.yield {
+                    tag = 'clk',
+                    str = t,
+                    clk = {
+                        h   = (h or 0),
+                        min = (min or 0),
+                        s   = (s or 0),
+                        ms  = (ms or 0)
+                    },
+                    lin=LIN,sep=SEP,
+                }
             end
 
         -- symbols:  {  (  ,  ;

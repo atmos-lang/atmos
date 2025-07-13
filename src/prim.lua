@@ -116,14 +116,14 @@ function parser_spawn ()
     end
 end
 
-local lits = { {'nil','true','false','...'}, {'tag','num','str','nat'} }
+local lits = { {'nil','true','false','...'}, {'tag','num','str','nat','clk'} }
 
 function parser_1_prim ()
     local function check_(tag)
         return check(nil, tag)
     end
 
-    -- literals: nil, true, false, ..., tag, str, nat
+    -- literals: nil, true, false, ..., tag, str, nat, clock
     if any(lits[1],check) or any(lits[2],check_) then
         -- nil, true, false, ...
         if accept('nil') then
@@ -141,6 +141,8 @@ function parser_1_prim ()
             return { tag='nat', tk=TK0 }
         elseif accept(nil,'tag') then
             return { tag='tag', tk=TK0 }
+        elseif accept(nil,'clk') then
+            return { tag='clk', tk=TK0 }
         else
             error "bug found"
         end

@@ -17,6 +17,9 @@ function tosource (e)
         return '"' .. e.tk.str .. '"'
     elseif e.tag == 'nat' then
         return '`' .. e.tk.str .. '`'
+    elseif e.tag == 'clk' then
+        local t = e.tk.clk
+        return '@' .. t.h .. ':' .. t.min .. ':' .. t.s .. '.' .. t.ms
     elseif e.tag == 'uno' then
         return '(' .. e.op.str .. tosource(e.e) .. ')'
     elseif e.tag == 'bin' then

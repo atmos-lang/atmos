@@ -347,25 +347,25 @@ do
     print("Testing...", src)
     init()
     lexer_init("anon", src)
-    assertx(stringify(LEX()), "{clk={1, 2, 3, 4}, lin=1, sep=1, str=1:2:3.4, tag=clk}")
+    assertx(stringify(LEX()), "{clk={h=1, min=2, ms=4, s=3}, lin=1, sep=1, str=1:2:3.4, tag=clk}")
 
     local src = "@10:05"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
-    assertx(stringify(LEX()), "{clk={0, 10, 05, 0}, lin=1, sep=1, str=10:05, tag=clk}")
+    assertx(stringify(LEX()), "{clk={h=0, min=10, ms=0, s=05}, lin=1, sep=1, str=10:05, tag=clk}")
 
     local src = "@1:v1:3.x"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
-    assertx(stringify(LEX()), "{clk={1, v1, 3, x}, lin=1, sep=1, str=1:v1:3.x, tag=clk}")
+    assertx(stringify(LEX()), "{clk={h=1, min=v1, ms=x, s=3}, lin=1, sep=1, str=1:v1:3.x, tag=clk}")
 
     local src = "@.x1"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
-    assertx(stringify(LEX()), "{clk={0, 0, 0, x1}, lin=1, sep=1, str=.x1, tag=clk}")
+    assertx(stringify(LEX()), "{clk={h=0, min=0, ms=x1, s=0}, lin=1, sep=1, str=.x1, tag=clk}")
 
     local src = "@1:v1:3."
     print("Testing...", src)

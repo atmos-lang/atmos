@@ -147,6 +147,12 @@ local function is_prefix (e)
     )
 end
 
+local function check_call_arg ()
+    return check('@{') or check('#{') or
+           check(nil,'str') or check(nil,'tag') or
+           check(nil,'nat') or check(nil,'clk')
+end
+
 function parser_2_suf (pre)
     local no = check('resume') or check('emit') or check('spawn') or check('toggle')
     local e = pre or parser_1_prim()
@@ -165,7 +171,7 @@ function parser_2_suf (pre)
         local t = parser()
         local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
         return { tag='call', f=f, es={e,t} }
-    elseif check('@{') or check('#{') or check(nil,'str') or check(nil,'tag') or check(nil,'nat') then
+    elseif check_call_arg() then
         local v = parser_1_prim()
         return { tag='call', f=e, es={v} }
 
@@ -184,8 +190,7 @@ function parser_2_suf (pre)
     elseif accept('::') then
         -- (o) ::m
         local id = accept_err(nil,'id')
-        local _ = check('@{') or check(nil,'#{') or check(nil,'str') or
-                  check(nil,'tag') or check_err('(')
+        local _ = check_call_arg() or check_err('(')
         ret = { tag='met', o=e, met=id }
     elseif accept('(') then
         -- (f) (...)

@@ -54,6 +54,11 @@ function coder (e)
         end
     elseif e.tag == 'nat' then
         return L(e.tk) .. e.tk.str
+    elseif e.tag == 'clk' then
+        local t = e.tk.clk
+        return L(e.tk) .. "clock {" ..
+            'h='..t.h..',' .. 'min='..t.min..',' .. 's='..t.s..',' .. 'ms='..t.ms ..
+        " }"
     elseif e.tag == 'index' then
         return coder(e.t) ..'['..coder(e.idx) .. ']'
     elseif e.tag == 'table' then
