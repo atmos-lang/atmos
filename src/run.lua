@@ -1,16 +1,3 @@
-function atm_tag_is (t, a, b)
-    local ist = (type(t) == 'table')
-    if not ist then
-        return false
-    elseif not t.tag then
-        return false
-    elseif a then
-        return (t.tag == a) or (t.tag == b)
-    else
-        return t.tag
-    end
-end
-
 function atm_tag_do (tag, t)
     assertn(2, type(t)=='table', 'invalid tag operation : expected table', 2)
     t.tag = tag
@@ -136,22 +123,6 @@ end
 resume = coroutine.resume
 coro   = coroutine.create
 
-function resume (co, ...)
-    if atm_tag_is(co,'coro') then
-        return (function (ok, err, ...)
-            if ok then
-                return ok, err, ...
-            elseif err.up == 'func' then
-                return true, table.unpack(err)
-            else
-                return false, err, ...
-            end
-        end)(coroutine.resume(co._.th, ...))
-    else
-        return coroutine.resume(co._.th, ...)
-    end
-end
-
 -------------------------------------------------------------------------------
 -- ITER
 -------------------------------------------------------------------------------
@@ -175,7 +146,7 @@ function iter (t)
                 i = i + 1
             end
         end)
-    elseif type(t)=='function' or atm_tag_is(t,'func') then
+    elseif type(t) == 'function' then
         return t
     elseif type(t) == 'number' then
         return coroutine.wrap(function ()
