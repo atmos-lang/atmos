@@ -21,10 +21,10 @@ end
 KEYS = {
     'await', 'catch', 'defer', 'do', 'else', 'emit', 'every', 'false', 'func',
     'if', 'ifs', 'in', 'loop', 'match', 'nil', 'par', 'par_and', 'par_or',
-    'pin', 'resume', 'set', 'spawn', 'tasks', 'test', 'toggle', 'true', 'val',
+    'pin', 'set', 'spawn', 'tasks', 'test', 'toggle', 'true', 'val',
     'var', 'watching', 'with', 'where',
     -- 'break', 'coro', 'escape', 'return', 'task', 'throw', 'until',
-    -- 'yield', 'while'
+    -- 'while'
 }
 
 OPS = {

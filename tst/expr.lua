@@ -1016,24 +1016,6 @@ do
     assert(check('('))
     assertx(tosource(e), "emit(:X)")
 
-    local src = "resume co()"
-    print("Testing...", src)
-    init()
-    lexer_init("anon", src)
-    lexer_next()
-    local e = parser()
-    assert(check('<eof>'))
-    assert(tosource(e) == "resume(co)")
-
-    local src = "resume co(x) <- y"
-    print("Testing...", src)
-    init()
-    lexer_init("anon", src)
-    lexer_next()
-    local e = parser()
-    assert(check('<eof>'))
-    assert(tosource(e) == "resume(co, x, y)")
-
     local src = "spawn T(1,2,3)"
     print("Testing...", src)
     init()

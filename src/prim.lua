@@ -195,20 +195,6 @@ function parser_1_prim ()
             return { tag='es', tk=tk, es=es }
         end
 
-    -- resume co(...)
-    elseif accept('resume') then
-        local tk = TK0
-        local call = parser_6_pip()
-        if call.tag ~= 'call' then
-            err(tk, "expected call")
-        end
-        table.insert(call.es, 1, call.f)
-        return parser_7_out {
-            tag = 'call',
-            f = { tag='acc', tk={tag='id', str='resume', lin=tk.lin} },
-            es = call.es,
-        }
-
     -- emit, await, spawn, toggle
     elseif check('emit') or check('await') or check('spawn') or check('toggle') then
         -- emit [t] (...)

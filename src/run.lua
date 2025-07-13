@@ -117,13 +117,6 @@ function escape (...)
 end
 
 -------------------------------------------------------------------------------
--- CORO
--------------------------------------------------------------------------------
-
-resume = coroutine.resume
-coro   = coroutine.create
-
--------------------------------------------------------------------------------
 -- ITER
 -------------------------------------------------------------------------------
 
@@ -210,10 +203,3 @@ function atm_me (skip_fake)
     return th and TASKS.cache[th] and aux(skip_fake, TASKS.cache[th])
 end
 ]]
-
-function yield (...)
-    --assertn(2, not atm_me(), 'invalid yield : unexpected enclosing task instance')
-    return coroutine.yield(...)
-end
-
-
