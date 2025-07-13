@@ -94,17 +94,17 @@ function parser_spawn ()
         if call.tag ~= 'call' then
             err(tk, "expected call")
         end
-        table.insert(call.es, 1, {tag='bool',tk={str='false'}})
-        table.insert(call.es, 2, call.f)
 
         local f; do
             if ts then
                 table.insert(call.es, 1, ts)
                 f = 'spawn_in'
             else
+                table.insert(call.es, 1, {tag='bool',tk={str='false'}})
                 f = 'spawn'
             end
         end
+        table.insert(call.es, 2, call.f)
 
         local spw = {
             tag = 'call',

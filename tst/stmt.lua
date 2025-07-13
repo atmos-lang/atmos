@@ -716,7 +716,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "spawn_in(ts, false, X)")
+    assertx(tosource(s), "spawn_in(ts, X)")
 
     local src = "spawn T(1,2,3)"
     print("Testing...", src)

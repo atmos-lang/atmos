@@ -46,7 +46,7 @@ function coder (e)
     elseif e.tag == 'acc' then
         if e.tk.str == 'pub' then
             --return L(e.tk) .. "(function() print(debug.traceback());return assert(atm_me(true), 'TODO') end)().pub"
-            return L(e.tk) .. "assert(atm_me(true),'invalid pub : expected enclosing task').pub"
+            return L(e.tk) .. "assert(task(),'invalid pub : expected enclosing task').pub"
         elseif contains(ids, e.tk.str) then
             return L(e.tk) .. "atm_"..e.tk.str
         else
@@ -79,9 +79,9 @@ function coder (e)
         if e.op.str == '++' then
             return "atm_cat(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '??' then
-            return "atm_is(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
+            return "_is_(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '!?' then
-            return "(not atm_is(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
+            return "(not _is_(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
         elseif e.op.str == '?>' then
             return "atm_in(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '!>' then

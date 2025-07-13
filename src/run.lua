@@ -120,7 +120,7 @@ end
 -- ITER
 -------------------------------------------------------------------------------
 
-function inext (t, i)
+local function inext (t, i)
     i = i + 1
     local v = t[i]
     if v then
@@ -130,56 +130,27 @@ function inext (t, i)
     end
 end
 
+local function fi (N, i)
+    i = i + 1
+    if i == N then
+        return nil
+    end
+    return i
+end
+
 function iter (t)
     if t == nil then
-        return coroutine.wrap(function ()
-            local i = 0
-            while true do
-                coroutine.yield(i)
-                i = i + 1
-            end
-        end)
+        return fi, nil, -1
     elseif type(t) == 'function' then
         return t
     elseif type(t) == 'number' then
-        return coroutine.wrap(function ()
-            for i=0, t-1 do
-                coroutine.yield(i)
-            end
-        end)
+        return fi, t, -1
+    elseif _is_(t, 'tasks') then
+        return getmetatable(t).__pairs(t)
+    elseif _is_(t, 'vector') then
+        return inext, t, -1
     elseif type(t) == 'table' then
-        if t.tag == 'tasks' then
-            local co = coroutine.create (
-                function ()
-                    t.ing = t.ing + 1
-                    local _ <close> = setmetatable({}, {
-                        __close = function()
-                            t.ing = t.ing - 1
-                            atm_task_gc(t)
-                        end
-                    })
-                    for _,v in ipairs(t.dns) do
-                        coroutine.yield(v)
-                    end
-                end
-            )
-            local wr = (
-                function ()
-                    return (function (ok, ...)
-                        if not ok then
-                            error(..., 0)
-                        end
-                        return ...
-                    end)(coroutine.resume(co))
-                end
-            )
-            local close = setmetatable({}, {__close=function() coroutine.close(co) end})
-            return wr, co, nil, close
-        elseif t.tag == 'vector' then
-            return inext, t, -1
-        else
-            return next, t, nil
-        end
+        return next, t, nil
     else
         error("TODO - iter(t)")
     end
