@@ -69,9 +69,7 @@ local function spawn (lin, blk)
         tag = 'call',
         f = { tag='acc', tk={tag='id', str='spawn', lin=lin} },
         es = {
-            { tag='num', tk={tag='num',str='1'} },
-            { tag='nil', tk={tag='key',str='nil'} },
-            { tag='bool', tk={str='true'} },            -- invisible=true
+            { tag='bool', tk={str='true'} },    -- invisible=true
             { tag='func', pars={}, blk=blk },
         },
     }
@@ -86,25 +84,31 @@ function parser_spawn ()
     else
         -- spawn T(...) [in ...]
         local tk = TK0
-        local ts; do
+        local ts = nil; do
             if accept('[') then
                 ts = parser()
                 accept_err(']')
-            else
-                ts = { tag='nil', tk={tag='key',str='nil'} }
             end
         end
         local call = parser_6_pip()
         if call.tag ~= 'call' then
             err(tk, "expected call")
         end
-        table.insert(call.es, 1, {tag='num',tk={tag='num',str='1'}})
-        table.insert(call.es, 2, ts)
-        table.insert(call.es, 3, {tag='bool',tk={str='false'}})
-        table.insert(call.es, 4, call.f)
+        table.insert(call.es, 1, {tag='bool',tk={str='false'}})
+        table.insert(call.es, 2, call.f)
+
+        local f; do
+            if ts then
+                table.insert(call.es, 1, ts)
+                f = 'spawn_in'
+            else
+                f = 'spawn'
+            end
+        end
+
         local spw = {
             tag = 'call',
-            f   = { tag='acc', tk={tag='id', str='spawn', lin=tk.lin} },
+            f   = { tag='acc', tk={tag='id', str=f, lin=tk.lin} },
             es  = call.es,
         }
         local out = parser_7_out(spw)
@@ -273,7 +277,7 @@ function parser_1_prim ()
         -- spawn {}, spawn T()
         elseif check('spawn') then
             local out,spw = parser_spawn()
-            if spw.es[2].tag == 'nil' then
+            if spw.f.tk.str == 'spawn' then
                 -- force "pin" if no "in" target
                 out = {
                     tag = 'dcl',
@@ -463,9 +467,9 @@ function parser_1_prim ()
             if check('spawn') then
                 local tk1 = TK1
                 local out,spw = parser_spawn()
-                if tk.str=='pin' and spw.es[2].tag~='nil' then
+                if tk.str=='pin' and spw.f.tk.str=='spawn_in' then
                     err(tk1, "invalid spawn in : unexpected pin declaration")
-                elseif tk.str~='pin' and spw.es[2].tag=='nil' then
+                elseif tk.str~='pin' and spw.f.tk.str=='spawn' then
                     err(tk1, "invalid spawn : expected pin declaration")
                 end
                 set = out
