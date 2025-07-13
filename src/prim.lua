@@ -215,66 +215,50 @@ function parser_1_prim ()
         -- emit [t] <- :X (...)
         if accept('emit') then
             local tk = TK0
-            local cmd = { tag='acc', tk={tag='id',str='emit',lin=TK0.lin} }
-            local to; do
-                if accept('[') then
-                    to = parser()
-                    accept_err(']')
-                else
-                    to = { tag='nil', tk={tag='key',str='nil',lin=TK0.lin} }
-                end
+            local to = nil
+            local f  = nil
+            if accept('[') then
+                to = parser()
+                accept_err(']')
+                f = 'emit_in'
+            else
+                f = 'emit'
             end
+            local cmd = { tag='acc', tk={tag='id',str=f,lin=TK0.lin} }
             local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
             if call.tag ~= 'call' then
                 err(tk, "expected call")
             end
-            table.insert(call.es, 1, to)
+            if f == 'emit_in' then
+                table.insert(call.es, 1, to)
+            end
             return parser_7_out(call)
         -- await(...)
         elseif accept('await') then
             local tk = TK0
-            local par = accept('(')
-            if par or check(nil,'str') or check(nil,'tag') or check(nil,'clk') then
-                local awt = parser_await(tk.lin)
-                if par then
-                    accept_err(')')
-                end
-                return awt
-            else
-                local n = N()
+            if check(nil,'id') then
                 local call = parser_6_pip()
                 if call.tag ~= 'call' then
                     err(tk, "expected call")
                 end
                 return parser_7_out {
-                    tag = 'do',
-                    blk = {
-                        tag = 'block',
-                        es = {
-                            {
-                                tag = 'dcl',
-                                tk  = {tag='key',str='pin'},
-                                ids = { {tag='id',str="atm_"..n} },
-                                set = {
-                                    tag = 'call',
-                                    f   = { tag='acc', tk={tag='id', str='spawn', lin=tk.lin} },
-                                    es  = concat({
-                                        { tag='nil', tk={tag='key',str='nil'} },
-                                        call.f,
-                                        { tag='bool', tk={str='false'} }, -- fake=true
-                                    }, call.es),
-                                }
-                            },
-                            {
-                                tag = 'call',
-                                f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
-                                es  = {
-                                    { tag='acc', tk={tag='id',str="atm_"..n} },
-                                },
-                            },
-                        },
+                    tag = 'call',
+                    f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
+                    es  = {
+                        {
+                            tag = 'call',
+                            f   = { tag='acc', tk={tag='id', str='spawn', lin=tk.lin} },
+                            es  = concat({call.f}, call.es),
+                        }
                     },
                 }
+            else
+                local cmd = { tag='acc', tk={tag='id',str='await',lin=tk.lin} }
+                local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
+                if call.tag ~= 'call' then
+                    err(tk, "expected call")
+                end
+                return parser_7_out(call)
             end
         -- spawn {}, spawn T()
         elseif check('spawn') then

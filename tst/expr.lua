@@ -987,7 +987,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == "emit(nil, :X, 10)")
+    assert(tosource(e) == "emit(:X, 10)")
 
     local src = "emit [xs] (:X,10)"
     print("Testing...", src)
@@ -996,7 +996,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "emit(xs, :X, 10)")
+    assertx(tosource(e), "emit_in(xs, :X, 10)")
 
     local src = "emit :X @{}"
     print("Testing...", src)
@@ -1005,7 +1005,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('@{'))
-    assertx(tosource(e), "emit(nil, :X)")
+    assertx(tosource(e), "emit(:X)")
 
     local src = "emit :X(10)"
     print("Testing...", src)
@@ -1014,7 +1014,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('('))
-    assertx(tosource(e), "emit(nil, :X)")
+    assertx(tosource(e), "emit(:X)")
 
     local src = "resume co()"
     print("Testing...", src)
@@ -1096,11 +1096,14 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
+    assertx(tosource(e), "await(:X, (x + 10))")
+--[=[
     assertx(tosource(e), trim [[
         await(:X, func (evt) {
             (x + 10)
         })
     ]])
+]=]
 
     local src = "await @20:x.100"
     print("Testing...", src)
@@ -1130,12 +1133,15 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
+    assertx(tosource(e), "await(spawn(T))")
+--[=[
     assertx(trim(tosource(e)), trim [[
         do {
             pin atm_1 = spawn(nil, T, false)
             await(atm_1)
         }
     ]])
+]=]
 end
 
 print '--- TOGGLE ---'
