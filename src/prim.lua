@@ -262,103 +262,18 @@ function parser_1_prim ()
         elseif accept('toggle') then
             local tag = accept(nil, 'tag')
             if tag then
-                local lin = TK0.lin
                 local blk = parser_block()
-                local id = "atm_" .. N()
-                local loop = {
-                    tag = 'loop',
-                    ids = nil,
-                    itr = nil,
-                    blk = {
-                        tag = 'block',
-                        es = {
-                            {
-                                tag = 'call',
-                                f = { tag='acc', tk={tag='id',str='await'} },
-                                es = {
-                                    { tag='tag', tk=tag },
-                                    {
-                                        tag = 'func',
-                                        dots = false,
-                                        pars = {
-                                            { tag='id', str="evt" }
-                                        },
-                                        blk = {
-                                            tag = 'block',
-                                            es = {
-                                                {
-                                                    tag = 'uno',
-                                                    op  = { tag='op', str='!' },
-                                                    e = { tag='acc', tk={tag='id',str='evt'} },
-                                                },
-                                            },
-                                        }
-                                    },
-                                },
-                            },
-                            {
-                                tag = 'call',
-                                f = { tag='acc', tk={tag='id',str='toggle'} },
-                                es = {
-                                    { tag='acc', tk={str=id} },
-                                    { tag='bool', tk={str='false'} },
-                                },
-                            },
-                            {
-                                tag = 'call',
-                                f = { tag='acc', tk={tag='id',str='await'} },
-                                es = {
-                                    { tag='tag', tk=tag },
-                                    {
-                                        tag = 'func',
-                                        dots = false,
-                                        pars = {
-                                            { tag='id', str="evt" }
-                                        },
-                                        blk = {
-                                            tag = 'block',
-                                            es = {
-                                                { tag='acc', tk={tag='id',str='evt'} },
-                                            },
-                                        }
-                                    },
-                                },
-                            },
-                            {
-                                tag = 'call',
-                                f = { tag='acc', tk={tag='id',str='toggle'} },
-                                es = {
-                                    { tag='acc', tk={str=id} },
-                                    { tag='bool', tk={str='true'} },
-                                },
-                            },
+                return {
+                    tag = 'call',
+                    f = { tag='acc', tk={tag='id',str='toggle'} },
+                    es = {
+                        { tag='tag', tk=tag },
+                        {
+                            tag = 'func',
+                            pars = {},
+                            blk = blk,
                         },
                     },
-                }
-                return {
-                    tag = 'do',
-                    blk = {
-                        tag = 'block',
-                        es = {
-                            {
-                                tag = 'dcl',
-                                tk  = { tag='key', str='pin' },
-                                ids = { {tag='id', str=id} },
-                                set = spawn(lin, blk),
-                            },
-                            spawn(lin, {
-                                tag = 'block',
-                                es = { loop },
-                            }),
-                            {
-                                tag = 'call',
-                                f = { tag='acc', tk={tag='id',str='await'} },
-                                es = {
-                                    { tag='acc', tk={str=id} },
-                                },
-                            }
-                        },
-                    }
                 }
             else
                 local tk = TK0
