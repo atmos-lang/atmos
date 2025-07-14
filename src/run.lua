@@ -43,6 +43,28 @@ function atm_cat (v1, v2)
     end
 end
 
+function atm_in (v, t)
+    if type(t)=='table' and t[v] then
+        if t[v] then
+            return true
+        else
+            for _,x in pairs(t) do
+                if v == x then
+                    return true
+                end
+            end
+            return false
+        end
+    else
+        for x in iter(t) do
+            if x == v then
+                return true
+            end
+        end
+        return false
+    end
+end
+
 -------------------------------------------------------------------------------
 -- CATCH/THROW, LOOP/UNTIL/WHILE/BREAK, FUNC/RETURN, DO/ESCAPE
 -------------------------------------------------------------------------------
