@@ -713,44 +713,18 @@ function parser_1_prim ()
             return { tag='do', blk={tag='block', es=es} }
         -- watching
         elseif accept('watching') then
-            local lin = TK0.lin
-            local n = N()
-            local par = accept('(')
-            local awt = parser_await(lin)
-            if par then
-                accept_err(')')
-            end
-            local lin = TK1.lin
-            local es = parser_block()
+            local awt = parser_list(',', '{', parser)
+            local blk = parser_block()
             return {
-                tag = 'do',
-                blk = {
-                    tag = 'block',
-                    es = {
-                        {
-                            tag = 'dcl',
-                            tk  = { tag='key', str='pin' },
-                            ids = { {tag='id', str='atm_grd_'..n} },
-                            set = spawn(lin,awt),
-                        },
-                        {
-                            tag = 'dcl',
-                            tk  = { tag='key', str='pin' },
-                            ids = { {tag='id', str='atm_blk_'..n} },
-                            set = spawn(lin,es),
-                        },
-                        {
-                            tag = 'call',
-                            f = { tag='acc', tk={tag='id',str='await'} },
-                            es = {
-                                { tag='tag', tk={str=':par_or'} },
-                                { tag='nil', tk={tag='key',str='nil'} },
-                                { tag='acc', tk={str='atm_grd_'..n} },
-                                { tag='acc', tk={str='atm_blk_'..n} },
-                            },
-                        },
+                tag = 'call',
+                f = { tag='acc', tk={tag='id',str='watching'} },
+                es = concat(awt, {
+                    {
+                        tag = 'func',
+                        pars = {},
+                        blk = blk,
                     }
-                }
+                })
             }
         else
             error "bug found"
