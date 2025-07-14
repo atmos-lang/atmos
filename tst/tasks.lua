@@ -96,7 +96,7 @@ do
     ]]
     print("Testing...", "task 1: proto")
     local out = atm_test(src)
-    assertfx(out, "table: 0x")
+    assertfx(out, "function: 0x")
 
     local src = [[
         val T1 = func () { }
@@ -110,13 +110,13 @@ do
 
     local src = [[
         val T = func () { }
-        val t1 = coro(T)
+        val t1 = coroutine.create(T)
         val t2 = task(T)
         print(t1, t2)
     ]]
     print("Testing...", "task 3: coro/task")
     local out = atm_test(src)
-    assertfx(out, "table: 0x.*table: 0x")
+    assertfx(out, "thread: 0x.*table: 0x")
 
     local src = [[
         yield()
@@ -141,7 +141,7 @@ do
     local src = [[
         val T = func () { }
         pin t = spawn T()
-        resume t()
+        coroutine.resume(t)
     ]]
     print("Testing...", "spawn 2")
     local out = atm_test(src)
@@ -162,7 +162,7 @@ do
     assertx(out, "anon.atm : line 1 : invalid spawn : expected task prototype")
 
     local src = [[
-        val T = func () { yield();nil }
+        val T = func () { coroutine.yield();nil }
         pin t = spawn T()
         print(t)
     ]]
@@ -182,9 +182,9 @@ do
     warn(false, "tail call in yield hides line")
 
     local src = [[
-        val T = func () { yield() }
+        val T = func () { coroutine.yield() }
         val t = task(T)
-        resume t()
+        coroutine.resume(t)
     ]]
     print("Testing...", "resume 1 : error : resume task")
     local out = atm_test(src)
@@ -283,7 +283,25 @@ do
     ]]
     print("Testing...", "spawn 8")
     local out = atm_test(src)
-    assertx(out, "{}\n")
+    assertx(out, "x\n")
+
+    local src = [[
+        var tk
+        set tk = func () {
+            dump(await(true))
+        }
+        pin co = spawn tk()
+        var f = func () {
+            var g = func () {
+                emit (:x,@{})
+            }
+            g()
+        }
+        f()
+    ]]
+    print("Testing...", "spawn 8")
+    local out = atm_test(src)
+    assertx(out, "x\t{}\n")
 
     local src = [[
         var tk
@@ -298,7 +316,7 @@ do
     ]]
     print("Testing...", "spawn 9")
     local out = atm_test(src)
-    assertx(out, "{}\tx\n")
+    assertx(out, "x\t{}\n")
 
     local src = [[
         var T = func () {
@@ -313,7 +331,7 @@ do
     ]]
     print("Testing...", "spawn 10")
     local out = atm_test(src)
-    assertx(out, "{}\tx\n")
+    assertx(out, "x\t{}\n")
 end
 
 -- SPAWN (scope)
@@ -502,7 +520,7 @@ do
 
     local src = [[
         val T = func (v) {
-            val e = await(true)
+            val _,e = await(true)
             dump(e)
         }
         spawn T(10)
@@ -519,7 +537,7 @@ do
     local src = [[
         var T = func () {
             do {
-                var v =
+                var _,v =
                     await(true)
                 dump(v)
             }
@@ -536,7 +554,7 @@ do
 
     local src = [[
         var T = func () {
-            var v = await(true)
+            var _,v = await(true)
             dump(v)
         }
         pin t = spawn T()
@@ -567,11 +585,11 @@ do
     ]]
     print("Testing...", "emit 11")
     local out = atm_test(src)
-    assertx(out, "{}\tt\n")
+    assertx(out, "t\t{}\n")
 
     local src = [[
-        var fff = func (v) {
-            dump(v)
+        var fff = func (...) {
+            dump(...)
         }
         var T = func () {
             fff(await(true))
@@ -581,7 +599,7 @@ do
     ]]
     print("Testing...", "emit 12")
     local out = atm_test(src)
-    assertx(out, "{1}\n")
+    assertx(out, "t\t{1}\n")
 
     local src = [[
         func t2 () {
@@ -609,7 +627,7 @@ print "--- EMIT / SCOPE ---"
 do
     local src = [[
         val T = func (v) {
-            val e = await(true)
+            val _,e = await(true)
             dump(e)
         }
         spawn T(10)
@@ -623,7 +641,7 @@ do
 
     local src = [[
         val T = func (v) {
-            val x = await(true)
+            val _,x = await(true)
             dump(x)
         }
         spawn T(10)
@@ -637,7 +655,7 @@ do
 
     local src = [[
         val T = func () {
-            val e = await(true)
+            val _,e = await(true)
             dump(e)
             await(true)
         }
@@ -664,7 +682,7 @@ do
     local src = [[
         val T = func () {
             val e =
-                (func (x) {
+                (func (_,x) {
                     type(x)
                     return(x)
                 }) (await(true))
@@ -684,9 +702,9 @@ do
         var tk
         set tk = func (v) {
             print(v)
-            val e1 = await(true, (type(evt)!='table') || (evt['tag']!='task'))
+            val e1 = await(func(_,e) { (e,e) })
             dump(e1)
-            val e2 = await(true, (type(evt)!='table') || (evt['tag']!='task'))
+            val e2 = await(func(_,e) { (e,e) })
             dump(e2)
         }
         print(:1)
@@ -715,10 +733,11 @@ do
         3
         {30=30}
         {30=30}
+        atm-func
     ]])
 
     local src = [[
-        val f = func (v) {
+        val f = func (_,v) {
             (func (x) {
                 set x[0] = v[0]
                 dump(x[0])
@@ -735,7 +754,7 @@ do
     assertx(out, "#{1}\n")
 
     local src = [[
-        val f = func (v) {
+        val f = func (_,v) {
             dump(v[1])
         }
         var T = func () {
@@ -749,7 +768,7 @@ do
     assertx(out, "{1}\n")
 
     local src = [[
-        val f = func (v) {
+        val f = func (_,v) {
             (func (x) {
                 set x[1] = v[1]
                 dump(x[1])
@@ -766,7 +785,7 @@ do
     assertx(out, "{1}\n")
 
     local src = [[
-        val f = func (v) {
+        val f = func (_,v) {
             dump(v)
         }
         val T = func () {
@@ -790,7 +809,7 @@ do
     assertx(out, "{}\n")
 
     local src = [[
-        val f = func (v) {
+        val f = func (_,v) {
             dump(v)
         }
         val T = func () {
@@ -814,7 +833,7 @@ do
     local src = [[
         var T = func () {
             var v =
-                (func (it) {return(it)}) (await(true))
+                (func (_,it) {return(it)}) (await(true))
             dump(v)
         }
         spawn T()
@@ -877,7 +896,7 @@ do
 
     local src = [[
         spawn (func () {
-            val v = await(true)
+            val _,v = await(true)
             dump(v)
             await(false)
         }) (nil)
@@ -893,7 +912,7 @@ do
 
     local src = [[
         val T = func () {
-            val x = await(true)
+            val _,x = await(true)
             dump(x)
         }
         spawn T()
@@ -909,7 +928,7 @@ do
 
     local src = [[
         spawn (func () {
-            val evt = await(true)
+            val _,evt = await(true)
             val x = @{nil}
             set x[1] = evt
             dump(x)
@@ -925,7 +944,7 @@ do
 
     local src = [[
         spawn (func () {
-            val evt = await(true)
+            val _,evt = await(true)
             do {
                 val x = evt
                 dump(x)
@@ -943,7 +962,7 @@ do
 
     local src = [[
         spawn (func () {
-            val evt = await(true)
+            val _,evt = await(true)
             val x = evt[0]
             dump(x)
         }) ()
@@ -957,7 +976,7 @@ do
     assertx(out, "#{10}\n")
 
     local src = [=[
-        var f = func (v) {  ;; *** v is no longer fleeting ***
+        var f = func (_,v) {  ;; *** v is no longer fleeting ***
             val x = v[1]    ;; v also holds x, both are fleeting -> unsafe
             dump(x)      ;; x will be freed and v would contain dangling pointer
         }
@@ -1009,9 +1028,9 @@ do
         var tk
         set tk = func (v) {
             print(v)
-            val e1 = await(true, type(evt)!='table')
+            val e1 = await(func (e) { (type(e)!='table', e) })
             print(:e1,e1)
-            val e2 = await(true, type(evt)!='table')
+            val e2 = await(func (e) { (type(e)!='table', e) })
             print(:e2,e2)
         }
         print(:1)
@@ -1052,10 +1071,10 @@ do
 
     local src = [[
         spawn (func () {
-            var evt = await(true)
+            var _,evt = await(true)
             val x = evt
             dump(x)
-            set evt = await(true)
+            set _,evt = await(true)
             dump(x)
         }) ()
         do {
@@ -1136,12 +1155,12 @@ do
     ]]
     print("Testing...", "payload 8: multi emit/await args")
     local out = atm_test(src)
-    assertx(out, "20\t10\n")
+    assertx(out, "10\t20\n")
 
     local src = [[
         func tsk () {
-            var e = await(:X, evt==10)
-            print(e)
+            var a,b = await(func (e,v) { (e==:X) && (v==10) })
+            print(a,b)
         }
         spawn tsk()
         emit(:X,99)
@@ -1150,11 +1169,11 @@ do
     ]]
     print("Testing...", "payload 9")
     local out = atm_test(src)
-    assertx(out, "10\n")
+    assertx(out, "X\t10\n")
 
     local src = [[
         func tsk () {
-            var e = await(:X, evt.v==10)
+            var e = await(func (e) { (e??:X) && (e.v==10) })
             dump(e)
         }
         spawn tsk()
@@ -1472,7 +1491,7 @@ do
     local src = [[
         val T = func () {
             set pub = 10
-            await(:X, evt==pub)
+            await(func (e,v) { (e==:X) && (v==pub) })
             print(pub)
         }
         pin t = spawn T()
@@ -1522,7 +1541,7 @@ do
             }) ()
             await(true)
         }) ()
-        coro(func () { })
+        coroutine.create(func () { })
         emit(:true)
     ]]
     print("Testing...", "nested 3")
@@ -1749,17 +1768,32 @@ do
     assertx(out, "0\n1\n2\n3\n4\n6\n")
 
     local src = [[
-        spawn (func () {
+        spawn {
+            spawn {
+                await(true)
+                emit [:global] (:true)
+            }
+            await(true)
+        }
+        emit(:true)
+        print(:ok)
+    ]]
+    print("Testing...", "abort 8")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        spawn {
             spawn(func () {
                 await(true)
                 emit [:global] (:true)
             })()
             await(true)
-        })()
+        }
         emit(:true)
         print(:ok)
     ]]
-    print("Testing...", "abort 8")
+    print("Testing...", "abort 9")
     local out = atm_test(src)
     assertx(out, "ok\n")
 
