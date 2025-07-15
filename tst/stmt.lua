@@ -764,8 +764,7 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        loop {
-            val evt = await(:X)
-        }
+        every(:X, func () {
+        })
     ]])
 end

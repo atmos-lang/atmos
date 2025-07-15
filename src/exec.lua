@@ -59,7 +59,7 @@ function atm_loadstring (src, file)
         return f, (file..' : line '..lin..' : '..msg2..'\n')
     end
     return function ()
-        local atmos = require "atmos"
+        atmos = require "atmos"
         require "run"
         return atmos.call(nil,f)
     end

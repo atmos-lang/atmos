@@ -1,69 +1,3 @@
-function parser_await (lin)
-    local clk = accept(nil,'clk')
-    if clk then
-        local function f (v, mul)
-            if tonumber(v) then
-                return { tag='bin', op={str='*'}, e1={tag='num',tk={str=v}}, e2={tag='num',tk={str=tostring(mul)}} }
-            else
-                return { tag='bin', op={str='*'}, e1={tag='acc',tk={str=v}}, e2={tag='num',tk={str=tostring(mul)}} }
-            end
-        end
-        local clk = clk.clk; do
-            clk[1] = f(clk[1], 60*60*1000)
-            clk[2] = f(clk[2], 60*1000)
-            clk[3] = f(clk[3], 1000)
-            clk[4] = f(clk[4], 1)
-        end
-
-        local es = map(clk, f)
-        local sum = {
-            tag = 'bin',
-            op  = {str='+'},
-            e1  = clk[1],
-            e2  = {
-                tag = 'bin',
-                op  = {str='+'},
-                e1  = clk[2],
-                e2  = {
-                    tag = 'bin',
-                    op  = {str='+'},
-                    e1  = clk[3],
-                    e2  = clk[4],
-                },
-            },
-         }
-        local f   = { tag='acc', tk={tag='id',str='await',lin=lin} }
-        local tag = { tag='tag', tk={str=':clock'} }
-        return { tag='call', f=f, es={tag,sum} }
-    else
-        local xe = parser()
-        local xf = nil
-        if accept(',') then
-            --[[
-                func (evt) {
-                    return $xe
-                }
-            ]]
-            local cnd = parser()
-            xf = {
-                tag = 'func',
-                pars = {
-                    { tag='id', str="evt" }
-                },
-                blk = { tag='block', es={cnd} },
-            }
-        end
-        return {
-            tag = 'call',
-            f = {
-                tag = 'acc',
-                tk = {tag='id',str='await',lin=lin}
-            },
-            es = {xe,xf},
-        }
-    end
-end
-
 local function spawn (lin, blk)
     return {
         tag = 'call',
@@ -523,109 +457,43 @@ function parser_1_prim ()
         local blk = parser_block()
         return { tag='loop', ids=ids, itr=itr, blk=blk }
 
-    -- every
+    -- every, pars, watching
     elseif check('every') or check('par') or check('par_and') or check('par_or') or check('watching') then
         -- every { ... }
         if accept('every') then
-            local lin = TK0.lin
-            local par = accept('(')
-            local awt = parser_await(lin)
-            if par then
-                accept_err(')')
-            end
+            local awt = parser()
             local blk = parser_block()
-            local dcl = {
-                tag='dcl', tk={tag='key',str='val'},
-                ids={{tag='id',str='evt'}}, set=awt
-            }
-            table.insert(blk.es, 1, dcl)
-            return { tag='loop', ids=nil, itr=nil, blk=blk }
-        -- par
-        elseif accept('par') then
-            local sss = { { TK1.lin, parser_block() } }
-            while accept('with') do
-                sss[#sss+1] = { TK1.lin, parser_block() }
-            end
-            local es = map(sss, function (t) return spawn(t[1],t[2]) end)
-            es[#es+1] = {
+            return {
                 tag = 'call',
-                f = { tag='acc', tk={tag='id',str='await'} },
+                f = { tag='acc', tk={tag='id',str='every'} },
                 es = {
-                    { tag='bool', tk={str='false'} },
+                    awt,
+                    {
+                        tag  = 'func',
+                        pars = { tag='id', str="it" },
+                        blk  = blk,
+                    },
                 },
             }
-            return { tag='do', blk={tag='block',es=es} }
-        -- par_and
-        elseif accept('par_and') then
-            local n = N()
-            local sss = { { TK1.lin, parser_block() } }
+        -- par
+        elseif accept('par') or accept('par_and') or accept('par_or') then
+            local par = TK0.str
+            local fs = { parser_block() }
             while accept('with') do
-                sss[#sss+1] = { TK1.lin, parser_block() }
+                fs[#fs+1] = parser_block()
             end
-            local function f1 (t,i)
+            fs = map(fs, function (blk)
                 return {
-                    tag = 'dcl',
-                    tk  = { tag='key', str='pin' },
-                    ids = { {tag='id', str='atm_'..n..'_'..i} },
-                    set = spawn(t[1],t[2]),
+                    tag  = 'func',
+                    pars = {},
+                    blk  = blk,
                 }
-            end
-            local function f2 (t,i)
-                return {
-                    tag = 'call',
-                    f = { tag='acc', tk={tag='id',str='await'} },
-                    es = {
-                        { tag='acc', tk={str='atm_'..n..'_'..i} },
-                    },
-                }
-            end
-            local function f3 (t,i)
-                return {
-                    k = { tag='num', tk={tag='num',str=tostring(i)} },
-                    v = {
-                        tag = 'index',
-                        t   = { tag='acc', tk={str='atm_'..n..'_'..i} },
-                        idx = { tag='str', tk={str="ret"} },
-                    }
-                }
-            end
-            local ss1 = map(sss,f1)
-            local ss2 = map(sss,f2)
-            local ss3 = {
-                { tag='table', es=map(sss,f3) },
-            }
-            return { tag='do', blk={tag='block', es=concat(ss1,ss2,ss3)} }
-        -- par_or
-        elseif accept('par_or') then
-            local n = N()
-            local sss = { { TK1.lin, parser_block() } }
-            while accept('with') do
-                sss[#sss+1] = { TK1.lin, parser_block() }
-            end
-            local function f1 (t,i)
-                return {
-                    tag = 'dcl',
-                    tk  = { tag='key', str='pin' },
-                    ids = { {tag='id', str='atm_'..n..'_'..i} },
-                    set = spawn(t[1],t[2]),
-                }
-            end
-            local function f2 (_,i)
-                return { tag='acc', tk={str="atm_"..n..'_'..i} }
-            end
-            local es = map(sss,f1)
-            local tsks = map(sss,f2)
-            local xe_xf = {
-                { tag='tag', tk={str=':par_or'} },
-                { tag='nil', tk={tag='key',str='nil'} },
-            }
-            local awt = {
+            end)
+            return {
                 tag = 'call',
-                f = { tag='acc', tk={tag='id',str='await'} },
-                es = concat(xe_xf,tsks),
+                f = { tag='acc', tk={tag='id',str=par} },
+                es = fs,
             }
-            es[#es+1] = awt
-            return { tag='do', blk={tag='block', es=es} }
         -- watching
         elseif accept('watching') then
             local awt = parser_list(',', '{', parser)

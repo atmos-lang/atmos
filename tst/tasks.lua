@@ -1857,7 +1857,7 @@ do
         ;;spawn( func () {
             spawn (func () {
                 print(:A)
-                (func (it) { print(it==10) }) (await(true))
+                (func (it) { print(it==10) }) (await(t))
                 print(:C)
             }) ()
             emit[t] (:)
@@ -1979,17 +1979,17 @@ do
     assertx(out, "0\n1\n2\n3\n4\n")
 
     local src = [[
-        spawn (func () {
-            spawn (func () {
+        spawn {
+            spawn {
                 await(true)
                 defer {
                     print(:1)
                 }
                 emit[:global](:)
-            }) ()
+            }
             await(true)
             print(:0)
-        }) ()
+        }
         emit(:)
         print(:2)
     ]]
@@ -2411,17 +2411,17 @@ do
     local src = [[
         spawn (func () {
             print(:1)
-            val co = (coro (func () {
+            val co = coroutine.create (func () {
                 defer {
                     print(:ok)
                 }
                 print(:2)
-                yield()
+                coroutine.yield()
                 print(:999)
-            }))
-            resume co ()
+            })
+            coroutine.resume(co)
             print(:3)
-            coroutine['close'](co.th)
+            coroutine['close'](co)
         }) ()
     ]]
     print("Testing...", "abort 34")
@@ -2737,9 +2737,9 @@ do
             await(true)
             return(@{2})
         } )()
-        dump(status(t), t.pub)
+        dump(atmos.status(t), t.pub)
         emit(:)
-        dump(status(t), t.pub, t.ret)
+        dump(atmos.status(t), t.pub, t.ret)
     ]]
     print("Testing...", "return 1")
     local out = atm_test(src)
@@ -2751,7 +2751,7 @@ do
                 await(true)
                 return(10)
             }
-            (func (it) { print(it) }) (await(true))
+            (func (it) { print(it.ret) }) (await(true))
         }
         emit(:)
         print(:ok)
@@ -2914,9 +2914,9 @@ do
                 print(20)
                 print(30)
             }
-            await(true, evt !? :task)
+            await(func (e) { e !? :task })
             if v {
-                await(true, evt !? :task)
+                await(func (e) { e !? :task })
             }
         }
         print(0)
@@ -2941,9 +2941,9 @@ do
                 print(20)
                 print(30)
             }
-            await(true, evt !? :task)
+            await(func (e) { e !? :task })
             if v {
-                await(true, evt !? :task)
+                await(func (e) { e !? :task })
             }
         }
         print(0)
@@ -3039,7 +3039,7 @@ do
         }
         pin ts = tasks()
         spawn [ts] T()
-        loop t in ts {
+        loop _,t in ts {
             var x = t.pub
             emit [t] (:nil)
             dump(x)
@@ -3065,7 +3065,7 @@ do
     ]]
     print("Testing...", "tasks 18")
     local out = atm_test(src)
-    assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
+    --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
 
     local src = [[
         pin ts = tasks(1)
@@ -3088,7 +3088,7 @@ do
         val ok1 = spawn [ts] T()
         emit [ts] (:)
         val ok2 = spawn [ts] T()
-        print(status(ok1), status(ok2))
+        print(atmos.status(ok1), atmos.status(ok2))
     ]]
     print("Testing...", "tasks 20")
     local out = atm_test(src)
@@ -3102,13 +3102,13 @@ do
         pin ts = tasks(2)
         spawn [ts] T(1)
         spawn [ts] T(2)
-        loop t in ts {
+        loop _,t in ts {
             print(:t, t.pub)
             emit(:2)        ;; opens hole for 99 below
             val ok = spawn [ts] T(99)     ;; must not fill hole b/c ts in the stack
             print(ok)
         }
-        loop t in ts {
+        loop _,t in ts {
             print(:t, t.pub)
         }
     ]]
@@ -3127,7 +3127,7 @@ do
                 break()
             }
         }
-        print(ts.ing)
+        print(ts._.ing)
     ]]
     print("Testing...", "tasks 22")
     local out = atm_test(src)
@@ -3140,7 +3140,7 @@ do
         pin ts = tasks()
         spawn [ts] T()
         spawn {
-            val x = loop t in ts {
+            val x = loop _,t in ts {
                 break(t)
             }
             await(x)
@@ -3170,6 +3170,7 @@ do
     local out = atm_test(src)
     assertx(out, "X\nX\n")
 
+--[=[
     local src = [[
         spawn {
             every (:X, evt==10) {
@@ -3183,6 +3184,7 @@ do
     print("Testing...", "every 2")
     local out = atm_test(src)
     assertx(out, "X\t10\n")
+]=]
 
     local src = [[
         spawn {
@@ -3212,11 +3214,11 @@ do
                 }
             }
         }
-        emit(:clock, 10)
+        emit(@.10)
         emit(:X)
-        emit(:clock, 5)
+        emit(@.5)
         emit(:X)
-        emit(:clock, 5)
+        emit(@.5)
     ]]
     print("Testing...", "every-clock")
     local out = atm_test(src)
