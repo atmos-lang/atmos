@@ -129,14 +129,12 @@ do
     print("Testing...", "block 5")
     local out = atm_test(src)
     --assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')")
---[=[
     assertx(trim(out), trim [[
         ==> ERROR:
          |  /x/atmos/atmos/src/exec.lua:97 (call)
          v  /x/atmos/atmos/src/exec.lua:97 (throw)
         ==> [string "anon.atm"]:5: attempt to perform arithmetic on a nil value (global 'b')
     ]])
-]=]
 
     local src = [[
         val x = do {
