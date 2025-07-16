@@ -177,22 +177,3 @@ function iter (t)
         error("TODO - iter(t)")
     end
 end
-
--------------------------------------------------------------------------------
--- CEU
--------------------------------------------------------------------------------
-
---[[
-local function aux (skip_fake, t)
-    if skip_fake and t.fake then
-        return aux(skip_fake, t.up)
-    else
-        return t
-    end
-end
-
-function atm_me (skip_fake)
-    local th = coroutine.running()
-    return th and TASKS.cache[th] and aux(skip_fake, TASKS.cache[th])
-end
-]]

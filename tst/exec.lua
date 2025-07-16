@@ -131,8 +131,8 @@ do
     --assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')")
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  /x/atmos/atmos/src/exec.lua:97 (call)
-         v  /x/atmos/atmos/src/exec.lua:97 (throw)
+         |  [C]:-1 (call)
+         v  [C]:-1 (throw)
         ==> [string "anon.atm"]:5: attempt to perform arithmetic on a nil value (global 'b')
     ]])
 
@@ -154,7 +154,7 @@ do
     ]]
     print("Testing...", "do 2")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 2 : unexpected symbol near '10'\n")
+    assertx(out, "anon.atm : line 2 : unexpected symbol near '10'\n")
 
     local src = [[
         val x = do {
@@ -290,7 +290,13 @@ do
     ]]
     print("Testing...", "defer 4")
     local out = atm_test(src)
-    --assertx(out, "10\nuncaught throw : X")
+    assertx(trim(out), trim [[
+        10
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:5 (throw) <- [C]:-1 (task)
+        ==> X
+    ]])
 end
 
 -- DCL / VAL / VAR / SET
@@ -375,7 +381,12 @@ do
     local src = "print((1)[1])"
     print("Testing...", src)
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 1 : attempt to index a number value")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [C]:-1 (throw)
+        ==> [string "anon.atm"]:1: attempt to index a number value
+    ]])
 
     local src = "print((#{1})[#{}])"
     print("Testing...", src)
@@ -1016,7 +1027,12 @@ do
     print("Testing...", "catch 8 : err : goto")
     local out = atm_test(src)
     --assertx(out, "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
-    --assertfx(out, "uncaught throw : Y")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [C]:-1 (throw) <- [C]:-1 (task)
+        ==> Y
+    ]])
     warn(false, "error stack")
 
     local src = [[
@@ -1039,7 +1055,12 @@ do
     ]]
     print("Testing...", "catch 10")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [C]:-1 (throw)
+        ==> [string "anon.atm"]:5: attempt to perform arithmetic on a nil value (global 'b')
+    ]])
 
     local src = [[
         val _,x = catch :X {
@@ -1056,7 +1077,7 @@ do
     local src = [[
         val x = catch :X {
             catch :Y {
-                throw (:Z @{10})
+                throw (:Z ;;;@{10};;;)
             }
             :ok
         }
@@ -1064,6 +1085,14 @@ do
     ]]
     print("Testing...", "catch 12")
     local out = atm_test(src)
+--[=[
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  ??:?? (throw) <- [C]:-1 (task)
+        ==> Z
+    ]])
+]=]
     --assertx(out, "uncaught throw : {10, tag=Z}")
 
     local src = [[
