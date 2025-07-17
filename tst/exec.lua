@@ -131,9 +131,9 @@ do
     --assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')")
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  /x/atmos/atmos/src/exec.lua:97 (call)
-         v  /x/atmos/atmos/src/exec.lua:97 (throw)
-        ==> [string "anon.atm"]:5: attempt to perform arithmetic on a nil value (global 'b')
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:5 (throw)
+        ==> attempt to perform arithmetic on a nil value (global 'b')
     ]])
 
     local src = [[
@@ -154,7 +154,7 @@ do
     ]]
     print("Testing...", "do 2")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 2 : unexpected symbol near '10'\n")
+    assertx(out, "anon.atm : line 2 : unexpected symbol near '10'\n")
 
     local src = [[
         val x = do {
@@ -290,7 +290,13 @@ do
     ]]
     print("Testing...", "defer 4")
     local out = atm_test(src)
-    --assertx(out, "10\nuncaught throw : X")
+    assertx(trim(out), trim [[
+        10
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:5 (throw) <- [C]:-1 (task)
+        ==> X
+    ]])
 end
 
 -- DCL / VAL / VAR / SET
@@ -375,7 +381,12 @@ do
     local src = "print((1)[1])"
     print("Testing...", src)
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 1 : attempt to index a number value")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> attempt to index a number value
+    ]])
 
     local src = "print((#{1})[#{}])"
     print("Testing...", src)
@@ -671,6 +682,7 @@ do
     local src = "return()"
     print("Testing...", "return")
     local out = atm_test(src)
+    warn(false, "TODO: return w/o atm_func")
     --assertx(out, "")
 end
 
@@ -1017,7 +1029,7 @@ do
     local out = atm_test(src)
     --assertx(out, "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
     --assertfx(out, "uncaught throw : Y")
-    warn(false, "error stack")
+    warn(false, "TODO: error stack")
 
     local src = [[
         val a = 1
@@ -1039,7 +1051,12 @@ do
     ]]
     print("Testing...", "catch 10")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:5 (throw)
+        ==> attempt to perform arithmetic on a nil value (global 'b')
+    ]])
 
     local src = [[
         val _,x = catch :X {
@@ -1065,6 +1082,7 @@ do
     print("Testing...", "catch 12")
     local out = atm_test(src)
     --assertx(out, "uncaught throw : {10, tag=Z}")
+    warn(false, "TODO: error stack")
 
     local src = [[
         val x = catch :Y.X {
@@ -1078,6 +1096,7 @@ do
     print("Testing...", "catch 13")
     local out = atm_test(src)
     --assertx(out, "uncaught throw : {10, tag=Y}")
+    warn(false, "TODO: error stack")
 
     local src = [[
         val _,x = catch :Y {
@@ -1112,7 +1131,7 @@ do
     ]]
     print("Testing...", "coro 1")
     local out = atm_test(src)
-    --assertx(out, "1\tnil\t2\ntrue\ttrue\ttrue\n")
+    assertx(out, "1\tnil\t2\ntrue\ttrue\ttrue\n")
 
     local src = [[
         emit(true)
@@ -1121,7 +1140,7 @@ do
     print("Testing...", "emit 1: err")
     local out = atm_test(src)
     --assertx(out, "anon.atm : line 1 : invalid emit : expected tag")
-    warn(false, "tail call in emit hides line")
+    warn(false, "TODO: tail call in emit hides line")
 
     local src = [[
         val T = func (a) {
@@ -1214,6 +1233,12 @@ do
     print("Testing...", "coro 5")
     local out = atm_test(src)
     --assertx(out, "end\n")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:7 (throw)
+        ==> variable 'a' got a non-closable value
+    ]])
 
     local src = [[
         print(emit(1))
@@ -1245,7 +1270,7 @@ do
     print("Testing...", "emit 1")
     local out = atm_test(src)
     --assertx(out, "anon.atm : line 1 : invalid emit : invalid target")
-    warn(false, "tail call in emit hides line")
+    warn(false, "TODO: tail call in emit hides line")
 
     local src = [[
         spawn (func () {
@@ -1705,7 +1730,12 @@ do
     ]]
     print("Testing...", "await 1")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 3 : attempt to perform arithmetic on a nil value (global 'x')")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:3 (throw)
+        ==> attempt to perform arithmetic on a nil value (global 'x')
+    ]])
 
     local src = [[
         spawn {
@@ -1727,7 +1757,12 @@ do
     local src = "toggle (1)(true) ; nil"
     print("Testing...", "toggle 1")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 1 : invalid toggle : expected task")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> invalid toggle : expected task
+    ]])
 
     local src = [[
         val f = task(func () {})
@@ -1735,7 +1770,12 @@ do
     ]]
     print("Testing...", "toggle 2")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 2 : invalid toggle : expected bool argument")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:2 (throw)
+        ==> invalid toggle : expected bool argument
+    ]])
 
     local src = [[
         val T = func () {
@@ -1804,10 +1844,13 @@ do
         }
         pin t = spawn T()
         toggle t (false)
+        print 'ok'
     ]]
     print("Testing...", "toggle 6")
     local out = atm_test(src)
+    -- agora pode dar toggle em non-awaiting
     --assertx(out, "anon.atm : line 5 : invalid toggle : expected awaiting task")
+    assertx(out, "ok\n")
 
     local src = [[
         val T = func () {
@@ -1852,6 +1895,7 @@ do
     print("Testing...", "toggle 8")
     local out = atm_test(src)
     --assertx(out, "0\n1\n2\n")
+    warn(false, "TODO: every payload")
 
     local src = [[
         spawn {
@@ -1912,7 +1956,12 @@ do
     local src = "print(10 -> (10))"
     print("Testing...", "is 1")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 1 : attempt to call a number value")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> attempt to call a number value
+    ]])
 
     local src = [[
         func f (v) { return(v) }
@@ -2010,12 +2059,22 @@ do
     ]]
     print("Testing...", "func 4")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 3 : attempt to perform arithmetic on a nil value")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:3 (throw)
+        ==> attempt to perform arithmetic on a nil value
+    ]])
 
     local src = [[ error("hello") ]]
     print("Testing...", src)
     local out = atm_test(src)
-    --assert(out == "anon.atm : line 1 : hello")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> hello
+    ]])
 
     local src = [[
         spawn {
@@ -2024,7 +2083,12 @@ do
     ]]
     print("Testing...", "error 1")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 2 : attempt to index a nil value (global 't')")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:2 (throw)
+        ==> attempt to index a nil value (global 't')
+    ]])
 
     local src = [[
         print <- spawn T()
