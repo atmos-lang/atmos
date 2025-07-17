@@ -1028,8 +1028,13 @@ do
     print("Testing...", "catch 8 : err : goto")
     local out = atm_test(src)
     --assertx(out, "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
-    --assertfx(out, "uncaught throw : Y")
-    warn(false, "TODO: error stack")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [C]:-1 (throw) <- [C]:-1 (task)
+        ==> Y
+    ]])
+    warn(false, "error stack")
 
     local src = [[
         val a = 1
@@ -1073,7 +1078,7 @@ do
     local src = [[
         val x = catch :X {
             catch :Y {
-                throw (:Z @{10})
+                throw (:Z ;;;@{10};;;)
             }
             :ok
         }
@@ -1081,6 +1086,14 @@ do
     ]]
     print("Testing...", "catch 12")
     local out = atm_test(src)
+--[=[
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  ??:?? (throw) <- [C]:-1 (task)
+        ==> Z
+    ]])
+]=]
     --assertx(out, "uncaught throw : {10, tag=Z}")
     warn(false, "TODO: error stack")
 
