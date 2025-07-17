@@ -10,7 +10,7 @@ do
     assert(check('<eof>'))
     assert(tosource(e) == "coro()")
     --local ok, msg = pcall(parser)
-    --assert(not ok and msg=="anon : line 1 : near ')' : expected expression")
+    --assertx(msg, "anon : line 1 : near ')' : expected expression")
 
     local src = "await(:1)"
     print("Testing...", src)
@@ -26,7 +26,10 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser)
+    local e = parser()
+    assert(check('<eof>'))
+    assert(tosource(e) == "await()")
+    --local ok, msg = pcall(parser)
     --assert(not ok and msg=="anon : line 1 : near ')' : expected expression")
 
     local src = "await :X"
