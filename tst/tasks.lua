@@ -159,32 +159,36 @@ do
     local out = atm_test(src)
     assert(out == "ok\n")
 
-    local src = "spawn (nil)()"
+    local src = "spawn (nil)() ; nil"
     print("Testing...", src)
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 1 : invalid spawn : expected task prototype")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> invalid spawn : expected task prototype
+    ]])
 
     local src = [[
-        val T = func () { coroutine.yield();nil }
+        val T = func () { coroutine.yield() }
         pin t = spawn T()
         print(t)
     ]]
     print("Testing...", "yield 2 : error : yield inside task")
     local out = atm_test(src)
     --assertx(out, "anon.atm : line 1 : invalid yield : unexpected enclosing task instance")
-    warn(false, "tail call in yield hides line")
+    assertfx(out, "table: 0x")
 
---[=[
+    --[=[
     local src = [[
-        val T = func () { await(true);nil }
+        val T = func () { await(true) } ;; no longer an error (freezes test)
         val t = T()
         print(t)
     ]]
     print("Testing...", "yield 3 : error : await without enclosing task")
     local out = atm_test(src)
     assertx(out, "anon.atm : line 1 : invalid await : expected enclosing task instance")
-    warn(false, "tail call in yield hides line")
-]=]
+    ]=]
 
     local src = [[
         val T = func () { coroutine.yield() }
@@ -214,14 +218,12 @@ do
     local out = atm_test(src)
     assertx(out, "ok\n")
 
---[=[
     local src = [[
         spawn (func () {})
     ]]
     print("Testing...", "spawn 3: error")
     local out = atm_test(src)
     assertx(out, "anon.atm : line 1 : near 'spawn' : expected call")
-]=]
 
     local src = [[
         val T = func (v) {
@@ -1489,10 +1491,11 @@ do
     assertx(out, "{}\n")
 
     local src = [[
-        print(pub)
+        print(pub)  ;; now runs inside task
     ]]
     print("Testing...", "pub 6")
     local out = atm_test(src)
+    assertx(out, "nil\n")
     --assertx(out, "anon.atm : line 1 : invalid pub : expected enclosing task")
 
     local src = [[
@@ -3069,6 +3072,12 @@ do
     print("Testing...", "tasks 18")
     local out = atm_test(src)
     --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> invalid tasks limit : expected number
+    ]])
 
     local src = [[
         pin ts = tasks(1)
@@ -3188,6 +3197,7 @@ do
     local out = atm_test(src)
     assertx(out, "X\t10\n")
 ]=]
+    warn(false, "TODO: every payload")
 
     local src = [[
         spawn {
