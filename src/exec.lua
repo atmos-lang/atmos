@@ -70,7 +70,8 @@ end
 
 function atm_loadfile (file)
     local f = assert(io.open(file))
-    local src = f:read('*a')
+    -- enclose with func (atm_func) b/c of return (throw)
+    local src = "(func () { " .. f:read('*a') .. " })()"
     return atm_loadstring(src, file)
 end
 

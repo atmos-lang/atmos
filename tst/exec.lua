@@ -2144,5 +2144,5 @@ do
     ]]
     print("Testing...", "require 1")
     local out = atm_test(src)
-    --assertx(out, "./x.atm\t20\n")
+    assertx(out, "./x.atm\t20\n")
 end
