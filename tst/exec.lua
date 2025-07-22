@@ -128,7 +128,6 @@ do
     ]]
     print("Testing...", "block 5")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 5 : attempt to perform arithmetic on a nil value (global 'b')")
     assertx(trim(out), trim [[
         ==> ERROR:
          |  [C]:-1 (call)
@@ -1031,10 +1030,9 @@ do
     assertx(trim(out), trim [[
         ==> ERROR:
          |  [C]:-1 (call)
-         v  [C]:-1 (throw) <- [C]:-1 (task)
+         v  [string "anon.atm"]:2 (throw) <- [C]:-1 (task)
         ==> Y
     ]])
-    warn(false, "error stack")
 
     local src = [[
         val a = 1
@@ -1076,6 +1074,19 @@ do
     assertx(out, "{10, tag=X}\n")
 
     local src = [[
+        throw :Z
+        nil
+    ]]
+    print("Testing...", "catch XX")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw) <- [C]:-1 (task)
+        ==> Z
+    ]])
+
+    local src = [[
         val x = catch :X {
             catch :Y {
                 throw (:Z ;;;@{10};;;)
@@ -1086,21 +1097,18 @@ do
     ]]
     print("Testing...", "catch 12")
     local out = atm_test(src)
---[=[
+    --assertx(out, "uncaught throw : {10, tag=Z}")
     assertx(trim(out), trim [[
         ==> ERROR:
          |  [C]:-1 (call)
-         v  ??:?? (throw) <- [C]:-1 (task)
+         v  [string "anon.atm"]:3 (throw) <- [C]:-1 (task)
         ==> Z
     ]])
-]=]
-    --assertx(out, "uncaught throw : {10, tag=Z}")
-    warn(false, "TODO: error stack")
 
     local src = [[
         val x = catch :Y.X {
             catch :Z {
-                throw (:Y @{10})
+                throw (:Y ;;;@{10};;;)
             }
             :ok
         }
@@ -1109,7 +1117,12 @@ do
     print("Testing...", "catch 13")
     local out = atm_test(src)
     --assertx(out, "uncaught throw : {10, tag=Y}")
-    warn(false, "TODO: error stack")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:3 (throw) <- [C]:-1 (task)
+        ==> Y
+    ]])
 
     local src = [[
         val _,x = catch :Y {
@@ -1147,13 +1160,16 @@ do
     assertx(out, "1\tnil\t2\ntrue\ttrue\ttrue\n")
 
     local src = [[
-        emit(true)
-        nil
+        emit_in(10,10)
     ]]
     print("Testing...", "emit 1: err")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 1 : invalid emit : expected tag")
-    warn(false, "TODO: tail call in emit hides line")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> invalid emit : invalid target
+    ]])
 
     local src = [[
         val T = func (a) {
@@ -1278,12 +1294,15 @@ do
 
     local src = [[
         emit [false] (:1)
-        nil
     ]]
     print("Testing...", "emit 1")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 1 : invalid emit : invalid target")
-    warn(false, "TODO: tail call in emit hides line")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> invalid emit : invalid target
+    ]])
 
     local src = [[
         spawn (func () {
@@ -1436,7 +1455,12 @@ do
     ]]
     print("Testing...", "task - throw")
     local out = atm_test(src)
-    warnx(out, "ok\n")  -- TODO: call stack
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:3 (throw) <- [string "anon.atm"]:2 (task) <- [C]:-1 (task)
+        ==> x
+    ]])
 
     local src = [[
         spawn {
@@ -2108,7 +2132,6 @@ do
     ]]
     print("Testing...", "error 2")
     local out = atm_test(src)
-    --assertx(out, "anon.atm : line 2 : attempt to index a nil value (global 't')\n")
     warn(false, "TODO: check spawn up")
 end
 
