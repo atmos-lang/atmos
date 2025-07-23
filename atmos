@@ -1,3 +1,5 @@
+#!/usr/bin/env lua5.4
+
 require "exec"
 
 local file = ...
