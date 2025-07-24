@@ -1,6 +1,6 @@
 #!/usr/bin/env lua5.4
 
-require "exec"
+require "atmos-lang.exec"
 
 local file = ...
 

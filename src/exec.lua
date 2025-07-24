@@ -1,7 +1,7 @@
-require "global"
-require "lexer"
-require "parser"
-require "coder"
+require "atmos-lang.global"
+require "atmos-lang.lexer"
+require "atmos-lang.parser"
+require "atmos-lang.coder"
 
 function atm_test (src, tst)
     local out = ""
@@ -63,7 +63,7 @@ function atm_loadstring (src, file)
     end
     return function ()
         atmos = require "atmos"
-        require "run"
+        require "atmos-lang.run"
         return atmos.call(nil,f)
     end
 end

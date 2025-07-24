@@ -1,4 +1,4 @@
-require "tosource"
+require "atmos-lang.tosource"
 
 local function L (tk)
     local ls = ''

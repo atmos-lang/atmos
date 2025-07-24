@@ -1,5 +1,5 @@
-require "global"
-require "aux"
+require "atmos-lang.global"
+require "atmos-lang.aux"
 
 local match = string.match
 

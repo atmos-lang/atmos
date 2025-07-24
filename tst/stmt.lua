@@ -1,6 +1,6 @@
-require "lexer"
-require "parser"
-require "tosource"
+require "atmos-lang.lexer"
+require "atmos-lang.parser"
+require "atmos-lang.tosource"
 
 print '--- CALL / FUNC / NATIVE ---'
 
