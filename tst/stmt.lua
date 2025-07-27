@@ -764,7 +764,7 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        every(:X, func () {
+        every(:X, func (_, it) {
         })
     ]])
 end
