@@ -173,8 +173,9 @@ function coder (e)
         if e.head then
             head = coder(e.head)
         end
+        local it = (e.match and 'it') or '_'
         return (
-            "(function (it) " ..
+            "(function ("..it..") " ..
                 "if false then " ..
                     join(' ', map(e.cases,f)) ..
                 " end" ..

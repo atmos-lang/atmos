@@ -442,7 +442,7 @@ function parser_1_prim ()
                 end
             end
             accept_err('}')
-            return { tag='ifs', head=head, cases=ts }
+            return { tag='ifs', match=true, head=head, cases=ts }
         else
             error "bug found"
         end
