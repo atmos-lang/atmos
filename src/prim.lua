@@ -470,7 +470,10 @@ function parser_1_prim ()
                     awt,
                     {
                         tag  = 'func',
-                        pars = { tag='id', str="it" },
+                        pars = {
+                            { tag='id', str="_" },
+                            { tag='id', str="it" },
+                        },
                         blk  = blk,
                     },
                 },
