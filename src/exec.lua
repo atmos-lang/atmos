@@ -18,7 +18,9 @@ function atm_test (src, tst)
         print = PRINT
         return err
     end
-    local ok, err = pcall(f)
+    atmos = require "atmos"
+    require "atmos-lang.run"
+    local ok, err = pcall(atmos.call,f)
     print = PRINT
     if ok then
         return out
@@ -33,7 +35,9 @@ function atm_searcher (name)
     if not f then
         return f, err
     end
-    return function(_,x) return assert(atm_loadfile(x))() end, f
+    return function(_,x)
+        return assert(atm_loadfile(x))()
+    end, f
 end
 
 package.searchers[#package.searchers+1] = atm_searcher
@@ -61,18 +65,15 @@ function atm_loadstring (src, file)
         assert(file == filex)
         return f, (file..' : line '..lin..' : '..msg2..'\n')
     end
-    return function ()
-        atmos = require "atmos"
-        require "atmos-lang.run"
-        return atmos.call(nil,f)
-    end
+    return f
 end
 
 function atm_loadfile (file)
     local f = assert(io.open(file))
     -- enclose with func (atm_func) b/c of return (throw)
     local src = "(func () { " .. f:read('*a') .. " })()"
-    return atm_loadstring(src, file)
+    --local src = f:read('*a')
+     return atm_loadstring(src, file)
 end
 
 function atm_dostring (src, file)

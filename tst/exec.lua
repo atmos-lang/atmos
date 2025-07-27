@@ -2146,3 +2146,19 @@ do
     local out = atm_test(src)
     assertx(out, "./x.atm\t20\n")
 end
+
+do
+    local src = [[
+        require "y"
+        print(1 + true)
+    ]]
+    print("Testing...", "require 2: error")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        Y
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:2 (throw)
+        ==> attempt to perform arithmetic on a boolean value
+    ]])
+end
