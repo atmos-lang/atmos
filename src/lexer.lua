@@ -3,7 +3,7 @@ require "atmos-lang.aux"
 
 local match = string.match
 
-local syms = { '{', '}', '(', ')', '[', ']', ',' }
+local syms = { '{', '}', '(', ')', '[', ']', ',', '\\' }
 
 function err (tk, msg)
     error(FILE .. " : line " .. tk.lin .. " : near '" .. tk.str .."' : " .. msg, 0)
@@ -99,9 +99,6 @@ local function _lexer_ (str)
                     end
                 end
             end
-
-        -- \{
-        --elseif c == '\\' then
 
         -- #, #{
         elseif c == '#' then

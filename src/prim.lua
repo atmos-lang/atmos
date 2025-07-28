@@ -224,7 +224,7 @@ function parser_1_prim ()
         end
 
     -- func, return
-    elseif check('func') or check('return') then
+    elseif check('func') or check('\\') or check('return') then
         if accept('func') then
             -- func () { ... }
             -- func f () { ... }
@@ -269,6 +269,23 @@ function parser_1_prim ()
                     src  = { tag='func', dots=dots, pars=pars, blk=blk }
                 }
             end
+
+        -- \{}
+        elseif accept('\\') then
+            local dots = false
+            local pars = {
+                { tag='id', str="it" },
+            }
+            if accept('(') then
+                dots, pars = parser_dots_pars()
+                accept_err(')')
+            elseif accept(nil,'id') then
+                pars = { TK0 }
+            end
+            check_err('{')
+            local blk = parser_block()
+            return { tag='func', dots=dots, pars=pars, blk=blk }
+
         -- return(...)
         elseif accept('return') then
             accept_err('(')

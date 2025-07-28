@@ -3,7 +3,7 @@ require "atmos-lang.lexer"
 -- SYMBOLS
 
 do
-    local src = "{ } ( :: ; {{ () ) , ][ ."
+    local src = "{ } ( :: ; {{ () ) , ][ . \\"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -20,6 +20,7 @@ do
     assert(LEX().str == ']')
     assert(LEX().str == '[')
     assert(LEX().str == '.')
+    assert(LEX().str == '\\')
     assert(LEX().tag == 'eof')
     assert(LEX() == nil)
 

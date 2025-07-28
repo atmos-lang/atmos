@@ -714,6 +714,56 @@ do
     assertx(tosource(e), "...")
 end
 
+print '--- LAMBDA ---'
+
+do
+    local src = "\\{it}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(trim(tosource(e)), trim [[
+        func (it) {
+            it
+        }
+    ]])
+
+    local src = "\\x{}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(trim(tosource(e)), trim [[
+        func (x) {
+        }
+    ]])
+
+    local src = "\\(){}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(trim(tosource(e)), trim [[
+        func () {
+        }
+    ]])
+
+    local src = "\\(x,...){(x,...)}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(trim(tosource(e)), trim [[
+        func (x, ...) {
+            (x, ...)
+        }
+    ]])
+end
+
 print '--- CALL / METHOD / PIPE ---'
 
 do
