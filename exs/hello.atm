@@ -1,0 +1,7 @@
+require "atmos.env.clock"
+
+watching @5 {
+    every @.500 {
+        print("Hello World!")
+    }
+}
