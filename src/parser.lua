@@ -110,6 +110,23 @@ function parser_stmts (clo)
     )
 end
 
+function parser_lambda ()
+    accept_err('\\')
+    local dots = false
+    local pars = {
+        { tag='id', str="it" },
+    }
+    if accept('(') then
+        dots, pars = parser_dots_pars()
+        accept_err(')')
+    elseif accept(nil,'id') then
+        pars = { TK0 }
+    end
+    check_err('{')
+    local blk = parser_block()
+    return { tag='func', dots=dots, pars=pars, blk=blk }
+end
+
 function parser_block ()
     accept_err('{')
     local es = parser_stmts('}')

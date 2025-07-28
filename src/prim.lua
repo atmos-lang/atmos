@@ -270,21 +270,9 @@ function parser_1_prim ()
                 }
             end
 
-        -- \{}
-        elseif accept('\\') then
-            local dots = false
-            local pars = {
-                { tag='id', str="it" },
-            }
-            if accept('(') then
-                dots, pars = parser_dots_pars()
-                accept_err(')')
-            elseif accept(nil,'id') then
-                pars = { TK0 }
-            end
-            check_err('{')
-            local blk = parser_block()
-            return { tag='func', dots=dots, pars=pars, blk=blk }
+        -- lambda: \{}
+        elseif check('\\') then
+            return parser_lambda()
 
         -- return(...)
         elseif accept('return') then
@@ -479,21 +467,17 @@ function parser_1_prim ()
         -- every { ... }
         if accept('every') then
             local awt = parser()
-            local blk = parser_block()
+            local cb
+            if check('{') then
+                local blk = parser_block()
+                cb = { tag='func', pars={}, blk=blk }
+            else
+                cb = parser_lambda()
+            end
             return {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='every'} },
-                es = {
-                    awt,
-                    {
-                        tag  = 'func',
-                        pars = {
-                            { tag='id', str="_" },
-                            { tag='id', str="it" },
-                        },
-                        blk  = blk,
-                    },
-                },
+                es = { awt, cb }
             }
         -- par
         elseif accept('par') or accept('par_and') or accept('par_or') then

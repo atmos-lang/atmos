@@ -764,7 +764,21 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        every(:X, func (_, it) {
+        every(:X, func () {
+        })
+    ]])
+end
+
+do
+    local src = "every :X \\{}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        every(:X, func (it) {
         })
     ]])
 end
