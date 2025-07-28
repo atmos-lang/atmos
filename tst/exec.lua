@@ -701,6 +701,19 @@ do
     local out = atm_test(src)
     assert(out == "t\nf\n")
 
+    local src = [[
+        if 10 \{
+            print(it)
+        }
+        if false {
+        } else {
+            print('false')
+        }
+    ]]
+    print("Testing...", "if 2")
+    local out = atm_test(src)
+    assertx(out, "10\nfalse\n")
+
     local src = "print(if false => 1 => 2)"
     print("Testing...", src)
     local out = atm_test(src)

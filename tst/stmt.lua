@@ -417,7 +417,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{cases={{{tag=acc, tk={lin=1, sep=1, str=cnd, tag=id}}, {es={}, tag=block}}, {else, {es={{ids={{lin=1, sep=1, str=f, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}}}, tag=ifs}")
+    assertx(stringify(s), "{cases={{{tag=acc, tk={lin=1, sep=1, str=cnd, tag=id}}, {blk={es={}, tag=block}, lua=true, pars={}, tag=func}}, {else, {blk={es={{ids={{lin=1, sep=1, str=f, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}, lua=true, pars={}, tag=func}}}, tag=ifs}")
 
     local src = "if true { }"
     print("Testing...", src)
@@ -426,7 +426,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(stringify(s), "{cases={{{tag=bool, tk={lin=1, sep=1, str=true, tag=key}}, {es={}, tag=block}}}, tag=ifs}")
+    assertx(stringify(s), "{cases={{{tag=bool, tk={lin=1, sep=1, str=true, tag=key}}, {blk={es={}, tag=block}, lua=true, pars={}, tag=func}}}, tag=ifs}")
 
     local src = "if f() { if (cnd) { val x } else { val y } }"
     print("Testing...", src)
@@ -621,7 +621,7 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        ifs x {
+        match x {
             else => {
             }
         }
@@ -641,10 +641,10 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        ifs x {
-            _is_(it, :X.Y) => {
+        match x {
+            _is_(atm_1, :X.Y) => {
             }
-            _is_(it, 1) => {
+            _is_(atm_1, 1) => {
             }
             else => {
                 x
@@ -764,7 +764,7 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        every(:X, func () {
+        every(:X, {
         })
     ]])
 end
@@ -778,7 +778,7 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        every(:X, func (it) {
+        every(:X, \(it){
         })
     ]])
 end

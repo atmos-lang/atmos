@@ -10,7 +10,7 @@ function tosource_args (es)
     return join(', ', map(es,tosource))
 end
 
-function tosource (e)
+function tosource (e, lbd)
     if e.tag=='nil' or e.tag=='bool' or e.tag=='tag' or e.tag=='num' or e.tag=='acc' or e.tag=='dots' then
         return e.tk.str
     elseif e.tag == 'str' then
@@ -57,7 +57,15 @@ function tosource (e)
                 end
             end
         end
-        return "func (" .. pars .. dots .. ") " .. tosource_block(e.blk)
+        if lbd then
+            if #pars>0 then
+                return "\\(" .. pars .. dots .. ")" .. tosource_block(e.blk)
+            else
+                return tosource_block(e.blk)
+            end
+        else
+            return "func (" .. pars .. dots .. ") " .. tosource_block(e.blk)
+        end
 
     elseif e.tag == 'dcl' then
         local ids = join(', ', map(e.ids,  function(id) return id.str end))
@@ -77,13 +85,13 @@ function tosource (e)
             if cnd ~= "else" then
                 cnd = tosource(cnd)
             end
-            return cnd .. " => " .. tosource(x) .. '\n'
+            return cnd .. " => " .. tosource(x,true) .. '\n'
         end
-        local head = ' '
-        if e.head then
-            head = ' ' .. tosource(e.head) .. ' '
+        local head = "ifs"
+        if e.match then
+            head = "match " .. tosource(e.match.e)
         end
-        return "ifs" .. head .. "{\n" .. join('',map(e.cases,f)) .. "}"
+        return head .. " {\n" .. join('',map(e.cases,f)) .. "}"
     elseif e.tag == 'loop' then
         local ids = e.ids and (' '..join(', ', map(e.ids, function(id) return id.str end))) or ''
         local itr = e.itr and (' in '..tosource(e.itr)) or ''

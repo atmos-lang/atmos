@@ -204,6 +204,7 @@ function parser_1_prim ()
                         { tag='tag', tk=tag },
                         {
                             tag = 'func',
+                            lua = true,
                             pars = {},
                             blk = blk,
                         },
@@ -369,16 +370,31 @@ function parser_1_prim ()
         if accept('if') then
             local cnd = parser()
             local cases = {}
-            if check('{') then
-                cases[#cases+1] = { cnd, parser_block() }
+            if check('{') or check('\\') then
+                local t
+                if check('{') then
+                    local blk = parser_block()
+                    t = { tag='func', lua=true, pars={}, blk=blk }
+                else
+                    t = parser_lambda()
+                end
+                cases[#cases+1] = { cnd, t }
                 if accept('else') then
-                    cases[#cases+1] = { 'else', parser_block() }
+                    local blk = parser_block()
+                    local f = { tag='func', lua=true, pars={}, blk=blk }
+                    cases[#cases+1] = { 'else', f }
                 end
             else
                 accept_err('=>')
-                cases[#cases+1] = { cnd, {tag='block', es={parser()}} }
+                cases[#cases+1] = {
+                    cnd,
+                    { tag='func', lua=true, pars={}, blk={tag='block', es={parser()}} },
+                }
                 accept_err('=>')
-                cases[#cases+1] = { 'else', {tag='block', es={parser()}} }
+                cases[#cases+1] = {
+                    'else',
+                    { tag='func', lua=true, pars={}, blk={tag='block', es={parser()}} },
+                }
             end
             return { tag='ifs', cases=cases }
         -- ifs { x => a ; y => b ; else => c }
@@ -396,14 +412,15 @@ function parser_1_prim ()
                     end
                 end
                 accept_err('=>')
-                local es; do
+                local blk; do
                     if check('{') then
-                        es = parser_block()
+                        blk = parser_block()
                     else
-                        es = { tag='block', es={parser()} }
+                        blk = {tag='block', es={parser()}}
                     end
                 end
-                ts[#ts+1] = { cnd, es }
+                local f = { tag='func', lua=true, pars={}, blk=blk }
+                ts[#ts+1] = { cnd, f }
                 if brk then
                     break
                 end
@@ -413,7 +430,7 @@ function parser_1_prim ()
         -- match e { x => a ; y => b ; else => c }
         elseif accept('match') then
             local ts = {}
-            local head = parser()
+            local match = { n=N(), e=parser() }
             local tk = accept_err('{')
             while not check('}') do
                 local brk = false
@@ -427,27 +444,28 @@ function parser_1_prim ()
                             tag = 'call',
                             f = { tag='acc', tk={str="_is_"} },
                             es = {
-                                { tag='acc', tk={str="it"} },
+                                { tag='acc', tk={str="atm_"..match.n} },
                                 cmp
                             },
                         }
                     end
                 end
                 accept_err('=>')
-                local es; do
+                local blk; do
                     if check('{') then
-                        es = parser_block()
+                        blk = parser_block()
                     else
-                        es = { tag='block', es={parser()} }
+                        blk = { tag='block', es={parser()} }
                     end
                 end
-                ts[#ts+1] = { cnd, es }
+                local f = { tag='func', lua=true, pars={}, blk=blk }
+                ts[#ts+1] = { cnd, f }
                 if brk then
                     break
                 end
             end
             accept_err('}')
-            return { tag='ifs', match=true, head=head, cases=ts }
+            return { tag='ifs', match=match, cases=ts }
         else
             error "bug found"
         end
@@ -470,7 +488,7 @@ function parser_1_prim ()
             local cb
             if check('{') then
                 local blk = parser_block()
-                cb = { tag='func', pars={}, blk=blk }
+                cb = { tag='func', lua=true, pars={}, blk=blk }
             else
                 cb = parser_lambda()
             end
@@ -489,6 +507,7 @@ function parser_1_prim ()
             fs = map(fs, function (blk)
                 return {
                     tag  = 'func',
+                    lua  = true,
                     pars = {},
                     blk  = blk,
                 }
@@ -507,9 +526,10 @@ function parser_1_prim ()
                 f = { tag='acc', tk={tag='id',str='watching'} },
                 es = concat(awt, {
                     {
-                        tag = 'func',
+                        tag  = 'func',
+                        lua  = true,
                         pars = {},
-                        blk = blk,
+                        blk  = blk,
                     }
                 })
             }

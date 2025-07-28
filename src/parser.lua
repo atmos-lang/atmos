@@ -335,6 +335,7 @@ function parser_7_out (pre)
             tag = 'call',
             f = {
                 tag = 'func',
+                lua = true,
                 pars = {},
                 blk = {
                     tag = 'block',

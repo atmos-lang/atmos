@@ -113,13 +113,17 @@ function coder (e)
                 end
             end
         end
-        return (
-            "atm_func(" ..
-                "function (" .. pars .. dots .. ") " ..
-                    coder(e.blk) ..
-                " end" ..
-            ")"
+        local f = (
+            "function (" .. pars .. dots .. ") " ..
+                coder(e.blk) ..
+            " end"
         )
+        if e.lua then
+            f = '(' .. f .. ')'
+        else
+            f = "atm_func(" .. f .. ")"
+        end
+        return f
     elseif e.tag == 'parens' then
         return L(e.tk) .. '(' .. coder(e.e) .. ')'
     elseif e.tag == 'es' then
@@ -162,25 +166,27 @@ function coder (e)
     elseif e.tag == 'ifs' then
         local function f (case)
             local cnd,e = table.unpack(case)
+            local n = "atm_" .. N()
             if cnd == 'else' then
                 cnd = "true"
             else
                 cnd = coder(cnd)
             end
-            return " elseif " .. cnd .. " then " .. coder(e)
+            return "local " .. n .. "=" .. cnd .. " ; if " .. n .. " then return (" .. coder(e) .. ")(" .. n .. ") end"
         end
-        local head = ""
-        if e.head then
-            head = coder(e.head)
-        end
-        local it = (e.match and 'it') or '_'
-        return (
-            "(function ("..it..") " ..
-                "if false then " ..
+        if e.match then
+            return (
+                "(function (atm_" .. e.match.n .. ") " ..
                     join(' ', map(e.cases,f)) ..
-                " end" ..
-            " end)(" .. head .. ")"
-        )
+                " end)(" .. coder(e.match.e) .. ")"
+            )
+        else
+            return (
+                "(function () " ..
+                    join(' ', map(e.cases,f)) ..
+                " end)()"
+            )
+        end
     elseif e.tag == 'loop' then
         local ids = join(', ', map(e.ids or {{str="_"}}, function(id) return id.str end))
         local itr = e.itr and coder(e.itr) or ''
