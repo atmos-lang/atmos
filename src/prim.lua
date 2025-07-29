@@ -484,7 +484,8 @@ function parser_1_prim ()
     elseif check('every') or check('par') or check('par_and') or check('par_or') or check('watching') then
         -- every { ... }
         if accept('every') then
-            local awt = parser()
+            local clo = function () return (check'{' or check'\\') end
+            local awt = parser_list(',', clo, parser)
             local cb
             if check('{') then
                 local blk = parser_block()
@@ -495,7 +496,7 @@ function parser_1_prim ()
             return {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='every'} },
-                es = { awt, cb }
+                es = concat(awt, {cb})
             }
         -- par
         elseif accept('par') or accept('par_and') or accept('par_or') then

@@ -36,19 +36,27 @@ end
 
 function parser_list (sep, clo, f)
     assert(sep or clo)
+    if clo == nil then
+        clo = function () return false end
+    elseif type(clo) == 'function' then
+        -- ok
+    else
+        local x = clo
+        clo = function () return check(x) end
+    end
     local l = {}
-    if clo and check(clo) then
+    if clo() then
         return l
     end
     l[#l+1] = f(#l+1)
     while true do
-        if clo and check(clo) then
+        if clo() then
             return l
         end
         if sep then
             if check(sep) then
                 accept_err(sep)
-                if clo and check(clo) then
+                if clo() then
                     return l
                 end
             else

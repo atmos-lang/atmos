@@ -782,3 +782,17 @@ do
         })
     ]])
 end
+
+do
+    local src = "every :X,10 \\{}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        every(:X, 10, \(it){
+        })
+    ]])
+end
