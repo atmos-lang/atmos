@@ -1,6 +1,6 @@
-require "atmos-lang.lexer"
-require "atmos-lang.parser"
-require "atmos-lang.tosource"
+require "atmos.lang.lexer"
+require "atmos.lang.parser"
+require "atmos.lang.tosource"
 
 -- PRIM
 

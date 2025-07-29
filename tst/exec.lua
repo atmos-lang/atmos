@@ -1,8 +1,8 @@
-require "atmos-lang.lexer"
-require "atmos-lang.parser"
-require "atmos-lang.tosource"
-require "atmos-lang.coder"
-require "atmos-lang.exec"
+require "atmos.lang.lexer"
+require "atmos.lang.parser"
+require "atmos.lang.tosource"
+require "atmos.lang.coder"
+require "atmos.lang.exec"
 
 -- EXPR / STRING / TAG
 
@@ -94,7 +94,7 @@ do
     lexer_next()
     local s = parser()
     local f = assert(io.open("/tmp/anon.lua", 'w'))
-    f:write('require "atmos-lang.run";\n')
+    f:write('require "atmos.lang.run";\n')
     f:write(coder(s))
     f:close()
     local exe = assert(io.popen("lua5.4 /tmp/anon.lua", 'r'))

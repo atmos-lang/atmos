@@ -1,7 +1,7 @@
-require "atmos-lang.global"
-require "atmos-lang.lexer"
-require "atmos-lang.parser"
-require "atmos-lang.coder"
+require "atmos.lang.global"
+require "atmos.lang.lexer"
+require "atmos.lang.parser"
+require "atmos.lang.coder"
 
 function atm_test (src, tst)
     local out = ""
@@ -19,7 +19,7 @@ function atm_test (src, tst)
         return err
     end
     atmos = require "atmos"
-    require "atmos-lang.run"
+    require "atmos.lang.run"
     local ok, err = pcall(atmos.call,f)
     print = PRINT
     if ok then

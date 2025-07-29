@@ -1,4 +1,4 @@
-require "atmos-lang.lexer"
+require "atmos.lang.lexer"
 
 -- SYMBOLS
 
