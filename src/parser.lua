@@ -157,7 +157,7 @@ end
 -- 3_met : v->f    f<-v
 -- 2_suf : v[0]    v.x    x::m()   f()
 --         :X() :X@{} :X#{}
---         f@{} f#{} f""
+--         f@{} f#{} f"" f``
 -- 1_prim
 
 local function is_prefix (e)
@@ -191,7 +191,7 @@ function parser_2_suf (pre)
     local ret
 
     -- END
-    if (e.tag == 'tag') and (check'(' or check'@{' or check'#{' or check(nil,'nat')) then
+    if (e.tag == 'tag') and (check'(' or check'@{' or check'#{') then
         -- (:X) @{...}
         local t = parser()
         local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
