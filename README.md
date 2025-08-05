@@ -84,7 +84,7 @@ TODO
 
 # Documentation
 
-- [Manual](docs/manual-out.md)
+- [Manual](doc/manual-out.md)
 - [Guide](TODO)
 
 # Resources
