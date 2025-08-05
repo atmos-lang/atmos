@@ -6,8 +6,8 @@
 
 [
     [About](#about)                 |
-    [Install](#install)             |
     [Hello World!](#hello-world)    |
+    [Install](#install)             |
     [Documentation](#documentation) |
     [Resources](#resources)
 ]
@@ -32,6 +32,17 @@ programming with two main functionalities:
 Atmos is inspired by [synchronous programming languages][sync] like [Ceu][ceu]
 and [Esterel][esterel].
 
+Atmos compiles to [Lua][lua] and relies on [lua-atmos][lua-atmos] for its
+concurrency runtime.
+
+[sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
+[events]:       https://en.wikipedia.org/wiki/Event-driven_programming
+[sync]:         https://fsantanna.github.io/sc.html
+[ceu]:          http://www.ceu-lang.org/
+[esterel]:      https://en.wikipedia.org/wiki/Esterel
+[lua]:          https://www.lua.org/
+[lua-atmos]:    https://github.com/lua-atmos/atmos/
+
 # Hello World!
 
 During 5 seconds, displays `Hello World!` every second:
@@ -39,26 +50,43 @@ During 5 seconds, displays `Hello World!` every second:
 ```
 require "atmos.env.clock"
 
-main {
-    watching @5 {
-        every @1 {
-            print "Hello World!"
-        }
+watching @5 {
+    every @1 {
+        print "Hello World!"
     }
 }
 ```
 
 We first import the builtin `clock` environment, which provides timers to
 applications.
-The `main` block is a task in Atmos that behaves as follows:
+The program body is a task in Atmos that behaves as follows:
 
 - The `watching` command will execute its block during 5 seconds.
 - The `every` loop will execute its block every second.
-- Once the `watching` terminates, the `main` block reaches its end, and the
-  program exits cleanly.
+- Once the `watching` terminates, the body reaches its end, and the program
+  exits cleanly.
 
-[sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
-[events]:       https://en.wikipedia.org/wiki/Event-driven_programming
-[sync]:         https://fsantanna.github.io/sc.html
-[ceu]:          http://www.ceu-lang.org/
-[esterel]:      https://en.wikipedia.org/wiki/Esterel
+# Install & Run
+
+Atmos depends on [lua-atmos][lua-atmos].
+
+```
+sudo luarocks install atmos-lang --lua-version=5.4
+atmos <lua-path>/atmos/lang/exs/hello.lua
+```
+
+You may also clone the repository and copy part of the source tree, as follows,
+into your `lua-atmos` path (e.g., `/usr/local/share/lua/5.4/atmos/`):
+
+```
+TODO
+```
+
+# Documentation
+
+- [Manual](docs/manual-out.md)
+- [Guide](TODO)
+
+# Resources
+
+`TODO`
