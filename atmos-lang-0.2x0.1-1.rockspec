@@ -1,5 +1,5 @@
 package = "atmos-lang"
-version = "0.2_0.1-1"
+version = "0.2x0.1-1"
 source = {
    url = "git+https://github.com/atmos-lang/atmos",
    branch = "v0.2/0.1",
