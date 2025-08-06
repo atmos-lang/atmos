@@ -3,9 +3,7 @@
 * DESIGN
     * Structured Deterministic Concurrency
     * Event Signaling Mechanisms
-    * Lexical Memory Management
-    * Hierarchical Tags and Tuple Templates
-    * Integration with C
+    * Integration with Lua
 * EXECUTION
 * LEXICON
     * Keywords
@@ -84,15 +82,23 @@ Atmos is a programming language reconciles *[Structured Concurrency][sc]* with
 programming with two main functionalities:
 
 - Structured Deterministic Concurrency:
-    - The `task` primitive with deterministic scheduling provides predictable
+    - A `task` primitive with deterministic scheduling provides predictable
       behavior and safe abortion.
+    - A `tasks` container primitive holds attached tasks and control their
+      lifecycle.
+    - A `pin` declaration attaches a task or tasks to its enclosing lexical
+      scope.
     - Structured primitives compose concurrent tasks with lexical scope (e.g.,
       `watching`, `every`, `par_or`).
-    - The `tasks` container primitive holds attached tasks and control their
-      lifecycle.
 - Event Signaling Mechanisms:
-    - The `await` primitive suspends a task and wait for events.
-    - The `emit` primitive signal events and awake awaiting tasks.
+    - An `await` primitive suspends a task and wait for events.
+    - An `emit` primitive signal events and awake awaiting tasks.
+<!--
+- Lexical Memory Management *(experimental)*:
+    - A lexical policy to manage dynamic allocation automatically.
+    - A set of strict escaping rules to preserve structured reasoning.
+    - A reference-counter collector for deterministic reclamation.
+-->
 
 Atmos is inspired by [synchronous programming languages][sync] like [Ceu][ceu]
 and [Esterel][esterel].
@@ -111,11 +117,14 @@ Follows an extended list of functionalities in Atmos:
 
 Atmos is in **experimental stage**.
 
-In the rest of this section, we introduce the three key aspects of Atmos:
+In the rest of this section, we introduce the key aspects of Atmos:
 *Structured Deterministic Concurrency*, *Event Signaling Mechanisms*, and
-*Lexical Memory Management*.
+*Integration with Lua*.
+
+<!--, and *Lexical Memory Management*.
 Then, we also introduce two other atypical aspects of the language:
-*Hierarchical Tags* and *Integration with C*.
+*Hierarchical Tags*.
+-->
 
 [sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
 [events]:       https://en.wikipedia.org/wiki/Event-driven_programming
@@ -129,45 +138,42 @@ Then, we also introduce two other atypical aspects of the language:
 
 In structured concurrency, the life cycle of processes or tasks respect the
 structure of the source code as hierarchical blocks.
-In this sense, tasks in Atmos are treated in the same way as local variables in
+In this sense, tasks in Atmos are treated in the same way as local variables of
 structured programming:
 When a [block](#blocks) of code terminates or goes out of scope, all of its
-[local variables](#declarations) and [tasks](#active-values) are deallocated
-and become inaccessible to enclosing blocks.
-In addition, tasks are properly aborted and finalized by [deferred
-statements](#defer).
+[local variables](#declarations) become inaccessible to enclosing blocks.
+In addition, all of its [pinned tasks](#active-values) are aborted and properly
+finalized by [deferred statements](#defer).
 
-Tasks in Atmos are built on top of [coroutines](#active-values), which unlike OS
-threads, have a predictable run-to-completion semantics, in which they execute
-uninterruptedly up to an explicit [yield](#yield) or [await](#awaits)
-operation.
+Tasks in Atmos are built on top of [coroutines](#active-values), which adhere
+to a predictable "run-to-completion" semantics:
+Unlike OS threads, coroutines and tasks execute uninterruptedly up to explicit
+[yield](#yield) or [await](#awaits) operations.
 
 The next example illustrates structured concurrency, abortion of tasks, and
 deterministic scheduling.
-The example uses a `par-or` to spawn two concurrent tasks:
+The example uses a `par_or` to spawn two concurrent tasks:
     one that terminates after 10 seconds, and
-    another one that increments variable `n` every second, showing its value on
+    another one that increments `n` every second, showing its value on
     termination:
 
-<!-- pico/tst/counter.ceu -->
+<!-- exs/01-counter.ceu -->
 
 ```
-spawn {
-    par-or {
-        await <10:s>
-    } with {
-        var n = 0
-        defer {
-            println("I counted ", n)    ;; invariably outputs 9
-        }
-        every <1:s> {
-            set n = n + 1
-        }
+par_or {
+    await @10
+} with {
+    var n = 0
+    defer {
+        print("I counted ", n)    ;; invariably outputs 9
+    }
+    every @1 {
+        set n = n + 1
     }
 }
 ```
 
-The [`par-or`](parallel-blocks) is a structured mechanism that combines tasks
+The [`par_or`](parallel-blocks) is a structured mechanism that combines tasks
 in nested blocks and rejoins as a whole when one of them terminates,
 automatically aborting the others.
 
@@ -183,7 +189,7 @@ In addition, tasks awake in the order they appear in the source code, which
 makes the scheduling order predictable.
 This rule allows us to infer that the example invariably outputs `9`, no matter
 how many times we re-execute it.
-Likewise, if the order of the two tasks inside the `par-or` were inverted, the
+Likewise, if the order of the two tasks inside the `par_or` were inverted, the
 example would always output `10`.
 
 ## Event Signaling Mechanisms
@@ -247,7 +253,8 @@ the program, printing `:tick-A` and `:tick-B` in this order.
 The last event aborts the `watching` composition and prints `:done`, before
 terminating the main block.
 
-## Lexical Memory Management
+<!--
+--## Lexical Memory Management
 
 Atmos respects the lexical structure of the program also when dealing with
 dynamic memory allocation.
@@ -303,8 +310,10 @@ Note that values of the [basic types](#basic-types), such as numbers and
 booleans, have no assignment restrictions because they are copied as a whole.
 Note also that Atmos still supports garbage collection for dynamic values to
 handle references in long-lasting blocks.
+-->
 
-## Hierarchical Tags and Tuple Templates
+<!--
+--## Hierarchical Tags and Tuple Templates
 
 ### Hierarchical Tags
 
@@ -321,13 +330,13 @@ enumerations representing states (e.g., `:pending`, `:done`).
 
 The next example uses tags as keys in a dictionary:
 
-<!-- dceu/src/test/02-tags.ceu -->
+<!- dceu/src/test/02-tags.ceu ->
 
 ```
 val pos = @[]               ;; a new dictionary
 set pos[:x] = 10
 set pos.y   = 20            ;; equivalent to pos[:y]=20
-println(pos.x, pos[:y])     ;; --> 10, 20
+println(pos.x, pos[:y])     ;; -> 10, 20
 ```
 
 Tags can also be used to "tag" dynamic objects, such as dictionaries and
@@ -340,7 +349,7 @@ identifiers with (`.`).
 For instance, a tag such as `:T.A.x` matches the tags `:T`, `:T.A`, and
 `:T.A.x` at the same time, as verified by the function `sup?`:
 
-<!-- dceu/src/test/02-tags.ceu -->
+<!- dceu/src/test/02-tags.ceu-->
 
 ```
 sup?(:T,     :T.A.x)    ;; --> true  (:T is a supertype of :T.A.x)
@@ -353,7 +362,7 @@ sup?(:T.A,   :T.B)      ;; --> false
 The next example illustrates hierarchical tags combined with the functions
 `tag` and `sup?`:
 
-<!-- dceu/src/test/02-tags.ceu -->
+<!- dceu/src/test/02-tags.ceu ->
 
 ```
 val v = []                      ;; an empty tuple
@@ -379,7 +388,7 @@ the tuple, which can then be indexed by field or by number interchangeably.
 The next example defines a template `:Pos`, which serves the same purpose as
 the dictionary of the first example, but now using tuples:
 
-<!-- dceu/src/test/03-templates.ceu -->
+<!- dceu/src/test/03-templates.ceu ->
 
 ```
 data :Pos = [x,y]       ;; a template `:Pos` with fields `x` and `y`
@@ -397,7 +406,7 @@ inner tags reuse fields from outer tags.
 The next example illustrates an `:Event` super-type, in which each sub-type
 appends additional data into the template:
 
-<!-- dceu/src/test/03-templates.ceu -->
+<!- dceu/src/test/03-templates.ceu ->
 
 ```
 data :Event = [ts] {            ;; All events carry a timestamp
@@ -418,7 +427,9 @@ Considering the last two lines, a declaration such as
 which not only tags the tuple with the appropriate user type, but also declares
 that the variable satisfies the template.
 
-## Integration with C
+-->
+
+## Integration with Lua
 
 `TODO`
 

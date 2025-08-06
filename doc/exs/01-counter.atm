@@ -1,0 +1,13 @@
+require "atmos.env.clock"
+
+par_or {
+    await @10
+} with {
+    var n = 0
+    defer {
+        print("I counted ", n)    ;; invariably outputs 9
+    }
+    every @1 {
+        set n = n + 1
+    }
+}

@@ -19,15 +19,17 @@ Atmos is a programming language reconciles *[Structured Concurrency][sc]* with
 programming with two main functionalities:
 
 - Structured Deterministic Concurrency:
-    - The `task` primitive with deterministic scheduling provides predictable
+    - A `task` primitive with deterministic scheduling provides predictable
       behavior and safe abortion.
+    - A `tasks` container primitive holds attached tasks and control their
+      lifecycle.
+    - A `pin` declaration attaches a task or tasks to its enclosing lexical
+      scope.
     - Structured primitives compose concurrent tasks with lexical scope (e.g.,
       `watching`, `every`, `par_or`).
-    - The `tasks` container primitive holds attached tasks and control their
-      lifecycle.
 - Event Signaling Mechanisms:
-    - The `await` primitive suspends a task and wait for events.
-    - The `emit` primitive signal events and awake awaiting tasks.
+    - An `await` primitive suspends a task and wait for events.
+    - An `emit` primitive signal events and awake awaiting tasks.
 
 Atmos is inspired by [synchronous programming languages][sync] like [Ceu][ceu]
 and [Esterel][esterel].
