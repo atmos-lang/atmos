@@ -377,56 +377,6 @@ println(v is? :T)               ;; --> true  (equivalent to sup?(:T,tag(v)))
 In the example, `v` is set to user type `:T.A`, which is compatible with types
 `:T` and `:T.A`, but not with type `:T.B`.
 
-### Hierarchical Tuple Templates
-
-Atmos also provides a `data` construct to associate a tag with a tuple template
-that enumerates field identifiers.
-Templates provide field names for tuples, which become similar to *structs* in
-C or *classes* in Java.
-Each field identifier in a data declaration corresponds to a numeric index in
-the tuple, which can then be indexed by field or by number interchangeably.
-The next example defines a template `:Pos`, which serves the same purpose as
-the dictionary of the first example, but now using tuples:
-
-<!- dceu/src/test/03-templates.ceu ->
-
-```
-data :Pos = [x,y]       ;; a template `:Pos` with fields `x` and `y`
-val pos :Pos = [10,20]  ;; declares that `pos` satisfies template `:Pos`
-println(pos.x, pos.y)   ;; --> 10, 20
-```
-
-In the example, `pos.x` is equivalent to `pos[0]`, and `pos.y` is equivalent to
-`pos[1]`.
-
-The template mechanism of Atmos can also describe a data hierarchy to support
-inheritance, akin to class hierarchies in Object-Oriented Programming.
-A `data` description can be suffixed with a block to nest templates, in which
-inner tags reuse fields from outer tags.
-The next example illustrates an `:Event` super-type, in which each sub-type
-appends additional data into the template:
-
-<!- dceu/src/test/03-templates.ceu ->
-
-```
-data :Event = [ts] {            ;; All events carry a timestamp
-    :Key = [key]                ;; :Event.Key [ts,key] is a sub-type of :Event [ts]
-    :Mouse = [pos :Pos] {       ;; :Event.Mouse [ts, pos :Pos]
-        :Motion = []            ;; :Event.Mouse.Motion [ts, pos :Pos]
-        :Button = [but]         ;; :Event.Mouse.Button [ts, pos :Pos, but]
-    }
-}
-
-val but = :Event.Mouse.Button [0, [10,20], 1]       ;; [ts,[x,y],but]
-println(but.ts, but.pos.y, but is? :Event.Mouse)    ;; --> 0, 20, true
-```
-
-Considering the last two lines, a declaration such as
-    `val x = :T [...]` is equivalent to
-    `val x :T = tag(:T, [...])`,
-which not only tags the tuple with the appropriate user type, but also declares
-that the variable satisfies the template.
-
 -->
 
 ## Integration with Lua
