@@ -1,0 +1,17 @@
+val pos = @{}               ;; a new table
+set pos[:x] = 10
+set pos.y   = 20            ;; equivalent to pos[:y]=20
+print(pos.x, pos[:y])       ;; --> 10, 20
+
+print(:T.A.x ?? :T)         ;; --> true  (:T.A.x is a subtype of :T)
+print(:T.A.x ?? :T.A)       ;; --> true  (:T.A.x is a subtype of :T)
+print(:T.A.x ?? :T.A.x)     ;; --> true  (:T.A.x is a subtype of :T)
+print(:T     ?? :T.A.x)     ;; --> false (:T is not a subtype of :T.A.x)
+print(:T.A   ?? :T.B)       ;; --> false
+
+val x = :T.A @{ a=10 }      ;; a table
+print(x.tag)                ;; --> :T.A
+print(x.tag ?? :T)          ;; --> true
+print(x     ?? :T.A)        ;; --> true
+print(x.tag ?? :T.B)        ;; --> false
+print(x ?? :T)              ;; --> true  (equivalent to sup?(:T,tag(x)))

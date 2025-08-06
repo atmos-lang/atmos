@@ -16,7 +16,7 @@
     * Basic Types
         - `nil` `bool` `char` `number` `tag` `pointer`
     * Collections
-        - `tuple` `vector` `dict`
+        - `table` `vector`
     * Execution Units
         - `func` `coro` `task` `exe-coro` `exe-task` `tasks`
     * User Types
@@ -24,7 +24,7 @@
     * Static Values
         - `nil` `bool` `char` `number` `tag` `pointer`
     * Dynamic Values
-        - `tuple` `vector` `dict` (collections)
+        - `table` `vector` (collections)
         - `func` `coro` `task` (prototypes)
         - `exe-coro` `exe-task` `tasks` (actives)
 * EXPRESSIONS
@@ -103,28 +103,26 @@ programming with two main functionalities:
 Atmos is inspired by [synchronous programming languages][sync] like [Ceu][ceu]
 and [Esterel][esterel].
 
-Atmos compiles to [Lua][lua] and relies on [lua-atmos][lua-atmos] for its
-concurrency runtime.
-
 Follows an extended list of functionalities in Atmos:
 
 - Dynamic typing
 - Statements as expressions
-- Dynamic collections (vectors and dictionaries)
+- Dynamic collections (tables and vectors)
 - Deferred statements for finalization
 - Exception handling (throw & catch)
 - Seamless integration with Lua
 
+Atmos is tightly connected integrated with [Lua][lua]:
+It mimics most of the semantics of Lua with respect to values, types, and
+expressions.
+In addition, it compiles to [Lua][lua] and relies on [lua-atmos][lua-atmos]
+for its concurrency runtime.
+
 Atmos is in **experimental stage**.
 
-In the rest of this section, we introduce the key aspects of Atmos:
-*Structured Deterministic Concurrency*, *Event Signaling Mechanisms*, and
-*Integration with Lua*.
-
-<!--, and *Lexical Memory Management*.
-Then, we also introduce two other atypical aspects of the language:
-*Hierarchical Tags*.
--->
+In the rest of this section, we introduce key aspects of Atmos:
+*Structured Deterministic Concurrency*, *Event Signaling Mechanisms*,
+*Hierarchical Tags*, and *Integration with Lua*.
 
 [sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
 [events]:       https://en.wikipedia.org/wiki/Event-driven_programming
@@ -133,6 +131,7 @@ Then, we also introduce two other atypical aspects of the language:
 [esterel]:      https://en.wikipedia.org/wiki/Esterel
 [lua]:          https://www.lua.org/
 [lua-atmos]:    https://github.com/lua-atmos/atmos/
+[syms]:         https://en.wikipedia.org/wiki/Symbol_(programming)
 
 ## Structured Deterministic Concurrency
 
@@ -253,131 +252,54 @@ the program, printing `tick A` and `tick B` in this order.
 The last event aborts the `watching` composition and prints `done`, before
 terminating the main body.
 
-<!--
---## Lexical Memory Management
-
-Atmos respects the lexical structure of the program also when dealing with
-dynamic memory allocation.
-When a [dynamic value](#dynamic-values) is first assigned to a variable, it
-becomes attached to the [block](#block) in which the variable is declared, and
-the value cannot escape that block in further assignments or as return
-expressions.
-This is valid not only for [collections](#constructors) (tuples, vectors, and
-dictionaries), but also for [closures](#prototypes),
-[coroutines](#active-values), and [tasks](#active-values).
-This restriction ensures that terminating blocks (and consequently tasks)
-deallocate all memory at once.
-*More importantly, it provides static means to reason about the program.*
-To overcome the escaping restriction, Atmos also provides an explicit
-[drop](#copy-and-drop) operation to deattach a dynamic value from its block.
-
-The next example illustrates lexical memory management and the validity of
-assignments:
-
-```
-var x1 = [1,2,3]
-var x2 = do {
-    val y1 = x1         ;; ok, scope of x1>y1
-    val y2 = [4,5,6]
-    set x1 = y2         ;; no, scope of y2<x1
-    [7,8,9]             ;; ok, tuple not yet assigned
-}                       ;; deallocates [4,5,6], but not [7,8,9]
-```
-
-The assignment `y1=x1` is valid because the tuple `[1,2,3]` held in `x1` is
-guaranteed to be in memory while `y1` is visible.
-However, the assignment `x1=y2` is invalid because the tuple `[4,5,6]` held in
-`y2` is deallocated at the end of the block, but `x1` remains visible.
-
-The next example uses `drop` to reattach a local vector to an outer scope:
-
-```
-func to-vector (itr) {      ;; iterable -> vector
-    val ret = #[]           ;; vector is allocated locally
-    loop v in itr {
-        set ret[+] = v      ;; each value is appended to vector
-    }
-    drop(ret)               ;; local vector is moved out
-}
-```
-
-The function `to-vector` receives an iterable value, and copies all of its
-values to a new vector, which is finally returned.
-Since the vector `ret` is allocated inside the function, it requires an
-explicit `drop` to reattach it to the caller scope.
-
-Note that values of the [basic types](#basic-types), such as numbers and
-booleans, have no assignment restrictions because they are copied as a whole.
-Note also that Atmos still supports garbage collection for dynamic values to
-handle references in long-lasting blocks.
--->
-
-<!--
---## Hierarchical Tags and Tuple Templates
-
 ### Hierarchical Tags
 
-Another distinguishing aspect of Atmos is its tag type, which is similar to
-[*symbols* or *atoms*][6] in other programming languages.
-A [tag](#basic-type) is a basic type that represents unique values in a
-human-readable form.
-Any identifier prefixed with a colon (`:`) is a valid tag that is guaranteed to
-be unique in comparison to others (i.e., `:x == :x` and `:x /= :y`).
-Just like the number `10`, the tag `:x` is a value in itself and needs not to
-be declared.
-Tags are typically used as keys in dictionaries (e.g., `:x`, `:y`), or as
-enumerations representing states (e.g., `:pending`, `:done`).
+Tags represent unique human-readable values, and are similar to Lua strings or
+[*symbols* or *atoms*][syms] in other programming languages.
+Any identifier prefixed with a colon (`:`) is a valid tag, which is guaranteed
+to be unique in comparison to others (i.e., `:x == :x` and `:x != :y`).
 
-The next example uses tags as keys in a dictionary:
+Tags are syntactic values that only exist at compile time.
+During runtime, they are converted to strings and become indistinguishable from
+them (i.e., `:x == 'x'`).
 
-<!- dceu/src/test/02-tags.ceu ->
+Tags are typically used as keys in table (e.g., `:x`, `:y`), or as enumerations
+representing states (e.g., `:pending`, `:done`).
+
+<!-- exs/03-tags.ceu -->
+
+The next example uses tags as table keys:
 
 ```
-val pos = @[]               ;; a new dictionary
+val pos = @{}           ;; a new table
 set pos[:x] = 10
-set pos.y   = 20            ;; equivalent to pos[:y]=20
-println(pos.x, pos[:y])     ;; -> 10, 20
+set pos.y   = 20        ;; equivalent to pos[:y]=20
+print(pos.x, pos[:y])   ;; -> 10, 20
 ```
 
-Tags can also be used to "tag" dynamic objects, such as dictionaries and
-tuples, introducing the notion of user types in Atmos.
-For instance, the call `tag(:Pos,pos)` associates the tag `:Pos` with the
-value `pos`, such that the query `tag(pos)` returns `:Pos`.
+Tags can also be used to "tag" tables, introducing the notion of lightweight
+user types in Atmos.
+The constructor `:Pos @{x=10,y=20}` is equivalent to `@{tag=:Pos,x=10,y=20}`.
 
-As an innovative feature, tags can describe user type hierarchies by splitting
-identifiers with (`.`).
-For instance, a tag such as `:T.A.x` matches the tags `:T`, `:T.A`, and
-`:T.A.x` at the same time, as verified by the function `sup?`:
-
-<!- dceu/src/test/02-tags.ceu-->
+Tags can describe type hierarchies by splitting identifiers with (`.`).
+For instance, a tag such as `:T.A.x` is a subtype of `:T`, `:T.A`, and
+`:T.A.x` at the same time, as verified by the match operator `??`:
 
 ```
-sup?(:T,     :T.A.x)    ;; --> true  (:T is a supertype of :T.A.x)
-sup?(:T.A,   :T.A.x)    ;; --> true
-sup?(:T.A.x, :T.A.x)    ;; --> true
-sup?(:T.A.x, :T)        ;; --> false (:T.A.x is *not* a supertype of :T)
-sup?(:T.A,   :T.B)      ;; --> false
+print(:T.A.x ?? :T)         ;; --> true  (:T.A.x is a subtype of :T)
+print(:T.A.x ?? :T.A)       ;; --> true
+print(:T.A.x ?? :T.A.x)     ;; --> true
+print(:T     ?? :T.A.x)     ;; --> false (:T is not a subtype of :T.A.x)
+print(:T.A   ?? :T.B)       ;; --> false
 ```
 
-The next example illustrates hierarchical tags combined with the functions
-`tag` and `sup?`:
-
-<!- dceu/src/test/02-tags.ceu ->
+The match operator `??` also works with tagged tables.
+Therefore, tags, tables, and the match operator can be combined as follows:
 
 ```
-val v = []                      ;; an empty tuple
-tag(:T.A, v)                    ;; v is of user type :T.A
-println(tag(v))                 ;; --> :T.A
-println(sup?(:T,   tag(v)))     ;; --> true
-println(sup?(:T.A, tag(v)))     ;; --> true
-println(sup?(:T.B, tag(v)))     ;; --> false
-println(v is? :T)               ;; --> true  (equivalent to sup?(:T,tag(v)))
+val t = :T.A @{ a=10 }      ;; @{ tag=:T.A, a=10 }
+print(t ?? :T)              ;; --> true
 ```
-
-In the example, `v` is set to user type `:T.A`, which is compatible with types
-`:T` and `:T.A`, but not with type `:T.B`.
-
--->
 
 ## Integration with Lua
 
@@ -404,63 +326,38 @@ embed native expressions in programs.
 
 ## Keywords
 
-Keywords cannot be used as [variable identifiers](#identifiers).
-
 The following keywords are reserved in Atmos:
 
-<!--
-    export              ;; export block
-    poly                ;; TODO
--->
-
 ```
-    and                 ;; and operator                     (00)
     await               ;; await event
     break               ;; loop break
-    broadcast           ;; broadcast event
     catch               ;; catch exception
-    coro                ;; coroutine prototype
-    coroutine           ;; coroutine creation
-    data                ;; data declaration
     defer               ;; defer block
-    delay               ;; delay task
     do                  ;; do block                         (10)
-    drop                ;; drop value
     else                ;; else block
-    enum                ;; enum declaration
-    error               ;; throw error
+    emit                ;; emit event
     escape              ;; escape block
     every               ;; every block
     false               ;; false value
     func                ;; function prototype
-    group               ;; group block
     if                  ;; if block                         (20)
     ifs                 ;; ifs block
     in                  ;; in keyword
-    in?                 ;; in? operator
-    in-not?             ;; in-not? operator
-    is?                 ;; is? operator
-    is-not?             ;; is-not? operator
     it                  ;; implicit parameter
     loop                ;; loop block
     match               ;; match block
     nil                 ;; nil value                        (30)
-    not                 ;; not operator
-    or                  ;; or operator
-    par-and             ;; par-and block
-    par-or              ;; par-or block
     par                 ;; par block
+    par_and             ;; par-and block
+    par_or              ;; par-or block
+    pin                 ;; pin declaration
     pub                 ;; public variable
-    resume              ;; resume coroutine
-    resume-yield-all    ;; resume coroutine
     return              ;; escape prototype
     set                 ;; assign expression                (40)
-    skip                ;; loop skip
     spawn               ;; spawn coroutine
     task                ;; task prototype
     tasks               ;; task pool
-    test                ;; test block
-    thus                ;; thus pipe block
+    throw               ;; throw error
     toggle              ;; toggle coroutine/block
     true                ;; true value
     until               ;; until loop condition
@@ -470,103 +367,69 @@ The following keywords are reserved in Atmos:
     where               ;; where block
     while               ;; while loop condition
     with                ;; with block
-    yield               ;; yield coroutine                  (56)
 ```
+
+<!--
+    skip                ;; loop skip
+    test                ;; test block
+    thus                ;; thus pipe block
+-->
 
 ## Symbols
 
-The following symbols are reserved in Atmos:
-
-<!--
-    ...             ;; variable function/program arguments
--->
+The following symbols are designated in Atmos:
 
 ```
     {   }           ;; block/operators delimeters
     (   )           ;; expression delimeters
     [   ]           ;; index/constructor delimeters
-    #[              ;; vector constructor delimeter
-    @[              ;; dictionary constructor delimeter
+    #{              ;; vector constructor delimeter
+    @{              ;; dictionary constructor delimeter
     \               ;; lambda declaration
-    |               ;; pattern clause
     =               ;; assignment separator
-    =>              ;; if/ifs/loop/lambda/thus clauses
+    =>              ;; if/ifs/match clauses
     <-- <- -> -->   ;; pipe calls
     ;               ;; sequence separator
+    '   "   `       ;; string/native delimiters
     ,               ;; argument/constructor separator
-    .               ;; index/field discriminator
-    '   "   `       ;; character/string/native delimiters
-    $               ;; native interpolation
-    ^               ;; lexer preprocessor
+    :               ;; tag prefix
+    ::              ;; method call
+    .               ;; field discriminator
+    ...             ;; variable arguments
 ```
 
 ## Operators
 
-The following operator symbols can be combined to form operator names in Atmos:
+The following operators are supported in Atmos:
 
 ```
-    +    -    *    /
-    %    >    <    =
-    |    &    ~
+    ==   !=   ??   !?           ;; comparison
+    +    -    *    /    %       ;; arithmetic
+    >    <    >=   <=           ;; comparison
+    !    ||   &&                ;; logical
+    ?>   <?   !>   <!           ;; membership
+    ++                          ;; concatenation
+    #                           ;; size
 ```
-
-Operators names cannot clash with reserved symbols (e.g., `->`).
-
-Examples:
-
-```
-|>
-<|
-+++
-```
-
-The following keywords are also reserved as special operators:
-
-```
-not     and     or
-in?     in-not?
-is?     is-not?
-```
-
-Operators can be used in prefix or infix notations in
-[operations](#calls-and-operations).
 
 ## Identifiers
 
-Atmos uses identifiers to refer to variables and operators:
+Atmos uses identifiers to refer to [variables](#TODO), [functions](#TODO),
+and [fields](#TODO):
 
 ```
-ID : [A-Za-z_][A-Za-z0-9_'?!-]*     ;; letter/under/digit/quote/quest/excl/dash
-   | `{{´ OP `}}´                   ;; operator enclosed by double braces as identifier
-OP : [+-*/%><=|&~]+                 ;; see Operators
+ID : [A-Za-z_][A-Za-z0-9_]*     ;; letter/underscore/digit
 ```
 
 A variable identifier starts with a letter or underscore (`_`) and is followed
-by letters, digits, underscores, single quotes (`'`), question marks (`?`),
-exclamation marks (`!`), or dashes (`-`).
-A dash must be followed by a letter.
-
-Note that dashes are ambiguous with the minus operator.
-For this reason, (i) the minus operation requires spaces between non-numeric
-operands (e.g., `x - a`), and (ii) variables with common parts in identifiers
-are rejected (e.g., `x` vs `x-a` vs `a-x`).
-
-An operator identifier is a sequence of operator symbols
-(see [Operators](#operators)).
-An operator can be used as a variable identifier when enclosed by double braces
-(`{{` and `}}`).
+by letters, digits, or underscores.
 
 Examples:
 
 ```
-x               ;; simple var id
-my-value        ;; var with dash
-empty?          ;; var with question
-map'            ;; var with prime
->               ;; simple op id
-++              ;; op with multi chars
-{{-}}           ;; op as var id
-x-1             ;; invalid identifier (read as `x - 1`)
+x
+my_value
+y10
 ```
 
 ## Literals

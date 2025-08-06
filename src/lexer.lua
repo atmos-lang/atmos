@@ -3,8 +3,6 @@ require "atmos.lang.aux"
 
 local match = string.match
 
-local syms = { '{', '}', '(', ')', '[', ']', ',', '\\' }
-
 function err (tk, msg)
     error(FILE .. " : line " .. tk.lin .. " : near '" .. tk.str .."' : " .. msg, 0)
 end
@@ -157,7 +155,7 @@ local function _lexer_ (str)
             end
 
         -- symbols:  {  (  ,  ;
-        elseif contains(syms, c) then
+        elseif contains(SYMS, c) then
             coroutine.yield { tag='sym', str=c, lin=LIN,sep=SEP }
 
         elseif c == '.' then
