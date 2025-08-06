@@ -92,7 +92,7 @@ programming with two main functionalities:
       `watching`, `every`, `par_or`).
 - Event Signaling Mechanisms:
     - An `await` primitive suspends a task and wait for events.
-    - An `emit` primitive signal events and awake awaiting tasks.
+    - An `emit` primitive broadcasts events and awake awaiting tasks.
 <!--
 - Lexical Memory Management *(experimental)*:
     - A lexical policy to manage dynamic allocation automatically.
@@ -198,14 +198,14 @@ Tasks can communicate through events as follows:
 
 - The [`await`](#awaits) statement suspends a task until it matches an event
   condition.
-- The [`broadcast`](#broadcast) statement signals an event to all awaiting
+- The [`emit`](#emit) statement broadcasts an event to all awaiting
   tasks.
 
 <img src="bcast.png" align="right"/>
 
 Active tasks form a dynamic tree representing the structure of the program, as
 illustrated in the figure.
-This three is traversed on every broadcast in a predictable way, since it
+This tree is traversed on every `emit` in a predictable way, since it
 respects the lexical structure of the program:
 A task has exactly one active block at a time, which is first traversed `(1)`.
 The active block has a list of active tasks, which are traversed in sequence
@@ -214,7 +214,7 @@ tasks `(4)`.
 After the nested blocks and tasks are traversed, the outer task itself is
 traversed at its single yielded execution point `(5)`.
 Finally, the task next to the outer task is traversed in the same way `(6)`.
-A broadcast traversal runs to completion before proceeding to the next
+An `emit` statement traversal runs to completion before proceeding to the next
 statement, just like a function call.
 
 The next example illustrates event broadcasts and tasks traversal.
@@ -222,36 +222,36 @@ The example uses a `watching` statement to observe an event condition while
 executing a nested task.
 When the condition is satisfied, the nested task is aborted:
 
-<!-- pico/tst/ticks.ceu -->
+<!-- exs/02-ticks.ceu -->
 
 ```
 spawn {
     watching :done {
         par {
             every :tick {
-                println(:tick-A)        ;; always awakes first
+                print "tick A"  ;; always awakes first
             }
         } with {
             every :tick {
-                println(:tick-B)        ;; always awakes last
+                print "tick B"  ;; always awakes last
             }
         }
     }
-    println(:done)
+    print "done"
 }
-broadcast(:tick)                        ;; --> :tick-A, :tick-B
-broadcast(:tick)                        ;; --> :tick-A, :tick-B
-broadcast(:done)                        ;; --> :done
-println(:the-end)                       ;; --> :the-end
+emit(:tick)     ;; --> "tick A", "tick B"
+emit(:tick)     ;; --> "tick A", "tick B"
+emit(:done)     ;; --> "done"
+print "end"     ;; --> "end"
 ```
 
-The main block has an outermost `spawn` task, which awaits `:done`, and has two
+The main body has an outermost `spawn` task, which awaits `:done`, and has two
 nested tasks awaiting `:tick` events.
-Then, the main block broadcasts three events in sequence.
+Then, the main body broadcasts three events in sequence.
 The first two `:tick` events awake the nested tasks respecting the structure of
-the program, printing `:tick-A` and `:tick-B` in this order.
-The last event aborts the `watching` composition and prints `:done`, before
-terminating the main block.
+the program, printing `tick A` and `tick B` in this order.
+The last event aborts the `watching` composition and prints `done`, before
+terminating the main body.
 
 <!--
 --## Lexical Memory Management

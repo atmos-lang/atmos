@@ -1,0 +1,18 @@
+spawn {
+    watching :done {
+        par {
+            every :tick {
+                print "tick A"  ;; always awakes first
+            }
+        } with {
+            every :tick {
+                print "tick B"  ;; always awakes last
+            }
+        }
+    }
+    print "done"
+}
+emit(:tick)     ;; --> "tick A", "tick B"
+emit(:tick)     ;; --> "tick A", "tick B"
+emit(:done)     ;; --> "done"
+print "end"     ;; --> "end"
