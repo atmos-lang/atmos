@@ -716,55 +716,6 @@ pin ts = tasks()        ;; a pool of tasks
 print(ts ?? :tasks)     ;; --> true
 ```
 
-<!--
-### Active Values
-
-After they suspend, coroutines and tasks retain their execution state and can
-be resumed later from their previous suspension point.
-
-Coroutines and tasks have 4 possible status:
-
-- `yielded`: idle and ready to be resumed
-- `toggled`: ignoring resumes (only for tasks)
-- `resumed`: currently executing
-- `terminated`: terminated and unable to resume
-
-The main difference between coroutines and tasks is how they resume execution:
-
-- A coroutine resumes explicitly from a [resume operation](#resume).
-- A task resumes implicitly from a [broadcast operation](#broadcast).
-
-Like other [dynamic values](#dynamic-values), coroutines and tasks are also
-attached to enclosing [blocks](#block), which may terminate and deallocate all
-of its attached values.
-Nevertheless, before a coroutine or task is deallocated, it is implicitly
-aborted, and all active [defer statements](#defer) execute automatically in
-reverse order.
-
-`TODO: lex`
-
-A task pool groups related active tasks as a collection.
-A task that lives in a pool is lexically attached to the block in which the
-pool is created, such that when the block terminates, all tasks in the pool are
-implicitly terminated.
-
-The operations on [coroutines](#coroutine-operations) and
-[tasks](#tasks-operations) are discussed further.
-
-Examples:
-
-```
-coro C () { <...> }         ;; a coro prototype `C`
-val c = coroutine(C)        ;; is instantiated as `c`
-resume c()                  ;; and resumed explicitly
-
-val ts = tasks()            ;; a task pool `ts`
-task T () { <...> }         ;; a task prototype `T`
-val t = spawn T() in ts     ;; is instantiated as `t` in pool `ts`
-broadcast(:X)               ;; broadcast resumes `t`
-```
--->
-
 # EXPRESSIONS
 
 Atmos is an expression-based language in which all statements are expressions
@@ -2307,6 +2258,55 @@ val a4 = resume g(a3+1)                 ;; g(8),  a4=10
 val a5 = resume g(a4+1)                 ;; g(11), a5=10
 println(a1, a2, a3, a4, a5)             ;; --> 2, 5, 7, 10, 12
 ```
+
+<!--
+### Active Values
+
+After they suspend, coroutines and tasks retain their execution state and can
+be resumed later from their previous suspension point.
+
+Coroutines and tasks have 4 possible status:
+
+- `yielded`: idle and ready to be resumed
+- `toggled`: ignoring resumes (only for tasks)
+- `resumed`: currently executing
+- `terminated`: terminated and unable to resume
+
+The main difference between coroutines and tasks is how they resume execution:
+
+- A coroutine resumes explicitly from a [resume operation](#resume).
+- A task resumes implicitly from a [broadcast operation](#broadcast).
+
+Like other [dynamic values](#dynamic-values), coroutines and tasks are also
+attached to enclosing [blocks](#block), which may terminate and deallocate all
+of its attached values.
+Nevertheless, before a coroutine or task is deallocated, it is implicitly
+aborted, and all active [defer statements](#defer) execute automatically in
+reverse order.
+
+`TODO: lex`
+
+A task pool groups related active tasks as a collection.
+A task that lives in a pool is lexically attached to the block in which the
+pool is created, such that when the block terminates, all tasks in the pool are
+implicitly terminated.
+
+The operations on [coroutines](#coroutine-operations) and
+[tasks](#tasks-operations) are discussed further.
+
+Examples:
+
+```
+coro C () { <...> }         ;; a coro prototype `C`
+val c = coroutine(C)        ;; is instantiated as `c`
+resume c()                  ;; and resumed explicitly
+
+val ts = tasks()            ;; a task pool `ts`
+task T () { <...> }         ;; a task prototype `T`
+val t = spawn T() in ts     ;; is instantiated as `t` in pool `ts`
+broadcast(:X)               ;; broadcast resumes `t`
+```
+-->
 
 ## Task Operations
 
