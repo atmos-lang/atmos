@@ -14,7 +14,7 @@
     * Comments
 * TYPES
     * Basic Types
-        - `nil` `bool` `char` `number` `tag` `pointer`
+        - `nil` `boolean` `char` `number` `tag` `pointer`
     * Collections
         - `table` `vector`
     * Execution Units
@@ -22,7 +22,7 @@
     * User Types
 * VALUES
     * Static Values
-        - `nil` `bool` `char` `number` `tag` `pointer`
+        - `nil` `boolean` `char` `number` `tag` `pointer`
     * Dynamic Values
         - `table` `vector` (collections)
         - `func` `coro` `task` (prototypes)
@@ -64,7 +64,7 @@
         - `print` `println` `sup?` `tag` `tuple` `type`
         - `dynamic?` `static?` `string?`
     * Type Conversions Library
-        - `to.bool` `to.char` `to.dict` `to.iter` `to.number`
+        - `to.boolean` `to.char` `to.dict` `to.iter` `to.number`
         - `to.pointer` `to.string` `to.tag` `to.tuple` `to.vector`
     * Math Library
         - `math.between` `math.ceil` `math.cos` `math.floor` `math.max`
@@ -294,7 +294,7 @@ print(:T.A   ?? :T.B)       ;; --> false
 ```
 
 The match operator `??` also works with tagged tables.
-Therefore, tags, tables, and the match operator can be combined as follows:
+Therefore, tags, tables, and `??` can be combined as follows:
 
 ```
 val t = :T.A @{ a=10 }      ;; @{ tag=:T.A, a=10 }
@@ -314,7 +314,7 @@ embed native expressions in programs.
 - gcc
 - :pre
 - $x.Tag
-- tag,char,bool,number C types
+- tag,char,boolean,number C types
 - C errors
 -->
 
@@ -434,112 +434,62 @@ y10
 
 ## Literals
 
-Atmos provides literals for *nil*, *booleans*, *tags*, *numbers*, *characters*,
-*strings*, and *native expressions*:
+Atmos provides literals for *nil*, *booleans*, *tags*, *numbers*, *strings*,
+*clock* and *native* expressions:
 
 ```
 NIL  : nil
 BOOL : true | false
-TAG  : :[A-Za-z0-9\.\-]+      ;; colon + leter/digit/dot/dash
-NUM  : [0-9][0-9A-Za-z\.]*    ;; digit/letter/dot
-CHR  : '.' | '\.'             ;; single/backslashed character
-STR  : ".*"                   ;; string expression
-NAT  : `.*`                   ;; native expression
+TAG  : :[A-Za-z0-9\.\_]+        ;; colon + leter/digit/dot/dash
+NUM  : [0-9][0-9A-Za-z\.]*      ;; digit/letter/dot
+STR  : '.*' | ".*"              ;; string expression
+CLK  : @(H:)?(M:)?(S:)?(\.ms)?  ;; clock expression
+NAT  : `.*`                     ;; native expression
 ```
+
+The literals for *nil*, *booleans* and *numbers* follow the same
+[lexical conventions](lua-lexical) of Lua.
 
 The literal `nil` is the single value of the [*nil*](#basic-types) type.
 
 The literals `true` and `false` are the only values of the
-[*bool*](#basic-types) type.
+[*boolean*](#basic-types) type.
 
-A [*tag*](#basic-types) type literal starts with a colon (`:`) and is followed
-by letters, digits, dots (`.`), or dashes (`-`).
-A dot or dash must be followed by a letter.
+A [*tag*](#TODO) literal starts with a colon (`:`) and is followed
+by letters, digits, and dots (`.`).
+
+A [*string*](#basic-types) type literal is a sequence of characters enclosed by
+an odd number of matching double (`"`) or single (`'`) quotes.
+Atmos supports multi-line strings when using multiple quote delimiters.
 
 A [*number*](#basic-types) type literal starts with a digit and is followed by
-digits, letters, and dots (`.`), and is represented as a *C float*.
+digits, letters, and dots (`.`).
 
-A [*char*](#basic-types) type literal is a single or backslashed (`\`)
-character enclosed by single quotes (`'`), and is represented as a *C char*.
+A [*clock*](#TODO) literal starts with an *at sign* (`@`) and is followed by
+the format `HH:MM:SS.sss` representing hours, minutes, seconds, and
+milliseconds.
+Each time segment accepts numbers or identifiers.
+Clock literals are used in expressions and are interpreted as a table in the
+format `@{h=HH,min=MM,s=SS,ms=sss}`.
 
-A string literal is a sequence of characters enclosed by double quotes (`"`).
-It is expanded to a [vector](#collection-values) of character literals, e.g.,
-`"abc"` expands to `#['a','b','c']`.
-
-A native literal is a sequence of characters interpreted as C code enclosed by
-multiple back quotes (`` ` ``).
-The same number of backquotes must be used to open and close the literal.
-Native literals are detailed next.
-
-All literals are valid [values](#values) in Atmos.
+A [native](#TODO) literal is a sequence of characters enclosed by an odd number
+of matching back quotes (`` ` ``).
+Atmos supports multi-line native literals when using multiple quote delimiters.
+Native literals are used in expressions and are interpreted as plain Lua
+expressions.
 
 Examples:
 
 ```
 nil                 ;; nil literal
-false               ;; bool literal
+false               ;; boolean literal
 :X.Y                ;; tag literal
+"""Hello!"""        ;; string literal
 1.25                ;; number literal
-'a'                 ;; char literal
-"Hello!"            ;; string literal
-`puts("hello");`    ;; native literal
+`x:f {"lua"}`       ;; native literal
 ```
 
-### Tags
-
-The following tags are pre-defined in Atmos:
-
-```
-    ;; type enumeration
-    :nil :tag :bool :char :number :pointer          ;; basic types
-    :dynamic                                        ;; internal use
-    :tuple :vector :dict                            ;; collections
-    :func :coro :task                               ;; prototypes
-    :exe-coro :exe-task                             ;; active coro/task
-    :tasks                                          ;; task pool
-
-    :ceu :pre                                       ;; native ceu value/pre code
-    :break :skip :return                            ;; block labels
-    :idx :key :val                                  ;; iterator modifier
-    :global :task                                   ;; broadcast target
-    :yielded :toggled :resumed :terminated          ;; coro/task status
-    :h :min :s :ms                                  ;; time unit
-    :fake :nested                                   ;; prototype modifiers
-    :error                                          ;; runtime error label
-```
-
-### Native Literals
-
-A native literal can specify a tag modifier as follows:
-
-```
-`:<type> <...>`
-`:ceu <...>`
-`:pre <...>`
-`<...>`
-```
-
-The `:<type>` modifier assumes that the C code in `<...>` evaluates to an
-expression of the given type and converts it to Atmos.
-The `:ceu` modifier assumes that the code is already a value in Atmos and does
-not modify it.
-
-The `:pre` modifier or lack of modifier assumes that the code is a C statement
-that does not evaluate to an expression.
-With the `:pre` modifier, the statement is placed at the top of the
-[C output file](#TODO), such that it can include pre declarations.
-
-Native literals can evaluate Atmos variable identifiers using a dollar sign
-prefix (`$`) and a dot suffix (`.`) with one of the desired basic types:
-    `.Tag`, `.Bool`, `.Char`, `.Number`, `.Pointer`.
-
-Examples:
-
-```
-val n = `:number 10`            ;; native 10 is converted to Atmos number
-val x = `:ceu $n`               ;; `x` is set to Atmos `n` as is
-`printf("> %f\n", $n.Number);`  ;; outputs `n` as a number
-```
+[lua-lexical]: https://www.lua.org/manual/5.4/manual.html#3.1
 
 ## Comments
 
@@ -581,13 +531,13 @@ type('x')   ;; --> :char
 Atmos has 6 basic types:
 
 ```
-:nil    :bool    :char    :number    :tag    :pointer
+:nil    :boolean    :char    :number    :tag    :pointer
 ```
 
 The `nil` type represents the absence of values with its single value
 [`nil`](#literals).
 
-The `bool` type represents boolean values with [`true`](#literals) and
+The `boolean` type represents boolean values with [`true`](#literals) and
 [`false`](#literals).
 
 The `char` type represents [character literals](#literals).
@@ -702,7 +652,7 @@ A *static value* does not require dynamic allocation.
 All [basic types](#basic-types) have [literal](#literals) values:
 
 ```
-Types : :nil | :bool | :char | :number | :tag | :pointer
+Types : :nil | :boolean | :char | :number | :tag | :pointer
 Lits  : `nil´ | `false´ | `true´ | CHR | NUM | TAG | NAT
 ```
 
@@ -1652,8 +1602,8 @@ println(#tup, #vec)     ;; --> 0 / 3
 ### Equality Operators
 
 ```
-func {{==}} (v1 :any, v2 :any) => :bool
-func {{/=}} (v1 :any, v2 :any) => :bool
+func {{==}} (v1 :any, v2 :any) => :boolean
+func {{/=}} (v1 :any, v2 :any) => :boolean
 ```
 
 The operator `==` returns `true` if the values are equal and `false` otherwise.
@@ -1682,8 +1632,8 @@ t1 == t2        ;; --> true
 #### Deep Equality Operators
 
 ```
-func {===} (v1 :any, v2 :any) => :bool
-func {=/=} (v1 :any, v2 :any) => :bool
+func {===} (v1 :any, v2 :any) => :boolean
+func {=/=} (v1 :any, v2 :any) => :boolean
 ```
 
 The operator `===` returns `true` if the values are deeply equal and `false`
@@ -1709,10 +1659,10 @@ Examples:
 ### Relational Operators
 
 ```
-func {{>}}  (n1 :number, n2 :number) => :bool
-func {{>=}} (n1 :number, n2 :number) => :bool
-func {{<=}} (n1 :number, n2 :number) => :bool
-func {{<}}  (n1 :number, n2 :number) => :bool
+func {{>}}  (n1 :number, n2 :number) => :boolean
+func {{>=}} (n1 :number, n2 :number) => :boolean
+func {{<=}} (n1 :number, n2 :number) => :boolean
+func {{<}}  (n1 :number, n2 :number) => :boolean
 ```
 
 The operators `>`, `>=`, `<=` and `<` perform the standard relational
@@ -1765,7 +1715,7 @@ Examples:
 ### Logical Operators
 
 ```
-func not (v :any) => :bool
+func not (v :any) => :boolean
 func and (v1 :any, v2 :any) => :any
 func or  (v1 :any, v2 :any) => :any
 ```
@@ -1808,8 +1758,8 @@ nil or 10       ;; --> 10
 ### Equivalence Operators
 
 ```
-func is?     (v1 :any, v2 :any) => :bool
-func is-not? (v1 :any, v2 :any) => :bool
+func is?     (v1 :any, v2 :any) => :boolean
+func is-not? (v1 :any, v2 :any) => :boolean
 ```
 
 The operators `is?` and `is-not?` are functions with a special syntax to be
@@ -3006,7 +2956,7 @@ func assert (v :any [,msg :any]) => :any
 func next (v :any [,x :any]) => :any
 func print (...) => :nil
 func println (...) => :nil
-func sup? (t1 :tag, t2 :tag) => :bool
+func sup? (t1 :tag, t2 :tag) => :boolean
 func tag (t :tag, v :dyn) => :dyn
 func tag (v :dyn) => :tag
 func type (v :any) => :type
@@ -3099,7 +3049,7 @@ The type conversion functions `to.*` receive a value `v` of any type and try to
 convert it to a value of the specified type:
 
 ```
-func to.bool    (v :any) => :bool
+func to.boolean    (v :any) => :boolean
 func to.char    (v :any) => :char
 func to.dict    (v :any) => :dict
 func to.number  (v :any) => :number
@@ -3117,7 +3067,7 @@ If the conversion is not possible, the functions return `nil`.
 Examples:
 
 ```
-to.bool(nil)        ;; --> false
+to.boolean(nil)        ;; --> false
 to.char(65)         ;; --> 'A'
 to.dict([[:x,1]])   ;; --> @[(:x,1)]
 to.number("10")     ;; --> 10
