@@ -9,22 +9,38 @@
     * Keywords
     * Symbols
     * Operators
+        - comparison: `==` `!=` `??` `!?`
+        - arithmetic: `+` `-` `*` `/` `%`
+        - comparison: `>` `<` `>=` `<=`
+        - logical: `!` `||` `&&`
+        - membership: `?>` `<?` `!>` `<!`
+        - concatenation: `++`
+        - size: `#`
     * Identifiers
+        - `[A-Za-z_][A-Za-z0-9_]*`
     * Literals
+        - nil: `nil`
+        - boolean: `true` `false`
+        - tag: `:[A-Za-z0-9\.\_]+`
+        - number: `[0-9][0-9A-Za-z\.]*`
+        - string: `'.*'` `".*"`
+        - clock: `@(H:)?(M:)?(S:)?(\.ms)?`
+        - native: `` `.*` ``
     * Comments
+        - single-line: `;; ...`
+        - multi-line:  `;;; ... ;;;`
 * TYPES
     * Vectors
     * Clocks
     * Tasks
     * Task Pools
     * User Types
-* VALUES
-    * Static Values
-        - `nil` `boolean` `char` `number` `tag` `pointer`
-    * Dynamic Values
-        - `table` `vector` (collections)
-        - `func` `coro` `task` (prototypes)
-        - `exe-coro` `exe-task` `tasks` (actives)
+* CONSTRUCTORS
+    * Vectors
+    * Tables
+    * Functions
+    * Tasks
+    * Task Pools
 * EXPRESSIONS
     * Program, Sequences and Blocks
         - `;` `do` `escape` `drop` `group` `test` `defer`
@@ -415,12 +431,12 @@ The following operators are supported in Atmos:
 Atmos uses identifiers to refer to [variables](#TODO), [functions](#TODO),
 and [fields](#TODO):
 
+A variable identifier starts with a letter or underscore (`_`) and is followed
+by letters, digits, or underscores:
+
 ```
 ID : [A-Za-z_][A-Za-z0-9_]*     ;; letter/underscore/digit
 ```
-
-A variable identifier starts with a letter or underscore (`_`) and is followed
-by letters, digits, or underscores.
 
 Examples:
 
@@ -647,6 +663,7 @@ func (<pars>) {
 
 The list of parameters `<pars>` is an optional list of
 variable [identifiers](#TODO) with a leading variadic parameter `...`.
+The parameters are immutable as if they were `val` [declarations](#TODO).
 The function body `<body>` is a [sequence](#TODO) of expressions.
 
 Atmos also supports alternative formats to create functions, as follows:
@@ -665,54 +682,40 @@ Atmos also supports alternative formats to create functions, as follows:
     - `\ { <body> }`:
         equivalent to `\(it) { <body> }`
 
+Note that the lambda notation is also used in
+    [conditionals](#conditionals) and [every statements](#TODO)
+to communicate values across blocks.
+
 Examples:
 
 <!-- exs/11-functions.ceu -->
 
 ```
-#{1,2,3}            ;; a vector
-:Pos @{x=10,y=20}   ;; a tagged table
-func (x) { x }      ;; the identify function
+func f (x, y) {         ;; function to add arguments
+    x + y
+}
+val g = \{ it + 1 }     ;; function to increment argument
+print(g(f(1,2)))        ;; --> 4
 ```
 
 [lua-function]: https://www.lua.org/manual/5.4/manual.html#3.4.11
 
 ## Tasks
 
+A task constructor `task(f)` receive a [function](#TODO) and instantiates a
+task.
+
 ## Task Pools
 
-### Prototype Values
+A task pool constructor `tasks([n])` creates a pool that hold at most `n`
+tasks.
+If `n` is omitted, the pool is unbounded.
 
-Parameter declarations are equivalent to immutable `val`
-[declarations](#declarations) and can also be associated with
-[tuple template](#tag-enumerations-and-tuple-templates) tags.
+A task pool must be assigned to a `pin` [declaration](#TODO).
 
-Examples:
-
-```
-val f = { \x,y => x+y }
-println(f(10,20))       ;; --> 30
-
-println({it}(10))       ;; --> 10
-```
-
-Note that the lambda notation is also used in
-    [conditionals](#conditionals) and
-    [thus clauses](#where-and-thus-clauses)
-to communicate values across blocks, but no functions are created in these
-cases.
-
+<!--
 ### Active Values
 
-An *active value* corresponds to an active coroutine, task, or task pool:
-
-```
-:exe-coro  :exe-task  :tasks
-```
-
-Active coroutines and tasks are running instances of
-[prototypes](#prototype-values) that can suspend their execution before they
-terminate.
 After they suspend, coroutines and tasks retain their execution state and can
 be resumed later from their previous suspension point.
 
@@ -757,18 +760,18 @@ task T () { <...> }         ;; a task prototype `T`
 val t = spawn T() in ts     ;; is instantiated as `t` in pool `ts`
 broadcast(:X)               ;; broadcast resumes `t`
 ```
+-->
 
 # EXPRESSIONS
 
-Atmos is an expression-based language in which all statements are expressions and
-evaluate to a value.
+Atmos is an expression-based language in which all statements are expressions
+that evaluate to a final value.
 Therefore, we use the terms statement and expression interchangeably.
 
 All
-    [literals](#literals),
     [identifiers](#identifiers),
-    [operators](#operators),
-    [collection constructors](#collection-values), and
+    [literals](#literals),
+    [constructors](#collection-values), and
     [function constructors](#protoype-values)
 are also valid expressions.
 
