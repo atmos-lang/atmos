@@ -1,0 +1,4 @@
+func T (...) { ... }
+val t = task(T)
+print(t ?? :task)
+print(T ?? :function)

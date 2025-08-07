@@ -1,0 +1,6 @@
+;; a comment        ;; single-line comment
+
+;;;                 ;; multi-line comment
+;; a
+;; comment
+;;;

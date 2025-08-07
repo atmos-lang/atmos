@@ -1,0 +1,3 @@
+val vs = #{1, 2, 3}     ;; a vector of numbers
+print(vs[1])            ;; --> 2
+print(vs ?? :vector)    ;; --> true
