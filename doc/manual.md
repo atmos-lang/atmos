@@ -446,7 +446,7 @@ NAT  : `.*`                     ;; native expression
 ```
 
 The literals for *nil*, *booleans* and *numbers* follow the same
-[lexical conventions](lua-lexical) of Lua.
+[lexical conventions of Lua](lua-lexical).
 
 The literal `nil` is the single value of the [*nil*](#basic-types) type.
 
@@ -466,9 +466,10 @@ digits, letters, and dots (`.`).
 A [*clock*](#TODO) literal starts with an *at sign* (`@`) and is followed by
 the format `HH:MM:SS.sss` representing hours, minutes, seconds, and
 milliseconds.
-Each time segment accepts numbers or identifiers.
-Clock literals are used in expressions and are interpreted as a table in the
-format `@{h=HH,min=MM,s=SS,ms=sss}`.
+Each time segment accepts numbers or embedded identifiers as expressions.
+At runtime, identifiers evaluate to the corresponding variable value.
+Clock literals are interpreted as a table in the format
+`@{h=HH,min=MM,s=SS,ms=sss}`.
 
 A [native](#TODO) literal is a sequence of characters enclosed by an odd number
 of matching back quotes (`` ` ``).
@@ -515,7 +516,7 @@ Examples:
 
 # TYPES
 
-Atmos mimics the semantics of [types](lua-types) of Lua.
+Atmos mimics the semantics of [types of Lua](lua-types).
 
 In addition to the standard Lua types, Atmos also supports vectors, clocks,
 tasks, and task pools.
@@ -599,121 +600,91 @@ print(t ?? :T)              ;; --> true
 In addition to basic [literals](#TODO) for primitive values, Atmos provides
 constructors to create dynamic compound values.
 
+Examples:
+
+<!-- exs/10-constructors.ceu -->
+
+```
+#{1,2,3}            ;; a vector
+:Pos @{x=10,y=20}   ;; a tagged table
+func (x) { x }      ;; the identify function
+```
+
 ## Vectors
+
+A vector constructor `#{ ... }` receives a list of expressions `...` and
+creates a table with numerical indexes starting at `0`.
+
 ## Tables
+
+A table constructor `@{ ... }` receives a list of key-value assignments.
+Like [table constructors in Lua](lua-table), it accepts assignments in three
+formats:
+
+- `[e1]=e2` maps `e1` to `e2`
+- `id=e` maps string `id` to `e` (same as `["id"]=e`)
+- `e` maps numeric index `i` to `e` (same as `[i]=e`), where `i` starts at `1`
+  and increments after each assignment
+
+A table constructor may also be prefixed with a tag, which is assigned to key
+`"tag"`, i.e., `:X @{ ... }` is equivalent to `@{ tag=:X, ... }`.
+
+[lua-table]: https://www.lua.org/manual/5.4/manual.html#3.4.9
+
 ## Functions
-## Tasks
-## Task Pools
+
+A function constructor creates a closure that follows the
+[semantics of Lua](lua-function).
+
+The basic constructor creates an anonymous function with a list of parameters
+and an execution body, as follows:
 
 ```
-Cons : `[´ [List(Expr)] `]´             ;; tuple
-     | `#[´ [List(Expr)] `]´            ;; vector
-     | `@[´ [List(Key-Val)] `]´         ;; dictionary
-            Key-Val : ID `=´ Expr
-                    | `(´ Expr `,´ Expr `)´
-     | STR
-     | TAG `[´ [List(Expr)] `]´         ;; tagged tuple
+func (<pars>) {
+    <body>
+}
 ```
 
-Tuples (`[...]`) and vectors (`#[...]`) are built providing a list of
-expressions.
+The list of parameters `<pars>` is an optional list of
+variable [identifiers](#TODO) with a leading variadic parameter `...`.
+The function body `<body>` is a [sequence](#TODO) of expressions.
 
-Dictionaries (`@[...]`) are built providing a list of pairs of expressions
-(`(key,val)`), in which each pair maps a key to a value.
-The first expression is the key, and the second is its associated value.
-If the key is a tag, the alternate syntax `tag=val` may be used (omitting the
-tag colon prefix `:`).
+Atmos also supports alternative formats to create functions, as follows:
 
-A [string literal](#literals) expands to a vector of character literals.
+- Function syntax:
+    - `func t.f (<pars>) { <body> }`:
+        equivalent to `set t.f = func (<pars>) { <body> }`
+    - `func o::f (<pars>) { <body> }`:
+        equivalent to `set o.f = func (self, <pars>) { <body> }`
 
-A tuple constructor may also be prefixed with a tag, which associates the tag
-with the tuple, e.g., `:X [...]` is equivalent to `tag(:X, [...])`.
-Tag constructors are typically used in conjunction with
-[tuple templates](#tag-enumerations-and-tuple-templates)
+- Lambda syntax:
+    - `\(<pars>) { <body> }`:
+        equivalent to `func (<pars>) { <body> }`
+    - `\<id> { <body> }`:
+        equivalent to `\(<id>) { <body> }`
+    - `\ { <body> }`:
+        equivalent to `\(it) { <body> }`
 
 Examples:
 
+<!-- exs/11-functions.ceu -->
+
 ```
-[1,2,3]             ;; a tuple
-:Pos [10,10]        ;; a tagged tuple
-#[1,2,3]            ;; a vector
-"abc"               ;; a character vector ['a','b','c']
-@[(:x,10), x=10]    ;; a dictionary with equivalent key mappings
+#{1,2,3}            ;; a vector
+:Pos @{x=10,y=20}   ;; a tagged table
+func (x) { x }      ;; the identify function
 ```
+
+[lua-function]: https://www.lua.org/manual/5.4/manual.html#3.4.11
+
+## Tasks
+
+## Task Pools
 
 ### Prototype Values
 
-Atmos supports functions, coroutines, and tasks as prototype values:
-
-```
-Func : `func´ `(´ [List(ID [TAG])] `)´ Block
-Coro : `coro´ `(´ [List(ID [TAG])] `)´ Block
-Task : `task´ `(´ [List(ID [TAG])] `)´ Block
-```
-
 Parameter declarations are equivalent to immutable `val`
 [declarations](#declarations) and can also be associated with
-[tuple template](#tag-enumerations-and-tuple-templates) tags.
-
-<!--
-The last parameter can be the symbol
-[`...`](#declarations), which captures as a tuple all
-remaining arguments of a call.
-
-The symbol `...` represents the variable arguments (*varargs*) a function
-receives in a call.
-In the context of a [function](#prototype-values) that expects varargs, it
-evaluates to a tuple holding the varargs.
-In other scenarios, it evaluates to a tuple holding the program arguments.
-When `...` is the last argument of a call, its tuple is expanded as the last
-arguments.
--->
-
-The associated block executes when the unit is [invoked](#TODO).
-Each argument in the invocation is evaluated and copied to the parameter
-identifier, which becomes an local variable in the execution block.
-
-A *closure* is a prototype that accesses variables from outer blocks, known as
-*upvalues*.
-Atmos supports a restricted form of closures, in which *upvalues* must be
-immutable (thus declared with the modifier [`val`](#declarations)).
-
-`TODO: lex`
-
-`TODO: :nested, :fake`
-
-Examples:
-
-```
-func (v) { v }          ;; a function
-coro () { yield() }     ;; a coroutine
-task () { await(:X) }   ;; a task
-
-func (v) {
-    func () {           ;; a closure
-        v               ;; v1 is an upvalue
-    }
-}
-```
-
-#### Lambda Prototype
-
-For simple function prototypes, Atmos supports the lambda notation:
-
-```
-Lambda : `{´ [`\´ List(ID [TAG]) `=>´] { Expr [`;´] } `}´
-```
-
-The expression `{ \<id> <tag> => <es> }` expands to
-
-```
-func (<id> <tag>) {
-    <es>
-}
-```
-
-If the identifiers are omitted, it assumes the single implicit parameter `it`.
-Like in [declarations](#declarations), the identifiers can be associated with
 [tuple template](#tag-enumerations-and-tuple-templates) tags.
 
 Examples:
