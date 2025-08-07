@@ -27,16 +27,22 @@
         - clock: `@(H:)?(M:)?(S:)?(\.ms)?`
         - native: `` `.*` ``
     * Comments
-        - single-line: `;; ...`
-        - multi-line:  `;;; ... ;;;`
+        - single-line: `;; *`
+        - multi-line:  `;;; * ;;;`
 * TYPES & CONSTRUCTORS
     * Clocks
     * Vectors
+        - `#{ * }`
     * Tables
         - User Types
+        - `@{ * }` `:X @{ * }`
     * Functions
+        - function: `func (*) { * }`
+        - lambda: `\(*) { * }`
     * Tasks
+        - `task`
     * Task Pools
+        - `tasks`
 * EXPRESSIONS
     * Program, Sequences and Blocks
         - `;` `do` `escape` `drop` `group` `test` `defer`
@@ -45,8 +51,8 @@
     * Tag Enumerations and Tuple Templates
         - `enum` `data`
     * Calls, Operations and Indexing
-        - `-x` `x+y` `f(...)` `-->`
-        - `t[...]` `t.x` `t.pub` `t.(:X)` `t[=]`
+        - `-x` `x+y` `f(*)` `-->`
+        - `t[*]` `t.x` `t.pub` `t.(:X)` `t[=]`
         - `where` `thus`
     * Standard Operators
         - length: `#`
@@ -382,7 +388,6 @@ The following keywords are reserved in Atmos:
 <!--
     skip                ;; loop skip
     test                ;; test block
-    thus                ;; thus pipe block
 -->
 
 ## Symbols
@@ -449,16 +454,6 @@ Atmos provides literals for all [value types](#TODO):
 
 It also provides literals for [tag](#TODO) and [native](#TODO) expressions,
 which only exist at compile time.
-
-```
-NIL  : nil
-BOOL : true | false
-TAG  : :[A-Za-z0-9\.\_]+        ;; colon + leter/digit/dot/dash
-NUM  : [0-9][0-9A-Za-z\.]*      ;; digit/letter/dot
-STR  : '.*' | ".*"              ;; string expression
-CLK  : @(H:)?(M:)?(S:)?(\.ms)?  ;; clock expression
-NAT  : `.*`                     ;; native expression
-```
 
 The literals for `nil`, `boolean` and `number` follow the same
 [lexical conventions of Lua](lua-lexical).
@@ -531,7 +526,7 @@ Examples:
 
 Atmos supports and mimics the semantics of the standard [Lua types](lua-types):
     `nil`, `boolean`, `number`, `string`,
-    `function`, `userdata`, thread, and `table`.
+    `function`, `userdata`, `thread`, and `table`.
 
 In addition, Atmos also supports the types as follows:
     `clock`, `vector`, `task`, and `tasks`.
@@ -549,7 +544,7 @@ Atmos differentiates between *value* and *reference* types:
 
 ## Clocks
 
-The clock value type represents tables in the [format](#TODO)
+The clock value type represents clock tables in the [format](#TODO)
 `@{h=HH,min=MM,s=SS,ms=sss}`.
 
 Examples:
@@ -567,8 +562,8 @@ print(clk ?? :clock)    ;; --> true
 The vector reference type represents tables with numerical indexes starting at
 `0`.
 
-A vector constructor `#{ ... }` receives a list of expressions `...` and
-assigns each expression to incrementing indexes starting at `0`.
+A vector constructor `#{ * }` receives a list of expressions `*` and assigns
+each expression to incrementing indexes starting at `0`.
 
 Examples:
 
@@ -585,7 +580,7 @@ print(vs ?? :vector)    ;; --> true
 The table reference type represents [Lua tables](lua-types) with indexes of any
 type.
 
-A table constructor `@{ ... }` receives a list of key-value assignments.
+A table constructor `@{ * }` receives a list `*` of key-value assignments.
 Like [table constructors in Lua](lua-table), it accepts assignments in three
 formats:
 
@@ -595,7 +590,7 @@ formats:
   and increments after each assignment
 
 A table constructor may also be prefixed with a tag, which is assigned to key
-`"tag"`, i.e., `:X @{ ... }` is equivalent to `@{ tag=:X, ... }`.
+`"tag"`, i.e., `:X @{ * }` is equivalent to `@{ tag=:X, * }`.
 
 Examples:
 
@@ -686,9 +681,9 @@ print(g(f(1,2)))        ;; --> 4
 
 ## Tasks
 
-The task type represents an [instantiated task](#TODO).
+The task reference type represents [tasks](#TODO).
 
-A task constructor `task(f)` receive a [function](#TODO) and instantiates a
+A task constructor `task(f)` receives a [function](#TODO) and instantiates a
 task.
 
 Examples:
@@ -704,9 +699,9 @@ print(t ?? :task)       ;; --> true
 
 ## Task Pools
 
-The task pool type represents a [pool of instantiated tasks](#TODO).
+The task pool reference type represents a [pool of tasks](#TODO).
 
-A task pool constructor `tasks([n])` creates a pool that hold at most `n`
+A task pool constructor `tasks([n])` creates a pool that holds at most `n`
 tasks.
 If `n` is omitted, the pool is unbounded.
 

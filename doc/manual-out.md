@@ -9,36 +9,52 @@
     - <a href="#keywords">3.1.</a> Keywords
     - <a href="#symbols">3.2.</a> Symbols
     - <a href="#operators">3.3.</a> Operators
+        - comparison: `==` `!=` `??` `!?`
+        - arithmetic: `+` `-` `*` `/` `%`
+        - comparison: `>` `<` `>=` `<=`
+        - logical: `!` `||` `&&`
+        - membership: `?>` `<?` `!>` `<!`
+        - concatenation: `++`
+        - size: `#`
     - <a href="#identifiers">3.4.</a> Identifiers
+        - `[A-Za-z_][A-Za-z0-9_]*`
     - <a href="#literals">3.5.</a> Literals
+        - nil: `nil`
+        - boolean: `true` `false`
+        - tag: `:[A-Za-z0-9\.\_]+`
+        - number: `[0-9][0-9A-Za-z\.]*`
+        - string: `'.*'` `".*"`
+        - clock: `@(H:)?(M:)?(S:)?(\.ms)?`
+        - native: `` `.*` ``
     - <a href="#comments">3.6.</a> Comments
-- <a href="#types">4.</a> TYPES
-    - <a href="#basic-types">4.1.</a> Basic Types
-        - `nil` `bool` `char` `number` `tag` `pointer`
-    - <a href="#collections">4.2.</a> Collections
-        - `table` `vector`
-    - <a href="#execution-units">4.3.</a> Execution Units
-        - `func` `coro` `task` `exe-coro` `exe-task` `tasks`
-    - <a href="#user-types">4.4.</a> User Types
-- <a href="#values">5.</a> VALUES
-    - <a href="#static-values">5.1.</a> Static Values
-        - `nil` `bool` `char` `number` `tag` `pointer`
-    - <a href="#dynamic-values">5.2.</a> Dynamic Values
-        - `table` `vector` (collections)
-        - `func` `coro` `task` (prototypes)
-        - `exe-coro` `exe-task` `tasks` (actives)
-- <a href="#expressions">6.</a> EXPRESSIONS
-    - <a href="#program-sequences-and-blocks">6.1.</a> Program, Sequences and Blocks
+        - single-line: `;; *`
+        - multi-line:  `;;; * ;;;`
+- <a href="#types-constructors">4.</a> TYPES & CONSTRUCTORS
+    - <a href="#clocks">4.1.</a> Clocks
+    - <a href="#vectors">4.2.</a> Vectors
+        - `#{ * }`
+    - <a href="#tables">4.3.</a> Tables
+        - User Types
+        - `@{ * }` `:X @{ * }`
+    - <a href="#functions">4.4.</a> Functions
+        - function: `func (*) { * }`
+        - lambda: `\(*) { * }`
+    - <a href="#tasks">4.5.</a> Tasks
+        - `task`
+    - <a href="#task-pools">4.6.</a> Task Pools
+        - `tasks`
+- <a href="#expressions">5.</a> EXPRESSIONS
+    - <a href="#program-sequences-and-blocks">5.1.</a> Program, Sequences and Blocks
         - `;` `do` `escape` `drop` `group` `test` `defer`
-    - <a href="#declarations-and-assignments">6.2.</a> Declarations and Assignments
+    - <a href="#declarations-and-assignments">5.2.</a> Declarations and Assignments
         - `val` `var` `set`
-    - <a href="#tag-enumerations-and-tuple-templates">6.3.</a> Tag Enumerations and Tuple Templates
+    - <a href="#tag-enumerations-and-tuple-templates">5.3.</a> Tag Enumerations and Tuple Templates
         - `enum` `data`
-    - <a href="#calls-operations-and-indexing">6.4.</a> Calls, Operations and Indexing
-        - `-x` `x+y` `f(...)` `-->`
-        - `t[...]` `t.x` `t.pub` `t.(:X)` `t[=]`
+    - <a href="#calls-operations-and-indexing">5.4.</a> Calls, Operations and Indexing
+        - `-x` `x+y` `f(*)` `-->`
+        - `t[*]` `t.x` `t.pub` `t.(:X)` `t[=]`
         - `where` `thus`
-    - <a href="#standard-operators">6.5.</a> Standard Operators
+    - <a href="#standard-operators">5.5.</a> Standard Operators
         - length: `#`
         - equality: `==` `/=` `===` `=/=`
         - relational: `>` `>=` `<=` `<`
@@ -47,31 +63,31 @@
         - equivalence: `is?` `is-not?`
         - belongs-to: `in?` `in-not?`
         - vector concatenation: `++` `<++`
-    - <a href="#conditionals-and-pattern-matching">6.6.</a> Conditionals and Pattern Matching
+    - <a href="#conditionals-and-pattern-matching">5.6.</a> Conditionals and Pattern Matching
         - `if` `ifs`
-    - <a href="#loops-and-iterators">6.7.</a> Loops and Iterators
+    - <a href="#loops-and-iterators">5.7.</a> Loops and Iterators
         - `loop` `loop in`
-    - <a href="#exceptions">6.8.</a> Exceptions
+    - <a href="#exceptions">5.8.</a> Exceptions
         - `error` `catch`
-    - <a href="#coroutine-operations">6.9.</a> Coroutine Operations
+    - <a href="#coroutine-operations">5.9.</a> Coroutine Operations
         - `coroutine` `status` `resume` `yield` `resume-yield-all` <!--`abort`-->
-    - <a href="#task-operations">6.10.</a> Task Operations
+    - <a href="#task-operations">5.10.</a> Task Operations
         - `pub` `spawn` `tasks` `status` `await` `broadcast` `toggle`
         - `spawn {}` `every` `par` `par-and` `par-or` `watching` `toggle {}`
-- <a href="#standard-libraries">7.</a> STANDARD LIBRARIES
-    - <a href="#basic-library">7.1.</a> Basic Library
+- <a href="#standard-libraries">6.</a> STANDARD LIBRARIES
+    - <a href="#basic-library">6.1.</a> Basic Library
         - `assert` `copy` `create-resume` `next`
         - `print` `println` `sup?` `tag` `tuple` `type`
         - `dynamic?` `static?` `string?`
-    - <a href="#type-conversions-library">7.2.</a> Type Conversions Library
-        - `to.bool` `to.char` `to.dict` `to.iter` `to.number`
+    - <a href="#type-conversions-library">6.2.</a> Type Conversions Library
+        - `to.boolean` `to.char` `to.dict` `to.iter` `to.number`
         - `to.pointer` `to.string` `to.tag` `to.tuple` `to.vector`
-    - <a href="#math-library">7.3.</a> Math Library
+    - <a href="#math-library">6.3.</a> Math Library
         - `math.between` `math.ceil` `math.cos` `math.floor` `math.max`
         - `math.min` `math.PI` `math.round` `math.sin`
-    - <a href="#random-numbers-library">7.4.</a> Random Numbers Library
+    - <a href="#random-numbers-library">6.4.</a> Random Numbers Library
         - `random.next` `random.seed`
-- <a href="#syntax">8.</a> SYNTAX
+- <a href="#syntax">7.</a> SYNTAX
 
 <!-- CONTENTS -->
 
@@ -160,7 +176,7 @@ The example uses a `par_or` to spawn two concurrent tasks:
     another one that increments `n` every second, showing its value on
     termination:
 
-<!-- exs/01-counter.ceu -->
+<!-- exs/01-counter.atm -->
 
 ```
 par_or {
@@ -227,7 +243,7 @@ The example uses a `watching` statement to observe an event condition while
 executing a nested task.
 When the condition is satisfied, the nested task is aborted:
 
-<!-- exs/02-ticks.ceu -->
+<!-- exs/02-ticks.atm -->
 
 ```
 spawn {
@@ -274,7 +290,7 @@ them (i.e., `:x == 'x'`).
 Tags are typically used as keys in table (e.g., `:x`, `:y`), or as enumerations
 representing states (e.g., `:pending`, `:done`).
 
-<!-- exs/03-tags.ceu -->
+<!-- exs/03-tags.atm -->
 
 The next example uses tags as table keys:
 
@@ -302,7 +318,7 @@ print(:T.A   ?? :T.B)       ;; --> false
 ```
 
 The match operator `??` also works with tagged tables.
-Therefore, tags, tables, and the match operator can be combined as follows:
+Therefore, tags, tables, and `??` can be combined as follows:
 
 ```
 val t = :T.A @{ a=10 }      ;; @{ tag=:T.A, a=10 }
@@ -324,7 +340,7 @@ embed native expressions in programs.
 - gcc
 - :pre
 - $x.Tag
-- tag,char,bool,number C types
+- tag,char,boolean,number C types
 - C errors
 -->
 
@@ -388,7 +404,6 @@ The following keywords are reserved in Atmos:
 <!--
     skip                ;; loop skip
     test                ;; test block
-    thus                ;; thus pipe block
 -->
 
 <a name="symbols"/>
@@ -439,12 +454,12 @@ The following operators are supported in Atmos:
 Atmos uses identifiers to refer to [variables](#TODO), [functions](#TODO),
 and [fields](#TODO):
 
+A variable identifier starts with a letter or underscore (`_`) and is followed
+by letters, digits, or underscores:
+
 ```
 ID : [A-Za-z_][A-Za-z0-9_]*     ;; letter/underscore/digit
 ```
-
-A variable identifier starts with a letter or underscore (`_`) and is followed
-by letters, digits, or underscores.
 
 Examples:
 
@@ -458,116 +473,56 @@ y10
 
 ## 3.5. Literals
 
-Atmos provides literals for *nil*, *booleans*, *tags*, *numbers*, *characters*,
-*strings*, and *native expressions*:
+Atmos provides literals for all [value types](#TODO):
+    `nil`, `boolean`, `number`, `string`, and `clock`.
 
-```
-NIL  : nil
-BOOL : true | false
-TAG  : :[A-Za-z0-9\.\-]+      ;; colon + leter/digit/dot/dash
-NUM  : [0-9][0-9A-Za-z\.]*    ;; digit/letter/dot
-CHR  : '.' | '\.'             ;; single/backslashed character
-STR  : ".*"                   ;; string expression
-NAT  : `.*`                   ;; native expression
-```
+It also provides literals for [tag](#TODO) and [native](#TODO) expressions,
+which only exist at compile time.
 
-The literal `nil` is the single value of the [*nil*](#basic-types) type.
+The literals for `nil`, `boolean` and `number` follow the same
+[lexical conventions of Lua](lua-lexical).
 
-The literals `true` and `false` are the only values of the
-[*bool*](#basic-types) type.
+The literal `nil` is the single value of the `nil` type.
 
-A [*tag*](#basic-types) type literal starts with a colon (`:`) and is followed
-by letters, digits, dots (`.`), or dashes (`-`).
-A dot or dash must be followed by a letter.
+The literals `true` and `false` are the only values of the `boolean` type.
 
-A [*number*](#basic-types) type literal starts with a digit and is followed by
-digits, letters, and dots (`.`), and is represented as a *C float*.
+A [tag](#TODO) literal starts with a colon (`:`) and is followed by letters,
+digits, and dots (`.`).
 
-A [*char*](#basic-types) type literal is a single or backslashed (`\`)
-character enclosed by single quotes (`'`), and is represented as a *C char*.
+A `string` literal is a sequence of characters enclosed by an odd number
+of matching double (`"`) or single (`'`) quotes.
+Atmos supports multi-line strings when using multiple quote delimiters.
 
-A string literal is a sequence of characters enclosed by double quotes (`"`).
-It is expanded to a [vector](#collection-values) of character literals, e.g.,
-`"abc"` expands to `#['a','b','c']`.
+A `number` literal starts with a digit and is followed by digits, letters, and
+dots (`.`).
 
-A native literal is a sequence of characters interpreted as C code enclosed by
-multiple back quotes (`` ` ``).
-The same number of backquotes must be used to open and close the literal.
-Native literals are detailed next.
+A `clock` literal starts with an *at sign* (`@`) and is followed by the format
+`HH:MM:SS.sss` representing hours, minutes, seconds, and milliseconds.
+Each time segment accepts numbers or embedded identifiers as expressions.
+At runtime, identifiers evaluate to the corresponding variable value.
+Clock literals are interpreted as a table in the format
+`@{h=HH,min=MM,s=SS,ms=sss}`.
 
-All literals are valid [values](#values) in Atmos.
+A [native](#TODO) literal is a sequence of characters enclosed by an odd number
+of matching back quotes (`` ` ``).
+Atmos supports multi-line native literals when using multiple quote delimiters.
+Native literals are used in expressions and are interpreted as plain Lua
+expressions.
 
 Examples:
+
+<!-- exs/04-literals.atm -->
 
 ```
 nil                 ;; nil literal
-false               ;; bool literal
+false               ;; boolean literal
 :X.Y                ;; tag literal
+"""Hello!"""        ;; string literal
 1.25                ;; number literal
-'a'                 ;; char literal
-"Hello!"            ;; string literal
-`puts("hello");`    ;; native literal
+`x:f {"lua"}`       ;; native literal
 ```
 
-<a name="tags"/>
-
-### 3.5.1. Tags
-
-The following tags are pre-defined in Atmos:
-
-```
-    ;; type enumeration
-    :nil :tag :bool :char :number :pointer          ;; basic types
-    :dynamic                                        ;; internal use
-    :tuple :vector :dict                            ;; collections
-    :func :coro :task                               ;; prototypes
-    :exe-coro :exe-task                             ;; active coro/task
-    :tasks                                          ;; task pool
-
-    :ceu :pre                                       ;; native ceu value/pre code
-    :break :skip :return                            ;; block labels
-    :idx :key :val                                  ;; iterator modifier
-    :global :task                                   ;; broadcast target
-    :yielded :toggled :resumed :terminated          ;; coro/task status
-    :h :min :s :ms                                  ;; time unit
-    :fake :nested                                   ;; prototype modifiers
-    :error                                          ;; runtime error label
-```
-
-<a name="native-literals"/>
-
-### 3.5.2. Native Literals
-
-A native literal can specify a tag modifier as follows:
-
-```
-`:<type> <...>`
-`:ceu <...>`
-`:pre <...>`
-`<...>`
-```
-
-The `:<type>` modifier assumes that the C code in `<...>` evaluates to an
-expression of the given type and converts it to Atmos.
-The `:ceu` modifier assumes that the code is already a value in Atmos and does
-not modify it.
-
-The `:pre` modifier or lack of modifier assumes that the code is a C statement
-that does not evaluate to an expression.
-With the `:pre` modifier, the statement is placed at the top of the
-[C output file](#TODO), such that it can include pre declarations.
-
-Native literals can evaluate Atmos variable identifiers using a dollar sign
-prefix (`$`) and a dot suffix (`.`) with one of the desired basic types:
-    `.Tag`, `.Bool`, `.Char`, `.Number`, `.Pointer`.
-
-Examples:
-
-```
-val n = `:number 10`            ;; native 10 is converted to Atmos number
-val x = `:ceu $n`               ;; `x` is set to Atmos `n` as is
-`printf("> %f\n", $n.Number);`  ;; outputs `n` as a number
-```
+[lua-lexical]: https://www.lua.org/manual/5.4/manual.html#3.1
 
 <a name="comments"/>
 
@@ -578,12 +533,11 @@ Atmos provides single-line and multi-line comments.
 Single-line comments start with double semi-colons (`;;`) and run until the end
 of the line.
 
-Multi-line comments use balanced semi-colons, starting with three or more
-semi-colons and running until the same number of semi-colons.
-Multi-line comments can contain sequences of semi-colons, as long as they are
-shorter than the opening sequence.
+Multi-line comments are enclosed by three of more matching semi-colons.
 
 Examples:
+
+<!-- exs/05-comments.atm -->
 
 ```
 ;; a comment        ;; single-line comment
@@ -594,349 +548,221 @@ Examples:
 ;;;
 ```
 
-<a name="types"/>
+<a name="types-constructors"/>
 
-# 4. TYPES
+# 4. TYPES & CONSTRUCTORS
 
-Atmos is dynamically typed such that values carry their own types during
-execution.
+Atmos supports and mimics the semantics of the standard [Lua types](lua-types):
+    `nil`, `boolean`, `number`, `string`,
+    `function`, `userdata`, `thread`, and `table`.
 
-The function `type` returns the type of a value as a [tag](#basic-types):
+In addition, Atmos also supports the types as follows:
+    `clock`, `vector`, `task`, and `tasks`.
+Although these types are internally represented as Lua tables, they receive
+special treatment from the language.
 
-```
-type(10)    ;; --> :number
-type('x')   ;; --> :char
-```
+Atmos differentiates between *value* and *reference* types:
 
-<a name="basic-types"/>
+- Value types are built from the [basic literals](#TODO):
+    `nil`, `boolean`, `number`, `string`, and `clock`.
+- Reference types are built from constructors:
+    `function`, `userdata`, thread, `table`, `vector`, `task`, and `tasks`.
 
-## 4.1. Basic Types
+[lua-types]: https://www.lua.org/manual/5.4/manual.html#2.1
 
-Atmos has 6 basic types:
+<a name="clocks"/>
 
-```
-:nil    :bool    :char    :number    :tag    :pointer
-```
+## 4.1. Clocks
 
-The `nil` type represents the absence of values with its single value
-[`nil`](#literals).
-
-The `bool` type represents boolean values with [`true`](#literals) and
-[`false`](#literals).
-
-The `char` type represents [character literals](#literals).
-
-The `number` type represents real numbers (i.e., *C floats*) with
-[number literals](#literals).
-
-The `tag` type represents [tag identifiers](#literals).
-Each tag is internally associated with a natural number that represents a
-unique value in a global enumeration.
-Tags can be explicitly [enumerated](#tag-enumerations-and-tuple-templates) to
-interface with [native expressions](#literals).
-Tags can form [hierarchies](#hierarchical-tags) to represent
-[user types](#user-types) and describe
-[tuple templates](#tag-enumerations-and-tuple-templates).
-
-The `pointer` type represents opaque native pointer values from [native
-literals](#literals).
-
-<a name="collections"/>
-
-## 4.2. Collections
-
-Atmos provides 3 types of collections:
-
-```
-:tuple    :vector    :dict
-```
-
-The `tuple` type represents a fixed collection of heterogeneous values, in
-which each numeric index, starting at `0`, holds a value of a (possibly)
-different type.
-
-The `vector` type represents a variable collection of homogeneous values, in
-which each numeric index, starting at `0`,  holds a value of the same type.
-Once the first index is assigned, its type becomes the type of the vector,
-which further assignments must respect.
-
-The `dict` type (dictionary) represents a variable collection of heterogeneous
-values, in which each index (or key) of any type maps to a value of any type.
+The clock value type represents clock tables in the [format](#TODO)
+`@{h=HH,min=MM,s=SS,ms=sss}`.
 
 Examples:
 
-```
-[1, 'a', nil]           ;; a tuple with 3 values
-#[1, 2, 3]              ;; a vector of numbers
-@[(:x,10), (:y,20)]     ;; a dictionary with 2 mappings
-```
-
-<a name="execution-units"/>
-
-## 4.3. Execution Units
-
-Atmos provide 3 types of execution units: functions, coroutines, and tasks:
+<!-- exs/06-clocks.atm -->
 
 ```
-:func      :coro      :task
-:exe-coro  :exe-task  :tasks
+val clk = @1:15:40.2    ;; a clock declaration
+print(clk.s)            ;; --> 40
+print(clk ?? :clock)    ;; --> true
 ```
 
-The `func` type represents [function prototypes](#prototype-values).
+<a name="vectors"/>
 
-The `coro` type represents [coroutine prototypes](#prototype-values), while the
-`exe-coro` type represents [active coroutines](#active-values).
+## 4.2. Vectors
 
-The `task` type represents [task prototypes](#prototype-values), while the
-`exe-task` type represents [active tasks](#active-values).
-The `tasks` type represents [task pools](#active-values) holding active tasks.
+The vector reference type represents tables with numerical indexes starting at
+`0`.
+
+A vector constructor `#{ * }` receives a list of expressions `*` and assigns
+each expression to incrementing indexes starting at `0`.
+
+Examples:
+
+<!-- exs/07-vectors.atm -->
+
+```
+val vs = #{1, 2, 3}     ;; a vector of numbers (similar to @{ [0]=1, [1]=2, [2]=3 })
+print(vs[1])            ;; --> 2
+print(vs ?? :vector)    ;; --> true
+```
+
+<a name="tables"/>
+
+## 4.3. Tables
+
+The table reference type represents [Lua tables](lua-types) with indexes of any
+type.
+
+A table constructor `@{ * }` receives a list `*` of key-value assignments.
+Like [table constructors in Lua](lua-table), it accepts assignments in three
+formats:
+
+- `[e1]=e2` maps `e1` to `e2`
+- `id=e` maps string `id` to `e` (same as `["id"]=e`)
+- `e` maps numeric index `i` to `e` (same as `[i]=e`), where `i` starts at `1`
+  and increments after each assignment
+
+A table constructor may also be prefixed with a tag, which is assigned to key
+`"tag"`, i.e., `:X @{ * }` is equivalent to `@{ tag=:X, * }`.
+
+Examples:
+
+<!-- exs/08-tables.atm -->
+
+```
+val k = "idx"
+val t = @{      ;; all 3 formats:
+    [k] = 10,   ;; same as @{ [k]=10, ["v"]="x", [1]=20, [2]=30 }
+    v = "x",
+    20, 30
+}
+print(t ?? :table)          ;; --> true
+print(t.idx, t["v"], t[2])  ;; --> 10, x, 30
+```
+
+[lua-table]: https://www.lua.org/manual/5.4/manual.html#3.4.9
 
 <a name="user-types"/>
 
-## 4.4. User Types
+### 4.3.1. User Types
 
-Values of non-basic types (i.e., collections and execution units) can be
-associated with [tags](#basic-types) that represent user types.
-
-The function [`tag`](#types-and-tags) associates values with tags:
-
-```
-val x = []          ;; an empty tuple
-tag(:T, x)          ;; x is now of user type :T
-println(tag(x))     ;; --> :T
-```
-
-Tags form [type hierarchies](hierarchical-tags) based on the dots in their
-identifiers, i.e., `:T.A` and `:T.B` are sub-types of `:T`.
-Tag hierarchies can nest up to 4 levels.
-
-The function [`sup?`](#types-and-tags) checks super-type relations between
-tags:
-
-```
-println(sup?(:T, :T.A))     ;; --> true
-println(sup?(:T.A, :T))     ;; --> false
-println(sup?(:T.A, :T.B))   ;; --> false
-```
-
-The function [`is?`](#operator-is) checks if values match types or tags:
-
-```
-val x = []              ;; an empty tuple
-tag(:T.A, x)            ;; x is now of user type :T.A
-println(x is? :tuple)   ;; --> true
-println(x is? :T)       ;; --> true
-```
-
-User types do not require to be predeclared, but can appear in [tuple
-template](#tag-enumerations-and-tuple-templates) declarations.
-
-<a name="values"/>
-
-# 5. VALUES
-
-As a dynamically-typed language, each value in Atmos carries extra information,
-such as its own type.
-
-<a name="static-values"/>
-
-## 5.1. Static Values
-
-A *static value* does not require dynamic allocation.
-All [basic types](#basic-types) have [literal](#literals) values:
-
-```
-Types : :nil | :bool | :char | :number | :tag | :pointer
-Lits  : `nil´ | `false´ | `true´ | CHR | NUM | TAG | NAT
-```
-
-Static values are immutable and are transferred between variables and across
-blocks as whole copies without any restrictions.
-
-<a name="dynamic-values"/>
-
-## 5.2. Dynamic Values
-
-A *dynamic value* requires dynamic allocation since its internal data is either
-variable or too big to fit as a static value.
-The following types have dynamic values:
-
-```
-Colls  : :tuple | :vector | :dict          ;; collections
-Protos : :func | :coro | :task             ;; prototypes
-Actvs  : :exe-coro | :exe-task | :tasks    ;; active values (next section)
-```
-
-Unlike static values, dynamic values are internally mutable and are transferred
-between variables and across blocks through references.
-As a consequence, multiple references (or aliases) may point to the same
-mutable value.
-
-As discussed in [Lexical Memory Management](#lexical-memory-management), a
-dynamic value is initially attached to the enclosing [block](#blocks) in
-which it is first assigned, and cannot escape to outer blocks in further
-assignments or as return expressions.
-If required, a [drop](#TODO) operation dettaches a dynamic value from its
-current block, allowing a further assignment to reattach it.
-
-Atmos uses reference counting to determine the life cycle of dynamic values.
-When the reference counter reaches zero, the dynamic value is immediately
-deallocated from memory.
-Note that mutually referenced values are never deallocated.
-Therefore, programmers need to break reference cycles manually.
-Nevertheless, when a block terminates, it automatically deallocates all dynamic
-values attached to it, regardless of remaining references due to cycles.
-
-<a name="collection-values"/>
-
-### 5.2.1. Collection Values
-
-Atmos provides constructors for [collections](#collections) to allocate tuples,
-vectors, and dictionaries:
-
-```
-Cons : `[´ [List(Expr)] `]´             ;; tuple
-     | `#[´ [List(Expr)] `]´            ;; vector
-     | `@[´ [List(Key-Val)] `]´         ;; dictionary
-            Key-Val : ID `=´ Expr
-                    | `(´ Expr `,´ Expr `)´
-     | STR
-     | TAG `[´ [List(Expr)] `]´         ;; tagged tuple
-```
-
-Tuples (`[...]`) and vectors (`#[...]`) are built providing a list of
-expressions.
-
-Dictionaries (`@[...]`) are built providing a list of pairs of expressions
-(`(key,val)`), in which each pair maps a key to a value.
-The first expression is the key, and the second is its associated value.
-If the key is a tag, the alternate syntax `tag=val` may be used (omitting the
-tag colon prefix `:`).
-
-A [string literal](#literals) expands to a vector of character literals.
-
-A tuple constructor may also be prefixed with a tag, which associates the tag
-with the tuple, e.g., `:X [...]` is equivalent to `tag(:X, [...])`.
-Tag constructors are typically used in conjunction with
-[tuple templates](#tag-enumerations-and-tuple-templates)
+Tables can be associated associated with [tags](#TODO) that represent user
+types.
 
 Examples:
 
-```
-[1,2,3]             ;; a tuple
-:Pos [10,10]        ;; a tagged tuple
-#[1,2,3]            ;; a vector
-"abc"               ;; a character vector ['a','b','c']
-@[(:x,10), x=10]    ;; a dictionary with equivalent key mappings
-```
-
-<a name="prototype-values"/>
-
-### 5.2.2. Prototype Values
-
-Atmos supports functions, coroutines, and tasks as prototype values:
+<!-- exs/09-user.atm -->
 
 ```
-Func : `func´ `(´ [List(ID [TAG])] `)´ Block
-Coro : `coro´ `(´ [List(ID [TAG])] `)´ Block
-Task : `task´ `(´ [List(ID [TAG])] `)´ Block
+val p = :Pos @{         ;; a tagged table:
+    x = 10,             ;; same as @{ ["tag"]="Pos", ["x"]=10, ["y"]=20 }
+    y = 20,
+}
+print(p ?? :table)      ;; --> true
+print(p ?? :Pos)        ;; --> true
 ```
 
-Parameter declarations are equivalent to immutable `val`
-[declarations](#declarations) and can also be associated with
-[tuple template](#tag-enumerations-and-tuple-templates) tags.
+<a name="functions"/>
 
-<!--
-The last parameter can be the symbol
-[`...`](#declarations), which captures as a tuple all
-remaining arguments of a call.
+## 4.4. Functions
 
-The symbol `...` represents the variable arguments (*varargs*) a function
-receives in a call.
-In the context of a [function](#prototype-values) that expects varargs, it
-evaluates to a tuple holding the varargs.
-In other scenarios, it evaluates to a tuple holding the program arguments.
-When `...` is the last argument of a call, its tuple is expanded as the last
-arguments.
--->
+The function reference type represents [Lua functions](lua-function).
 
-The associated block executes when the unit is [invoked](#TODO).
-Each argument in the invocation is evaluated and copied to the parameter
-identifier, which becomes an local variable in the execution block.
-
-A *closure* is a prototype that accesses variables from outer blocks, known as
-*upvalues*.
-Atmos supports a restricted form of closures, in which *upvalues* must be
-immutable (thus declared with the modifier [`val`](#declarations)).
-
-`TODO: lex`
-
-`TODO: :nested, :fake`
-
-Examples:
+The basic constructor creates an anonymous function with a list of parameters
+and an execution body, as follows:
 
 ```
-func (v) { v }          ;; a function
-coro () { yield() }     ;; a coroutine
-task () { await(:X) }   ;; a task
-
-func (v) {
-    func () {           ;; a closure
-        v               ;; v1 is an upvalue
-    }
+func (<pars>) {
+    <body>
 }
 ```
 
-<a name="lambda-prototype"/>
+The list of parameters `<pars>` is an optional list of
+variable [identifiers](#TODO) with a leading variadic parameter `...`.
+The parameters are immutable as if they were `val` [declarations](#TODO).
+The function body `<body>` is a [sequence](#TODO) of expressions.
 
-#### 5.2.2.1. Lambda Prototype
+Atmos also supports alternative formats to create functions, as follows:
 
-For simple function prototypes, Atmos supports the lambda notation:
+- Function syntax:
+    - `func t.f (<pars>) { <body> }`:
+        equivalent to `set t.f = func (<pars>) { <body> }`
+    - `func o::f (<pars>) { <body> }`:
+        equivalent to `set o.f = func (self, <pars>) { <body> }`
 
-```
-Lambda : `{´ [`\´ List(ID [TAG]) `=>´] { Expr [`;´] } `}´
-```
-
-The expression `{ \<id> <tag> => <es> }` expands to
-
-```
-func (<id> <tag>) {
-    <es>
-}
-```
-
-If the identifiers are omitted, it assumes the single implicit parameter `it`.
-Like in [declarations](#declarations), the identifiers can be associated with
-[tuple template](#tag-enumerations-and-tuple-templates) tags.
-
-Examples:
-
-```
-val f = { \x,y => x+y }
-println(f(10,20))       ;; --> 30
-
-println({it}(10))       ;; --> 10
-```
+- Lambda syntax:
+    - `\(<pars>) { <body> }`:
+        equivalent to `func (<pars>) { <body> }`
+    - `\<id> { <body> }`:
+        equivalent to `\(<id>) { <body> }`
+    - `\ { <body> }`:
+        equivalent to `\(it) { <body> }`
 
 Note that the lambda notation is also used in
-    [conditionals](#conditionals) and
-    [thus clauses](#where-and-thus-clauses)
-to communicate values across blocks, but no functions are created in these
-cases.
+    [conditionals](#conditionals) and [every statements](#TODO)
+to communicate values across blocks.
 
+Examples:
+
+<!-- exs/10-functions.atm -->
+
+```
+func f (x, y) {         ;; function to add arguments
+    x + y
+}
+val g = \{ it + 1 }     ;; function to increment argument
+print(g(f(1,2)))        ;; --> 4
+```
+
+[lua-function]: https://www.lua.org/manual/5.4/manual.html#3.4.11
+
+<a name="tasks"/>
+
+## 4.5. Tasks
+
+The task reference type represents [tasks](#TODO).
+
+A task constructor `task(f)` receives a [function](#TODO) and instantiates a
+task.
+
+Examples:
+
+<!-- exs/11-tasks.atm -->
+
+```
+func T (...) { ... }    ;; a task prototype
+print(T ?? :function)   ;; --> true
+val t = task(T)         ;; an instantiated task
+print(t ?? :task)       ;; --> true
+```
+
+<a name="task-pools"/>
+
+## 4.6. Task Pools
+
+The task pool reference type represents a [pool of tasks](#TODO).
+
+A task pool constructor `tasks([n])` creates a pool that holds at most `n`
+tasks.
+If `n` is omitted, the pool is unbounded.
+
+A task pool must be assigned to a `pin` [declaration](#TODO).
+
+Examples:
+
+<!-- exs/12-pools.atm -->
+
+```
+pin ts = tasks()        ;; a pool of tasks
+print(ts ?? :tasks)     ;; --> true
+```
+
+<!--
 <a name="active-values"/>
 
-### 5.2.3. Active Values
+### 4.6.1. Active Values
 
-An *active value* corresponds to an active coroutine, task, or task pool:
-
-```
-:exe-coro  :exe-task  :tasks
-```
-
-Active coroutines and tasks are running instances of
-[prototypes](#prototype-values) that can suspend their execution before they
-terminate.
 After they suspend, coroutines and tasks retain their execution state and can
 be resumed later from their previous suspension point.
 
@@ -981,26 +807,26 @@ task T () { <...> }         ;; a task prototype `T`
 val t = spawn T() in ts     ;; is instantiated as `t` in pool `ts`
 broadcast(:X)               ;; broadcast resumes `t`
 ```
+-->
 
 <a name="expressions"/>
 
-# 6. EXPRESSIONS
+# 5. EXPRESSIONS
 
-Atmos is an expression-based language in which all statements are expressions and
-evaluate to a value.
+Atmos is an expression-based language in which all statements are expressions
+that evaluate to a final value.
 Therefore, we use the terms statement and expression interchangeably.
 
 All
-    [literals](#literals),
     [identifiers](#identifiers),
-    [operators](#operators),
-    [collection constructors](#collection-values), and
+    [literals](#literals),
+    [constructors](#collection-values), and
     [function constructors](#protoype-values)
 are also valid expressions.
 
 <a name="program-sequences-and-blocks"/>
 
-## 6.1. Program, Sequences and Blocks
+## 5.1. Program, Sequences and Blocks
 
 A program in Atmos is a sequence of expressions, and a block is a sequence of
 expressions enclosed by braces (`{` and `}`):
@@ -1022,7 +848,7 @@ as a tuple.
 
 <a name="blocks"/>
 
-### 6.1.1. Blocks
+### 5.1.1. Blocks
 
 A block delimits a lexical scope for
 [variables](#declarations) and [dynamic values](#dynamic-values):
@@ -1070,7 +896,7 @@ do {
 
 <a name="escape"/>
 
-#### 6.1.1.1. Escape
+#### 5.1.1.1. Escape
 
 An `escape` immediatelly terminates the enclosing block matching the given tag:
 
@@ -1097,7 +923,7 @@ println(v)              ;; --> 2
 
 <a name="drop"/>
 
-#### 6.1.1.2. Drop
+#### 5.1.1.2. Drop
 
 A `drop` dettaches the given [dynamic value](#dynamic-values) from its current
 holding block:
@@ -1126,7 +952,7 @@ val u = do {
 
 <a name="group"/>
 
-### 6.1.2. Group
+### 5.1.2. Group
 
 A `group` is a nested sequence of expressions:
 
@@ -1151,7 +977,7 @@ println(x, y)       ;; --> 10 20
 
 <a name="test"/>
 
-### 6.1.3. Test
+### 5.1.3. Test
 
 A `test` block behaves like a normal block, but is only included in the program
 when compiled with the flag `--test`:
@@ -1173,7 +999,7 @@ test {
 
 <a name="defer"/>
 
-### 6.1.4. Defer
+### 5.1.4. Defer
 
 A `defer` block executes only when its enclosing block terminates:
 
@@ -1201,11 +1027,11 @@ do {
 
 <a name="declarations-and-assignments"/>
 
-## 6.2. Declarations and Assignments
+## 5.2. Declarations and Assignments
 
 <a name="declarations"/>
 
-### 6.2.1. Declarations
+### 5.2.1. Declarations
 
 Variables in Atmos must be declared before use, and are only visible inside the
 [block](#blocks) in which they are declared:
@@ -1280,7 +1106,7 @@ val [10,x] = [20,20]    ;; ERROR: match fails
 
 <a name="prototype-declarations"/>
 
-### 6.2.2. Prototype Declarations
+### 5.2.2. Prototype Declarations
 
 [Execution unit](#execution-units) [prototypes](#prototype-values) can be
 declared as immutable variables as follows:
@@ -1318,7 +1144,7 @@ println(f(10))      ;; --> 11
 
 <a name="return"/>
 
-#### 6.2.2.1. Return
+#### 5.2.2.1. Return
 
 A `return` immediately terminates the enclosing prototype:
 
@@ -1344,7 +1170,7 @@ println(f())        ;; --> 2
 
 <a name="assignments"/>
 
-### 6.2.3. Assignments
+### 5.2.3. Assignments
 
 The `set` statement assigns the value in the right to the location in the left
 of the symbol `=`:
@@ -1375,7 +1201,7 @@ task T (v) {
 
 <a name="tag-enumerations-and-tuple-templates"/>
 
-## 6.3. Tag Enumerations and Tuple Templates
+## 5.3. Tag Enumerations and Tuple Templates
 
 [Tags](#hierarchical-tags) are global identifiers that need not to be
 predeclared.
@@ -1384,7 +1210,7 @@ templates.
 
 <a name="tag-enumerations"/>
 
-### 6.3.1. Tag Enumerations
+### 5.3.1. Tag Enumerations
 
 An `enum` groups related tags together in sequence:
 
@@ -1423,7 +1249,7 @@ enum :Key {
 
 <a name="tuple-templates"/>
 
-### 6.3.2. Tuple Templates
+### 5.3.2. Tuple Templates
 
 A `data` declaration associates a tag with a tuple template, which associates
 tuple positions with field identifiers:
@@ -1485,11 +1311,11 @@ println(evt.ts, but.pos.y)      ;; --> 0, 20
 
 <a name="calls-operations-and-indexing"/>
 
-## 6.4. Calls, Operations and Indexing
+## 5.4. Calls, Operations and Indexing
 
 <a name="calls-and-operations"/>
 
-### 6.4.1. Calls and Operations
+### 5.4.1. Calls and Operations
 
 In Atmos, calls and operations are equivalent, i.e., an operation is a call that
 uses an [operator](#operatos) with prefix or infix notation:
@@ -1522,7 +1348,7 @@ f(10,20)        ;; normal call
 
 <a name="pipe-calls"/>
 
-#### 6.4.1.1. Pipe Calls
+#### 5.4.1.1. Pipe Calls
 
 A pipe is an alternate notation to call a function:
 
@@ -1552,7 +1378,7 @@ t -> f(10)      ;; equivalent to `f(t,10)`
 
 <a name="indexes-and-fields"/>
 
-### 6.4.2. Indexes and Fields
+### 5.4.2. Indexes and Fields
 
 [Collections](#collections) in Atmos are accessed through indexes or fields:
 
@@ -1599,7 +1425,7 @@ t.pub               ;; public field of task
 
 <a name="template-casting"/>
 
-#### 6.4.2.1. Template Casting
+#### 5.4.2.1. Template Casting
 
 An expression can be suffixed with a tag between parenthesis to cast it into a
 tuple template:
@@ -1618,7 +1444,7 @@ println(p.(:Pos).x)     ;; `p` is cast to `:Pos`
 
 <a name="peek-push-pop"/>
 
-#### 6.4.2.2. Peek, Push, Pop
+#### 5.4.2.2. Peek, Push, Pop
 
 The *ppp operators* (peek, push, pop) manipulate vectors as stacks:
 
@@ -1645,7 +1471,7 @@ println(stk)            ;; --> #[1, 2, 3]
 
 <a name="where-and-thus-clauses"/>
 
-### 6.4.3. Where and Thus Clauses
+### 5.4.3. Where and Thus Clauses
 
 Any expression can be suffixed by `where` and `thus` clauses:
 
@@ -1678,7 +1504,7 @@ val x = (2 * y) where {     ;; x = 20
 
 <a name="precedence-and-associativity"/>
 
-### 6.4.4. Precedence and Associativity
+### 5.4.4. Precedence and Associativity
 
 Operations in Atmos can be combined in expressions with the following precedence
 priority (from higher to lower):
@@ -1720,7 +1546,7 @@ x or y or z     ;; (x or y) or z
 
 <a name="standard-operators"/>
 
-## 6.5. Standard Operators
+## 5.5. Standard Operators
 
 Atmos provides a number of standard operators:
 
@@ -1739,7 +1565,7 @@ for documentation purposes only.
 
 <a name="length-operator"/>
 
-### 6.5.1. Length Operator
+### 5.5.1. Length Operator
 
 ```
 func {{#}} (v :any) => :number
@@ -1757,11 +1583,11 @@ println(#tup, #vec)     ;; --> 0 / 3
 
 <a name="equality-operators"/>
 
-### 6.5.2. Equality Operators
+### 5.5.2. Equality Operators
 
 ```
-func {{==}} (v1 :any, v2 :any) => :bool
-func {{/=}} (v1 :any, v2 :any) => :bool
+func {{==}} (v1 :any, v2 :any) => :boolean
+func {{/=}} (v1 :any, v2 :any) => :boolean
 ```
 
 The operator `==` returns `true` if the values are equal and `false` otherwise.
@@ -1789,11 +1615,11 @@ t1 == t2        ;; --> true
 
 <a name="deep-equality-operators"/>
 
-#### 6.5.2.1. Deep Equality Operators
+#### 5.5.2.1. Deep Equality Operators
 
 ```
-func {===} (v1 :any, v2 :any) => :bool
-func {=/=} (v1 :any, v2 :any) => :bool
+func {===} (v1 :any, v2 :any) => :boolean
+func {=/=} (v1 :any, v2 :any) => :boolean
 ```
 
 The operator `===` returns `true` if the values are deeply equal and `false`
@@ -1818,13 +1644,13 @@ Examples:
 
 <a name="relational-operators"/>
 
-### 6.5.3. Relational Operators
+### 5.5.3. Relational Operators
 
 ```
-func {{>}}  (n1 :number, n2 :number) => :bool
-func {{>=}} (n1 :number, n2 :number) => :bool
-func {{<=}} (n1 :number, n2 :number) => :bool
-func {{<}}  (n1 :number, n2 :number) => :bool
+func {{>}}  (n1 :number, n2 :number) => :boolean
+func {{>=}} (n1 :number, n2 :number) => :boolean
+func {{<=}} (n1 :number, n2 :number) => :boolean
+func {{<}}  (n1 :number, n2 :number) => :boolean
 ```
 
 The operators `>`, `>=`, `<=` and `<` perform the standard relational
@@ -1844,7 +1670,7 @@ Examples:
 
 <a name="arithmetic-operators"/>
 
-### 6.5.4. Arithmetic Operators
+### 5.5.4. Arithmetic Operators
 
 ```
 func {{+}} (n1 :number, n2 :number)   => :number
@@ -1878,10 +1704,10 @@ Examples:
 
 <a name="logical-operators"/>
 
-### 6.5.5. Logical Operators
+### 5.5.5. Logical Operators
 
 ```
-func not (v :any) => :bool
+func not (v :any) => :boolean
 func and (v1 :any, v2 :any) => :any
 func or  (v1 :any, v2 :any) => :any
 ```
@@ -1923,11 +1749,11 @@ nil or 10       ;; --> 10
 
 <a name="equivalence-operators"/>
 
-### 6.5.6. Equivalence Operators
+### 5.5.6. Equivalence Operators
 
 ```
-func is?     (v1 :any, v2 :any) => :bool
-func is-not? (v1 :any, v2 :any) => :bool
+func is?     (v1 :any, v2 :any) => :boolean
+func is-not? (v1 :any, v2 :any) => :boolean
 ```
 
 The operators `is?` and `is-not?` are functions with a special syntax to be
@@ -1956,7 +1782,7 @@ tag(:X,[]) is? :X       ;; --> true
 
 <a name="belongsto-operators"/>
 
-### 6.5.7. Belongs-to Operators
+### 5.5.7. Belongs-to Operators
 
 ```
 func in?     (v :any, vs :any)
@@ -1982,7 +1808,7 @@ Examples:
 
 <a name="vector-concatenation-operators"/>
 
-### 6.5.8. Vector Concatenation Operators
+### 5.5.8. Vector Concatenation Operators
 
 ```
 func {{++}}  (v1 :vector, v2 :vector) => :vector
@@ -2000,7 +1826,7 @@ Examples:
 
 <a name="conditionals-and-pattern-matching"/>
 
-## 6.6. Conditionals and Pattern Matching
+## 5.6. Conditionals and Pattern Matching
 
 In a conditional context, [`nil`](#static-values) and [`false`](#static-values)
 are interpreted as "falsy", and all other values from all other types as
@@ -2008,7 +1834,7 @@ are interpreted as "falsy", and all other values from all other types as
 
 <a name="conditionals"/>
 
-### 6.6.1. Conditionals
+### 5.6.1. Conditionals
 
 Atmos supports conditionals as follows:
 
@@ -2062,7 +1888,7 @@ if f() { \v =>
 
 <a name="pattern-matching"/>
 
-### 6.6.2. Pattern Matching
+### 5.6.2. Pattern Matching
 
 The `match` statement allows to test a head expression against a series of
 patterns between `{` and `}`:
@@ -2165,7 +1991,7 @@ broadcast(:Pos [10,10])     ;; ok match
 
 <a name="loops-and-iterators"/>
 
-## 6.7. Loops and Iterators
+## 5.7. Loops and Iterators
 
 Atmos supports loops and iterators as follows:
 
@@ -2235,7 +2061,7 @@ loop {                  ;; infinite loop
 
 <a name="numeric-loops"/>
 
-### 6.7.1. Numeric Loops
+### 5.7.1. Numeric Loops
 
 A numeric loop specifies a range of numbers to iterate through:
 
@@ -2285,7 +2111,7 @@ loop v in }3 => 0} :step -1 {
 
 <a name="iterator-loops"/>
 
-### 6.7.2. Iterator Loops
+### 5.7.2. Iterator Loops
 
 An iterator loop evaluates a given iterator expression on each step, until it
 signals termination:
@@ -2337,7 +2163,7 @@ loop in num-iter(5) {
 
 <a name="exceptions"/>
 
-## 6.8. Exceptions
+## 5.8. Exceptions
 
 The `error` expression raises an exception that aborts the execution of all
 enclosing blocks up to a matching `catch` block.
@@ -2403,7 +2229,7 @@ catch :Err {                          ;; catches generic error
 
 <a name="coroutine-operations"/>
 
-## 6.9. Coroutine Operations
+## 5.9. Coroutine Operations
 
 The API for coroutines has the following operations:
 
@@ -2451,7 +2277,7 @@ do {
 
 <a name="coroutine-create"/>
 
-### 6.9.1. Coroutine Create
+### 5.9.1. Coroutine Create
 
 The operation `coroutine` creates a new [active coroutine](#active-values) from
 a [coroutine prototype](#prototype-values):
@@ -2476,7 +2302,7 @@ println(C, c)   ;; --> coro: 0x... / exe-coro: 0x...
 
 <a name="coroutine-status"/>
 
-### 6.9.2. Coroutine Status
+### 5.9.2. Coroutine Status
 
 The operation `status` returns the current state of the given active coroutine:
 
@@ -2507,7 +2333,7 @@ println(status(c))      ;; --> :terminated
 
 <a name="resume"/>
 
-### 6.9.3. Resume
+### 5.9.3. Resume
 
 The operation `resume` executes a coroutine from its last suspension point:
 
@@ -2540,7 +2366,7 @@ resume co()     ;; --> :2
 
 <a name="yield"/>
 
-### 6.9.4. Yield
+### 5.9.4. Yield
 
 The operation `yield` suspends the execution of a running coroutine:
 
@@ -2561,7 +2387,7 @@ lost.
 
 <a name="resumeyield-all"/>
 
-### 6.9.5. Resume/Yield All
+### 5.9.5. Resume/Yield All
 
 The operation `resume-yield-all´ continuously resumes the given active
 coroutine, collects its yields, and yields upwards each value, one at a time.
@@ -2622,7 +2448,7 @@ println(a1, a2, a3, a4, a5)             ;; --> 2, 5, 7, 10, 12
 
 <a name="task-operations"/>
 
-## 6.10. Task Operations
+## 5.10. Task Operations
 
 The API for tasks has the following operations:
 
@@ -2667,7 +2493,7 @@ broadcast(10)                   ;; --> 10, 10
 
 <a name="spawn"/>
 
-### 6.10.1. Spawn
+### 5.10.1. Spawn
 
 A spawn creates and starts an [active task](#active-values) from a
 [task prototype](#prototypes):
@@ -2690,9 +2516,9 @@ val t = spawn T(10, [1,2,3])    ;; starts task passing args
 println(t)                      ;; --> exe-task 0x...
 ```
 
-<a name="task-pools"/>
+<a name="x-task-pools"/>
 
-### 6.10.2. Task Pools
+### 5.10.2. X Task Pools
 
 The `tasks` operation creates a [task pool](#active-values) to hold
 [active tasks](#active-values):
@@ -2720,7 +2546,7 @@ println(ts, t1, t2)             ;; --> tasks: 0x... / exe-task 0x... / nil
 
 <a name="task-status"/>
 
-### 6.10.3. Task Status
+### 5.10.3. Task Status
 
 The operation `status` returns the current state of the given active task:
 
@@ -2753,7 +2579,7 @@ println(status(t))      ;; --> :terminated
 
 <a name="public-fields"/>
 
-### 6.10.4. Public Fields
+### 5.10.4. Public Fields
 
 Tasks expose a public variable `pub` that is accessible externally:
 
@@ -2784,7 +2610,7 @@ println(t.pub)      ;; --> 30
 
 <a name="awaits"/>
 
-### 6.10.5. Awaits
+### 5.10.5. Awaits
 
 The operation `await` suspends the execution of a running task with a given
 [condition pattern](#pattern-matching) or clock timeout:
@@ -2824,7 +2650,7 @@ await e {                       ;; awakes on any event
 
 <a name="broadcasts"/>
 
-### 6.10.6. Broadcasts
+### 5.10.6. Broadcasts
 
 The operation `broadcast` signals an event to awake [awaiting](#awaits) tasks:
 
@@ -2867,7 +2693,7 @@ task T () {
 
 <a name="toggle"/>
 
-### 6.10.7. Toggle
+### 5.10.7. Toggle
 
 The operation `toggle` configures an active task to either ignore or consider
 further `broadcast` operations:
@@ -2884,7 +2710,7 @@ between parenthesis, which is handled as follows:
 
 <a name="syntactic-block-extensions"/>
 
-### 6.10.8. Syntactic Block Extensions
+### 5.10.8. Syntactic Block Extensions
 
 Atmos provides many syntactic block extensions to work with tasks more
 effectively.
@@ -2892,7 +2718,7 @@ The extensions expand to standard task operations.
 
 <a name="spawn-blocks"/>
 
-#### 6.10.8.1. Spawn Blocks
+#### 5.10.8.1. Spawn Blocks
 
 A `spawn` block starts an anonymous nested task:
 
@@ -2939,7 +2765,7 @@ spawn T()
 
 <a name="parallel-blocks"/>
 
-#### 6.10.8.2. Parallel Blocks
+#### 5.10.8.2. Parallel Blocks
 
 A parallel block spawns multiple anonymous tasks:
 
@@ -3039,7 +2865,7 @@ println(":X and :Y have occurred")
 
 <a name="every-blocks"/>
 
-#### 6.10.8.3. Every Blocks
+#### 5.10.8.3. Every Blocks
 
 An `every` block is a loop that makes an iteration whenever an await condition
 is satisfied:
@@ -3074,7 +2900,7 @@ every x :X | f(x) {
 
 <a name="watching-blocks"/>
 
-#### 6.10.8.4. Watching Blocks
+#### 5.10.8.4. Watching Blocks
 
 A `watching` block executes a given block until an await condition is
 satisfied, which aborts the block:
@@ -3105,7 +2931,7 @@ watching <1:s> {
 
 <a name="toggle-blocks"/>
 
-#### 6.10.8.5. Toggle Blocks
+#### 5.10.8.5. Toggle Blocks
 
 A `toggle` block executes a given block and [toggles](#toggle) it when a
 broadcast event matches the given tag:
@@ -3168,7 +2994,7 @@ broadcast(:E [3])
 
 <a name="standard-libraries"/>
 
-# 7. STANDARD LIBRARIES
+# 6. STANDARD LIBRARIES
 
 Atmos provides many libraries with predefined functions.
 
@@ -3179,14 +3005,14 @@ for documentation purposes only.
 
 <a name="basic-library"/>
 
-## 7.1. Basic Library
+## 6.1. Basic Library
 
 ```
 func assert (v :any [,msg :any]) => :any
 func next (v :any [,x :any]) => :any
 func print (...) => :nil
 func println (...) => :nil
-func sup? (t1 :tag, t2 :tag) => :bool
+func sup? (t1 :tag, t2 :tag) => :boolean
 func tag (t :tag, v :dyn) => :dyn
 func tag (v :dyn) => :tag
 func type (v :any) => :type
@@ -3275,13 +3101,13 @@ type(10)                ;; --> :number
 
 <a name="type-conversions-library"/>
 
-## 7.2. Type Conversions Library
+## 6.2. Type Conversions Library
 
 The type conversion functions `to.*` receive a value `v` of any type and try to
 convert it to a value of the specified type:
 
 ```
-func to.bool    (v :any) => :bool
+func to.boolean    (v :any) => :boolean
 func to.char    (v :any) => :char
 func to.dict    (v :any) => :dict
 func to.number  (v :any) => :number
@@ -3299,7 +3125,7 @@ If the conversion is not possible, the functions return `nil`.
 Examples:
 
 ```
-to.bool(nil)        ;; --> false
+to.boolean(nil)        ;; --> false
 to.char(65)         ;; --> 'A'
 to.dict([[:x,1]])   ;; --> @[(:x,1)]
 to.number("10")     ;; --> 10
@@ -3348,7 +3174,7 @@ Examples:
 
 <a name="math-library"/>
 
-## 7.3. Math Library
+## 6.3. Math Library
 
 ```
 val math.PI :number
@@ -3387,7 +3213,7 @@ math.between(10, 8, 20) ;; --> 10
 
 <a name="random-numbers-library"/>
 
-## 7.4. Random Numbers Library
+## 6.4. Random Numbers Library
 
 ```
 func random.next () => :number
@@ -3405,7 +3231,7 @@ random.next()       ;; --> :number
 
 <a name="syntax"/>
 
-# 8. SYNTAX
+# 7. SYNTAX
 
 ```
 Prog  : { Expr [`;´] }
