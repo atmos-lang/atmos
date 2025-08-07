@@ -45,7 +45,7 @@
         - `tasks`
 * EXPRESSIONS
     * Program, Sequences and Blocks
-        - `;` `do` `escape` `drop` `group` `test` `defer`
+        - `;` `do` `escape` `defer` `test`
     * Declarations and Assignments
         - `val` `var` `set`
     * Tag Enumerations and Tuple Templates
@@ -188,11 +188,11 @@ par_or {
 }
 ```
 
-The [`par_or`](parallel-blocks) is a structured mechanism that combines tasks
+The [par_or](parallel-blocks) is a structured mechanism that combines tasks
 in nested blocks and rejoins as a whole when one of them terminates,
 automatically aborting the others.
 
-The [`every`](every-block) loop in the second task iterates exactly 9 times
+The [every](every-block) loop in the second task iterates exactly 9 times
 before the first task awakes and terminates the composition.
 For this reason, the second task is aborted before it has the opportunity to
 awake for the 10th time, but its `defer` statement still executes and outputs
@@ -211,9 +211,9 @@ example would always output `10`.
 
 Tasks can communicate through events as follows:
 
-- The [`await`](#awaits) statement suspends a task until it matches an event
+- The [await](#awaits) statement suspends a task until it matches an event
   condition.
-- The [`emit`](#emit) statement broadcasts an event to all awaiting
+- The [emit](#emit) statement broadcasts an event to all awaiting
   tasks.
 
 <img src="bcast.png" align="right"/>
@@ -410,7 +410,7 @@ The following symbols are designated in Atmos:
     :               ;; tag prefix
     ::              ;; method call
     .               ;; field discriminator
-    ...             ;; variable arguments
+    ...             ;; variadic parameters/arguments
 ```
 
 ## Operators
@@ -454,6 +454,16 @@ Atmos provides literals for all [value types](#TODO):
 
 It also provides literals for [tag](#TODO) and [native](#TODO) expressions,
 which only exist at compile time.
+
+```
+NIL  : nil
+BOOL : true | false
+TAG  : :[A-Za-z0-9\.\-]+      ;; colon + leter/digit/dot/dash
+NUM  : [0-9][0-9A-Za-z\.]*    ;; digit/letter/dot
+CHR  : '.' | '\.'             ;; single/backslashed character
+STR  : ".*"                   ;; string expression
+NAT  : `.*`                   ;; native expression
+```
 
 The literals for `nil`, `boolean` and `number` follow the same
 [lexical conventions of Lua](lua-lexical).
@@ -722,12 +732,8 @@ Atmos is an expression-based language in which all statements are expressions
 that evaluate to a final value.
 Therefore, we use the terms statement and expression interchangeably.
 
-All
-    [identifiers](#identifiers),
-    [literals](#literals),
-    [constructors](#collection-values), and
-    [function constructors](#protoype-values)
-are also valid expressions.
+All [identifiers](#identifiers), [literals](#literals) and
+[constructors](#TODO) are also valid expressions.
 
 ## Program, Sequences and Blocks
 
@@ -738,29 +744,27 @@ expressions enclosed by braces (`{` and `}`):
 Prog  : { Expr [`;´] }
 Block : `{´ { Expr [`;´] } `}´
 ```
+
 Each expression in a sequence may be separated by an optional semicolon (`;`).
 A sequence of expressions evaluate to its last expression.
 
-<!-- TODO: ; to remove ambiguity -->
+A program collects all command-line arguments into the
+[variadic expression `...`](#TODO).
 
-<!--
-The symbol
-[`...`](#declarations) stores the program arguments
-as a tuple.
--->
+<!-- exs/exp-01-program.atm -->
+
+```
+print(1) ; print(2)     ;; --> 1 \n 2
+print(...)              ;; --> a, b, c
+print(3)                ;; --> 3
+```
 
 ### Blocks
 
-A block delimits a lexical scope for
-[variables](#declarations) and [dynamic values](#dynamic-values):
-A variable is only visible to expressions in the block in which it is declared.
-A dynamic value cannot escape the block in which it is assigned, unless it is
-[dropped](#drop) out.
+A block delimits a lexical scope for [variable declarations](#declarations).
 
-When a block terminates, all memory that is allocated inside it is
-automatically reclaimed.
-This is also valid for active [coroutines and tasks](#active-values), which are
-aborted on termination.
+When a block aborts or terminates, all [defer statements](#TODO) execute, and
+all [pin declarations](#TODO) abort.
 
 Blocks appear in compound statements, such as
 [conditionals](#conditionals-and-pattern-matching),
@@ -777,6 +781,8 @@ The optional [tag](#static-values) identifies the block such that it can match
 
 Examples:
 
+<!-- exs/exp-02-blocks.atm -->
+
 ```
 do {                    ;; block prints :ok and evals to 1
     println(:ok)
@@ -787,17 +793,17 @@ do {
     val a = 1           ;; `a` is only visible in the block
     <...>
 }
-a                       ;; ERROR: `a` is out of scope
+a                       ;; `a` is now a global
 
 do {
-    spawn T()           ;; spawns task T and attaches it to the block
+    pin t = spawn T()   ;; attaches task T to enclosing block
     <...>
-}                       ;; aborts spawned task
+}                       ;; aborts t
 ```
 
 #### Escape
 
-An `escape` immediatelly terminates the enclosing block matching the given tag:
+An `escape` immediately aborts the enclosing block matching the given tag:
 
 ```
 Escape : `escape´ `(´ TAG [`,´ Expr] `)´
@@ -1200,7 +1206,7 @@ Expr : OP Expr                      ;; unary operation
 Operations are interpreted as function calls, i.e., `x + y` is equivalent to
 `{{+}} (x, y)`.
 
-A call expects an expression of type [`func`](#prototype-values) and an
+A call expects an expression of type [func](#prototype-values) and an
 optional list of expressions as arguments enclosed by parenthesis.
 A call transfers control to the function, which runs to completion and returns
 a value, which substitutes the call.
@@ -1665,7 +1671,7 @@ Examples:
 
 ## Conditionals and Pattern Matching
 
-In a conditional context, [`nil`](#static-values) and [`false`](#static-values)
+In a conditional context, [nil](#static-values) and [false](#static-values)
 are interpreted as "falsy", and all other values from all other types as
 "truthy".
 
@@ -1965,7 +1971,7 @@ To signal termination, `f` just needs to return `nil`.
 In this case, the loop as a whole evaluates to `false`.
 
 If the iterator expression is not an iterator tuple, the loop tries to
-transform it by calling [`to.iter`](#type-conversion-library) implicitly, which
+transform it by calling [to.iter](#type-conversion-library) implicitly, which
 creates iterators from iterables, such as vectors and task pools.
 
 Examples:
@@ -2012,7 +2018,7 @@ A `catch` executes its associated block normally, but also registers a
 it.
 If they match, the exception is caught and the `catch` terminates and evaluates
 to exception value, also aborting its associated block, and properly triggering
-nested [`defer`](#defer) statements.
+nested [defer](#defer) statements.
 
 Examples:
 
@@ -2056,13 +2062,13 @@ catch :Err {                          ;; catches generic error
 
 The API for coroutines has the following operations:
 
-- [`coroutine`](#coroutine-create): creates a new coroutine from a prototype
-- [`status`](#coroutine-status): consults the coroutine status
-- [`resume`](#spawn): starts or resumes a coroutine
-- [`yield`](#yield): suspends the resumed coroutine
+- [coroutine](#coroutine-create): creates a new coroutine from a prototype
+- [status](#coroutine-status): consults the coroutine status
+- [resume](#spawn): starts or resumes a coroutine
+- [yield](#yield): suspends the resumed coroutine
 
 <!--
-5. [`abort`](#TODO): `TODO`
+5. [abort](#TODO): `TODO`
 -->
 
 Note that `yield` is the only operation that is called from the coroutine
@@ -2108,8 +2114,8 @@ Create : `coroutine´ `(´ Expr `)´
 ```
 
 The operation `coroutine` expects a coroutine prototype (type
-[`coro`](#execution-units)) and returns its active reference (type
-[`exe-coro`](#execution-units)).
+[coro](#execution-units)) and returns its active reference (type
+[exe-coro](#execution-units)).
 
 Examples:
 
@@ -2166,7 +2172,7 @@ the coroutine return value.
 
 The first resume is like a function call, starting the coroutine from its
 beginning, and passing any number of arguments.
-The subsequent resumes start the coroutine from its last [`yield`](#yield)
+The subsequent resumes start the coroutine from its last [yield](#yield)
 suspension point, passing at most one argument, which substitutes the `yield`.
 If omitted, the argument defaults to `nil`.
 
@@ -2196,7 +2202,7 @@ Eventually, the suspended coroutine is resumed again with a value and the whole
 `yield` is substituted by that value.
 
 <!--
-If the resume came from a [`broadcast`](#broadcast), then the given expression is
+If the resume came from a [broadcast](#broadcast), then the given expression is
 lost.
 -->
 
@@ -2312,16 +2318,16 @@ broadcast(:X)               ;; broadcast resumes `t`
 
 The API for tasks has the following operations:
 
-- [`spawn`](#spawn): creates and resumes a new task from a prototype
-- [`tasks`](#task-pools): creates a pool of tasks
-- [`status`](#task-status): consults the task status
-- [`pub`](#public-field): exposes the task public field
-- [`await`](#awaits): yields the resumed task until it matches an event
-- [`broadcast`](#broadcast): broadcasts an event to awake all tasks
-- [`toggle`](#toggle): either ignore or accept awakes
+- [spawn](#spawn): creates and resumes a new task from a prototype
+- [tasks](#task-pools): creates a pool of tasks
+- [status](#task-status): consults the task status
+- [pub](#public-field): exposes the task public field
+- [await](#awaits): yields the resumed task until it matches an event
+- [broadcast](#broadcast): broadcasts an event to awake all tasks
+- [toggle](#toggle): either ignore or accept awakes
 
 <!--
-5. [`abort`](#TODO): `TODO`
+5. [abort](#TODO): `TODO`
 -->
 
 Examples:
@@ -2972,7 +2978,7 @@ func to.iter (v :any [,tp :any]) => :Iterator
 ```
 
 `to.iter` receives an iterable `v`, an optional modifier `tp`, and returns a
-corresponding [`:Iterator`](#iterator-loops) tuple.
+corresponding [:Iterator](#iterator-loops) tuple.
 The iterator provides a function that traverses the iterable step by step on
 each call.
 The modifier specifies what kind of value should the iterator return on each

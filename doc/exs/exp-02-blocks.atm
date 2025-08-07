@@ -1,0 +1,17 @@
+do {                    ;; block prints :ok and evals to 1
+    print(:ok)
+    1
+}
+
+do {
+    val a = 1           ;; `a` is only visible in the block
+    ;;<...>
+}
+print(a)                ;; `a` is now a global
+
+do {
+    val T = \{}
+    pin t = spawn T()   ;; attaches task T to enclosing block
+    ;;<...>
+}                       ;; aborts t
+
