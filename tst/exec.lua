@@ -1979,9 +1979,22 @@ do
         print(1 !? :table)
         print(1 !? :number)
     ]]
-    print("Testing...", "is 1")
+    print("Testing...", "is 2")
     local out = atm_test(src)
     assertx(out, "false\ntrue\ntrue\nfalse\n")
+
+    local src = [[
+        print(#{} ?? :table)
+        print(#{} ?? :vector)
+        print(@{} ?? :vector)
+        print(@1 ?? :clock)
+        print(task(\{}) ?? :task)
+        pin xs = tasks()
+        print(xs ?? :tasks)
+    ]]
+    print("Testing...", "is 3")
+    local out = atm_test(src)
+    assertx(out, "true\ntrue\nfalse\ntrue\ntrue\ntrue\n")
 
     local src = [[
         val t = @{1,2,3}
@@ -1990,7 +2003,7 @@ do
         print(2 !> t)
         print(t <! 4)
     ]]
-    print("Testing...", "is 1")
+    print("Testing...", "in 1")
     local out = atm_test(src)
     assertx(out, "true\nfalse\nfalse\ntrue\n")
 end
