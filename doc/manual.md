@@ -13,12 +13,10 @@
     * Literals
     * Comments
 * TYPES
-    * Basic Types
-        - `nil` `boolean` `char` `number` `tag` `pointer`
-    * Collections
-        - `table` `vector`
-    * Execution Units
-        - `func` `coro` `task` `exe-coro` `exe-task` `tasks`
+    * Vectors
+    * Clocks
+    * Tasks
+    * Task Pools
     * User Types
 * VALUES
     * Static Values
@@ -480,6 +478,8 @@ expressions.
 
 Examples:
 
+<!-- exs/04-literals.atm -->
+
 ```
 nil                 ;; nil literal
 false               ;; boolean literal
@@ -498,12 +498,11 @@ Atmos provides single-line and multi-line comments.
 Single-line comments start with double semi-colons (`;;`) and run until the end
 of the line.
 
-Multi-line comments use balanced semi-colons, starting with three or more
-semi-colons and running until the same number of semi-colons.
-Multi-line comments can contain sequences of semi-colons, as long as they are
-shorter than the opening sequence.
+Multi-line comments are enclosed by three of more matching semi-colons.
 
 Examples:
+
+<!-- exs/05-comments.atm -->
 
 ```
 ;; a comment        ;; single-line comment
@@ -516,185 +515,95 @@ Examples:
 
 # TYPES
 
-Atmos is dynamically typed such that values carry their own types during
-execution.
+Atmos mimics the semantics of [types](lua-types) of Lua.
 
-The function `type` returns the type of a value as a [tag](#basic-types):
+In addition to the standard Lua types, Atmos also supports vectors, clocks,
+tasks, and task pools.
+Although these types are internally represented as Lua tables, they receive
+special treatment from the language.
 
-```
-type(10)    ;; --> :number
-type('x')   ;; --> :char
-```
+[lua-types]: https://www.lua.org/manual/5.4/manual.html#2.1
 
-## Basic Types
+## Vectors
 
-Atmos has 6 basic types:
-
-```
-:nil    :boolean    :char    :number    :tag    :pointer
-```
-
-The `nil` type represents the absence of values with its single value
-[`nil`](#literals).
-
-The `boolean` type represents boolean values with [`true`](#literals) and
-[`false`](#literals).
-
-The `char` type represents [character literals](#literals).
-
-The `number` type represents real numbers (i.e., *C floats*) with
-[number literals](#literals).
-
-The `tag` type represents [tag identifiers](#literals).
-Each tag is internally associated with a natural number that represents a
-unique value in a global enumeration.
-Tags can be explicitly [enumerated](#tag-enumerations-and-tuple-templates) to
-interface with [native expressions](#literals).
-Tags can form [hierarchies](#hierarchical-tags) to represent
-[user types](#user-types) and describe
-[tuple templates](#tag-enumerations-and-tuple-templates).
-
-The `pointer` type represents opaque native pointer values from [native
-literals](#literals).
-
-## Collections
-
-Atmos provides 3 types of collections:
-
-```
-:tuple    :vector    :dict
-```
-
-The `tuple` type represents a fixed collection of heterogeneous values, in
-which each numeric index, starting at `0`, holds a value of a (possibly)
-different type.
-
-The `vector` type represents a variable collection of homogeneous values, in
-which each numeric index, starting at `0`,  holds a value of the same type.
-Once the first index is assigned, its type becomes the type of the vector,
-which further assignments must respect.
-
-The `dict` type (dictionary) represents a variable collection of heterogeneous
-values, in which each index (or key) of any type maps to a value of any type.
+The vector type is a table with numerical indexes starting at `0`.
 
 Examples:
 
-```
-[1, 'a', nil]           ;; a tuple with 3 values
-#[1, 2, 3]              ;; a vector of numbers
-@[(:x,10), (:y,20)]     ;; a dictionary with 2 mappings
-```
-
-## Execution Units
-
-Atmos provide 3 types of execution units: functions, coroutines, and tasks:
+<!-- exs/06-vectors.atm -->
 
 ```
-:func      :coro      :task
-:exe-coro  :exe-task  :tasks
+val vs = #{1, 2, 3}     ;; a vector of numbers
+print(vs[1])            ;; --> 2
+print(vs ?? :vector)    ;; --> true
 ```
 
-The `func` type represents [function prototypes](#prototype-values).
+## Clocks
 
-The `coro` type represents [coroutine prototypes](#prototype-values), while the
-`exe-coro` type represents [active coroutines](#active-values).
+The clock type is a table in the [format](#TODO) `@{h=HH,min=MM,s=SS,ms=sss}`.
 
-The `task` type represents [task prototypes](#prototype-values), while the
-`exe-task` type represents [active tasks](#active-values).
-The `tasks` type represents [task pools](#active-values) holding active tasks.
+Examples:
+
+<!-- exs/07-clocks.atm -->
+
+```
+val clk = @1:15:40.2    ;; a clock declaration
+print(clk.s)            ;; --> 40
+print(clk ?? :clock)    ;; --> true
+```
+
+## Tasks
+
+The task type represents an [instantiated task](#TODO).
+
+Examples:
+
+<!-- exs/08-tasks.atm -->
+
+```
+func T (...) { ... }    ;; a task prototype
+print(T ?? :function)   ;; --> true
+val t = task(T)         ;; an instantiated task
+print(t ?? :task)       ;; --> true
+```
+
+## Task Pools
+
+The task pool type represents a [pool of instantiated tasks](#TODO).
+
+Examples:
+
+<!-- exs/09-pool.atm -->
+
+```
+pin ts = tasks()        ;; a pool of tasks
+print(ts ?? :tasks)     ;; --> true
+```
 
 ## User Types
 
-Values of non-basic types (i.e., collections and execution units) can be
-associated with [tags](#basic-types) that represent user types.
+Tables can be associated associated with [tags](#TODO) that represent user
+types.
 
-The function [`tag`](#types-and-tags) associates values with tags:
+Examples:
 
-```
-val x = []          ;; an empty tuple
-tag(:T, x)          ;; x is now of user type :T
-println(tag(x))     ;; --> :T
-```
-
-Tags form [type hierarchies](hierarchical-tags) based on the dots in their
-identifiers, i.e., `:T.A` and `:T.B` are sub-types of `:T`.
-Tag hierarchies can nest up to 4 levels.
-
-The function [`sup?`](#types-and-tags) checks super-type relations between
-tags:
+<!-- exs/03-tags.ceu -->
 
 ```
-println(sup?(:T, :T.A))     ;; --> true
-println(sup?(:T.A, :T))     ;; --> false
-println(sup?(:T.A, :T.B))   ;; --> false
+val t = :T.A @{ a=10 }      ;; @{ tag=:T.A, a=10 }
+print(t ?? :T)              ;; --> true
 ```
 
-The function [`is?`](#operator-is) checks if values match types or tags:
+# CONSTRUCTORS
 
-```
-val x = []              ;; an empty tuple
-tag(:T.A, x)            ;; x is now of user type :T.A
-println(x is? :tuple)   ;; --> true
-println(x is? :T)       ;; --> true
-```
+In addition to basic [literals](#TODO) for primitive values, Atmos provides
+constructors to create dynamic compound values.
 
-User types do not require to be predeclared, but can appear in [tuple
-template](#tag-enumerations-and-tuple-templates) declarations.
-
-# VALUES
-
-As a dynamically-typed language, each value in Atmos carries extra information,
-such as its own type.
-
-## Static Values
-
-A *static value* does not require dynamic allocation.
-All [basic types](#basic-types) have [literal](#literals) values:
-
-```
-Types : :nil | :boolean | :char | :number | :tag | :pointer
-Lits  : `nil´ | `false´ | `true´ | CHR | NUM | TAG | NAT
-```
-
-Static values are immutable and are transferred between variables and across
-blocks as whole copies without any restrictions.
-
-## Dynamic Values
-
-A *dynamic value* requires dynamic allocation since its internal data is either
-variable or too big to fit as a static value.
-The following types have dynamic values:
-
-```
-Colls  : :tuple | :vector | :dict          ;; collections
-Protos : :func | :coro | :task             ;; prototypes
-Actvs  : :exe-coro | :exe-task | :tasks    ;; active values (next section)
-```
-
-Unlike static values, dynamic values are internally mutable and are transferred
-between variables and across blocks through references.
-As a consequence, multiple references (or aliases) may point to the same
-mutable value.
-
-As discussed in [Lexical Memory Management](#lexical-memory-management), a
-dynamic value is initially attached to the enclosing [block](#blocks) in
-which it is first assigned, and cannot escape to outer blocks in further
-assignments or as return expressions.
-If required, a [drop](#TODO) operation dettaches a dynamic value from its
-current block, allowing a further assignment to reattach it.
-
-Atmos uses reference counting to determine the life cycle of dynamic values.
-When the reference counter reaches zero, the dynamic value is immediately
-deallocated from memory.
-Note that mutually referenced values are never deallocated.
-Therefore, programmers need to break reference cycles manually.
-Nevertheless, when a block terminates, it automatically deallocates all dynamic
-values attached to it, regardless of remaining references due to cycles.
-
-### Collection Values
-
-Atmos provides constructors for [collections](#collections) to allocate tuples,
-vectors, and dictionaries:
+## Vectors
+## Tables
+## Functions
+## Tasks
+## Task Pools
 
 ```
 Cons : `[´ [List(Expr)] `]´             ;; tuple
@@ -2488,7 +2397,7 @@ val t = spawn T(10, [1,2,3])    ;; starts task passing args
 println(t)                      ;; --> exe-task 0x...
 ```
 
-### Task Pools
+### X Task Pools
 
 The `tasks` operation creates a [task pool](#active-values) to hold
 [active tasks](#active-values):
