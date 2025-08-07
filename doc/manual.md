@@ -29,15 +29,11 @@
     * Comments
         - single-line: `;; ...`
         - multi-line:  `;;; ... ;;;`
-* TYPES
-    * Vectors
+* TYPES & CONSTRUCTORS
     * Clocks
-    * Tasks
-    * Task Pools
-    * User Types
-* CONSTRUCTORS
     * Vectors
     * Tables
+        - User Types
     * Functions
     * Tasks
     * Task Pools
@@ -170,7 +166,7 @@ The example uses a `par_or` to spawn two concurrent tasks:
     another one that increments `n` every second, showing its value on
     termination:
 
-<!-- exs/01-counter.ceu -->
+<!-- exs/01-counter.atm -->
 
 ```
 par_or {
@@ -235,7 +231,7 @@ The example uses a `watching` statement to observe an event condition while
 executing a nested task.
 When the condition is satisfied, the nested task is aborted:
 
-<!-- exs/02-ticks.ceu -->
+<!-- exs/02-ticks.atm -->
 
 ```
 spawn {
@@ -280,7 +276,7 @@ them (i.e., `:x == 'x'`).
 Tags are typically used as keys in table (e.g., `:x`, `:y`), or as enumerations
 representing states (e.g., `:pending`, `:done`).
 
-<!-- exs/03-tags.ceu -->
+<!-- exs/03-tags.atm -->
 
 The next example uses tags as table keys:
 
@@ -448,8 +444,11 @@ y10
 
 ## Literals
 
-Atmos provides literals for *nil*, *booleans*, *tags*, *numbers*, *strings*,
-*clock* and *native* expressions:
+Atmos provides literals for all [value types](#TODO):
+    `nil`, `boolean`, `number`, `string`, and `clock`.
+
+It also provides literals for [tag](#TODO) and [native](#TODO) expressions,
+which only exist at compile time.
 
 ```
 NIL  : nil
@@ -461,27 +460,25 @@ CLK  : @(H:)?(M:)?(S:)?(\.ms)?  ;; clock expression
 NAT  : `.*`                     ;; native expression
 ```
 
-The literals for *nil*, *booleans* and *numbers* follow the same
+The literals for `nil`, `boolean` and `number` follow the same
 [lexical conventions of Lua](lua-lexical).
 
-The literal `nil` is the single value of the [*nil*](#basic-types) type.
+The literal `nil` is the single value of the `nil` type.
 
-The literals `true` and `false` are the only values of the
-[*boolean*](#basic-types) type.
+The literals `true` and `false` are the only values of the `boolean` type.
 
-A [*tag*](#TODO) literal starts with a colon (`:`) and is followed
-by letters, digits, and dots (`.`).
+A [tag](#TODO) literal starts with a colon (`:`) and is followed by letters,
+digits, and dots (`.`).
 
-A [*string*](#basic-types) type literal is a sequence of characters enclosed by
-an odd number of matching double (`"`) or single (`'`) quotes.
+A `string` literal is a sequence of characters enclosed by an odd number
+of matching double (`"`) or single (`'`) quotes.
 Atmos supports multi-line strings when using multiple quote delimiters.
 
-A [*number*](#basic-types) type literal starts with a digit and is followed by
-digits, letters, and dots (`.`).
+A `number` literal starts with a digit and is followed by digits, letters, and
+dots (`.`).
 
-A [*clock*](#TODO) literal starts with an *at sign* (`@`) and is followed by
-the format `HH:MM:SS.sss` representing hours, minutes, seconds, and
-milliseconds.
+A `clock` literal starts with an *at sign* (`@`) and is followed by the format
+`HH:MM:SS.sss` representing hours, minutes, seconds, and milliseconds.
 Each time segment accepts numbers or embedded identifiers as expressions.
 At runtime, identifiers evaluate to the corresponding variable value.
 Clock literals are interpreted as a table in the format
@@ -530,38 +527,34 @@ Examples:
 ;;;
 ```
 
-# TYPES
+# TYPES & CONSTRUCTORS
 
-Atmos mimics the semantics of [types of Lua](lua-types).
+Atmos supports and mimics the semantics of the standard [Lua types](lua-types):
+    `nil`, `boolean`, `number`, `string`,
+    `function`, `userdata`, thread, and `table`.
 
-In addition to the standard Lua types, Atmos also supports vectors, clocks,
-tasks, and task pools.
+In addition, Atmos also supports the types as follows:
+    `clock`, `vector`, `task`, and `tasks`.
 Although these types are internally represented as Lua tables, they receive
 special treatment from the language.
 
+Atmos differentiates between *value* and *reference* types:
+
+- Value types are built from the [basic literals](#TODO):
+    `nil`, `boolean`, `number`, `string`, and `clock`.
+- Reference types are built from constructors:
+    `function`, `userdata`, thread, `table`, `vector`, `task`, and `tasks`.
+
 [lua-types]: https://www.lua.org/manual/5.4/manual.html#2.1
-
-## Vectors
-
-The vector type is a table with numerical indexes starting at `0`.
-
-Examples:
-
-<!-- exs/06-vectors.atm -->
-
-```
-val vs = #{1, 2, 3}     ;; a vector of numbers
-print(vs[1])            ;; --> 2
-print(vs ?? :vector)    ;; --> true
-```
 
 ## Clocks
 
-The clock type is a table in the [format](#TODO) `@{h=HH,min=MM,s=SS,ms=sss}`.
+The clock value type represents tables in the [format](#TODO)
+`@{h=HH,min=MM,s=SS,ms=sss}`.
 
 Examples:
 
-<!-- exs/07-clocks.atm -->
+<!-- exs/06-clocks.atm -->
 
 ```
 val clk = @1:15:40.2    ;; a clock declaration
@@ -569,69 +562,28 @@ print(clk.s)            ;; --> 40
 print(clk ?? :clock)    ;; --> true
 ```
 
-## Tasks
-
-The task type represents an [instantiated task](#TODO).
-
-Examples:
-
-<!-- exs/08-tasks.atm -->
-
-```
-func T (...) { ... }    ;; a task prototype
-print(T ?? :function)   ;; --> true
-val t = task(T)         ;; an instantiated task
-print(t ?? :task)       ;; --> true
-```
-
-## Task Pools
-
-The task pool type represents a [pool of instantiated tasks](#TODO).
-
-Examples:
-
-<!-- exs/09-pool.atm -->
-
-```
-pin ts = tasks()        ;; a pool of tasks
-print(ts ?? :tasks)     ;; --> true
-```
-
-## User Types
-
-Tables can be associated associated with [tags](#TODO) that represent user
-types.
-
-Examples:
-
-<!-- exs/03-tags.ceu -->
-
-```
-val t = :T.A @{ a=10 }      ;; @{ tag=:T.A, a=10 }
-print(t ?? :T)              ;; --> true
-```
-
-# CONSTRUCTORS
-
-In addition to basic [literals](#TODO) for primitive values, Atmos provides
-constructors to create dynamic compound values.
-
-Examples:
-
-<!-- exs/10-constructors.ceu -->
-
-```
-#{1,2,3}            ;; a vector
-:Pos @{x=10,y=20}   ;; a tagged table
-func (x) { x }      ;; the identify function
-```
-
 ## Vectors
 
+The vector reference type represents tables with numerical indexes starting at
+`0`.
+
 A vector constructor `#{ ... }` receives a list of expressions `...` and
-creates a table with numerical indexes starting at `0`.
+assigns each expression to incrementing indexes starting at `0`.
+
+Examples:
+
+<!-- exs/07-vectors.atm -->
+
+```
+val vs = #{1, 2, 3}     ;; a vector of numbers (similar to @{ [0]=1, [1]=2, [2]=3 })
+print(vs[1])            ;; --> 2
+print(vs ?? :vector)    ;; --> true
+```
 
 ## Tables
+
+The table reference type represents [Lua tables](lua-types) with indexes of any
+type.
 
 A table constructor `@{ ... }` receives a list of key-value assignments.
 Like [table constructors in Lua](lua-table), it accepts assignments in three
@@ -645,12 +597,44 @@ formats:
 A table constructor may also be prefixed with a tag, which is assigned to key
 `"tag"`, i.e., `:X @{ ... }` is equivalent to `@{ tag=:X, ... }`.
 
+Examples:
+
+<!-- exs/08-tables.atm -->
+
+```
+val k = "idx"
+val t = @{      ;; all 3 formats:
+    [k] = 10,   ;; same as @{ [k]=10, ["v"]="x", [1]=20, [2]=30 }
+    v = "x",
+    20, 30
+}
+print(t ?? :table)          ;; --> true
+print(t.idx, t["v"], t[2])  ;; --> 10, x, 30
+```
+
 [lua-table]: https://www.lua.org/manual/5.4/manual.html#3.4.9
+
+### User Types
+
+Tables can be associated associated with [tags](#TODO) that represent user
+types.
+
+Examples:
+
+<!-- exs/09-user.atm -->
+
+```
+val p = :Pos @{         ;; a tagged table:
+    x = 10,             ;; same as @{ ["tag"]="Pos", ["x"]=10, ["y"]=20 }
+    y = 20,
+}
+print(p ?? :table)      ;; --> true
+print(p ?? :Pos)        ;; --> true
+```
 
 ## Functions
 
-A function constructor creates a closure that follows the
-[semantics of Lua](lua-function).
+The function reference type represents [Lua functions](lua-function).
 
 The basic constructor creates an anonymous function with a list of parameters
 and an execution body, as follows:
@@ -688,7 +672,7 @@ to communicate values across blocks.
 
 Examples:
 
-<!-- exs/11-functions.ceu -->
+<!-- exs/10-functions.atm -->
 
 ```
 func f (x, y) {         ;; function to add arguments
@@ -702,16 +686,40 @@ print(g(f(1,2)))        ;; --> 4
 
 ## Tasks
 
+The task type represents an [instantiated task](#TODO).
+
 A task constructor `task(f)` receive a [function](#TODO) and instantiates a
 task.
 
+Examples:
+
+<!-- exs/11-tasks.atm -->
+
+```
+func T (...) { ... }    ;; a task prototype
+print(T ?? :function)   ;; --> true
+val t = task(T)         ;; an instantiated task
+print(t ?? :task)       ;; --> true
+```
+
 ## Task Pools
+
+The task pool type represents a [pool of instantiated tasks](#TODO).
 
 A task pool constructor `tasks([n])` creates a pool that hold at most `n`
 tasks.
 If `n` is omitted, the pool is unbounded.
 
 A task pool must be assigned to a `pin` [declaration](#TODO).
+
+Examples:
+
+<!-- exs/12-pools.atm -->
+
+```
+pin ts = tasks()        ;; a pool of tasks
+print(ts ?? :tasks)     ;; --> true
+```
 
 <!--
 ### Active Values

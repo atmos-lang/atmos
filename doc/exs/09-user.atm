@@ -1,0 +1,6 @@
+val p = :Pos @{         ;; a tagged table:
+    x = 10,             ;; same as @{ ["tag"]="Pos", ["x"]=10, ["y"]=20 }
+    y = 20,
+}
+print(p ?? :table)      ;; --> true
+print(p ?? :Pos)        ;; --> true

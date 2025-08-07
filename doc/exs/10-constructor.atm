@@ -1,3 +1,0 @@
-print <-- #{1,2,3}            ;; a vector
-print <-- :Pos @{x=10,y=20}   ;; a tagged table
-print <-- func (x) { x }      ;; the identify function
