@@ -1,0 +1,5 @@
+func f (x, y) {     ;; function to add arguments
+    x + y
+}
+val g = \{ it + 1 } ;; function to increment argument
+print(g(f(1,2)))    ;; --> 4
