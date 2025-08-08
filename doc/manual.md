@@ -45,7 +45,7 @@
         - `tasks`
 * EXPRESSIONS
     * Program, Sequences and Blocks
-        - `;` `do` `escape` `defer` `test`
+        - `;` `do` `escape` `defer`
     * Declarations and Assignments
         - `val` `var` `set`
     * Tag Enumerations and Tuple Templates
@@ -320,6 +320,42 @@ print(t ?? :T)              ;; --> true
 ## Integration with Lua
 
 `TODO`
+
+### Lua vs Atmos Subtleties
+
+While most differences between Lua and Atmos are clear, some subtleties are
+worth mentioning:
+
+- Statements `return` and `break`:
+    - Lua: `return 10`, `break` (no parenthesis)
+    - Atmos: `return (10)`, `break()` (parenthesis)
+        - Atmos uses the same call syntax with parenthesis in all expressions
+          that resemble statements or calls (`await`, `break`, `emit`,
+          `escape`, `return`, `throw`, `until`, and `while`).
+        - The reason is to enforce an uniform syntax to all expressions.
+        - Some workarounds: `return 'ok'`, `return <- 10`
+- Method call:
+    - Lua: `o:f()` (single colon)
+    - Atmos: `o::f()` (double colon)
+        - The reason is to avoid ambiguity with the syntax of tags:
+            - `f () :x ()` is `f():x()` or `f() ; :x()`?
+- List of expressions:
+    - Lua: `e1,e2,...` (no parenthesis)
+    - Atmos: `(e1,e2,...)` (parenthesis)
+        - A list of expression is an expression in Atmos.
+        - The reason is to simplify the grammar and support lists in other
+          contexts, such as `f <-- (1,2)`.
+- Table constructor:
+    - Lua: { ... } (no `@` prefix)
+    - Atmos: @{ ... } (`@` prefix)
+        - The reason is to avoid ambiguity with blocks and vectors:
+            - `if f { ... }` is `if f{...} ...` or `if (f) { ... }`?
+            - `{...}` is a table or a vector?
+- Operators:
+    - Lua: `~=` `and` `or` `not` `..`
+    - Atmos: `!=`, `&&`, `||`, `!`, `++`
+        - The reason is to avoid identifiers as operators and to use more
+          familiar alternatives.
 
 <!--
 The compiler of Atmos converts an input program into an output in C, which is

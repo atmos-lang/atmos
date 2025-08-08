@@ -45,7 +45,7 @@
         - `tasks`
 - <a href="#expressions">5.</a> EXPRESSIONS
     - <a href="#program-sequences-and-blocks">5.1.</a> Program, Sequences and Blocks
-        - `;` `do` `escape` `drop` `group` `test` `defer`
+        - `;` `do` `escape` `defer`
     - <a href="#declarations-and-assignments">5.2.</a> Declarations and Assignments
         - `val` `var` `set`
     - <a href="#tag-enumerations-and-tuple-templates">5.3.</a> Tag Enumerations and Tuple Templates
@@ -130,9 +130,9 @@ Follows an extended list of functionalities in Atmos:
 - Exception handling (throw & catch)
 - Seamless integration with Lua
 
-Atmos is tightly connected integrated with [Lua][lua]:
-It mimics most of the semantics of Lua with respect to values, types, and
-expressions.
+Atmos is tightly connected with [Lua][lua]:
+It mimics most of the semantics of Lua with respect to values, types,
+declarations, and expressions.
 In addition, it compiles to [Lua][lua] and relies on [lua-atmos][lua-atmos]
 for its concurrency runtime.
 
@@ -192,11 +192,11 @@ par_or {
 }
 ```
 
-The [`par_or`](parallel-blocks) is a structured mechanism that combines tasks
+The [par_or](parallel-blocks) is a structured mechanism that combines tasks
 in nested blocks and rejoins as a whole when one of them terminates,
 automatically aborting the others.
 
-The [`every`](every-block) loop in the second task iterates exactly 9 times
+The [every](every-block) loop in the second task iterates exactly 9 times
 before the first task awakes and terminates the composition.
 For this reason, the second task is aborted before it has the opportunity to
 awake for the 10th time, but its `defer` statement still executes and outputs
@@ -217,9 +217,9 @@ example would always output `10`.
 
 Tasks can communicate through events as follows:
 
-- The [`await`](#awaits) statement suspends a task until it matches an event
+- The [await](#awaits) statement suspends a task until it matches an event
   condition.
-- The [`emit`](#emit) statement broadcasts an event to all awaiting
+- The [emit](#emit) statement broadcasts an event to all awaiting
   tasks.
 
 <img src="bcast.png" align="right"/>
@@ -331,6 +331,44 @@ print(t ?? :T)              ;; --> true
 
 `TODO`
 
+<a name="lua-vs-atmos-subtleties"/>
+
+### 1.3.1. Lua vs Atmos Subtleties
+
+While most differences between Lua and Atmos are clear, some subtleties are
+worth mentioning:
+
+- Statements `return` and `break`:
+    - Lua: `return 10`, `break` (no parenthesis)
+    - Atmos: `return (10)`, `break()` (parenthesis)
+        - Atmos uses the same call syntax with parenthesis in all expressions
+          that resemble statements or calls (`await`, `break`, `emit`,
+          `escape`, `return`, `throw`, `until`, and `while`).
+        - The reason is to enforce an uniform syntax to all expressions.
+        - Some workarounds: `return 'ok'`, `return <- 10`
+- Method call:
+    - Lua: `o:f()` (single colon)
+    - Atmos: `o::f()` (double colon)
+        - The reason is to avoid ambiguity with the syntax of tags:
+            - `f () :x ()` is `f():x()` or `f() ; :x()`?
+- List of expressions:
+    - Lua: `e1,e2,...` (no parenthesis)
+    - Atmos: `(e1,e2,...)` (parenthesis)
+        - A list of expression is an expression in Atmos.
+        - The reason is to simplify the grammar and support lists in other
+          contexts, such as `f <-- (1,2)`.
+- Table constructor:
+    - Lua: { ... } (no `@` prefix)
+    - Atmos: @{ ... } (`@` prefix)
+        - The reason is to avoid ambiguity with blocks and vectors:
+            - `if f { ... }` is `if f{...} ...` or `if (f) { ... }`?
+            - `{...}` is a table or a vector?
+- Operators:
+    - Lua: `~=` `and` `or` `not` `..`
+    - Atmos: `!=`, `&&`, `||`, `!`, `++`
+        - The reason is to avoid identifiers as operators and to use more
+          familiar alternatives.
+
 <!--
 The compiler of Atmos converts an input program into an output in C, which is
 further compiled to a final executable file.
@@ -428,7 +466,7 @@ The following symbols are designated in Atmos:
     :               ;; tag prefix
     ::              ;; method call
     .               ;; field discriminator
-    ...             ;; variable arguments
+    ...             ;; variadic parameters/arguments
 ```
 
 <a name="operators"/>
@@ -478,6 +516,16 @@ Atmos provides literals for all [value types](#TODO):
 
 It also provides literals for [tag](#TODO) and [native](#TODO) expressions,
 which only exist at compile time.
+
+```
+NIL  : nil
+BOOL : true | false
+TAG  : :[A-Za-z0-9\.\-]+      ;; colon + leter/digit/dot/dash
+NUM  : [0-9][0-9A-Za-z\.]*    ;; digit/letter/dot
+CHR  : '.' | '\.'             ;; single/backslashed character
+STR  : ".*"                   ;; string expression
+NAT  : `.*`                   ;; native expression
+```
 
 The literals for `nil`, `boolean` and `number` follow the same
 [lexical conventions of Lua](lua-lexical).
@@ -566,7 +614,7 @@ Atmos differentiates between *value* and *reference* types:
 - Value types are built from the [basic literals](#TODO):
     `nil`, `boolean`, `number`, `string`, and `clock`.
 - Reference types are built from constructors:
-    `function`, `userdata`, thread, `table`, `vector`, `task`, and `tasks`.
+    `function`, `userdata`, `thread`, `table`, `vector`, `task`, and `tasks`.
 
 [lua-types]: https://www.lua.org/manual/5.4/manual.html#2.1
 
@@ -758,57 +806,6 @@ pin ts = tasks()        ;; a pool of tasks
 print(ts ?? :tasks)     ;; --> true
 ```
 
-<!--
-<a name="active-values"/>
-
-### 4.6.1. Active Values
-
-After they suspend, coroutines and tasks retain their execution state and can
-be resumed later from their previous suspension point.
-
-Coroutines and tasks have 4 possible status:
-
-- `yielded`: idle and ready to be resumed
-- `toggled`: ignoring resumes (only for tasks)
-- `resumed`: currently executing
-- `terminated`: terminated and unable to resume
-
-The main difference between coroutines and tasks is how they resume execution:
-
-- A coroutine resumes explicitly from a [resume operation](#resume).
-- A task resumes implicitly from a [broadcast operation](#broadcast).
-
-Like other [dynamic values](#dynamic-values), coroutines and tasks are also
-attached to enclosing [blocks](#block), which may terminate and deallocate all
-of its attached values.
-Nevertheless, before a coroutine or task is deallocated, it is implicitly
-aborted, and all active [defer statements](#defer) execute automatically in
-reverse order.
-
-`TODO: lex`
-
-A task pool groups related active tasks as a collection.
-A task that lives in a pool is lexically attached to the block in which the
-pool is created, such that when the block terminates, all tasks in the pool are
-implicitly terminated.
-
-The operations on [coroutines](#coroutine-operations) and
-[tasks](#tasks-operations) are discussed further.
-
-Examples:
-
-```
-coro C () { <...> }         ;; a coro prototype `C`
-val c = coroutine(C)        ;; is instantiated as `c`
-resume c()                  ;; and resumed explicitly
-
-val ts = tasks()            ;; a task pool `ts`
-task T () { <...> }         ;; a task prototype `T`
-val t = spawn T() in ts     ;; is instantiated as `t` in pool `ts`
-broadcast(:X)               ;; broadcast resumes `t`
-```
--->
-
 <a name="expressions"/>
 
 # 5. EXPRESSIONS
@@ -817,12 +814,8 @@ Atmos is an expression-based language in which all statements are expressions
 that evaluate to a final value.
 Therefore, we use the terms statement and expression interchangeably.
 
-All
-    [identifiers](#identifiers),
-    [literals](#literals),
-    [constructors](#collection-values), and
-    [function constructors](#protoype-values)
-are also valid expressions.
+All [identifiers](#identifiers), [literals](#literals) and
+[constructors](#TODO) are also valid expressions.
 
 <a name="program-sequences-and-blocks"/>
 
@@ -835,31 +828,29 @@ expressions enclosed by braces (`{` and `}`):
 Prog  : { Expr [`;´] }
 Block : `{´ { Expr [`;´] } `}´
 ```
+
 Each expression in a sequence may be separated by an optional semicolon (`;`).
 A sequence of expressions evaluate to its last expression.
 
-<!-- TODO: ; to remove ambiguity -->
+A program collects all command-line arguments into the
+[variadic expression `...`](#TODO).
 
-<!--
-The symbol
-[`...`](#declarations) stores the program arguments
-as a tuple.
--->
+<!-- exs/exp-01-program.atm -->
+
+```
+print(1) ; print(2)     ;; --> 1 \n 2
+print(...)              ;; --> a, b, c
+print(3)                ;; --> 3
+```
 
 <a name="blocks"/>
 
 ### 5.1.1. Blocks
 
-A block delimits a lexical scope for
-[variables](#declarations) and [dynamic values](#dynamic-values):
-A variable is only visible to expressions in the block in which it is declared.
-A dynamic value cannot escape the block in which it is assigned, unless it is
-[dropped](#drop) out.
+A block delimits a lexical scope for [variable declarations](#declarations).
 
-When a block terminates, all memory that is allocated inside it is
-automatically reclaimed.
-This is also valid for active [coroutines and tasks](#active-values), which are
-aborted on termination.
+When a block aborts or terminates, all [defer statements](#TODO) execute, and
+all [pin declarations](#TODO) abort.
 
 Blocks appear in compound statements, such as
 [conditionals](#conditionals-and-pattern-matching),
@@ -876,6 +867,8 @@ The optional [tag](#static-values) identifies the block such that it can match
 
 Examples:
 
+<!-- exs/exp-02-blocks.atm -->
+
 ```
 do {                    ;; block prints :ok and evals to 1
     println(:ok)
@@ -886,98 +879,97 @@ do {
     val a = 1           ;; `a` is only visible in the block
     <...>
 }
-a                       ;; ERROR: `a` is out of scope
+a                       ;; `a` is now a global
 
 do {
-    spawn T()           ;; spawns task T and attaches it to the block
+    pin t = spawn T()   ;; attaches task T to enclosing block
     <...>
-}                       ;; aborts spawned task
+}                       ;; aborts t
 ```
 
 <a name="escape"/>
 
 #### 5.1.1.1. Escape
 
-An `escape` immediatelly terminates the enclosing block matching the given tag:
+An `escape` immediately aborts the deepest enclosing block matching the given
+tag:
 
 ```
-Escape : `escape´ `(´ TAG [`,´ Expr] `)´
+Escape : `escape´ `(´ List(Expr) `)´
 ```
 
-The optional expression, which defaults to `nil`, becomes the final result of
-the terminating block.
+The first argument to escape is the [tag](#TODO) or [tagged table](#TODO) to
+check.
+The whole block being escaped evaluates to the other arguments.
+If there is only a single argument, then the block evaluates to it.
+
+The block tags are checked with the match operator `??`, which also allows to
+compare them with tagged tables.
+
+The program raises an error if no enclosing blocks match the escape expression.
 
 Examples:
+
+<!-- exs/exp-03-escape.atm -->
 
 ```
 val v = do :X {
-    println(1)          ;; --> 1
-    do :Y {
-        escape(:X, 2)
-        println(3)      ;; never executes
+    escape(:X @{x=10})
+    print('never executes')
+}
+print(v.x)  ;; --> 10
+```
+
+```
+val a,b =
+    do :X {
+        do :Y {
+            escape(:X, 'a', 'b')
+        }
     }
-    println(4)          ;; never executes
+print(a, b) ;; --> a, b
+```
+
+```
+do :X {
+    do :Y {
+        escape(:Z)  ;; error: no matching :Z block
+    }
 }
-println(v)              ;; --> 2
 ```
 
-<a name="drop"/>
+<a name="defer"/>
 
-#### 5.1.1.2. Drop
+### 5.1.2. Defer
 
-A `drop` dettaches the given [dynamic value](#dynamic-values) from its current
-holding block:
+A `defer` block executes when its enclosing block terminates or aborts:
 
 ```
-Drop : `drop´ `(´ Expr `)´
+Defer : `defer´ Block
 ```
 
-A dropped value can be reattached to another block in a further assignment.
+Deferred blocks execute in reverse order in which they appear in the source
+code.
 
 Examples:
 
-```
-val u = do {
-    val v = 10
-    drop(v)         ;; --> 10 (innocuous drop)
-}
-```
+<!-- exs/exp-04-defers.atm -->
 
 ```
-val u = do {
-    val t = [10]
-    drop(t)         ;; --> [10] (deattaches from `t`, reattaches to `u`)
-}
+do {
+    print(1)
+    defer {
+        print(2)    ;; last to execute
+    }
+    defer {
+        print(3)
+    }
+    print(4)
+}                   ;; --> 1, 4, 3, 2
 ```
 
-<a name="group"/>
-
-### 5.1.2. Group
-
-A `group` is a nested sequence of expressions:
-
-```
-Group : group Block
-```
-
-Unlike [blocks](#blocks), a group does not create a new scope for variables
-and tasks.
-Therefore, all nested declarations remain active as if they are declared on the
-enclosing block.
-
-Examples:
-
-```
-group {
-    val x = 10
-    val y = x * 2
-}
-println(x, y)       ;; --> 10 20
-```
-
-<a name="test"/>
-
-### 5.1.3. Test
+<!--
+--### Test
 
 A `test` block behaves like a normal block, but is only included in the program
 when compiled with the flag `--test`:
@@ -996,97 +988,63 @@ test {
     assert(add(10,20) == 30)
 }
 ```
-
-<a name="defer"/>
-
-### 5.1.4. Defer
-
-A `defer` block executes only when its enclosing block terminates:
-
-```
-Defer : `defer´ Block
-```
-
-Deferred blocks execute in reverse order in which they appear in the source
-code.
-
-Examples:
-
-```
-do {
-    println(1)
-    defer {
-        println(2)      ;; last to execute
-    }
-    defer {
-        println(3)
-    }
-    println(4)
-}                       ;; --> 1, 4, 3, 2
-```
+-->
 
 <a name="declarations-and-assignments"/>
 
 ## 5.2. Declarations and Assignments
 
-<a name="declarations"/>
+<a name="local-variables"/>
 
-### 5.2.1. Declarations
+### 5.2.1. Local Variables
 
-Variables in Atmos must be declared before use, and are only visible inside the
+Atmos mimics the semantics of [Lua local declarations](lua-locals).
+
+Locals in Atmos must be declared before use, and are only visible inside the
 [block](#blocks) in which they are declared:
 
 ```
-Val : `val´ (ID [TAG] | Patt) [`=´ Expr]    ;; immutable
-Var : `var´ (ID [TAG] | Patt) [`=´ Expr]    ;; mutable
+Local : (`val´ | `var` | `pin`) List(ID) [`=´ Expr]
 ```
 
-A declaration either specifies an identifier with an optional tag, or specifies
-a [tuple pattern](#pattern-matching) for multiple declarations.
-The optional initialization expression assigns an initial value to the
-declaration, which defaults to `nil`.
+A declaration first specifies one of `val`, `var` or `pin` variable modifier.
+A `val` is immutable, while a `var` is mutable.
+A `pin` variable only applies to tasks or pools, which are automatically
+aborted when the enclosing block terminates or aborts.
 
-The difference between `val` and `var` is that a `val` is immutable, while a
-`var` declaration can be modified by further `set` statements.
-Note that the `val` modifier rejects that its name is reassigned, but it does
-not prevent that a holding [dynamic value](#dynamic-values) is internally
-modified (e.g., setting a vector index).
+A declaration may specify a list of identifiers, which supports multiple
+declarations with the same modifier.
 
-Atmos does not support shadowing, i.e., if an identifier is visible, it cannot
-appear in a new variable declaration.
+The optional initialization expression, which may evaluate to multiple values,
+assigns an initial value to the variable(s).
 
-When using an identifier, the optional tag specifies a
-[tuple template](#tag-enumerations-and-tuple-templates), which allows the
-variable to be indexed by field names, instead of numeric positions.
-Note that the variable is not guaranteed to hold a value matching the template.
-The template association is static but with no runtime guarantees.
-
-If the identifier declaration omits the template tag, but the initialization
-expression is a [tag constructor](#collection-values), then the variable
-assumes this tag template, i.e., `val x = :X []` expands to `val x :X = :X []`.
+Note that the `val` immutable modifier rejects re-assignments to its name, but
+does not prevent assignments to fields of [reference types](#TODO).
 
 Examples:
 
+<!-- exs/exp-05-locals.atm -->
+
 ```
 do {
-    val x = 10
-    set x = 20          ;; ERROR: `x´ is immutable
+    val a, b, c = (1, 2, 3)
+    print(a, b, c)      ;; 1, 2, 3
 }
-println(x)              ;; ERROR: `x´ is out of scope
 
-var y = 10
-set y = 20              ;; OK: `y´ is mutable
-println(y)              ;; --> 20
-
-val p1 :Pos = [10,20]   ;; (assumes :Pos has fields [x,y])
-println(p1.x)           ;; --> 10
-
-val p2 = :Pos [10,20]   ;; (assumes :Pos has fields [x,y])
-println(p2.y)           ;; --> 20
-
-val x
 do {
-    val x               ;; `x´ is already declared
+    var x = 10
+    set x = 20
+    print(x)            ;; --> 20
+}
+print(x)                ;; --> nil (`x` is global)
+
+do {
+    pin t = task(T)
+}                       ;; `t` is aborted
+
+do {
+    val y = 10
+    set y = 20          ;; ERROR: `y` is immutable
 }
 ```
 
@@ -1103,6 +1061,8 @@ println(x,y)            ;; --> 2 3
 
 val [10,x] = [20,20]    ;; ERROR: match fails
 ```
+
+[lua-locals]: https://www.lua.org/manual/5.4/manual.html#3.3.7
 
 <a name="prototype-declarations"/>
 
@@ -1329,7 +1289,7 @@ Expr : OP Expr                      ;; unary operation
 Operations are interpreted as function calls, i.e., `x + y` is equivalent to
 `{{+}} (x, y)`.
 
-A call expects an expression of type [`func`](#prototype-values) and an
+A call expects an expression of type [func](#prototype-values) and an
 optional list of expressions as arguments enclosed by parenthesis.
 A call transfers control to the function, which runs to completion and returns
 a value, which substitutes the call.
@@ -1828,7 +1788,7 @@ Examples:
 
 ## 5.6. Conditionals and Pattern Matching
 
-In a conditional context, [`nil`](#static-values) and [`false`](#static-values)
+In a conditional context, [nil](#static-values) and [false](#static-values)
 are interpreted as "falsy", and all other values from all other types as
 "truthy".
 
@@ -2138,7 +2098,7 @@ To signal termination, `f` just needs to return `nil`.
 In this case, the loop as a whole evaluates to `false`.
 
 If the iterator expression is not an iterator tuple, the loop tries to
-transform it by calling [`to.iter`](#type-conversion-library) implicitly, which
+transform it by calling [to.iter](#type-conversion-library) implicitly, which
 creates iterators from iterables, such as vectors and task pools.
 
 Examples:
@@ -2187,7 +2147,7 @@ A `catch` executes its associated block normally, but also registers a
 it.
 If they match, the exception is caught and the `catch` terminates and evaluates
 to exception value, also aborting its associated block, and properly triggering
-nested [`defer`](#defer) statements.
+nested [defer](#defer) statements.
 
 Examples:
 
@@ -2233,13 +2193,13 @@ catch :Err {                          ;; catches generic error
 
 The API for coroutines has the following operations:
 
-- [`coroutine`](#coroutine-create): creates a new coroutine from a prototype
-- [`status`](#coroutine-status): consults the coroutine status
-- [`resume`](#spawn): starts or resumes a coroutine
-- [`yield`](#yield): suspends the resumed coroutine
+- [coroutine](#coroutine-create): creates a new coroutine from a prototype
+- [status](#coroutine-status): consults the coroutine status
+- [resume](#spawn): starts or resumes a coroutine
+- [yield](#yield): suspends the resumed coroutine
 
 <!--
-5. [`abort`](#TODO): `TODO`
+5. [abort](#TODO): `TODO`
 -->
 
 Note that `yield` is the only operation that is called from the coroutine
@@ -2287,8 +2247,8 @@ Create : `coroutine´ `(´ Expr `)´
 ```
 
 The operation `coroutine` expects a coroutine prototype (type
-[`coro`](#execution-units)) and returns its active reference (type
-[`exe-coro`](#execution-units)).
+[coro](#execution-units)) and returns its active reference (type
+[exe-coro](#execution-units)).
 
 Examples:
 
@@ -2349,7 +2309,7 @@ the coroutine return value.
 
 The first resume is like a function call, starting the coroutine from its
 beginning, and passing any number of arguments.
-The subsequent resumes start the coroutine from its last [`yield`](#yield)
+The subsequent resumes start the coroutine from its last [yield](#yield)
 suspension point, passing at most one argument, which substitutes the `yield`.
 If omitted, the argument defaults to `nil`.
 
@@ -2381,7 +2341,7 @@ Eventually, the suspended coroutine is resumed again with a value and the whole
 `yield` is substituted by that value.
 
 <!--
-If the resume came from a [`broadcast`](#broadcast), then the given expression is
+If the resume came from a [broadcast](#broadcast), then the given expression is
 lost.
 -->
 
@@ -2389,7 +2349,7 @@ lost.
 
 ### 5.9.5. Resume/Yield All
 
-The operation `resume-yield-all´ continuously resumes the given active
+The operation `resume-yield-all` continuously resumes the given active
 coroutine, collects its yields, and yields upwards each value, one at a time.
 It is typically used to delegate a job of an outer coroutine transparently to
 an inner coroutine:
@@ -2446,22 +2406,73 @@ val a5 = resume g(a4+1)                 ;; g(11), a5=10
 println(a1, a2, a3, a4, a5)             ;; --> 2, 5, 7, 10, 12
 ```
 
+<!--
+<a name="active-values"/>
+
+### 5.9.6. Active Values
+
+After they suspend, coroutines and tasks retain their execution state and can
+be resumed later from their previous suspension point.
+
+Coroutines and tasks have 4 possible status:
+
+- `yielded`: idle and ready to be resumed
+- `toggled`: ignoring resumes (only for tasks)
+- `resumed`: currently executing
+- `terminated`: terminated and unable to resume
+
+The main difference between coroutines and tasks is how they resume execution:
+
+- A coroutine resumes explicitly from a [resume operation](#resume).
+- A task resumes implicitly from a [broadcast operation](#broadcast).
+
+Like other [dynamic values](#dynamic-values), coroutines and tasks are also
+attached to enclosing [blocks](#block), which may terminate and deallocate all
+of its attached values.
+Nevertheless, before a coroutine or task is deallocated, it is implicitly
+aborted, and all active [defer statements](#defer) execute automatically in
+reverse order.
+
+`TODO: lex`
+
+A task pool groups related active tasks as a collection.
+A task that lives in a pool is lexically attached to the block in which the
+pool is created, such that when the block terminates, all tasks in the pool are
+implicitly terminated.
+
+The operations on [coroutines](#coroutine-operations) and
+[tasks](#tasks-operations) are discussed further.
+
+Examples:
+
+```
+coro C () { <...> }         ;; a coro prototype `C`
+val c = coroutine(C)        ;; is instantiated as `c`
+resume c()                  ;; and resumed explicitly
+
+val ts = tasks()            ;; a task pool `ts`
+task T () { <...> }         ;; a task prototype `T`
+val t = spawn T() in ts     ;; is instantiated as `t` in pool `ts`
+broadcast(:X)               ;; broadcast resumes `t`
+```
+-->
+
 <a name="task-operations"/>
 
 ## 5.10. Task Operations
 
 The API for tasks has the following operations:
 
-- [`spawn`](#spawn): creates and resumes a new task from a prototype
-- [`tasks`](#task-pools): creates a pool of tasks
-- [`status`](#task-status): consults the task status
-- [`pub`](#public-field): exposes the task public field
-- [`await`](#awaits): yields the resumed task until it matches an event
-- [`broadcast`](#broadcast): broadcasts an event to awake all tasks
-- [`toggle`](#toggle): either ignore or accept awakes
+- [spawn](#spawn): creates and resumes a new task from a prototype
+- [tasks](#task-pools): creates a pool of tasks
+- [status](#task-status): consults the task status
+- [pub](#public-field): exposes the task public field
+- [await](#awaits): yields the resumed task until it matches an event
+- [broadcast](#broadcast): broadcasts an event to awake all tasks
+- [toggle](#toggle): either ignore or accept awakes
 
 <!--
-5. [`abort`](#TODO): `TODO`
+5. [abort](#TODO): `TODO`
 -->
 
 Examples:
@@ -3144,7 +3155,7 @@ func to.iter (v :any [,tp :any]) => :Iterator
 ```
 
 `to.iter` receives an iterable `v`, an optional modifier `tp`, and returns a
-corresponding [`:Iterator`](#iterator-loops) tuple.
+corresponding [:Iterator](#iterator-loops) tuple.
 The iterator provides a function that traverses the iterable step by step on
 each call.
 The modifier specifies what kind of value should the iterator return on each
