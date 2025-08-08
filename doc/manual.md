@@ -46,9 +46,13 @@
         - `tasks`
 * EXPRESSIONS
     * Program, Sequences and Blocks
-        - `;` `do` `escape` `defer`
+        - `;` `do`
+        - Defer
+            - `defer`
+        - Escapes
+            - `escape` `return` `break` `until` `while`
     * Declarations and Assignments
-        - `val` `var` `set`
+        - `val` `var` `pin` `set`
     * Tag Enumerations and Tuple Templates
         - `enum` `data`
     * Calls, Operations and Indexing
@@ -352,6 +356,8 @@ worth mentioning:
         - A list of expressions in Atmos is an expression.
         - The reason is to simplify the grammar and to support lists in
           contexts such as `f <-- (1,2)`.
+    - Nevertheless, Atmos does not use parenthesis for variables in the left of
+      declarations and assignments.
 - Table constructor:
     - Lua: `{ ... }` (no `@` prefix)
     - Atmos: `@{ ... }` (`@` prefix)
@@ -844,7 +850,40 @@ do {
 }                       ;; aborts t
 ```
 
-#### Escape
+### Defer
+
+A `defer` block executes when its enclosing block terminates or aborts:
+
+```
+Defer : `defer´ Block
+```
+
+Deferred blocks execute in reverse order in which they appear in the source
+code.
+
+Examples:
+
+<!-- exs/exp-03-defers.atm -->
+
+```
+do {
+    print(1)
+    defer {
+        print(2)    ;; last to execute
+    }
+    defer {
+        print(3)
+    }
+    print(4)
+}                   ;; --> 1, 4, 3, 2
+```
+
+### Escapes
+
+- `escape` `return` `break` `until` `while`
+- may cross ... , but not function bodies
+- bug in dynamic scope
+- abort blocks in the way up
 
 An `escape` immediately aborts the deepest enclosing block matching the given
 tag:
@@ -853,8 +892,8 @@ tag:
 Escape : `escape´ `(´ List(Expr) `)´
 ```
 
-The first argument to escape is the [tag](#TODO) or [tagged table](#TODO) to
-check.
+The first argument to escape is the [tag](#literals) or
+[tagged table](#user-types) to check.
 The whole block being escaped evaluates to the other arguments.
 If there is only a single argument, then the block evaluates to it.
 
@@ -893,33 +932,29 @@ do :X {
 }
 ```
 
-### Defer
+#### Return
 
-A `defer` block executes when its enclosing block terminates or aborts:
+A `return` immediately terminates the enclosing prototype:
 
 ```
-Defer : `defer´ Block
+Return : `return´ `(´ [Expr] `)´
 ```
 
-Deferred blocks execute in reverse order in which they appear in the source
-code.
+The optional expression, which defaults to `nil`, becomes the final result of
+the terminating prototype.
 
 Examples:
 
-<!-- exs/exp-04-defers.atm -->
+```
+func f () {
+    println(1)      ;; --> 1
+    return(2)
+    println(3)      ;; never executes
+}
+println(f())        ;; --> 2
+```
 
-```
-do {
-    print(1)
-    defer {
-        print(2)    ;; last to execute
-    }
-    defer {
-        print(3)
-    }
-    print(4)
-}                   ;; --> 1, 4, 3, 2
-```
+`TODO: move section to escape?`
 
 <!--
 --### Test
@@ -948,6 +983,8 @@ test {
 Atmos mimics the semantics of Lua [global](lua-globals) and [local](lua-locals)
 variables.
 
+In Atmos, a [function declaration](#functions) is a global declaration.
+
 [lua-globals]: https://www.lua.org/manual/5.4/manual.html#2.2
 [lua-locals]: https://www.lua.org/manual/5.4/manual.html#3.3.7
 
@@ -972,9 +1009,8 @@ The optional initialization expression, which may evaluate to multiple values,
 assigns an initial value to the variable(s).
 
 Note that the `val` immutable modifier rejects re-assignments to its name, but
-does not prevent assignments to fields of [reference types](#TODO).
-
-[Function declarations](#functions)
+does not prevent assignments to fields of
+[reference types](#types--constructors).
 
 Examples:
 
@@ -1003,93 +1039,33 @@ do {
 }
 ```
 
-### Function Declarations
+### Set
 
-[Execution unit](#execution-units) [prototypes](#prototype-values) can be
-declared as immutable variables as follows:
-
-```
-Proto : `func´ ID `(´ [List(ID [TAG])] `)´ Block
-      | `coro´ ID `(´ [List(ID [TAG])] `)´ Block
-      | `task´ ID `(´ [List(ID [TAG])] `)´ Block
-```
-
-The expression
+The `set` statement assigns, to the list of locations in the left of `=`, the
+expression in the right of `=`:
 
 ```
-func <id> (...) {
-    ...
-}
-```
-
-expands to
-
-```
-val <id> = func (...) {
-    ...
-}
-```
-
-Examples:
-
-```
-func f (v) {
-    v + 1
-}
-println(f(10))      ;; --> 11
-```
-
-#### Return
-
-A `return` immediately terminates the enclosing prototype:
-
-```
-Return : `return´ `(´ [Expr] `)´
-```
-
-The optional expression, which defaults to `nil`, becomes the final result of
-the terminating prototype.
-
-Examples:
-
-```
-func f () {
-    println(1)      ;; --> 1
-    return(2)
-    println(3)      ;; never executes
-}
-println(f())        ;; --> 2
-```
-
-`TODO: move section to escape?`
-
-### Assignments
-
-The `set` statement assigns the value in the right to the location in the left
-of the symbol `=`:
-
-```
-Set : `set´ Expr `=´ Expr
+Set : `set´ List(Expr) `=´ Expr
 ```
 
 The only valid locations are
-    [mutable variables](#declarations),
+    [mutable `var` variables](#declarations),
     [indexes](#indexes-and-fields), and
-    [public fields](#public-fields).
+    [native expressions](#native-expressions).
 
 Examples:
+
+<!-- exs/exp-06-set.atm -->
 
 ```
 var x
 set x = 20              ;; OK
 
-val y = [10]
-set y = 0               ;; ERROR: cannot reassign `y`
+val y = #{10}
 set y[0] = 20           ;; OK
+set y = 0               ;; ERROR: cannot reassign `y`
 
-task T (v) {
-    set pub = v         ;; OK
-}
+set `z` = 10            ;; OK
 ```
 
 ## Tag Enumerations and Tuple Templates

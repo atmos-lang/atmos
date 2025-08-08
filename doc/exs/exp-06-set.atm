@@ -1,0 +1,8 @@
+var x
+set x = 20              ;; OK
+
+val y = #{10}
+set y[0] = 20           ;; OK
+;;set y = 0               ;; ERROR: cannot reassign `y`
+
+set `z` = 10            ;; OK
