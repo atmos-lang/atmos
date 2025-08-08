@@ -344,7 +344,7 @@ worth mentioning:
         - Atmos uses the same call syntax with parenthesis in all expressions
           that resemble statements or calls (`await`, `break`, `emit`,
           `escape`, `return`, `throw`, `until`, and `while`).
-        - The reason is to enforce an uniform syntax to all expressions.
+        - The reason is to enforce an uniform syntax across all expressions.
         - Some workarounds: `return 'ok'`, `return <- 10`
 - Method call:
     - Lua: `o:f()` (single colon)
@@ -354,20 +354,20 @@ worth mentioning:
 - List of expressions:
     - Lua: `e1,e2,...` (no parenthesis)
     - Atmos: `(e1,e2,...)` (parenthesis)
-        - A list of expression is an expression in Atmos.
-        - The reason is to simplify the grammar and support lists in other
-          contexts, such as `f <-- (1,2)`.
+        - A list of expressions in Atmos is an expression.
+        - The reason is to simplify the grammar and to support lists in
+          contexts such as `f <-- (1,2)`.
 - Table constructor:
-    - Lua: { ... } (no `@` prefix)
-    - Atmos: @{ ... } (`@` prefix)
-        - The reason is to avoid ambiguity with blocks and vectors:
-            - `if f { ... }` is `if f{...} ...` or `if (f) { ... }`?
+    - Lua: `{ ... }` (no `@` prefix)
+    - Atmos: `@{ ... }` (`@` prefix)
+        - The reason is to avoid ambiguity with vectors and blocks:
             - `{...}` is a table or a vector?
+            - `if f { ... }` is `if f{...} ...` or `if (f) { ... }`?
 - Operators:
     - Lua: `~=` `and` `or` `not` `..`
     - Atmos: `!=`, `&&`, `||`, `!`, `++`
-        - The reason is to avoid identifiers as operators and to use more
-          familiar alternatives.
+        - The reason is to avoid identifiers as operators and to use familiar
+          and consistent alternatives.
 
 <!--
 The compiler of Atmos converts an input program into an output in C, which is
@@ -489,8 +489,8 @@ The following operators are supported in Atmos:
 
 ## 3.4. Identifiers
 
-Atmos uses identifiers to refer to [variables](#TODO), [functions](#TODO),
-and [fields](#TODO):
+Atmos uses identifiers to refer to [variables](#declarations-and-assignments),
+[functions](#functions), and [fields](#tables):
 
 A variable identifier starts with a letter or underscore (`_`) and is followed
 by letters, digits, or underscores:
@@ -511,10 +511,10 @@ y10
 
 ## 3.5. Literals
 
-Atmos provides literals for all [value types](#TODO):
+Atmos provides literals for all [value types](#types):
     `nil`, `boolean`, `number`, `string`, and `clock`.
 
-It also provides literals for [tag](#TODO) and [native](#TODO) expressions,
+It also provides literals for [tag](#TODO) and [native](#types--constructors) expressions,
 which only exist at compile time.
 
 ```
@@ -599,6 +599,7 @@ Examples:
 <a name="types-constructors"/>
 
 # 4. TYPES & CONSTRUCTORS
+{#types}
 
 Atmos supports and mimics the semantics of the standard [Lua types](lua-types):
     `nil`, `boolean`, `number`, `string`,
@@ -733,7 +734,7 @@ The function body `<body>` is a [sequence](#TODO) of expressions.
 
 Atmos also supports alternative formats to create functions, as follows:
 
-- Function syntax:
+- Function declarations:
     - `func t.f (<pars>) { <body> }`:
         equivalent to `set t.f = func (<pars>) { <body> }`
     - `func o::f (<pars>) { <body> }`:
@@ -994,11 +995,15 @@ test {
 
 ## 5.2. Declarations and Assignments
 
+Atmos mimics the semantics of Lua [global](lua-globals) and [local](lua-locals)
+variables.
+
+[lua-globals]: https://www.lua.org/manual/5.4/manual.html#2.2
+[lua-locals]: https://www.lua.org/manual/5.4/manual.html#3.3.7
+
 <a name="local-variables"/>
 
 ### 5.2.1. Local Variables
-
-Atmos mimics the semantics of [Lua local declarations](lua-locals).
 
 Locals in Atmos must be declared before use, and are only visible inside the
 [block](#blocks) in which they are declared:
@@ -1020,6 +1025,8 @@ assigns an initial value to the variable(s).
 
 Note that the `val` immutable modifier rejects re-assignments to its name, but
 does not prevent assignments to fields of [reference types](#TODO).
+
+[Function declarations](#functions)
 
 Examples:
 
@@ -1048,25 +1055,9 @@ do {
 }
 ```
 
-A tuple pattern supports multiple variable declarations matching an
-initialization expression.
-The pattern is [assertive](#pattern-matching), raising an error if the match
-fails.
+<a name="function-declarations"/>
 
-Examples:
-
-```
-val [1,x,y] = [1,2,3]
-println(x,y)            ;; --> 2 3
-
-val [10,x] = [20,20]    ;; ERROR: match fails
-```
-
-[lua-locals]: https://www.lua.org/manual/5.4/manual.html#3.3.7
-
-<a name="prototype-declarations"/>
-
-### 5.2.2. Prototype Declarations
+### 5.2.2. Function Declarations
 
 [Execution unit](#execution-units) [prototypes](#prototype-values) can be
 declared as immutable variables as follows:
