@@ -1,0 +1,5 @@
+print <-- (@{} ?? @{})            ;; --> false
+print <-- task(\{}) ?? :task      ;; --> true
+print <-- 10 ?? nil               ;; --> false
+print <-- :X.Y @{} ?? :X          ;; --> true
+

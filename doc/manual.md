@@ -11,12 +11,12 @@
     * Symbols
     * Operators
         - comparison: `==` `!=` `??` `!?`
+        - relational: `>` `<` `>=` `<=`
         - arithmetic: `+` `-` `*` `/` `%`
-        - comparison: `>` `<` `>=` `<=`
         - logical: `!` `||` `&&`
         - membership: `?>` `<?` `!>` `<!`
         - concatenation: `++`
-        - size: `#`
+        - length: `#`
     * Identifiers
         - `[A-Za-z_][A-Za-z0-9_]*`
     * Literals
@@ -46,28 +46,31 @@
         - `tasks`
 * EXPRESSIONS
     * Program, Sequences and Blocks
-        - `;` `do`
+        - `;`
+        - Blocks
+            - `do`
         - Defer
             - `defer`
         - Escapes
             - `escape` `return` `break` `until` `while`
     * Declarations and Assignments
-        - `val` `var` `pin` `set`
-    * Tag Enumerations and Tuple Templates
-        - `enum` `data`
-    * Calls, Operations and Indexing
-        - `-x` `x+y` `f(*)` `-->`
+        - Local Variables
+            - `val` `var` `pin`
+            - Where
+                - `where`
+        - Set
+            - `set`
+    * Operations
+        - Equivalence
+            - `??` `!?`
+        - Membership
+            - `?>` `<?` `!>` `<!`
+        - Concatenation
+            - `++`
+    * Indexing
         - `t[*]` `t.x` `t.pub` `t.(:X)` `t[=]`
-        - `where` `thus`
-    * Standard Operators
-        - length: `#`
-        - equality: `==` `/=` `===` `=/=`
-        - relational: `>` `>=` `<=` `<`
-        - arithmetic: `+` `-` `*` `/`
-        - logical: `and` `or` `not`
-        - equivalence: `is?` `is-not?`
-        - belongs-to: `in?` `in-not?`
-        - vector concatenation: `++` `<++`
+    * Calls
+        - `f(*)` `-->` `->` `<-` `<--`
     * Conditionals and Pattern Matching
         - `if` `ifs`
     * Loop
@@ -468,13 +471,15 @@ The following operators are supported in Atmos:
 
 ```
     ==   !=   ??   !?           ;; comparison
+    >    <    >=   <=           ;; relational
     +    -    *    /    %       ;; arithmetic
-    >    <    >=   <=           ;; comparison
     !    ||   &&                ;; logical
     ?>   <?   !>   <!           ;; membership
     ++                          ;; concatenation
-    #                           ;; size
+    #                           ;; length
 ```
+
+Operators are used in [operation](#operations) expressions.
 
 ## Identifiers
 
@@ -498,7 +503,7 @@ y10
 
 ## Literals
 
-Atmos provides literals for all [value types](#types--constructors):
+Atmos provides literals for all [value types](#types--values):
     `nil`, `boolean`, `number`, `string`, and `clock`.
 
 It also provides literals for [tag](#TODO) and [native](#TODO) expressions,
@@ -581,7 +586,7 @@ Examples:
 ;;;
 ```
 
-# TYPES & CONSTRUCTORS
+# TYPES & VALUES
 
 Atmos supports and mimics the semantics of the standard [Lua types](lua-types):
     `nil`, `boolean`, `number`, `string`,
@@ -783,7 +788,7 @@ that evaluate to a final value.
 Therefore, we use the terms statement and expression interchangeably.
 
 All [identifiers](#identifiers), [literals](#literals) and
-[constructors](#types--constructors) are also valid expressions.
+[values](#types--values) are also valid expressions.
 
 ## Program, Sequences and Blocks
 
@@ -1010,7 +1015,7 @@ assigns an initial value to the variable(s).
 
 Note that the `val` immutable modifier rejects re-assignments to its name, but
 does not prevent assignments to fields of
-[reference types](#types--constructors).
+[reference types](#types--values).
 
 Examples:
 
@@ -1036,6 +1041,38 @@ do {
 do {
     val y = 10
     set y = 20          ;; ERROR: `y` is immutable
+}
+```
+
+#### Where
+
+Any expression can be suffixed by `where` clauses:
+
+`TODO`
+
+```
+Expr : Expr `where´ Decls
+```
+
+A `where` clause executes its suffix block before the prefix expression and is
+allowed to declare variables that can be used by the expression.
+
+A `thus` clause uses the [lambda notation](#lambda-prototype) to pass the
+result of the prefix expression as an argument to execute the suffix block.
+Even though it uses the lambda notation, the clause does not create an extra
+function to execute.
+
+Examples:
+
+```
+val x = (2 * y) where {     ;; x = 20
+    val y = 10
+}
+```
+
+```
+(x * x) thus { \v =>
+    println(v)              ;; --> 400
 }
 ```
 
@@ -1068,113 +1105,103 @@ set y = 0               ;; ERROR: cannot reassign `y`
 set `z` = 10            ;; OK
 ```
 
-## Tag Enumerations and Tuple Templates
+## Operations
 
-[Tags](#hierarchical-tags) are global identifiers that need not to be
-predeclared.
-However, they may be explicitly declared when used as enumerations or tuple
-templates.
+Atmos provides the [operators](#operators) as follows:
 
-### Tag Enumerations
+- comparison: `==` `!=` `??` `!?`
+- relational: `>` `<` `>=` `<=`
+- arithmetic: `+` `-` `*` `/` `%`
+- logical: `!` `||` `&&`
+- membership: `?>` `<?` `!>` `<!`
+- concatenation: `++`
+- length: `#`
 
-An `enum` groups related tags together in sequence:
+Atmos supports and mimics the semantics of standard
+[Lua operators](lua-operators):
+    (`==` `!=`),
+    (`>` `<` `>=` `<=`),
+    (`+` `-` `*` `/` `%`),
+    (`!` `||` `&&`),
+    (`++`), and
+    (`#`).
+Note that some operators have a [different syntax](#lua-vs-atmos-subtleties) in
+Lua.
+
+Next, we decribe the operations that Atmos modifies or introduces:
+    (`??` `!?`), (`?>` `<?` `!>` `<!`) and (`++`).
+
+[lua-operations]: https://www.lua.org/manual/5.4/manual.html#3.4
+
+### Equivalence
+
+The operators `??` and `!?` ("is" and "is not") check the equivalence between
+their operands.
+If any of the following conditions are met, then `a ?? b` is true:
+
+- `a == b`, (e.g., `'x' == 'x'`)
+- `type(a) == b`, (e.g, `10 ?? :number`)
+- `a.tag == b`, (e.g, `:X @{} ?? :X`)
+- `b` is "dot" prefix of `a`, (e.g., `'x.y.z' ?? 'x.y'`)
+
+The operator `!?` is the negation of `??`.
+
+Examples:
+
+<!-- exs/exp-07-equivalence.atm -->
 
 ```
-Enum : `enum´ `{´ List(TAG) `}´
-     | `enum´ TAG `{´ List(ID) `}´
+@{} ?? @{}          ;; --> false
+task(\{}) ?? :task  ;; --> true
+10 ?? nil           ;; --> false
+:X.Y @{} ?? :X      ;; --> true
 ```
 
-The first variation declares the tags in the given list.
-The second variation declares tags by prefixing the identifiers in the list
-with the given tag, separated by a dash (`-`).
+### Membership
 
-Enumerations can be used to interface with external libraries that use
-constants to represent a group of related values (e.g., key symbols).
-Tags in enumerations are guaranteed to form an incrementing sequence of
-numbers, and are supported in [arithmetic](#arithmetic-operators) and
-[relational](#relational-operators) operations.
+```
+func in?     (v :any, vs :any)
+func in-not? (v :any, vs :any)
+```
+
+The operators `in?` and `in-not?` are functions with a special syntax to be
+used as infix operators.
+
+The operator `in?` checks if `v` is part of [collection](#collections) `vs`.
+For tuples and vectors, the values are checked.
+For dictionaries, the indexes are checked.
+
+The operator `in-not?` is the negation of `in?`.
 
 Examples:
 
 ```
-enum { :x, :y, :z }     ;; declares :x, :y, :z in sequence
-println(:z - :x)        ;; --> 2
-println(:x + 1)         ;; --> :y
-println(:y < :z)        ;; --> true
+10 in? [1,10]            ;; true
+20 in? #[1,10]           ;; false
+10 in? @[(1,10)]         ;; false
 ```
 
-```
-enum :Key {
-    Left,               ;; declares :Key-Left (200)
-    Up,                 ;; declares :Key-Up   (201)
-    Right,              ;; ...
-    Down,               ;; ...
-}
-```
-
-### Tuple Templates
-
-A `data` declaration associates a tag with a tuple template, which associates
-tuple positions with field identifiers:
+### Concatenation
 
 ```
-Template : `data´ Data [`{´ { Data } `}´]
-                Data : TAG `=´ `[´ List(ID [TAG]) `]´
+func {{++}}  (v1 :vector, v2 :vector) => :vector
+func {{<++}} (v1 :vector, v2 :vector) => :vector
 ```
 
-After the keyword `data`, a declaration expects a tag followed by `=` and a
-template.
-A template is surrounded by brackets (`[` and `]`) to represent the tuple, and
-includes a list of identifiers, each mapping an index into a field.
-Each field can be followed by a tag to represent nested templates.
-
-A [variable declaration](#declarations) can specify a tuple template and hold a
-tuple that can be accessed by field.
+The operators `++` and `<++` concatenate the given vectors.
+The operator `++` creates and returns a new vector, keeping the received
+vectors unmodified.
+The operator `<++` appends `v2` at the end of `v1`, returning `v1` modified.
 
 Examples:
 
-```
-data :Pos = [x,y]                       ;; a flat template
-val pos :Pos = [10,20]                  ;; pos uses :Pos as template
-println(pos.x, pos.y)                   ;; --> 10, 20
+`TODO`
 
-data :Dim = [w,h]
-data :Rect = [pos :Pos, dim :Dim]       ;; a nested template
-val r1 :Rect = [pos, [100,100]]         ;; r uses :Rect as template
-println(r1.dim, r1.pos.x)               ;; --> [100,100], 10
+## Indexing
 
-val r2 = :Rect [[0,0],[10,10]]          ;; combining tag template/constructor
-println(r2 is? :Rect, r2.dim.h)         ;; --> true, 10
-```
+## Calls
 
-Based on [tags and sub-tags](#user-types), tuple templates can define
-hierarchies and reuse fields from parents.
-A declaration can be followed by a list of sub-templates enclosed by curly
-braces (`{` and `}`), which can nest to at most 4 levels.
-Each nested tag identifier assumes an implicit prefix of its super-tag, e.g.,
-in the context of tag `:X`, a sub-tag `:A` is actually `:X.A`.
-Templates are reused by concatenating a sub-template after its corresponding
-super-templates, e.g., `:X.A [a]` with `:X [x]` becomes `:X.A [x,a]`.
-
-Examples:
-
-```
-data :Event = [ts] {            ;; All events carry a timestamp
-    :Key = [key]                ;; :Event.Key [ts,key] is a sub-type of :Event [ts]
-    :Mouse = [pos :Pos] {       ;; :Event.Mouse [ts, pos :Pos]
-        :Motion = []            ;; :Event.Mouse.Motion [ts, pos :Pos]
-        :Button = [but]         ;; :Event.Mouse.Button [ts, pos :Pos, but]
-    }
-}
-
-val but = :Event.Mouse.Button [0, [10,20], 1]
-val evt :Event = but
-println(evt.ts, but.pos.y)      ;; --> 0, 20
-```
-
-## Calls, Operations and Indexing
-
-### Calls and Operations
+- syntax for statements
 
 In Atmos, calls and operations are equivalent, i.e., an operation is a call that
 uses an [operator](#operatos) with prefix or infix notation:
@@ -1320,37 +1347,6 @@ set stk[+] = 3
 println(stk)            ;; --> #[1, 2, 3]
 ```
 
-### Where and Thus Clauses
-
-Any expression can be suffixed by `where` and `thus` clauses:
-
-```
-Expr : Expr `where´ Block
-     | Expr `thus´ Lambda
-```
-
-A `where` clause executes its suffix block before the prefix expression and is
-allowed to declare variables that can be used by the expression.
-
-A `thus` clause uses the [lambda notation](#lambda-prototype) to pass the
-result of the prefix expression as an argument to execute the suffix block.
-Even though it uses the lambda notation, the clause does not create an extra
-function to execute.
-
-Examples:
-
-```
-val x = (2 * y) where {     ;; x = 20
-    val y = 10
-}
-```
-
-```
-(x * x) thus { \v =>
-    println(v)              ;; --> 400
-}
-```
-
 ### Precedence and Associativity
 
 Operations in Atmos can be combined in expressions with the following precedence
@@ -1390,266 +1386,6 @@ x + 10 - 1      ;; ERROR: requires parenthesis
 - x + y         ;; (-x) + y
 x or y or z     ;; (x or y) or z
 ```
-
-## Standard Operators
-
-Atmos provides a number of standard operators:
-
-- length: `#`
-- equality: `==` `/=` `===` `=/=`
-- relational: `>` `>=` `<=` `<`
-- arithmetic: `+` `-` `*` `/`
-- logical: `and` `or` `not`
-- equivalence: `is?` `is-not?`
-- belongs-to: `in?` `in-not?`
-
-The function signatures that follow describe the operators and use tag
-annotations to describe the parameters and return types.
-However, note that the annotations are not part of the language, and are used
-for documentation purposes only.
-
-### Length Operator
-
-```
-func {{#}} (v :any) => :number
-```
-
-The operator `#` returns the length of the given tuple or vector.
-
-Examples:
-
-```
-val tup = []
-val vec = #[1,2,3]
-println(#tup, #vec)     ;; --> 0 / 3
-```
-
-### Equality Operators
-
-```
-func {{==}} (v1 :any, v2 :any) => :boolean
-func {{/=}} (v1 :any, v2 :any) => :boolean
-```
-
-The operator `==` returns `true` if the values are equal and `false` otherwise.
-The operator `/=` is the negation of `==`.
-
-To be considered equal, first the values must be of the same type.
-In addition, [static values](#static-values) are compared *by value*, while
-[dynamic values](#dynamic-values) and [active values](#active-values) are
-compared *by reference*.
-
-Examples:
-
-```
-1 == 1          ;; --> true
-1 /= 1          ;; --> false
-1 == '1'        ;; --> false
-[1] == [1]      ;; --> false
-```
-
-```
-val t1 = [1]
-val t2 = t1
-t1 == t2        ;; --> true
-```
-
-#### Deep Equality Operators
-
-```
-func {===} (v1 :any, v2 :any) => :boolean
-func {=/=} (v1 :any, v2 :any) => :boolean
-```
-
-The operator `===` returns `true` if the values are deeply equal and `false`
-otherwise.
-The operator `=/=` is the negation of `===`.
-
-Except for [collections](#collections), deep equality behaves the same as
-[equality](#equality-operators).
-To be considered deeply equal, collections must be of the same type, have the
-same [user tags](#user-types), and all indexes and values must be deeply equal.
-
-Examples:
-
-```
-1 === 1                 ;; --> true
-1 =/= 1                 ;; --> false
-1 === '1'               ;; --> false
-#[1] === #[1]           ;; --> true
-@[(:x,1),(:y,2)] =/=
-@[(:y,2),(:x,1)]        ;; --> false
-```
-
-### Relational Operators
-
-```
-func {{>}}  (n1 :number, n2 :number) => :boolean
-func {{>=}} (n1 :number, n2 :number) => :boolean
-func {{<=}} (n1 :number, n2 :number) => :boolean
-func {{<}}  (n1 :number, n2 :number) => :boolean
-```
-
-The operators `>`, `>=`, `<=` and `<` perform the standard relational
-operations of *greater than*, *greater or equal than*, *less than*, and
-*less or equal then*, respectively.
-
-`TODO: tags`
-
-Examples:
-
-```
-1 > 2       ;; --> false
-2 >= 1      ;; --> true
-1 <= 1      ;; --> true
-1 < 2       ;; --> true
-```
-
-### Arithmetic Operators
-
-```
-func {{+}} (n1 :number, n2 :number)   => :number
-func {{-}} (n1 :number [,n2 :number]) => :number
-func {{*}} (n1 :number, n2 :number)   => :number
-func {{/}} (n1 :number, n2 :number)   => :number
-func {{%}} (n1 :number, n2 :number)   => :number
-```
-
-The operators `+`, `-`, `*` and `/` perform the standard arithmetics operations
-of *addition*, *subtraction*, *multiplication*, and *division*, respectively.
-
-The operator `%` performs the *remainder* operation.
-
-The operator `-` is also used as the unary minus when it prefixes an
-expression.
-
-`TODO: tags`
-`TODO: *-*, //`
-
-Examples:
-
-```
-1 + 2       ;; --> 3
-1 - 2       ;; --> -1
-2 * 3       ;; --> 6
-5 / 2       ;; --> 2.5
-5 % 2       ;; --> 1
--20         ;; --> -20
-```
-
-### Logical Operators
-
-```
-func not (v :any) => :boolean
-func and (v1 :any, v2 :any) => :any
-func or  (v1 :any, v2 :any) => :any
-```
-
-The logical operators `not`, `and`, and `or` are functions with a special
-syntax to be used as prefix (`not`) and infix operators (`and`,`or`).
-
-A `not` receives a value `v` and is equivalent to the code as follows:
-
-```
-if v { false } else { true }
-```
-
-The operators `and` and `or` return one of their operands `v1` or `v2`.
-
-An `and` is equivalent to the code as follows:
-
-```
-v1 thus {
-    if it { v2 } else { it }
-}
-```
-
-An `or` is equivalent to the code as follows:
-
-```
-v1 thus {
-    if it { it } else { v2 }
-}
-```
-
-Examples:
-
-```
-not not nil     ;; --> false
-nil or 10       ;; --> 10
-10 and nil      ;; --> nil
-```
-
-### Equivalence Operators
-
-```
-func is?     (v1 :any, v2 :any) => :boolean
-func is-not? (v1 :any, v2 :any) => :boolean
-```
-
-The operators `is?` and `is-not?` are functions with a special syntax to be
-used as infix operators.
-
-The operator `is?` checks if `v1` matches `v2` as follows:
-
-```
-ifs {
-    (v1 === v2)        => true
-    (type(v1) == v2)   => true
-    (type(v2) == :tag) => sup?(v2, tag(v1))
-    else => false
-}
-```
-
-The operator `is-not?` is the negation of `is?`.
-
-Examples:
-
-```
-10 is? :number          ;; --> true
-10 is? nil              ;; --> false
-tag(:X,[]) is? :X       ;; --> true
-```
-
-### Belongs-to Operators
-
-```
-func in?     (v :any, vs :any)
-func in-not? (v :any, vs :any)
-```
-
-The operators `in?` and `in-not?` are functions with a special syntax to be
-used as infix operators.
-
-The operator `in?` checks if `v` is part of [collection](#collections) `vs`.
-For tuples and vectors, the values are checked.
-For dictionaries, the indexes are checked.
-
-The operator `in-not?` is the negation of `in?`.
-
-Examples:
-
-```
-10 in? [1,10]            ;; true
-20 in? #[1,10]           ;; false
-10 in? @[(1,10)]         ;; false
-```
-
-### Vector Concatenation Operators
-
-```
-func {{++}}  (v1 :vector, v2 :vector) => :vector
-func {{<++}} (v1 :vector, v2 :vector) => :vector
-```
-
-The operators `++` and `<++` concatenate the given vectors.
-The operator `++` creates and returns a new vector, keeping the received
-vectors unmodified.
-The operator `<++` appends `v2` at the end of `v1`, returning `v1` modified.
-
-Examples:
-
-`TODO`
 
 ## Conditionals and Pattern Matching
 
