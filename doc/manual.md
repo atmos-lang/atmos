@@ -3,6 +3,7 @@
 * DESIGN
     * Structured Deterministic Concurrency
     * Event Signaling Mechanisms
+    * Hierarchical Tags
     * Integration with Lua
 * EXECUTION
 * LEXICON
@@ -65,7 +66,7 @@
         - vector concatenation: `++` `<++`
     * Conditionals and Pattern Matching
         - `if` `ifs`
-    * Loops and Iterators
+    * Loop
         - `loop` `loop in`
     * Exceptions
         - `error` `catch`
@@ -156,14 +157,14 @@ structure of the source code as hierarchical blocks.
 In this sense, tasks in Atmos are treated in the same way as local variables of
 structured programming:
 When a [block](#blocks) of code terminates or goes out of scope, all of its
-[local variables](#declarations) become inaccessible to enclosing blocks.
-In addition, all of its [pinned tasks](#active-values) are aborted and properly
-finalized by [deferred statements](#defer).
+[local variables](#local-variables) become inaccessible to enclosing blocks.
+In addition, all of its [pinned tasks](#local-variables) are aborted and
+properly finalized by [deferred statements](#defer).
 
-Tasks in Atmos are built on top of [coroutines](#active-values), which adhere
-to a predictable "run-to-completion" semantics:
-Unlike OS threads, coroutines and tasks execute uninterruptedly up to explicit
-[yield](#yield) or [await](#awaits) operations.
+Tasks in Atmos are built on top of [Lua coroutines](#lua-coroutines), which
+adhere to a predictable "run-to-completion" semantics:
+Unlike OS threads, tasks execute uninterruptedly up to explicit [await](#await)
+operations.
 
 The next example illustrates structured concurrency, abortion of tasks, and
 deterministic scheduling.
@@ -207,11 +208,13 @@ how many times we re-execute it.
 Likewise, if the order of the two tasks inside the `par_or` were inverted, the
 example would always output `10`.
 
+[lua-coroutines]: https://www.lua.org/manual/5.4/manual.html#2.6
+
 ## Event Signaling Mechanisms
 
 Tasks can communicate through events as follows:
 
-- The [await](#awaits) statement suspends a task until it matches an event
+- The [await](#await) statement suspends a task until it matches an event
   condition.
 - The [emit](#emit) statement broadcasts an event to all awaiting
   tasks.
@@ -268,7 +271,7 @@ the program, printing `tick A` and `tick B` in this order.
 The last event aborts the `watching` composition and prints `done`, before
 terminating the main body.
 
-### Hierarchical Tags
+## Hierarchical Tags
 
 Tags represent unique human-readable values, and are similar to Lua strings or
 [*symbols* or *atoms*][syms] in other programming languages.
@@ -320,6 +323,10 @@ print(t ?? :T)              ;; --> true
 ## Integration with Lua
 
 `TODO`
+
+- all types, libraries, coroutines, meta mechanisms
+- except syntax for statements
+- mix code, think of alternative syntax with available quotes
 
 ### Lua vs Atmos Subtleties
 
@@ -485,10 +492,10 @@ y10
 
 ## Literals
 
-Atmos provides literals for all [value types](#types):
+Atmos provides literals for all [value types](#types--constructors):
     `nil`, `boolean`, `number`, `string`, and `clock`.
 
-It also provides literals for [tag](#TODO) and [native](#types--constructors) expressions,
+It also provides literals for [tag](#TODO) and [native](#TODO) expressions,
 which only exist at compile time.
 
 ```
@@ -508,7 +515,7 @@ The literal `nil` is the single value of the `nil` type.
 
 The literals `true` and `false` are the only values of the `boolean` type.
 
-A [tag](#TODO) literal starts with a colon (`:`) and is followed by letters,
+A `tag` literal starts with a colon (`:`) and is followed by letters,
 digits, and dots (`.`).
 
 A `string` literal is a sequence of characters enclosed by an odd number
@@ -525,7 +532,7 @@ At runtime, identifiers evaluate to the corresponding variable value.
 Clock literals are interpreted as a table in the format
 `@{h=HH,min=MM,s=SS,ms=sss}`.
 
-A [native](#TODO) literal is a sequence of characters enclosed by an odd number
+A `native` literal is a sequence of characters enclosed by an odd number
 of matching back quotes (`` ` ``).
 Atmos supports multi-line native literals when using multiple quote delimiters.
 Native literals are used in expressions and are interpreted as plain Lua
@@ -569,7 +576,6 @@ Examples:
 ```
 
 # TYPES & CONSTRUCTORS
-{#types}
 
 Atmos supports and mimics the semantics of the standard [Lua types](lua-types):
     `nil`, `boolean`, `number`, `string`,
@@ -582,7 +588,7 @@ special treatment from the language.
 
 Atmos differentiates between *value* and *reference* types:
 
-- Value types are built from the [basic literals](#TODO):
+- Value types are built from the [basic literals](#literals):
     `nil`, `boolean`, `number`, `string`, and `clock`.
 - Reference types are built from constructors:
     `function`, `userdata`, `thread`, `table`, `vector`, `task`, and `tasks`.
@@ -591,7 +597,7 @@ Atmos differentiates between *value* and *reference* types:
 
 ## Clocks
 
-The clock value type represents clock tables in the [format](#TODO)
+The clock value type represents clock tables in the [format](#literals)
 `@{h=HH,min=MM,s=SS,ms=sss}`.
 
 Examples:
@@ -658,7 +664,7 @@ print(t.idx, t["v"], t[2])  ;; --> 10, x, 30
 
 ### User Types
 
-Tables can be associated associated with [tags](#TODO) that represent user
+Tables can be associated associated with [tags](#literals) that represent user
 types.
 
 Examples:
@@ -688,9 +694,10 @@ func (<pars>) {
 ```
 
 The list of parameters `<pars>` is an optional list of
-variable [identifiers](#TODO) with a leading variadic parameter `...`.
-The parameters are immutable as if they were `val` [declarations](#TODO).
-The function body `<body>` is a [sequence](#TODO) of expressions.
+variable [identifiers](#identifiers) with a leading variadic parameter `...`.
+The parameters are immutable as if they were `val`
+[declarations](#local-variables).
+The function body `<body>` is a [sequence](#blocks) of expressions.
 
 Atmos also supports alternative formats to create functions, as follows:
 
@@ -709,7 +716,7 @@ Atmos also supports alternative formats to create functions, as follows:
         equivalent to `\(it) { <body> }`
 
 Note that the lambda notation is also used in
-    [conditionals](#conditionals) and [every statements](#TODO)
+    [conditionals](#conditionals) and [every statements](#every)
 to communicate values across blocks.
 
 Examples:
@@ -730,8 +737,8 @@ print(g(f(1,2)))        ;; --> 4
 
 The task reference type represents [tasks](#TODO).
 
-A task constructor `task(f)` receives a [function](#TODO) and instantiates a
-task.
+A task constructor `task(f)` receives a [function](#functions) and instantiates
+a task.
 
 Examples:
 
@@ -752,7 +759,7 @@ A task pool constructor `tasks([n])` creates a pool that holds at most `n`
 tasks.
 If `n` is omitted, the pool is unbounded.
 
-A task pool must be assigned to a `pin` [declaration](#TODO).
+A task pool must be assigned to a `pin` [declaration](#local-variables).
 
 Examples:
 
@@ -770,7 +777,7 @@ that evaluate to a final value.
 Therefore, we use the terms statement and expression interchangeably.
 
 All [identifiers](#identifiers), [literals](#literals) and
-[constructors](#TODO) are also valid expressions.
+[constructors](#types--constructors) are also valid expressions.
 
 ## Program, Sequences and Blocks
 
@@ -785,8 +792,7 @@ Block : `{´ { Expr [`;´] } `}´
 Each expression in a sequence may be separated by an optional semicolon (`;`).
 A sequence of expressions evaluate to its last expression.
 
-A program collects all command-line arguments into the
-[variadic expression `...`](#TODO).
+A program collects all command-line arguments into variadic [`...`](#TODO).
 
 <!-- exs/exp-01-program.atm -->
 
@@ -798,14 +804,14 @@ print(3)                ;; --> 3
 
 ### Blocks
 
-A block delimits a lexical scope for [variable declarations](#declarations).
+A block delimits a lexical scope for
+[local variable declarations](#local-variables).
 
-When a block aborts or terminates, all [defer statements](#TODO) execute, and
-all [pin declarations](#TODO) abort.
+When a block aborts or terminates, all [defer statements](#defer) execute, and
+all [pin declarations](#local-variables) abort.
 
-Blocks appear in compound statements, such as
-[conditionals](#conditionals-and-pattern-matching),
-[loops](#loops-and-iterators), and many others.
+Blocks appear in compound statements, such as [if](#if), [loop](#loop), and
+many others.
 
 A block can also be created through an explicitly `do`:
 
@@ -813,7 +819,7 @@ A block can also be created through an explicitly `do`:
 Do : `do´ [TAG] Block
 ```
 
-The optional [tag](#static-values) identifies the block such that it can match
+The optional [tag](#literals) identifies the block such that it can match
 [escape](#escape) statements.
 
 Examples:
@@ -1802,7 +1808,7 @@ match [10,20,30,40] {
 Patterns are also used in
     [declarations](#declarations),
     [iterators](#iterators-tuples), and
-    [await statements](#awaits).
+    [await statements](#await).
 In the case of declarations and iterators, the patterns are assertive in the
 sense that they cannot fail, raising an error if the match fails.
 
@@ -1828,7 +1834,7 @@ broadcast(:Pos [10,20])     ;; no match
 broadcast(:Pos [10,10])     ;; ok match
 ```
 
-## Loops and Iterators
+## Loop
 
 Atmos supports loops and iterators as follows:
 
@@ -2322,7 +2328,7 @@ The API for tasks has the following operations:
 - [tasks](#task-pools): creates a pool of tasks
 - [status](#task-status): consults the task status
 - [pub](#public-field): exposes the task public field
-- [await](#awaits): yields the resumed task until it matches an event
+- [await](#await): yields the resumed task until it matches an event
 - [broadcast](#broadcast): broadcasts an event to awake all tasks
 - [toggle](#toggle): either ignore or accept awakes
 
@@ -2466,7 +2472,7 @@ broadcast(nil)
 println(t.pub)      ;; --> 30
 ```
 
-### Awaits
+### Await
 
 The operation `await` suspends the execution of a running task with a given
 [condition pattern](#pattern-matching) or clock timeout:
@@ -2504,9 +2510,9 @@ await e {                       ;; awakes on any event
 }
 ```
 
-### Broadcasts
+### Emit
 
-The operation `broadcast` signals an event to awake [awaiting](#awaits) tasks:
+The operation `broadcast` signals an event to awake [awaiting](#await) tasks:
 
 ```
 Bcast : `broadcast´ `(´ [Expr] `)´ [`in´ Expr]
