@@ -1,0 +1,19 @@
+val v = do :X {
+    escape(:X @{x=10})
+    print('never executes')
+}
+print(v.x)  ;; --> 10
+
+val a,b =
+    do :X {
+        do :Y {
+            escape(:X, 'a', 'b')
+        }
+    }
+print(a, b) ;; --> a, b
+
+do :X {
+    do :Y {
+        escape(:Z)
+    }
+}

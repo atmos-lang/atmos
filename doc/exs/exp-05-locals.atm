@@ -1,0 +1,26 @@
+do {
+    val a, b, c = (1, 2, 3)
+    print(a, b, c)      ;; 1, 2, 3
+}
+
+do {
+    var x = 10
+    set x = 20          ;; OK: `y` is mutable
+    print(x)            ;; --> 20
+}
+print(x)                ;; --> nil (`x` is global)
+
+do {
+    func T () {
+        defer {
+            print 't aborted'
+        }
+        await(false)
+    }
+    pin t = spawn T()
+}                       ;; `t` is aborted
+
+do {
+    val y = 10
+    ;;set y = 20          ;; ERROR: `y` is immutable
+}

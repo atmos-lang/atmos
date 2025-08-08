@@ -1,0 +1,10 @@
+do {
+    print(1)
+    defer {
+        print(2)    ;; last to execute
+    }
+    defer {
+        print(3)
+    }
+    print(4)
+}                   ;; --> 1, 4, 3, 2

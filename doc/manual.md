@@ -128,9 +128,9 @@ Follows an extended list of functionalities in Atmos:
 - Exception handling (throw & catch)
 - Seamless integration with Lua
 
-Atmos is tightly connected integrated with [Lua][lua]:
-It mimics most of the semantics of Lua with respect to values, types, and
-expressions.
+Atmos is tightly connected with [Lua][lua]:
+It mimics most of the semantics of Lua with respect to values, types,
+declarations, and expressions.
 In addition, it compiles to [Lua][lua] and relies on [lua-atmos][lua-atmos]
 for its concurrency runtime.
 
@@ -548,7 +548,7 @@ Atmos differentiates between *value* and *reference* types:
 - Value types are built from the [basic literals](#TODO):
     `nil`, `boolean`, `number`, `string`, and `clock`.
 - Reference types are built from constructors:
-    `function`, `userdata`, thread, `table`, `vector`, `task`, and `tasks`.
+    `function`, `userdata`, `thread`, `table`, `vector`, `task`, and `tasks`.
 
 [lua-types]: https://www.lua.org/manual/5.4/manual.html#2.1
 
@@ -803,80 +803,83 @@ do {
 
 #### Escape
 
-An `escape` immediately aborts the enclosing block matching the given tag:
+An `escape` immediately aborts the deepest enclosing block matching the given
+tag:
 
 ```
-Escape : `escape´ `(´ TAG [`,´ Expr] `)´
+Escape : `escape´ `(´ List(Expr) `)´
 ```
 
-The optional expression, which defaults to `nil`, becomes the final result of
-the terminating block.
+The first argument to escape is the [tag](#TODO) or [tagged table](#TODO) to
+check.
+The whole block being escaped evaluates to the other arguments.
+If there is only a single argument, then the block evaluates to it.
+
+The block tags are checked with the match operator `??`, which also allows to
+compare them with tagged tables.
+
+The program raises an error if no enclosing blocks match the escape expression.
 
 Examples:
+
+<!-- exs/exp-03-escape.atm -->
 
 ```
 val v = do :X {
-    println(1)          ;; --> 1
-    do :Y {
-        escape(:X, 2)
-        println(3)      ;; never executes
+    escape(:X @{x=10})
+    print('never executes')
+}
+print(v.x)  ;; --> 10
+```
+
+```
+val a,b =
+    do :X {
+        do :Y {
+            escape(:X, 'a', 'b')
+        }
     }
-    println(4)          ;; never executes
+print(a, b) ;; --> a, b
+```
+
+```
+do :X {
+    do :Y {
+        escape(:Z)  ;; error: no matching :Z block
+    }
 }
-println(v)              ;; --> 2
 ```
 
-#### Drop
+### Defer
 
-A `drop` dettaches the given [dynamic value](#dynamic-values) from its current
-holding block:
+A `defer` block executes when its enclosing block terminates or aborts:
 
 ```
-Drop : `drop´ `(´ Expr `)´
+Defer : `defer´ Block
 ```
 
-A dropped value can be reattached to another block in a further assignment.
+Deferred blocks execute in reverse order in which they appear in the source
+code.
 
 Examples:
 
-```
-val u = do {
-    val v = 10
-    drop(v)         ;; --> 10 (innocuous drop)
-}
-```
+<!-- exs/exp-04-defers.atm -->
 
 ```
-val u = do {
-    val t = [10]
-    drop(t)         ;; --> [10] (deattaches from `t`, reattaches to `u`)
-}
+do {
+    print(1)
+    defer {
+        print(2)    ;; last to execute
+    }
+    defer {
+        print(3)
+    }
+    print(4)
+}                   ;; --> 1, 4, 3, 2
 ```
 
-### Group
-
-A `group` is a nested sequence of expressions:
-
-```
-Group : group Block
-```
-
-Unlike [blocks](#blocks), a group does not create a new scope for variables
-and tasks.
-Therefore, all nested declarations remain active as if they are declared on the
-enclosing block.
-
-Examples:
-
-```
-group {
-    val x = 10
-    val y = x * 2
-}
-println(x, y)       ;; --> 10 20
-```
-
-### Test
+<!--
+--### Test
 
 A `test` block behaves like a normal block, but is only included in the program
 when compiled with the flag `--test`:
@@ -895,91 +898,59 @@ test {
     assert(add(10,20) == 30)
 }
 ```
-
-### Defer
-
-A `defer` block executes only when its enclosing block terminates:
-
-```
-Defer : `defer´ Block
-```
-
-Deferred blocks execute in reverse order in which they appear in the source
-code.
-
-Examples:
-
-```
-do {
-    println(1)
-    defer {
-        println(2)      ;; last to execute
-    }
-    defer {
-        println(3)
-    }
-    println(4)
-}                       ;; --> 1, 4, 3, 2
-```
+-->
 
 ## Declarations and Assignments
 
-### Declarations
+### Local Variables
 
-Variables in Atmos must be declared before use, and are only visible inside the
+Atmos mimics the semantics of [Lua local declarations](lua-locals).
+
+Locals in Atmos must be declared before use, and are only visible inside the
 [block](#blocks) in which they are declared:
 
 ```
-Val : `val´ (ID [TAG] | Patt) [`=´ Expr]    ;; immutable
-Var : `var´ (ID [TAG] | Patt) [`=´ Expr]    ;; mutable
+Local : (`val´ | `var` | `pin`) List(ID) [`=´ Expr]
 ```
 
-A declaration either specifies an identifier with an optional tag, or specifies
-a [tuple pattern](#pattern-matching) for multiple declarations.
-The optional initialization expression assigns an initial value to the
-declaration, which defaults to `nil`.
+A declaration first specifies one of `val`, `var` or `pin` variable modifier.
+A `val` is immutable, while a `var` is mutable.
+A `pin` variable only applies to tasks or pools, which are automatically
+aborted when the enclosing block terminates or aborts.
 
-The difference between `val` and `var` is that a `val` is immutable, while a
-`var` declaration can be modified by further `set` statements.
-Note that the `val` modifier rejects that its name is reassigned, but it does
-not prevent that a holding [dynamic value](#dynamic-values) is internally
-modified (e.g., setting a vector index).
+A declaration may specify a list of identifiers, which supports multiple
+declarations with the same modifier.
 
-Atmos does not support shadowing, i.e., if an identifier is visible, it cannot
-appear in a new variable declaration.
+The optional initialization expression, which may evaluate to multiple values,
+assigns an initial value to the variable(s).
 
-When using an identifier, the optional tag specifies a
-[tuple template](#tag-enumerations-and-tuple-templates), which allows the
-variable to be indexed by field names, instead of numeric positions.
-Note that the variable is not guaranteed to hold a value matching the template.
-The template association is static but with no runtime guarantees.
-
-If the identifier declaration omits the template tag, but the initialization
-expression is a [tag constructor](#collection-values), then the variable
-assumes this tag template, i.e., `val x = :X []` expands to `val x :X = :X []`.
+Note that the `val` immutable modifier rejects re-assignments to its name, but
+does not prevent assignments to fields of [reference types](#TODO).
 
 Examples:
 
+<!-- exs/exp-05-locals.atm -->
+
 ```
 do {
-    val x = 10
-    set x = 20          ;; ERROR: `x´ is immutable
+    val a, b, c = (1, 2, 3)
+    print(a, b, c)      ;; 1, 2, 3
 }
-println(x)              ;; ERROR: `x´ is out of scope
 
-var y = 10
-set y = 20              ;; OK: `y´ is mutable
-println(y)              ;; --> 20
-
-val p1 :Pos = [10,20]   ;; (assumes :Pos has fields [x,y])
-println(p1.x)           ;; --> 10
-
-val p2 = :Pos [10,20]   ;; (assumes :Pos has fields [x,y])
-println(p2.y)           ;; --> 20
-
-val x
 do {
-    val x               ;; `x´ is already declared
+    var x = 10
+    set x = 20
+    print(x)            ;; --> 20
+}
+print(x)                ;; --> nil (`x` is global)
+
+do {
+    pin t = task(T)
+}                       ;; `t` is aborted
+
+do {
+    val y = 10
+    set y = 20          ;; ERROR: `y` is immutable
 }
 ```
 
@@ -996,6 +967,8 @@ println(x,y)            ;; --> 2 3
 
 val [10,x] = [20,20]    ;; ERROR: match fails
 ```
+
+[lua-locals]: https://www.lua.org/manual/5.4/manual.html#3.3.7
 
 ### Prototype Declarations
 
@@ -2208,7 +2181,7 @@ lost.
 
 ### Resume/Yield All
 
-The operation `resume-yield-all´ continuously resumes the given active
+The operation `resume-yield-all` continuously resumes the given active
 coroutine, collects its yields, and yields upwards each value, one at a time.
 It is typically used to delegate a job of an outer coroutine transparently to
 an inner coroutine:
