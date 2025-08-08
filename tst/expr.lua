@@ -336,6 +336,15 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), 'atm_tag_do(:X, @{})')
 
+    local src = ":X @{} ?? 10"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), '(atm_tag_do(:X, @{}) ?? 10)')
+
     local src = ":X (x)"
     print("Testing...", src)
     init()
@@ -962,6 +971,15 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(tosource(e), "f(g(10))")
+
+    local src = "f <-- 10+10"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "f((10 + 10))")
 
     local src = "spawn T(v) where {v=10}"
     print("Testing...", src)

@@ -193,7 +193,7 @@ function parser_2_suf (pre)
     -- END
     if (e.tag == 'tag') and (check'(' or check'@{' or check'#{') then
         -- (:X) @{...}
-        local t = parser()
+        local t = parser_1_prim()
         local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
         return { tag='call', f=f, es={e,t} }
     elseif check_call_arg() then
@@ -301,7 +301,7 @@ function parser_6_pip (pre)
     elseif accept('<--') then
         -- right to left
         local pre = parser_6_pip()
-        if pre.op and pre.op.str ~= '<--' then
+        if pre.op and pre.op.str == '-->' then
             err(pre.op, "operation error : use parentheses to disambiguate")
         end
         return pipe(e, pre, false)

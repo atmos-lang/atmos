@@ -1967,7 +1967,7 @@ do
     local src = [[
         print(10 ?? :number)
         print(@{} !? :table)
-        print(:x ?? :number)
+        print <-- :x ?? :number
     ]]
     print("Testing...", "is 1")
     local out = atm_test(src)
