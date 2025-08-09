@@ -1169,9 +1169,9 @@ If any of the following conditions are met, then `a ?> b` is true:
 
 The operator `!>` is the negation of `?>`.
 
-<!-- exs/exp-08-membership.atm -->
-
 Examples:
+
+<!-- exs/exp-08-membership.atm -->
 
 ```
 10 ?> #{10,20,30}       ;; true
@@ -1182,19 +1182,40 @@ Examples:
 
 ### Concatenation
 
-```
-func {{++}}  (v1 :vector, v2 :vector) => :vector
-func {{<++}} (v1 :vector, v2 :vector) => :vector
-```
+The operator `++` ("concat") concatenates its operands into a new value.
+The operands must be collections of the same type.
 
-The operators `++` and `<++` concatenate the given vectors.
-The operator `++` creates and returns a new vector, keeping the received
-vectors unmodified.
-The operator `<++` appends `v2` at the end of `v1`, returning `v1` modified.
+Follows the expected result of `a ++ b` for the supported types:
+
+- `string`: string with the characters of `a` followed by the characters of `b`
+            (same as `a .. b` in Lua)
+- `vector`: vector with the values of `a` followed by the values of `b`
+- `table`:  table with the key-values of `a` and `b`, favoring `b` in case of
+            duplicate keys
+- otherwise: vector with values of `iter(a)` and `iter(b)`
+
+For the last case, each value is extracted from an iteration of `iter`, taking
+the *second* return if present, or the first otherwise.
 
 Examples:
 
-`TODO`
+<!-- exs/exp-09-concatenation.atm -->
+
+```
+'abc' ++ 'def'      ;; abcdef
+#{1,2} ++ #{3,4}    ;; #{1,2,3,4}
+@{x=1} ++ @{y=2}    ;; @{x=1, y=2}
+```
+
+```
+func T () { await(false) }
+pin xs = tasks()
+pin ys = tasks()
+val x = spawn [xs] T()
+val y = spawn [ys] T()
+val ts = xs ++ ys           ;; #{x, y}
+print(#ts, y?>ts, 10?>ts)   ;; 2, true, false
+```
 
 ## Indexing
 
