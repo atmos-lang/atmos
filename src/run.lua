@@ -17,6 +17,7 @@ local meta_vector = {
             return v
         else
             assertn(2, type(i)=='number', "invalid index : expected number")
+            assertn(2, i>=0 and i<#vs, "invalid index : out of bounds")
             return vs[i+1]
         end
     end,
@@ -199,9 +200,8 @@ end
 
 local function inext (t, i)
     i = i + 1
-    local v = t[i]
-    if v then
-        return i, v
+    if i < #t then
+        return i, t[i]
     else
         return nil
     end

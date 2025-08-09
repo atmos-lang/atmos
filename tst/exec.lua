@@ -534,19 +534,36 @@ do
         set t[#t] = 20
         set t[0]  = t[0] + 1
         set t[1]  = t[1] + 1
-        set t[2]  = t[2] || 99
+        set t[2]  = 99
         dump(t)
     ]]
-    print("Testing...", "ppp 3")
+    print("Testing...", "ppp 4")
     local out = atm_test(src)
     assertx(out, "#{11, 21, 99}\n")
+
+    local src = [[
+        val t = #{}
+        set t[#t] = 10
+        set t[#t-1] = nil
+        set t[#t] = 10
+        set t[#t] = 20
+        print(t[2])
+    ]]
+    print("Testing...", "ppp 5: error out of bounds")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:6 (throw)
+        ==> invalid index : out of bounds
+    ]])
 
     local src = [[
         val t = #{}
         set t[#t+1] = 10
         dump(t)
     ]]
-    print("Testing...", "ppp 4: error push")
+    print("Testing...", "ppp 6: error push")
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
