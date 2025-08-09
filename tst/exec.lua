@@ -18,21 +18,10 @@ do
 
     local src = [[
         print('a' ++ 'b' ++ 'c')
-        dump(@{x=1} ++ @{y=2} ++ @{z=3})
-        dump(#{1} ++ #{2} ++ #{3})
     ]]
     print("Testing...", "expr 2")
     local out = atm_test(src)
-    assertx(out, "abc\n{x=1, y=2, z=3}\n#{1, 2, 3}\n")
-
---[=[
-    local src = [[
-        dump(tovector(1) ++ tovector(2))
-    ]]
-    print("Testing...", "expr 2")
-    local out = atm_test(src)
-    assertx(out, "#{0, 0, 1}\n")
-]=]
+    assertx(out, "abc\n")
 
     local src = "print(!false)"
     print("Testing...", src)
@@ -399,7 +388,12 @@ do
     local src = "print((#{1})[#{}])"
     print("Testing...", src)
     local out = atm_test(src)
-    assertx(out, "nil\n")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> invalid index : expected number
+    ]])
 
     local src = "print((#{#{1}})[(#{0})[0]][0])"
     print("Testing...", src)
@@ -441,7 +435,7 @@ do
         print(t[0])
         print(#t)
     ]]
-    print("Testing...", src)
+    print("Testing...", "vector 1")
     local out = atm_test(src)
     assertx(out, "0\n10\n1\n")
 
@@ -453,7 +447,7 @@ do
         set t[#t-1] = nil
         print(#t)
     ]]
-    print("Testing...", src)
+    print("Testing...", "vector 2")
     local out = atm_test(src)
     assertx(out, "0\n1\n0\n")
 
@@ -466,7 +460,7 @@ do
         set t[#t-1] = nil
         print(#x)
     ]]
-    print("Testing...", src)
+    print("Testing...", "vector 3")
     local out = atm_test(src)
     assertx(out, "0\n1\n0\n")
 
@@ -478,9 +472,97 @@ do
         set t[#t-1] = nil
         dump(x ++ t ++ #{5,6,7})
     ]]
-    print("Testing...", src)
+    print("Testing...", "vector 4")
     local out = atm_test(src)
     assertx(out, "#{1, 2, 3, 4, 5, 6, 7}\n")
+
+    local src = [[
+        dump(@{x=1} ++ @{y=2} ++ @{z=3})
+        dump(#{1} ++ #{2} ++ #{3})
+    ]]
+    print("Testing...", "expr 2")
+    local out = atm_test(src)
+    assertx(out, "{x=1, y=2, z=3}\n#{1, 2, 3}\n")
+end
+
+-- VECTOR / PPP
+
+do
+    local src = [[
+        val t = #{}
+        set t[#t] = 1
+        set t[#t] = 2
+        set t[#t] = 3
+        print(t[1])
+        dump(t)
+    ]]
+    print("Testing...", "ppp 1")
+    local out = atm_test(src)
+    assertx(out, "2\n#{1, 2, 3}\n")
+
+    local src = [[
+        val t = #{}
+        set t[#t-1] = nil
+        dump(t)
+    ]]
+    print("Testing...", "ppp 2: error pop")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:2 (throw)
+        ==> invalid pop : out of bounds
+    ]])
+
+    local src = [[
+        val t = #{}
+        print(#t)
+        set t[#t] = 10
+        print(#t)
+        set t[#t-1] = nil
+        print(#t)
+    ]]
+    print("Testing...", "ppp 3")
+    local out = atm_test(src)
+    assertx(out, "0\n1\n0\n")
+
+    local src = [[
+        val t = #{}
+        set t[#t] = 10
+        set t[#t-1] = nil
+        set t[#t] = 10
+        set t[#t] = 20
+        set t[0]  = t[0] + 1
+        set t[1]  = t[1] + 1
+        set t[2]  = t[2] || 99
+        dump(t)
+    ]]
+    print("Testing...", "ppp 3")
+    local out = atm_test(src)
+    assertx(out, "#{11, 21, 99}\n")
+
+    local src = [[
+        val t = #{}
+        set t[#t+1] = 10
+        dump(t)
+    ]]
+    print("Testing...", "ppp 4: error push")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:2 (throw)
+        ==> invalid push : out of bounds
+    ]])
+
+--[=[
+    local src = [[
+        dump(tovector(1) ++ tovector(2))
+    ]]
+    print("Testing...", "expr 2")
+    local out = atm_test(src)
+    assertx(out, "#{0, 0, 1}\n")
+]=]
 end
 
 -- CALL / FUNC / RETURN

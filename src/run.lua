@@ -6,11 +6,36 @@ end
 
 -------------------------------------------------------------------------------
 
-atm_vector = {
+local meta_vector = {
+    __index = function (t, i)
+        assertn(2, type(i)=='number', "invalid index : expected number")
+        i = i + 1
+        return rawget(t,'vs')[i]
+    end,
+    __newindex = function (t, i, v)
+        assertn(2, type(i)=='number', "invalid index : expected number")
+        i = i + 1
+        local vs = rawget(t, 'vs')
+        if v == nil then
+            assertn(2, i>0 and i==#vs, "invalid pop : out of bounds")
+        else
+            assertn(2, i>0 and i<=#vs+1, "invalid push : out of bounds")
+        end
+        vs[i] = v
+    end,
     __len = function (t)
-        return rawlen(t) + (t[0]~=nil and 1 or 0)
-    end
+        return #(rawget(t,'vs'))
+    end,
 }
+
+function atm_vector (vs)
+    local ret = {
+        tag = 'vector',
+        vs  = vs,
+    }
+    setmetatable(ret, meta_vector)
+    return ret
+end
 
 function atm_cat (v1, v2)
     local t1 = type(v1)
@@ -20,7 +45,7 @@ function atm_cat (v1, v2)
     if t1 == 'string' then
         return v1 .. v2
     elseif m1 and m2 and m1.__pairs and m2.__pairs then
-        local ret = setmetatable({ tag='vector' }, atm_vector)
+        local ret = atm_vector{}
         for i,x in iter(v1) do
             if x == nil then
                 ret[#ret] = i
@@ -38,7 +63,7 @@ function atm_cat (v1, v2)
         return ret
     elseif t1=='table' and t2=='table' then
         if v1.tag=='vector' and v2.tag=='vector' then
-            local ret = setmetatable({ tag='vector' }, atm_vector)
+            local ret = atm_vector{}
             for i=1, #v1 do
                 ret[#ret] = v1[i-1]
             end

@@ -73,11 +73,7 @@ function coder (e)
         return '{' .. es .. '}'
     elseif e.tag == 'vector' then
         local es = coder_args(e.es)
-        local pre = ''
-        if #es > 0 then
-            pre = '[0]='
-        end
-        return "setmetatable({ tag='vector', " .. pre..es .. "}, atm_vector)"
+        return "atm_vector{ " .. es .. "}"
     elseif e.tag == 'uno' then
         return '('..(OPS.lua[e.op.str] or e.op.str)..' '..coder(e.e)..')'
     elseif e.tag == 'bin' then
