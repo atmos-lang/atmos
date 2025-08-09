@@ -203,7 +203,13 @@ function parser_2_suf (pre)
     -- MID
     elseif accept('[') then
         -- (t) [...]
-        local idx = parser()
+        local idx; do
+            if accept('#') or accept('+') or accept('-') then
+                idx = { tag='str', tk={tag='str',str=TK0.str} }
+            else
+                idx = parser()
+            end
+        end
         accept_err(']')
         ret = { tag='index', t=e, idx=idx }
     elseif accept('.') then

@@ -8,20 +8,33 @@ end
 
 local meta_vector = {
     __index = function (t, i)
-        assertn(2, type(i)=='number', "invalid index : expected number")
-        i = i + 1
-        return rawget(t,'vs')[i]
+        local vs = rawget(t, 'vs')
+        if i == '#' then
+            return vs[#vs]
+        elseif i == '-' then
+            local v = vs[#vs]
+            vs[#vs] = nil
+            return v
+        else
+            assertn(2, type(i)=='number', "invalid index : expected number")
+            return vs[i+1]
+        end
     end,
     __newindex = function (t, i, v)
-        assertn(2, type(i)=='number', "invalid index : expected number")
-        i = i + 1
         local vs = rawget(t, 'vs')
-        if v == nil then
-            assertn(2, i>0 and i==#vs, "invalid pop : out of bounds")
+        if i == '#' then
+            vs[#vs] = v
+        elseif i == '+' then
+            vs[#vs+1] = v
         else
-            assertn(2, i>0 and i<=#vs+1, "invalid push : out of bounds")
+            assertn(2, type(i)=='number', "invalid index : expected number")
+            if v == nil then
+                assertn(2, i>=0 and i==#vs-1, "invalid pop : out of bounds")
+            else
+                assertn(2, i>=0 and i<#vs, "invalid push : out of bounds")
+            end
+            vs[i+1] = v
         end
-        vs[i] = v
     end,
     __len = function (t)
         return #(rawget(t,'vs'))
