@@ -1087,7 +1087,7 @@ Set : `set´ List(Expr) `=´ Expr
 
 The only valid locations are
     [mutable `var` variables](#declarations),
-    [indexes](#indexes-and-fields), and
+    [indexes](#indexing), and
     [native expressions](#native-expressions).
 
 Examples:
@@ -1219,6 +1219,74 @@ print(#ts, y?>ts, 10?>ts)   ;; 2, true, false
 
 ## Indexing
 
+[Collections](#collections) in Atmos are accessed through indexes or fields:
+
+```
+Expr : Expr `[´ Expr `]´        ;; Index
+     | Expr `.´ ID              ;; Field
+     | Expr `.´ `pub´ | `pub´   ;; Pub
+```
+
+An index operation expects a collection and an index enclosed by brackets (`[`
+and `]`).
+For tuples and vectors, the index must be a number.
+For dictionaries, the index can be of any type.
+The operation evaluates to the current value in the given collection index, or
+`nil` if non existent.
+
+A field operation expects a dictionary or a tuple template, a dot separator
+(`.`), and a field identifier.
+If the collection is a dictionary `d`, the field must be a
+[tag literal](#literals) `k` (with the colon prefix `:` omitted), which is
+equivalent to the index operation `v[:k]`.
+If the collection is a [tuple template](#tag-enumerations-and-tuple-templates)
+`t`, the field must be an identifier that maps to a template index `i`, which
+is equivalent to the index operation `t[i]`.
+
+A `pub` operation accesses the public field of an [active task](#active-values)
+and is discussed [further](#task-operations).
+
+Examples:
+
+```
+tup[3]              ;; tuple access by index
+vec[i]              ;; vector access by index
+
+dict[:x]            ;; dict access by index
+dict.x              ;; dict access by field
+
+val t :T            ;; tuple template
+t.x                 ;; tuple access by field
+
+val t = spawn T()
+t.pub               ;; public field of task
+```
+
+### Peek, Push, Pop
+
+The *ppp operators* (peek, push, pop) manipulate vectors as stacks:
+
+```
+Expr : Expr `[´ (`=´|`+´|`-´) `]´
+```
+
+The peek operation `vec[=]` sets or gets the last element of a vector.
+The push operation `vec[+]` adds a new element to the end of a vector.
+The pop  operation `vec[-]` gets and removes the last element of a vector.
+
+Examples:
+
+```
+val stk = #[1,2,3]
+println(stk[=])         ;; --> 3
+set stk[=] = 30
+println(stk)            ;; --> #[1, 2, 30]
+println(stk[-])         ;; --> 30
+println(stk)            ;; --> #[1, 2]
+set stk[+] = 3
+println(stk)            ;; --> #[1, 2, 3]
+```
+
 ## Calls
 
 - syntax for statements
@@ -1278,93 +1346,6 @@ Examples:
 ```
 f <-- 10 -> g   ;; equivalent to `f(g(10))`
 t -> f(10)      ;; equivalent to `f(t,10)`
-```
-
-### Indexes and Fields
-
-[Collections](#collections) in Atmos are accessed through indexes or fields:
-
-```
-Expr : Expr `[´ Expr `]´        ;; Index
-     | Expr `.´ ID              ;; Field
-     | Expr `.´ `pub´ | `pub´   ;; Pub
-```
-
-An index operation expects a collection and an index enclosed by brackets (`[`
-and `]`).
-For tuples and vectors, the index must be a number.
-For dictionaries, the index can be of any type.
-The operation evaluates to the current value in the given collection index, or
-`nil` if non existent.
-
-A field operation expects a dictionary or a tuple template, a dot separator
-(`.`), and a field identifier.
-If the collection is a dictionary `d`, the field must be a
-[tag literal](#literals) `k` (with the colon prefix `:` omitted), which is
-equivalent to the index operation `v[:k]`.
-If the collection is a [tuple template](#tag-enumerations-and-tuple-templates)
-`t`, the field must be an identifier that maps to a template index `i`, which
-is equivalent to the index operation `t[i]`.
-
-A `pub` operation accesses the public field of an [active task](#active-values)
-and is discussed [further](#task-operations).
-
-Examples:
-
-```
-tup[3]              ;; tuple access by index
-vec[i]              ;; vector access by index
-
-dict[:x]            ;; dict access by index
-dict.x              ;; dict access by field
-
-val t :T            ;; tuple template
-t.x                 ;; tuple access by field
-
-val t = spawn T()
-t.pub               ;; public field of task
-```
-
-#### Template Casting
-
-An expression can be suffixed with a tag between parenthesis to cast it into a
-tuple template:
-
-```
-Expr : Expr `.´ `(´ TAG `)´
-```
-
-Examples:
-
-```
-data :Pos = [x,y]
-val p = [10,20]
-println(p.(:Pos).x)     ;; `p` is cast to `:Pos`
-```
-
-#### Peek, Push, Pop
-
-The *ppp operators* (peek, push, pop) manipulate vectors as stacks:
-
-```
-Expr : Expr `[´ (`=´|`+´|`-´) `]´
-```
-
-A peek operation `vec[=]` sets or gets the last element of a vector.
-The push operation `vec[+]` adds a new element to the end of a vector.
-The pop operation `vec[-]` gets and removes the last element of a vector.
-
-Examples:
-
-```
-val stk = #[1,2,3]
-println(stk[=])         ;; --> 3
-set stk[=] = 30
-println(stk)            ;; --> #[1, 2, 30]
-println(stk[-])         ;; --> 30
-println(stk)            ;; --> #[1, 2]
-set stk[+] = 3
-println(stk)            ;; --> #[1, 2, 3]
 ```
 
 ### Precedence and Associativity
@@ -2184,7 +2165,7 @@ Pub : `pub´ | Expr `.´ `pub´
 ```
 
 The variable is accessed internally as `pub`, and externally as a
-[field operation](#indexes-and-fields) `x.pub`, where `x` refers to the task.
+[field operation](#indexing) `x.pub`, where `x` refers to the task.
 
 When the task terminates, the public field assumes the final task value.
 
