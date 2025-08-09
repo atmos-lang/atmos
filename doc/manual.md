@@ -629,6 +629,9 @@ The vector reference type represents tables with numerical indexes starting at
 A vector constructor `#{ * }` receives a list of expressions `*` and assigns
 each expression to incrementing indexes starting at `0`.
 
+`TODO: out of bounds errors`
+`TODO: length`
+
 Examples:
 
 <!-- exs/07-vectors.atm -->
@@ -1117,6 +1120,14 @@ Atmos provides the [operators](#operators) as follows:
 - concatenation: `++`
 - length: `#`
 
+Unary operators (`-`, `!` and `#`) use prefix notation, while binary operators
+(all others, including binary `-`) use infix notation:
+
+```
+Expr : OP Expr          ;; unary operation
+     | Expr OP Expr     ;; binary operation
+```
+
 Atmos supports and mimics the semantics of standard
 [Lua operators](lua-operators):
     (`==` `!=`),
@@ -1219,50 +1230,41 @@ print(#ts, y?>ts, 10?>ts)   ;; 2, true, false
 
 ## Indexing
 
-[Collections](#collections) in Atmos are accessed through indexes or fields:
+Atmos uses brackets (`[` and `]`) or a dot (`.`) to index [tables](#tables) and
+[vectors](#vectors):
 
 ```
-Expr : Expr `[´ Expr `]´        ;; Index
-     | Expr `.´ ID              ;; Field
-     | Expr `.´ `pub´ | `pub´   ;; Pub
+Expr : Expr `[´ Expr `]´
+     | Expr `.´ ID
 ```
 
-An index operation expects a collection and an index enclosed by brackets (`[`
-and `]`).
-For tuples and vectors, the index must be a number.
-For dictionaries, the index can be of any type.
-The operation evaluates to the current value in the given collection index, or
-`nil` if non existent.
+The dot notation only applies to tables and is a syntactic sugar to index
+string keys: `t.x` expands to `t["x"]`.
 
-A field operation expects a dictionary or a tuple template, a dot separator
-(`.`), and a field identifier.
-If the collection is a dictionary `d`, the field must be a
-[tag literal](#literals) `k` (with the colon prefix `:` omitted), which is
-equivalent to the index operation `v[:k]`.
-If the collection is a [tuple template](#tag-enumerations-and-tuple-templates)
-`t`, the field must be an identifier that maps to a template index `i`, which
-is equivalent to the index operation `t[i]`.
-
-A `pub` operation accesses the public field of an [active task](#active-values)
-and is discussed [further](#task-operations).
+Atmos mimics the semantics of [Lua indexing](lua-indexing) for tables.
+For vectors, the index must be in the range `[0,#[` for reading, and `[0,#]`
+for writing, where `#` is its length.
 
 Examples:
 
 <!-- exs/exp-10-indexing.atm -->
 
 ```
-tup[3]              ;; tuple access by index
-vec[i]              ;; vector access by index
+val t = @{ x=1 }
+print(t['x'])       ;; --> 1
+print(t[:x])        ;; --> 1
+print(t.x)          ;; --> 1
+print(t.y)          ;; --> nil
 
-dict[:x]            ;; dict access by index
-dict.x              ;; dict access by field
-
-val t :T            ;; tuple template
-t.x                 ;; tuple access by field
-
-val t = spawn T()
-t.pub               ;; public field of task
+val v = #{ 1 }
+set v[0] = 10       ;; #{ 10 }
+set v[#v] = 20      ;; #{ 10, 20 }
+print(v[0])         ;; --> 10
+print(v[#v-1])      ;; --> 20
+print(v[#v])        ;; ERR: out of bounds
 ```
+
+[lua-indexing]: https://www.lua.org/manual/5.4/manual.html#3.2
 
 ### Peek, Push, Pop
 
