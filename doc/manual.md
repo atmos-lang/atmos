@@ -1354,36 +1354,45 @@ f <-- 10 -> g   ;; equivalent to `f(g(10))`
 t -> f(10)      ;; equivalent to `f(t,10)`
 ```
 
-### Precedence and Associativity
+### Parenthesis
 
-Operations in Atmos can be combined in expressions with the following precedence
-priority (from higher to lower):
-
-1. suffix (left associative)
-    - call:         `f()` `{{op}}()`
-    - index:        `t[i]` `t[=]` `t[+]` `t[-]`
-    - field:        `t.x` `t.pub` `t.(:T)`
-2. inner (left associative)
-    - single pipe:  `v->f` `f<-v`
-2. prefix (right associative)
-    - unary:        `not v` `#t` `-x`
-    - constructor:  `:T []` (see [Collection Values](#collection-values))
-3. infix (left associative)
-    - binary        `x*y` `r++s` `a or b`
-4. outer operations (left associative)
-    - double pipe:  `v-->f` `f<--v`
-    - where:        `v where {...}`
-    - thus:         `v thus {...}`
-
-All operations are left associative, except prefix operations, which are right
-associative.
-Note that all binary operators have the same precedence.
-Therefore, expressions with different operators but with the same precedence
-require parenthesis for disambiguation:
+`TODO: list, disambiguate`
 
 ```
 Expr : `(´ Expr `)´
 ```
+
+### Precedence and Associativity
+
+Operations in Atmos can be combined in expressions with the following
+precedence priority (from higher to lower):
+
+1. primary:
+    - literal:      `nil` `true` `...` `:X` `'x'` `@.x` (etc)
+    - identifier:   `x`
+    - constructor:  `#{}` `@{}` `\{}`
+    - command:      `do` `set` `if` `await` (etc)
+    - declaration:  `func` `val` (etc)
+    - parenthesis:  `()`
+2. suffix:
+    - call:         `f()` `o::m()` `f ""` `f @{}` `f #{}`
+    - index:        `t[]`
+    - field:        `t.x`
+    - tag:          `:X()` `:X @{}`
+3. inner pipe:
+    - single pipe:  `v->f` `f<-v`
+4. prefix:
+    - unary:        `-x` `!v` `#t`
+5. infix:
+    - binary        `x*y` `r++s` `a or b`
+6. outer pipe:
+    - double pipe:  `v-->f` `f<--v`
+7. outer where:
+    - where:        `v where {...}`
+
+Prefix operations are right associative, all others are left associative.
+Note that all binary operators at the same level have the same precedence.
+Therefore, operators at the same level require parenthesis for disambiguation.
 
 Examples:
 

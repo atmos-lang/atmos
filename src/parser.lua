@@ -150,7 +150,7 @@ end
 
 -------------------------------------------------------------------------------
 
--- 7_out : v where {...}    v thus {...}
+-- 7_out : v where {...}
 -- 6_pip : v --> f     f <-- v
 -- 5_bin : a + b
 -- 4_pre : -a
@@ -191,7 +191,7 @@ function parser_2_suf (pre)
     local ret
 
     -- END
-    if (e.tag == 'tag') and (check'(' or check'@{' or check'#{') then
+    if (e.tag == 'tag') and (check'(' or check'@{') then
         -- (:X) @{...}
         local t = parser_1_prim()
         local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
