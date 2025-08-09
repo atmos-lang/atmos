@@ -1999,9 +1999,9 @@ do
     local src = [[
         val t = @{1,2,3}
         print(2 ?> t)
-        print(t <? 4)
+        print(4 ?> t)
         print(2 !> t)
-        print(t <! 4)
+        print(4 !> t)
     ]]
     print("Testing...", "in 1")
     local out = atm_test(src)

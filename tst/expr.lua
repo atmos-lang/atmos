@@ -517,14 +517,14 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "(a ?> b)")
 
-    local src = "(a !? b) || (a <? b) || (a !> b) || (a <! b)"
+    local src = "(a !? b) || (a ?> b) || (a !> b)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "((((a !? b) || (a <? b)) || (a !> b)) || (a <! b))")
+    assertx(tosource(e), "(((a !? b) || (a ?> b)) || (a !> b))")
 end
 
 -- CALL / FUNC / RETURN / THROW

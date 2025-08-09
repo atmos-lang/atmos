@@ -92,14 +92,12 @@ do
     local ok, msg = pcall(LEX)
     assert(not ok and msg=="anon : line 1 : near '!!' : invalid operator")
 
-    local src = "!> ?? <? <! !? ?>"
+    local src = "!> ?? !? ?>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     assert(LEX().str == '!>')
     assert(LEX().str == '??')
-    assert(LEX().str == '<?')
-    assert(LEX().str == '<!')
     assert(LEX().str == '!?')
     assert(LEX().str == '?>')
     assert(LEX().tag == 'eof')

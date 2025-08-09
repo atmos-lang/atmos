@@ -91,10 +91,6 @@ function coder (e)
             return "atm_in(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '!>' then
             return "(not atm_in(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
-        elseif e.op.str == '<?' then
-            return "atm_in(" .. coder(e.e2) .. ',' .. coder(e.e1) .. ')'
-        elseif e.op.str == '<!' then
-            return "(not atm_in(" .. coder(e.e2) .. ',' .. coder(e.e1) .. '))'
         else
             return '('..coder(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder(e.e2)..')'
         end
