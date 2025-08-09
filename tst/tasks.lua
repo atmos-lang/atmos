@@ -3163,6 +3163,19 @@ do
     print("Testing...", "tasks 23: awake t.up.up")
     local out = atm_test(src)
     assertx(out, "ok\n")
+
+    local src = [[
+        func T () { await(false) }
+        pin xs = tasks()
+        pin ys = tasks()
+        val x = spawn [xs] T()
+        val y = spawn [ys] T()
+        val ts = xs ++ ys
+        print(#(xs ++ ys), x?>ts, y?>ts, 10?>ts)
+    ]]
+    print("Testing...", "tasks 24: ++")
+    local out = atm_test(src)
+    assertx(out, "2\ttrue\ttrue\tfalse\n")
 end
 
 print '--- EVERY ---'

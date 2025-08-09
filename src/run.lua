@@ -15,31 +15,49 @@ atm_vector = {
 function atm_cat (v1, v2)
     local t1 = type(v1)
     local t2 = type(v2)
-    assertn(2, t1==t2, 'invalid ++ : incompatible types', 2)
+    local m1 = getmetatable(v1)
+    local m2 = getmetatable(v2)
     if t1 == 'string' then
         return v1 .. v2
-    elseif t1 ~= 'table' then
-        error('invalid ++ : unsupported type', 2)
-    elseif t2 ~= 'table' then
-        error('invalid ++ : unsupported type', 2)
-    elseif v1.tag=='vector' and v2.tag=='vector' then
+    elseif m1 and m2 and m1.__pairs and m2.__pairs then
         local ret = setmetatable({ tag='vector' }, atm_vector)
-        for i=1, #v1 do
-            ret[#ret] = v1[i-1]
+        for i,x in iter(v1) do
+            if x == nil then
+                ret[#ret] = i
+            else
+                ret[#ret] = x
+            end
         end
-        for i=1, #v2 do
-            ret[#ret] = v2[i-1]
+        for i,x in iter(v2) do
+            if x == nil then
+                ret[#ret] = i
+            else
+                ret[#ret] = x
+            end
         end
         return ret
+    elseif t1=='table' and t2=='table' then
+        if v1.tag=='vector' and v2.tag=='vector' then
+            local ret = setmetatable({ tag='vector' }, atm_vector)
+            for i=1, #v1 do
+                ret[#ret] = v1[i-1]
+            end
+            for i=1, #v2 do
+                ret[#ret] = v2[i-1]
+            end
+            return ret
+        else
+            local ret = {}
+            for k,x in pairs(v1) do
+                ret[k] = x
+            end
+            for k,x in pairs(v2) do
+                ret[k] = x
+            end
+            return ret
+        end
     else
-        local ret = {}
-        for k,x in pairs(v1) do
-            ret[k] = x
-        end
-        for k,x in pairs(v2) do
-            ret[k] = x
-        end
-        return ret
+        error('invalid ++ : unsupported type', 2)
     end
 end
 

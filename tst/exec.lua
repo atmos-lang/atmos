@@ -25,6 +25,15 @@ do
     local out = atm_test(src)
     assertx(out, "abc\n{x=1, y=2, z=3}\n#{1, 2, 3}\n")
 
+--[=[
+    local src = [[
+        dump(tovector(1) ++ tovector(2))
+    ]]
+    print("Testing...", "expr 2")
+    local out = atm_test(src)
+    assertx(out, "#{0, 0, 1}\n")
+]=]
+
     local src = "print(!false)"
     print("Testing...", src)
     local out = atm_test(src)
