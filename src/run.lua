@@ -44,25 +44,24 @@ function atm_cat (v1, v2)
 end
 
 function atm_in (v, t)
-    if type(t)=='table' and t[v] then
-        if t[v] then
-            return true
-        else
-            for _,x in pairs(t) do
-                if v == x then
+    if type(t) == 'table' then
+        if t.tag == 'vector' then
+            for i=0, #t-1 do
+                if t[i] == v then
                     return true
                 end
             end
             return false
+        elseif t[v] ~= nil then
+            return true
         end
-    else
-        for x in iter(t) do
-            if x == v then
-                return true
-            end
-        end
-        return false
     end
+    for x,y in iter(t) do
+        if x==v or y==v then
+            return true
+        end
+    end
+    return false
 end
 
 -------------------------------------------------------------------------------
@@ -167,12 +166,14 @@ function iter (t)
         return t
     elseif type(t) == 'number' then
         return fi, t, -1
-    elseif _is_(t, 'tasks') then
-        return getmetatable(t).__pairs(t)
-    elseif _is_(t, 'vector') then
-        return inext, t, -1
     elseif type(t) == 'table' then
-        return next, t, nil
+        if t.tag == 'vector' then
+            return inext, t, -1
+        elseif _is_(t, 'tasks') then
+            return getmetatable(t).__pairs(t)
+        else
+            return next, t, nil
+        end
     else
         error("TODO - iter(t)")
     end
