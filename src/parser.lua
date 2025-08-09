@@ -204,7 +204,7 @@ function parser_2_suf (pre)
     elseif accept('[') then
         -- (t) [...]
         local idx; do
-            if accept('#') or accept('+') or accept('-') then
+            if accept('=') or accept('+') or accept('-') then
                 idx = { tag='str', tk={tag='str',str=TK0.str} }
             else
                 idx = parser()

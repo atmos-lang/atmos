@@ -555,6 +555,20 @@ do
         ==> invalid push : out of bounds
     ]])
 
+    local src = [[
+        val stk = #{1,2,3}
+        print(stk[=])       ;; --> 3
+        set stk[=] = 30
+        dump(stk)           ;; --> #[1, 2, 30]
+        print(stk[-])       ;; --> 30
+        dump(stk)           ;; --> #[1, 2]
+        set stk[+] = 3
+        dump(stk)           ;; --> #[1, 2, 3]
+    ]]
+    print("Testing...", "ppp 5")
+    local out = atm_test(src)
+    assertx(out, "3\n#{1, 2, 30}\n30\n#{1, 2}\n#{1, 2, 3}\n")
+
 --[=[
     local src = [[
         dump(tovector(1) ++ tovector(2))

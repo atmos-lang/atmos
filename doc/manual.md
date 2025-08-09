@@ -1248,6 +1248,8 @@ and is discussed [further](#task-operations).
 
 Examples:
 
+<!-- exs/exp-10-indexing.atm -->
+
 ```
 tup[3]              ;; tuple access by index
 vec[i]              ;; vector access by index
@@ -1276,15 +1278,17 @@ The pop  operation `vec[-]` gets and removes the last element of a vector.
 
 Examples:
 
+<!-- exs/exp-11-ppp.atm -->
+
 ```
-val stk = #[1,2,3]
-println(stk[=])         ;; --> 3
+val stk = #{1,2,3}
+print(stk[=])         ;; --> 3
 set stk[=] = 30
-println(stk)            ;; --> #[1, 2, 30]
-println(stk[-])         ;; --> 30
-println(stk)            ;; --> #[1, 2]
+print(stk)            ;; --> #{1, 2, 30}
+print(stk[-])         ;; --> 30
+print(stk)            ;; --> #{1, 2}
 set stk[+] = 3
-println(stk)            ;; --> #[1, 2, 3]
+print(stk)            ;; --> #{1, 2, 3}
 ```
 
 ## Calls

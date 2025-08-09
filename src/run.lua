@@ -9,7 +9,7 @@ end
 local meta_vector = {
     __index = function (t, i)
         local vs = rawget(t, 'vs')
-        if i == '#' then
+        if i == '=' then
             return vs[#vs]
         elseif i == '-' then
             local v = vs[#vs]
@@ -22,7 +22,7 @@ local meta_vector = {
     end,
     __newindex = function (t, i, v)
         local vs = rawget(t, 'vs')
-        if i == '#' then
+        if i == '=' then
             vs[#vs] = v
         elseif i == '+' then
             vs[#vs+1] = v
@@ -31,7 +31,7 @@ local meta_vector = {
             if v == nil then
                 assertn(2, i>=0 and i==#vs-1, "invalid pop : out of bounds")
             else
-                assertn(2, i>=0 and i<#vs, "invalid push : out of bounds")
+                assertn(2, i>=0 and i<=#vs, "invalid push : out of bounds")
             end
             vs[i+1] = v
         end
