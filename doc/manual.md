@@ -14,7 +14,7 @@
         - relational: `>` `<` `>=` `<=`
         - arithmetic: `+` `-` `*` `/` `%`
         - logical: `!` `||` `&&`
-        - membership: `?>` `<?` `!>` `<!`
+        - membership: `?>` `!>`
         - concatenation: `++`
         - length: `#`
     * Identifiers
@@ -64,7 +64,7 @@
         - Equivalence
             - `??` `!?`
         - Membership
-            - `?>` `<?` `!>` `<!`
+            - `?>` `!>`
         - Concatenation
             - `++`
     * Indexing
@@ -474,7 +474,7 @@ The following operators are supported in Atmos:
     >    <    >=   <=           ;; relational
     +    -    *    /    %       ;; arithmetic
     !    ||   &&                ;; logical
-    ?>   <?   !>   <!           ;; membership
+    ?>   !>                     ;; membership
     ++                          ;; concatenation
     #                           ;; length
 ```
@@ -1113,7 +1113,7 @@ Atmos provides the [operators](#operators) as follows:
 - relational: `>` `<` `>=` `<=`
 - arithmetic: `+` `-` `*` `/` `%`
 - logical: `!` `||` `&&`
-- membership: `?>` `<?` `!>` `<!`
+- membership: `?>` `!>`
 - concatenation: `++`
 - length: `#`
 
@@ -1129,7 +1129,7 @@ Note that some operators have a [different syntax](#lua-vs-atmos-subtleties) in
 Lua.
 
 Next, we decribe the operations that Atmos modifies or introduces:
-    (`??` `!?`), (`?>` `<?` `!>` `<!`) and (`++`).
+    (`??` `!?`), (`?>` `!>`) and (`++`).
 
 [lua-operations]: https://www.lua.org/manual/5.4/manual.html#3.4
 
@@ -1159,26 +1159,25 @@ task(\{}) ?? :task  ;; --> true
 
 ### Membership
 
-```
-func in?     (v :any, vs :any)
-func in-not? (v :any, vs :any)
-```
+The operators `?>` and `!>` ("in" and "not in") check the membership of the
+left operand in the right operand.
+If any of the following conditions are met, then `a ?> b` is true:
 
-The operators `in?` and `in-not?` are functions with a special syntax to be
-used as infix operators.
+- `b` is a [vector](#vectors) and `a` is equal to any of its values
+- `b` is a [table](#tables) and `a` is equal to any of its keys or values
+- `a` is equal to any of the results of `iter(b)`
 
-The operator `in?` checks if `v` is part of [collection](#collections) `vs`.
-For tuples and vectors, the values are checked.
-For dictionaries, the indexes are checked.
+The operator `!>` is the negation of `?>`.
 
-The operator `in-not?` is the negation of `in?`.
+<!-- exs/exp-08-membership.atm -->
 
 Examples:
 
 ```
-10 in? [1,10]            ;; true
-20 in? #[1,10]           ;; false
-10 in? @[(1,10)]         ;; false
+10 ?> #{10,20,30}       ;; true
+ 1 ?> #{10,20,30}       ;; false
+10 ?> @{10,20,30}       ;; true
+ 1 ?> @{10,20,30}       ;; true
 ```
 
 ### Concatenation
