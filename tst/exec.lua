@@ -359,9 +359,17 @@ do
         set x, y = (y, (x, z))
         print(x, y, z)
     ]]
-    print("Testing...", "set 1: multi")
+    print("Testing...", "set 2: multi")
     local out = atm_test(src)
     assert(out == "20\t10\tnil\n")
+
+    local src = [[
+        val x, y, z = ((10, 20))
+        print(x, y, z)
+    ]]
+    print("Testing...", "set 3: multi")
+    local out = atm_test(src)
+    assertx(out, "10\tnil\tnil\n")
 end
 
 -- TABLE / INDEX / VECTOR

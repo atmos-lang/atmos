@@ -117,7 +117,11 @@ function coder (e)
         end
         return f
     elseif e.tag == 'parens' then
-        return L(e.tk) .. '(' .. coder(e.e) .. ')'
+        local s = coder(e.e)
+        if e.e.tag == 'es' then
+            s = "(function () return " .. s .. " end)()"
+        end
+        return L(e.tk) .. '(' .. s .. ')'
     elseif e.tag == 'es' then
         return coder_args(e.es)
 
