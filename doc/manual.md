@@ -24,16 +24,16 @@
     * Comments
         - `;; *` `;;; * ;;;`
 * TYPES & VALUES
-    * Clocks
-    * Vectors
+    * Clock
+    * Vector
         - `#{ * }`
-    * Tables
+    * Table
         - `@{ * }` `:X @{ * }`
-    * Functions
+    * Function
         - `func (*) { * }` `\(*) { * }`
-    * Tasks
+    * Task
         - `task`
-    * Task Pools
+    * Task Pool
         - `tasks`
 * EXPRESSIONS
     * Program, Sequences and Blocks
@@ -586,14 +586,14 @@ Atmos differentiates between *value* and *reference* types:
 
 [lua-types]: https://www.lua.org/manual/5.4/manual.html#2.1
 
-## Clocks
+## Clock
 
 The clock value type represents clock tables in the [format](#literals)
 `@{h=HH,min=MM,s=SS,ms=sss}`.
 
 Examples:
 
-<!-- exs/06-clocks.atm -->
+<!-- exs/val-01-clock.atm -->
 
 ```
 val clk = @1:15:40.2    ;; a clock declaration
@@ -601,21 +601,24 @@ print(clk.s)            ;; --> 40
 print(clk ?? :clock)    ;; --> true
 ```
 
-## Vectors
+## Vector
 
 The vector reference type represents tables with numerical indexes starting at
 `0`.
 
-A vector constructor `#{ * }` receives a list `*` of comma-separated
-expressions and assigns each expression to incrementing indexes starting at
-`0`.
+A vector constructor `#{ * }` receives a list of expressions and assigns each
+expression to incrementing indexes:
+
+```
+Vector : `#{´ Expr* `}´
+```
 
 `TODO: out of bounds errors`
 `TODO: length`
 
 Examples:
 
-<!-- exs/07-vectors.atm -->
+<!-- exs/val-02-vector.atm -->
 
 ```
 val vs = #{1, 2, 3}     ;; a vector of numbers (similar to @{ [0]=1, [1]=2, [2]=3 })
@@ -623,13 +626,20 @@ print(vs[1])            ;; --> 2
 print(vs ?? :vector)    ;; --> true
 ```
 
-## Tables
+## Table
 
 The table reference type represents [Lua tables](lua-types) with indexes of any
 type.
 
-A table constructor `@{ * }` receives a list `*` of comma-separated key-value
-assignments.
+A table constructor `@{ * }` receives a list `*` of key-value assignments:
+
+```
+Table : `@{´ Key-Val* `}´
+Key-Val : `[` Expr `]´ `=´ Expr
+        | ID `=´ Expr
+        | Expr
+```
+
 Like [table constructors in Lua](lua-table), it accepts assignments in three
 formats:
 
@@ -638,12 +648,9 @@ formats:
 - `e` maps numeric index `i` to `e` (same as `[i]=e`), where `i` starts at `1`
   and increments after each assignment
 
-A table constructor may also be prefixed with a tag, which is assigned to key
-`"tag"`, i.e., `:X @{ * }` is equivalent to `@{ tag=:X, * }`.
-
 Examples:
 
-<!-- exs/08-tables.atm -->
+<!-- exs/val-03-table.atm -->
 
 ```
 val k = "idx"
@@ -660,12 +667,19 @@ print(t.idx, t["v"], t[2])  ;; --> 10, x, 30
 
 ### User Types
 
-Tables can be associated associated with [tags](#literals) that represent user
-types.
+A table constructor may also be prefixed with a [tag](#literals) to represent
+an user type:
+
+```
+User : TAG Table
+```
+
+The tag is assigned to key `"tag"`, i.e., `:X @{ * }` is equivalent to
+`@{ tag=:X, * }`
 
 Examples:
 
-<!-- exs/09-user.atm -->
+<!-- exs/val-04-users.atm -->
 
 ```
 val p = :Pos @{         ;; a tagged table:
@@ -676,40 +690,50 @@ print(p ?? :table)      ;; --> true
 print(p ?? :Pos)        ;; --> true
 ```
 
-## Functions
+## Function
 
 The function reference type represents [Lua functions](lua-function).
 
 The basic constructor creates an anonymous function with a list of parameters
-and an execution body, as follows:
+and an execution block:
 
 ```
-func (<pars>) {
-    <body>
-}
+Func : `func´ `(´ ID* [`...´] `)´ Block
 ```
 
-The list of parameters `<pars>` is an optional list of
-variable [identifiers](#identifiers) with a leading variadic parameter `...`.
+The parameters is a list of [identifiers](#identifiers) with an optional
+variadic symbol `...` at the end.
 The parameters are immutable as if they were `val`
 [declarations](#local-variables).
-The function body `<body>` is a [sequence](#blocks) of expressions.
+The [block](#blocks) is a sequence of expressions.
 
-Atmos also supports alternative formats to create functions, as follows:
+Examples:
 
-- Function declarations:
-    - `func t.f (<pars>) { <body> }`:
-        equivalent to `set t.f = func (<pars>) { <body> }`
-    - `func o::f (<pars>) { <body> }`:
-        equivalent to `set o.f = func (self, <pars>) { <body> }`
+<!-- exs/val-05-function.atm -->
 
-- Lambda syntax:
-    - `\(<pars>) { <body> }`:
-        equivalent to `func (<pars>) { <body> }`
-    - `\<id> { <body> }`:
-        equivalent to `\(<id>) { <body> }`
-    - `\ { <body> }`:
-        equivalent to `\(it) { <body> }`
+```
+func f (x, y) {     ;; function to add arguments
+    x + y
+}
+print(f(1,2))       ;; --> 3
+```
+
+### Lambda
+
+Atmos also supports an alternative lambda notation to create functions:
+
+```
+Lambda : `\` [ID | `(` ID* `)´] Block
+```
+
+There are three variations of lambdas:
+
+- `\(<ids>) { <body> }`:
+    equivalent to `func (<ids>) { <body> }`
+- `\<id> { <body> }`:
+    equivalent to `\(<id>) { <body> }`
+- `\{ <body> }`:
+    equivalent to `\(it) { <body> }`
 
 Note that the lambda notation is also used in
     [conditionals](#conditionals) and [every statements](#every)
@@ -717,19 +741,16 @@ to communicate values across blocks.
 
 Examples:
 
-<!-- exs/10-functions.atm -->
+<!-- exs/val-05-function.atm -->
 
 ```
-func f (x, y) {         ;; function to add arguments
-    x + y
-}
 val g = \{ it + 1 }     ;; function to increment argument
 print(g(f(1,2)))        ;; --> 4
 ```
 
 [lua-function]: https://www.lua.org/manual/5.4/manual.html#3.4.11
 
-## Tasks
+## Task
 
 The task reference type represents [tasks](#TODO).
 
@@ -738,7 +759,7 @@ a task.
 
 Examples:
 
-<!-- exs/11-tasks.atm -->
+<!-- exs/val-05-task.atm -->
 
 ```
 func T (...) { ... }    ;; a task prototype
@@ -747,7 +768,7 @@ val t = task(T)         ;; an instantiated task
 print(t ?? :task)       ;; --> true
 ```
 
-## Task Pools
+## Task Pool
 
 The task pool reference type represents a [pool of tasks](#TODO).
 
@@ -759,7 +780,7 @@ A task pool must be assigned to a `pin` [declaration](#local-variables).
 
 Examples:
 
-<!-- exs/12-pools.atm -->
+<!-- exs/val-06-pool.atm -->
 
 ```
 pin ts = tasks()        ;; a pool of tasks
@@ -775,9 +796,11 @@ Therefore, we use the terms statement and expression interchangeably.
 All [identifiers](#identifiers), [literals](#literals) and
 [values](#types--values) are also valid expressions.
 
+<!--
 We use a BNF-like notation to describe the syntax of expressions in Atmos.
 As an extension, we use `X*` to mean `{ X ',' }`, but with the leading `,`
 being optional; and a `X+` variation with at least one `X`.
+-->
 
 ## Program, Sequences and Blocks
 
@@ -1028,6 +1051,14 @@ print(x)    ;; --> 22
 ### Global Functions
 
 In Atmos, a [function declaration](#functions) is a global declaration.
+
+Atmos also supports alternative formats to create functions, as follows:
+
+- Function declarations:
+    - `func t.f (<pars>) { <body> }`:
+        equivalent to `set t.f = func (<pars>) { <body> }`
+    - `func o::f (<pars>) { <body> }`:
+        equivalent to `set o.f = func (self, <pars>) { <body> }`
 
 #### Return
 
