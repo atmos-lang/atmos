@@ -30,7 +30,7 @@
     * Comments
         - single-line: `;; *`
         - multi-line:  `;;; * ;;;`
-* TYPES & CONSTRUCTORS
+* TYPES & VALUES
     * Clocks
     * Vectors
         - `#{ * }`
@@ -449,7 +449,7 @@ The following symbols are designated in Atmos:
 ```
     {   }           ;; block/operators delimeters
     (   )           ;; expression delimeters
-    [   ]           ;; index/constructor delimeters
+    [   ]           ;; index delimeters
     #{              ;; vector constructor delimeter
     @{              ;; dictionary constructor delimeter
     \               ;; lambda declaration
@@ -793,6 +793,10 @@ Therefore, we use the terms statement and expression interchangeably.
 All [identifiers](#identifiers), [literals](#literals) and
 [values](#types--values) are also valid expressions.
 
+We use a BNF-like notation to describe the syntax of expressions in Atmos.
+As an extension, we use `X*` to mean `{ X ',' }`, but with the leading `,`
+being optional.
+
 ## Program, Sequences and Blocks
 
 A program in Atmos is a sequence of expressions, and a block is a sequence of
@@ -800,7 +804,7 @@ expressions enclosed by braces (`{` and `}`):
 
 ```
 Prog  : { Expr [`;´] }
-Block : `{´ { Expr [`;´] } `}´
+Block : `{´ Prog `}´
 ```
 
 Each expression in a sequence may be separated by an optional semicolon (`;`).
@@ -897,7 +901,7 @@ An `escape` immediately aborts the deepest enclosing block matching the given
 tag:
 
 ```
-Escape : `escape´ `(´ List(Expr) `)´
+Escape : `escape´ `(´ Expr* `)´
 ```
 
 The first argument to escape is the [tag](#literals) or
@@ -1002,7 +1006,7 @@ Locals in Atmos must be declared before use, and are only visible inside the
 [block](#blocks) in which they are declared:
 
 ```
-Local : (`val´ | `var` | `pin`) List(ID) [`=´ Expr]
+Local : (`val´ | `var` | `pin`) ID* [`=´ Expr]
 ```
 
 A declaration first specifies one of `val`, `var` or `pin` variable modifier.
@@ -1049,34 +1053,25 @@ do {
 
 #### Where
 
-Any expression can be suffixed by `where` clauses:
-
-`TODO`
+An expression can be suffixed with a `where` clause to define contextual
+locals:
 
 ```
-Expr : Expr `where´ Decls
+Expr : Expr `where´ `{´ Decl* `}´
+Decl : ID* `=´ Expr
 ```
 
-A `where` clause executes its suffix block before the prefix expression and is
-allowed to declare variables that can be used by the expression.
-
-A `thus` clause uses the [lambda notation](#lambda-prototype) to pass the
-result of the prefix expression as an argument to execute the suffix block.
-Even though it uses the lambda notation, the clause does not create an extra
-function to execute.
+A `where` initializes a list of immutable locals, which are only visible within
+the prefix expression and the clause itself.
 
 Examples:
 
 ```
-val x = (2 * y) where {     ;; x = 20
-    val y = 10
+val x = (2 * z) where {
+    y = 10
+    z = y+1
 }
-```
-
-```
-(x * x) thus { \v =>
-    println(v)              ;; --> 400
-}
+print(x)    ;; --> 22
 ```
 
 ### Set
@@ -1085,7 +1080,7 @@ The `set` statement assigns, to the list of locations in the left of `=`, the
 expression in the right of `=`:
 
 ```
-Set : `set´ List(Expr) `=´ Expr
+Set : `set´ Expr* `=´ Expr
 ```
 
 The only valid locations are
@@ -1139,8 +1134,17 @@ Atmos supports and mimics the semantics of standard
 Note that some operators have a [different syntax](#lua-vs-atmos-subtleties) in
 Lua.
 
+bins same line
+
 Next, we decribe the operations that Atmos modifies or introduces:
     (`??` `!?`), (`?>` `!>`) and (`++`).
+
+Examples:
+
+```
+x
+ + y ;; err
+```
 
 [lua-operations]: https://www.lua.org/manual/5.4/manual.html#3.4
 
@@ -1295,48 +1299,48 @@ print(stk)            ;; --> #{1, 2, 3}
 
 ## Calls
 
-- syntax for statements
-
-In Atmos, calls and operations are equivalent, i.e., an operation is a call that
-uses an [operator](#operatos) with prefix or infix notation:
+Atmos supports many formats to call functions:
 
 ```
-Expr : OP Expr                      ;; unary operation
-     | Expr OP Expr                 ;; binary operation
-     | Expr `(´ [List(Expr)] `)´    ;; function call
+Expr : Expr `(´ Expr* `)´
+     | Expr Expr ;; single constructor argument
 ```
-
-Operations are interpreted as function calls, i.e., `x + y` is equivalent to
-`{{+}} (x, y)`.
 
 A call expects an expression of type [func](#prototype-values) and an
 optional list of expressions as arguments enclosed by parenthesis.
-A call transfers control to the function, which runs to completion and returns
-a value, which substitutes the call.
 
-As discussed in [Identifiers](#identifiers), the binary minus requires spaces
-around it to prevent ambiguity with identifiers containing dashes.
+Like in [Lua calls](#lua-call), if there is a single
+[constructor](#types--values) argument, then the parenthesis are optional.
+This is valid for strings, tags, vectors, tables, clocks, and native literals.
+
+The many call formats are also valid for the statements as follows:
+`await`, `break`, `emit`, `escape`, `return`, `throw`, `until`, and `while`.
 
 Examples:
 
+<!-- exs/exp-12-calls.atm -->
+
 ```
-#vec            ;; unary operation
-x - 10          ;; binary operation
-{{-}}(x,10)     ;; operation as call
-f(10,20)        ;; normal call
+print(1,2,3)    ;; --> 1 2 3
+print "Hello"   ;; --> Hello
+print :ok       ;; --> ok
+type @{}        ;; :table
 ```
 
-#### Pipe Calls
+[lua-call]: https://www.lua.org/manual/5.4/manual.html#3.4.10
 
-A pipe is an alternate notation to call a function:
+#### Pipes
+
+Atmos supports yet another format for function calls:
 
 ```
 Expr : Expr (`<--´ | `<-´ | `->´ | `-->´ ) Expr
 ```
 
-The operators `<--` and `<-` pass the argument in the right to the function in
-the left, while the operators `->` and `-->` pass the argument in the left to
-the function in the right.
+The pipe operators `<-` and `<--` pass the argument in the right to the
+function in the left.
+The pipe operators `->` and `-->` pass the argument in the left  to the
+function in the right.
 
 Single pipe operators `<-` and `->` have higher
 [precedence](@precedence-and-associativity) than double pipe operators
@@ -1349,6 +1353,8 @@ and `<--`).
 
 Examples:
 
+<!-- exs/exp-13-pipes.atm -->
+
 ```
 f <-- 10 -> g   ;; equivalent to `f(g(10))`
 t -> f(10)      ;; equivalent to `f(t,10)`
@@ -1356,10 +1362,11 @@ t -> f(10)      ;; equivalent to `f(t,10)`
 
 ### Parenthesis
 
+In AtmosExpressions can be surrounded by parenthesis:
 `TODO: list, disambiguate`
 
 ```
-Expr : `(´ Expr `)´
+Expr : `(´ Expr* `)´
 ```
 
 ### Precedence and Associativity
@@ -1402,6 +1409,8 @@ x + 10 - 1      ;; ERROR: requires parenthesis
 - x + y         ;; (-x) + y
 x or y or z     ;; (x or y) or z
 ```
+
+f :X @{}
 
 ## Conditionals and Pattern Matching
 
@@ -1474,7 +1483,7 @@ Match : `match´ Expr `{´ {Case} [Else] `}´
 Patt : [`(´] [ID] [TAG] [Const | Oper | Tuple] [`|´ Expr] [`)´]
         Const : Expr
         Oper  : OP [Expr]
-        Tuple : `[´ List(Patt) } `]´
+        Tuple : `[´ { Patt `,´ } `]´
 ```
 
 The patterns are tested in sequence, until one is satisfied, executing its
@@ -2097,7 +2106,7 @@ A spawn creates and starts an [active task](#active-values) from a
 [task prototype](#prototypes):
 
 ```
-Spawn : `spawn´ Expr `(´ [List(Expr)] `)´ [`in´ Expr]
+Spawn : `spawn´ Expr `(´ { Expr `,´ } `)´ [`in´ Expr]
 ```
     
 A spawn expects a task protoype, an optional list of arguments, and an optional

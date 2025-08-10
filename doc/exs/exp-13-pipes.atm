@@ -1,0 +1,5 @@
+set f = print
+set g = \{it+1}
+set t = 10
+f <-- 10 -> g   ;; equivalent to `f(g(10))`
+t -> f(10)      ;; equivalent to `f(t,10)`
