@@ -464,7 +464,7 @@ Operators are used in [operation](#operations) expressions.
 ## Identifiers
 
 Atmos uses identifiers to refer to [variables](#declarations-and-assignments),
-[functions](#functions), and [fields](#tables):
+[functions](#function), and [fields](#table):
 
 A variable identifier starts with a letter or underscore (`_`) and is followed
 by letters, digits, or underscores:
@@ -754,7 +754,7 @@ print(g(f(1,2)))        ;; --> 4
 
 The task reference type represents [tasks](#TODO).
 
-A task constructor `task(f)` receives a [function](#functions) and instantiates
+A task constructor `task(f)` receives a [function](#function) and instantiates
 a task.
 
 Examples:
@@ -1050,7 +1050,7 @@ print(x)    ;; --> 22
 
 ### Global Functions
 
-In Atmos, a [function declaration](#functions) is a global declaration.
+In Atmos, a [function declaration](#function) is a global declaration.
 
 Atmos also supports alternative formats to create functions, as follows:
 
@@ -1193,8 +1193,8 @@ The operators `?>` and `!>` ("in" and "not in") check the membership of the
 left operand in the right operand.
 If any of the following conditions are met, then `a ?> b` is true:
 
-- `b` is a [vector](#vectors) and `a` is equal to any of its values
-- `b` is a [table](#tables) and `a` is equal to any of its keys or values
+- `b` is a [vector](#vector) and `a` is equal to any of its values
+- `b` is a [table](#table) and `a` is equal to any of its keys or values
 - `a` is equal to any of the results of `iter(b)`
 
 The operator `!>` is the negation of `?>`.
@@ -1249,8 +1249,8 @@ print(#ts, y?>ts, 10?>ts)   ;; 2, true, false
 
 ## Indexing
 
-Atmos uses brackets (`[` and `]`) or a dot (`.`) to index [tables](#tables) and
-[vectors](#vectors):
+Atmos uses brackets (`[` and `]`) or a dot (`.`) to index [tables](#table) and
+[vectors](#vector):
 
 ```
 Expr : Expr `[´ Expr `]´
