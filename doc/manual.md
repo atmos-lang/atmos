@@ -50,8 +50,8 @@
         - `t[*]` `t.x` `t.pub` `t.(:X)` `t[=]`
     * Calls
         - `f(*)` `-->` `->` `<-` `<--`
-    * Conditionals and Pattern Matching
-        - `if` `ifs`
+    * Conditionals
+        - `if` `ifs` `match`
     * Loop
         - `loop` `loop in`
         - `break` `until` `while`
@@ -916,6 +916,11 @@ do :X {
 }
 ```
 
+- `TODO`
+    - `escape` `return` `break` `until` `while`
+    - may cross ... , but not function bodies
+    - bug as "dynamic scope"
+
 ### Defer
 
 A `defer` block executes when its enclosing block terminates or aborts:
@@ -1115,12 +1120,6 @@ func f () {
 }
 print(f())      ;; --> 2
 ```
-
-`TODO: move section to escape?`
-- `escape` `return` `break` `until` `while`
-- may cross ... , but not function bodies
-- bug in dynamic scope
-
 
 ### Set
 
@@ -1474,15 +1473,15 @@ x || y || z     ;; (x || y) || z
 f :X @{}        ;; ERROR: (f :X) @{}
 ```
 
-## Conditionals and Pattern Matching
+## Conditionals
 
-In a conditional context, [nil](#static-values) and [false](#static-values)
+In a conditional context, [nil](#types--values) and [false](#types--values)
 are interpreted as "falsy", and all other values from all other types as
 "truthy".
 
-### Conditionals
-
-Atmos supports conditionals as follows:
+### If
+### Ifs
+### Match
 
 ```
 If  : `if´ Expr (`=>´ Expr | Block | Lambda)
