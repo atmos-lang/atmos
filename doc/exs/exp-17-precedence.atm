@@ -6,4 +6,4 @@ print <-- #f(10).x        ;; # ((f(10)) .x)
 val x,y = (10,1)
 print <-- - x + y         ;; (-x) + y
 print <-- x || y || z     ;; (x || y) || z
-print <-- f :X @{}        ;; f(:X @{})
+;;print <-- f :X @{}        ;; f(:X @{})

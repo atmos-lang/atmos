@@ -1471,7 +1471,7 @@ Examples:
 x + 10 - 1      ;; ERROR: requires parenthesis
 - x + y         ;; (-x) + y
 x || y || z     ;; (x || y) || z
-f :X @{}        ;; f(:X @{})
+f :X @{}        ;; ERROR: (f :X) @{}
 ```
 
 ## Conditionals and Pattern Matching
