@@ -1,0 +1,9 @@
+func f (v) {
+    @{x = #{v}}
+}
+print <-- #f(10).x        ;; # ((f(10)) .x)
+;;print <-- x + 10 - 1      ;; ERROR: requires parenthesis
+val x,y = (10,1)
+print <-- - x + y         ;; (-x) + y
+print <-- x || y || z     ;; (x || y) || z
+print <-- f :X @{}        ;; f(:X @{})

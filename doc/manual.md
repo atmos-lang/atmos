@@ -1211,7 +1211,7 @@ The operator `!?` is the negation of `??`.
 
 Examples:
 
-<!-- exs/exp-07-equivalence.atm -->
+<!-- exs/exp-09-equivalence.atm -->
 
 ```
 @{} ?? @{}          ;; --> false
@@ -1234,7 +1234,7 @@ The operator `!>` is the negation of `?>`.
 
 Examples:
 
-<!-- exs/exp-08-membership.atm -->
+<!-- exs/exp-10-membership.atm -->
 
 ```
 10 ?> #{10,20,30}       ;; true
@@ -1262,7 +1262,7 @@ the *second* return if present, or the first otherwise.
 
 Examples:
 
-<!-- exs/exp-09-concatenation.atm -->
+<!-- exs/exp-11-concatenation.atm -->
 
 ```
 'abc' ++ 'def'      ;; abcdef
@@ -1299,7 +1299,7 @@ for writing, where `#` is its length.
 
 Examples:
 
-<!-- exs/exp-10-indexing.atm -->
+<!-- exs/exp-12-indexing.atm -->
 
 ```
 val t = @{ x=1 }
@@ -1332,7 +1332,7 @@ The pop  operation `vec[-]` gets and removes the last element of a vector.
 
 Examples:
 
-<!-- exs/exp-11-ppp.atm -->
+<!-- exs/exp-13-ppp.atm -->
 
 ```
 val stk = #{1,2,3}
@@ -1366,7 +1366,7 @@ The many call formats are also valid for the statements as follows:
 
 Examples:
 
-<!-- exs/exp-12-calls.atm -->
+<!-- exs/exp-14-calls.atm -->
 
 ```
 print(1,2,3)    ;; --> 1 2 3
@@ -1401,7 +1401,7 @@ and `<--`).
 
 Examples:
 
-<!-- exs/exp-13-pipes.atm -->
+<!-- exs/exp-15-pipes.atm -->
 
 ```
 f <-- 10 -> g   ;; equivalent to `f(g(10))`
@@ -1424,7 +1424,7 @@ In Atmos, parenthesis have three uses:
 
 Examples:
 
-<!-- exs/exp-14-parenthesis.atm -->
+<!-- exs/exp-16-parenthesis.atm -->
 
 ```
 f ('1' ++ '2')      ;; instead of (f '1') ++ '2'
@@ -1470,10 +1470,9 @@ Examples:
 #f(10).x        ;; # ((f(10)) .x)
 x + 10 - 1      ;; ERROR: requires parenthesis
 - x + y         ;; (-x) + y
-x or y or z     ;; (x or y) or z
+x || y || z     ;; (x || y) || z
+f :X @{}        ;; f(:X @{})
 ```
-
-f :X @{}
 
 ## Conditionals and Pattern Matching
 
