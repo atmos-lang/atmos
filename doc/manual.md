@@ -712,7 +712,7 @@ Examples:
 <!-- exs/val-05-function.atm -->
 
 ```
-func f (x, y) {     ;; function to add arguments
+val f = func (x, y) {     ;; function to add arguments
     x + y
 }
 print(f(1,2))       ;; --> 3
@@ -1048,17 +1048,48 @@ val x = (2 * z) where {
 print(x)    ;; --> 22
 ```
 
-### Global Functions
+### Functions
 
-In Atmos, a [function declaration](#function) is a global declaration.
+Atmos supports global declarations for [functions](#function):
 
-Atmos also supports alternative formats to create functions, as follows:
+```
+Func : `func´ ID {`.´ ID} [`::´ ID] `(´ ID* [`...´] `)´ Block
+```
 
-- Function declarations:
-    - `func t.f (<pars>) { <body> }`:
-        equivalent to `set t.f = func (<pars>) { <body> }`
-    - `func o::f (<pars>) { <body> }`:
-        equivalent to `set o.f = func (self, <pars>) { <body> }`
+<!--
+For local declarations, it is possible to assign anonymous
+[function](#function) constructors to a local variable.
+-->
+
+There are three variations of declarations, which are based on
+[Lua functions](lua-functions):
+
+- `func f (<pars>) { <body> }`:
+    equivalent to `set f = func (<pars>) { <body> }`
+- `func t.x.y.f (<pars>) { <body> }`:
+    equivalent to `set t.x.y.f = func (<pars>) { <body> }`
+- `func o::f (<pars>) { <body> }`:
+    equivalent to `set o.f = func (self, <pars>) { <body> }`
+
+Examples:
+
+<!-- exs/exp-06-function.atm -->
+
+```
+func add (x, y) {
+    x + y
+}
+print(add(1,2))     ;; --> 3
+```
+
+```
+val o = @{ v=1 }
+func o::inc () {
+    set self.v = self.v + 1
+}
+o::inc()
+print(o.v)          ;; --> 2
+```
 
 #### Return
 

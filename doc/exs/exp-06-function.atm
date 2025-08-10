@@ -1,0 +1,11 @@
+func add (x, y) {
+    x + y
+}
+print(add(1,2))     ;; --> 3
+
+val o = @{ v=1 }
+func o::inc () {
+    set self.v = self.v + 1
+}
+o::inc()
+print(o.v)          ;; --> 2

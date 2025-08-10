@@ -1,4 +1,4 @@
-func f (x, y) {     ;; function to add arguments
+val f = func (x, y) {     ;; function to add arguments
     x + y
 }
 val g = \{ it + 1 } ;; function to increment argument
