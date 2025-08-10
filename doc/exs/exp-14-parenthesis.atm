@@ -1,0 +1,4 @@
+set f = \{it}
+print <-- f ('1' ++ '2')      ;; instead of (f '1') ++ '2'
+print <-- (1,2,3)             ;; multi-valued (1,2,3)
+print <-- ((1,2,3))           ;; single value 1

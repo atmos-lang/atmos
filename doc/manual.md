@@ -626,8 +626,9 @@ print(clk ?? :clock)    ;; --> true
 The vector reference type represents tables with numerical indexes starting at
 `0`.
 
-A vector constructor `#{ * }` receives a list of expressions `*` and assigns
-each expression to incrementing indexes starting at `0`.
+A vector constructor `#{ * }` receives a list `*` of comma-separated
+expressions and assigns each expression to incrementing indexes starting at
+`0`.
 
 `TODO: out of bounds errors`
 `TODO: length`
@@ -647,7 +648,8 @@ print(vs ?? :vector)    ;; --> true
 The table reference type represents [Lua tables](lua-types) with indexes of any
 type.
 
-A table constructor `@{ * }` receives a list `*` of key-value assignments.
+A table constructor `@{ * }` receives a list `*` of comma-separated key-value
+assignments.
 Like [table constructors in Lua](lua-table), it accepts assignments in three
 formats:
 
@@ -795,7 +797,7 @@ All [identifiers](#identifiers), [literals](#literals) and
 
 We use a BNF-like notation to describe the syntax of expressions in Atmos.
 As an extension, we use `X*` to mean `{ X ',' }`, but with the leading `,`
-being optional.
+being optional; and a `X+` variation with at least one `X`.
 
 ## Program, Sequences and Blocks
 
@@ -1362,11 +1364,26 @@ t -> f(10)      ;; equivalent to `f(t,10)`
 
 ### Parenthesis
 
-In AtmosExpressions can be surrounded by parenthesis:
-`TODO: list, disambiguate`
+Expressions can be enclosed by parenthesis:
 
 ```
-Expr : `(´ Expr* `)´
+Expr : `(´ Expr+ `)´
+```
+
+In Atmos, parenthesis have three uses:
+
+- group an operation to increase its precedence
+- group comma-separated expressions to create a multi-valued expression
+- revert a multi-valued expression into a single value
+
+Examples:
+
+<!-- exs/exp-14-parenthesis.atm -->
+
+```
+f ('1' ++ '2')      ;; instead of (f '1') ++ '2'
+(1,2,3)             ;; multi-valued (1,2,3)
+((1,2,3))           ;; single value 1
 ```
 
 ### Precedence and Associativity
