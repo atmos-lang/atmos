@@ -10,63 +10,44 @@
     * Keywords
     * Symbols
     * Operators
-        - comparison: `==` `!=` `??` `!?`
-        - relational: `>` `<` `>=` `<=`
-        - arithmetic: `+` `-` `*` `/` `%`
-        - logical: `!` `||` `&&`
-        - membership: `?>` `!>`
-        - concatenation: `++`
-        - length: `#`
+        - `==` `!=` `??` `!?`
+        - `>` `<` `>=` `<=`
+        - `+` `-` `*` `/` `%`
+        - `!` `||` `&&`
+        - `?>` `!>` `++` `#`
     * Identifiers
         - `[A-Za-z_][A-Za-z0-9_]*`
     * Literals
-        - nil: `nil`
-        - boolean: `true` `false`
-        - tag: `:[A-Za-z0-9\.\_]+`
-        - number: `[0-9][0-9A-Za-z\.]*`
-        - string: `'.*'` `".*"`
-        - clock: `@(H:)?(M:)?(S:)?(\.ms)?`
-        - native: `` `.*` ``
+        - `nil` `true` `false`
+        - `:X` `10` `"hello"`
+        - `@10:20.1` `` `lua` ``
     * Comments
-        - single-line: `;; *`
-        - multi-line:  `;;; * ;;;`
+        - `;; *` `;;; * ;;;`
 * TYPES & VALUES
     * Clocks
     * Vectors
         - `#{ * }`
     * Tables
-        - User Types
         - `@{ * }` `:X @{ * }`
     * Functions
-        - function: `func (*) { * }`
-        - lambda: `\(*) { * }`
+        - `func (*) { * }` `\(*) { * }`
     * Tasks
         - `task`
     * Task Pools
         - `tasks`
 * EXPRESSIONS
     * Program, Sequences and Blocks
-        - `;`
-        - Blocks
-            - `do`
-        - Defer
-            - `defer`
+        - `;` `do` `defer`
         - Escapes
             - `escape` `return` `break` `until` `while`
     * Declarations and Assignments
-        - Local Variables
-            - `val` `var` `pin`
-            - Where
-                - `where`
-        - Set
-            - `set`
+        - `val` `var` `pin`
+        - `where`
+        - `set`
     * Operations
-        - Equivalence
-            - `??` `!?`
-        - Membership
-            - `?>` `!>`
-        - Concatenation
-            - `++`
+        - `??` `!?`
+        - `?>` `!>`
+        - `++`
     * Indexing
         - `t[*]` `t.x` `t.pub` `t.(:X)` `t[=]`
     * Calls
@@ -1331,7 +1312,7 @@ type @{}        ;; :table
 
 [lua-call]: https://www.lua.org/manual/5.4/manual.html#3.4.10
 
-#### Pipes
+### Pipes
 
 Atmos supports yet another format for function calls:
 
