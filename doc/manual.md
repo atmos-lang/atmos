@@ -37,12 +37,10 @@
         - `tasks`
 * EXPRESSIONS
     * Program, Sequences and Blocks
-        - `;` `do` `defer`
-        - Escapes
-            - `escape` `return` `break` `until` `while`
+        - `;` `do` `defer` `escape`
     * Declarations and Assignments
-        - `val` `var` `pin`
-        - `where`
+        - `val` `var` `pin` `where`
+        - `func` `return`
         - `set`
     * Operations
         - `??` `!?`
@@ -56,6 +54,7 @@
         - `if` `ifs`
     * Loop
         - `loop` `loop in`
+        - `break` `until` `while`
     * Exceptions
         - `error` `catch`
     * Coroutine Operations
@@ -828,9 +827,9 @@ Examples:
 <!-- exs/exp-02-blocks.atm -->
 
 ```
-do {                    ;; block prints :ok and evals to 1
+val v = do {            ;; block prints `:ok` and evals to `1`
     println(:ok)
-    1
+    1                   ;; `v` receives 1
 }
 
 do {
@@ -845,40 +844,7 @@ do {
 }                       ;; aborts t
 ```
 
-### Defer
-
-A `defer` block executes when its enclosing block terminates or aborts:
-
-```
-Defer : `defer´ Block
-```
-
-Deferred blocks execute in reverse order in which they appear in the source
-code.
-
-Examples:
-
-<!-- exs/exp-03-defers.atm -->
-
-```
-do {
-    print(1)
-    defer {
-        print(2)    ;; last to execute
-    }
-    defer {
-        print(3)
-    }
-    print(4)
-}                   ;; --> 1, 4, 3, 2
-```
-
-### Escapes
-
-- `escape` `return` `break` `until` `while`
-- may cross ... , but not function bodies
-- bug in dynamic scope
-- abort blocks in the way up
+#### Escape
 
 An `escape` immediately aborts the deepest enclosing block matching the given
 tag:
@@ -927,29 +893,33 @@ do :X {
 }
 ```
 
-#### Return
+### Defer
 
-A `return` immediately terminates the enclosing prototype:
+A `defer` block executes when its enclosing block terminates or aborts:
 
 ```
-Return : `return´ `(´ [Expr] `)´
+Defer : `defer´ Block
 ```
 
-The optional expression, which defaults to `nil`, becomes the final result of
-the terminating prototype.
+Deferred blocks execute in reverse order in which they appear in the source
+code.
 
 Examples:
 
-```
-func f () {
-    println(1)      ;; --> 1
-    return(2)
-    println(3)      ;; never executes
-}
-println(f())        ;; --> 2
-```
+<!-- exs/exp-04-defer.atm -->
 
-`TODO: move section to escape?`
+```
+do {
+    print(1)
+    defer {
+        print(2)    ;; last to execute
+    }
+    defer {
+        print(3)
+    }
+    print(4)
+}                   ;; --> 1, 4, 3, 2
+```
 
 <!--
 --### Test
@@ -977,8 +947,6 @@ test {
 
 Atmos mimics the semantics of Lua [global](lua-globals) and [local](lua-locals)
 variables.
-
-In Atmos, a [function declaration](#functions) is a global declaration.
 
 [lua-globals]: https://www.lua.org/manual/5.4/manual.html#2.2
 [lua-locals]: https://www.lua.org/manual/5.4/manual.html#3.3.7
@@ -1056,6 +1024,39 @@ val x = (2 * z) where {
 }
 print(x)    ;; --> 22
 ```
+
+### Global Functions
+
+In Atmos, a [function declaration](#functions) is a global declaration.
+
+#### Return
+
+- `escape` `return` `break` `until` `while`
+- may cross ... , but not function bodies
+- bug in dynamic scope
+- abort blocks in the way up
+
+A `return` immediately terminates the enclosing prototype:
+
+```
+Return : `return´ `(´ [Expr] `)´
+```
+
+The optional expression, which defaults to `nil`, becomes the final result of
+the terminating prototype.
+
+Examples:
+
+```
+func f () {
+    println(1)      ;; --> 1
+    return(2)
+    println(3)      ;; never executes
+}
+println(f())        ;; --> 2
+```
+
+`TODO: move section to escape?`
 
 ### Set
 
