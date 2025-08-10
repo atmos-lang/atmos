@@ -1,0 +1,6 @@
+func f () {
+    print(1)    ;; --> 1
+    return(2)
+    print(3)    ;; never executes
+}
+print(f())      ;; --> 2

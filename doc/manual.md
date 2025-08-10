@@ -65,7 +65,7 @@
 * STANDARD LIBRARIES
     * Basic Library
         - `assert` `copy` `create-resume` `next`
-        - `print` `println` `sup?` `tag` `tuple` `type`
+        - `print` `print` `sup?` `tag` `tuple` `type`
         - `dynamic?` `static?` `string?`
     * Type Conversions Library
         - `to.boolean` `to.char` `to.dict` `to.iter` `to.number`
@@ -851,7 +851,7 @@ Examples:
 
 ```
 val v = do {            ;; block prints `:ok` and evals to `1`
-    println(:ok)
+    print(:ok)
     1                   ;; `v` receives 1
 }
 
@@ -1093,32 +1093,34 @@ print(o.v)          ;; --> 2
 
 #### Return
 
-- `escape` `return` `break` `until` `while`
-- may cross ... , but not function bodies
-- bug in dynamic scope
-- abort blocks in the way up
-
-A `return` immediately terminates the enclosing prototype:
+A `return` immediately terminates the enclosing function, aborting all active
+blocks:
 
 ```
-Return : `return´ `(´ [Expr] `)´
+Return : `return´ `(´ Expr* `)´
 ```
 
-The optional expression, which defaults to `nil`, becomes the final result of
-the terminating prototype.
+The list of return expressions becomes the final result of the corresponding
+call.
 
 Examples:
 
+<!-- exs/exp-07-return.atm -->
+
 ```
 func f () {
-    println(1)      ;; --> 1
+    print(1)    ;; --> 1
     return(2)
-    println(3)      ;; never executes
+    print(3)    ;; never executes
 }
-println(f())        ;; --> 2
+print(f())      ;; --> 2
 ```
 
 `TODO: move section to escape?`
+- `escape` `return` `break` `until` `while`
+- may cross ... , but not function bodies
+- bug in dynamic scope
+
 
 ### Set
 
@@ -1136,7 +1138,7 @@ The only valid locations are
 
 Examples:
 
-<!-- exs/exp-06-set.atm -->
+<!-- exs/exp-08-set.atm -->
 
 ```
 var x
@@ -1525,9 +1527,9 @@ ifs {
 
 ```
 if f() { \v =>
-    println("f() evaluates to " ++ to.string(v))
+    print("f() evaluates to " ++ to.string(v))
 } else {
-    println("f() evaluates to false")
+    print("f() evaluates to false")
 }
 ```
 
@@ -1614,13 +1616,13 @@ Examples:
 
 ```
 val [1,x,y] = [1,2,3]
-println(x,y)            ;; --> 2 3
+print(x,y)            ;; --> 2 3
 
 val [10,x] = [20,20]    ;; ERROR: match fails
 
 val d = @[x=1, y=2]
 loop [k,v] in d {
-    println(k,v)        ;; --> x,1 y,2
+    print(k,v)        ;; --> x,1 y,2
 }
 ```
 
@@ -1683,7 +1685,7 @@ Examples:
 ```
 var i = 1
 loop {                  ;; infinite loop
-    println(i)          ;; --> 1,2,...,10
+    print(i)          ;; --> 1,2,...,10
     while i < 10        ;; conditional termination
     set i = i + 1
 }
@@ -1696,7 +1698,7 @@ loop {                  ;; infinite loop
     if (i % 2) == 0 {
         skip()          ;; jump back
     }
-    println(i)          ;; --> 1,3,5,...
+    print(i)          ;; --> 1,3,5,...
 }
 ```
 
@@ -1732,19 +1734,19 @@ Examples:
 
 ```
 loop i {
-    println(i)      ;; --> 0,1,2,...
+    print(i)      ;; --> 0,1,2,...
 }
 ```
 
 ```
 loop in {0 => 3{ {
-    println(it)     ;; --> 0,1,2
+    print(it)     ;; --> 0,1,2
 }
 ```
 
 ```
 loop v in }3 => 0} :step -1 {
-    println(v)      ;; --> 2,1,0
+    print(v)      ;; --> 2,1,0
 }
 ```
 
@@ -1782,7 +1784,7 @@ Examples:
 
 ```
 loop v in [10,20,30] {          ;; implicit to.iter([10,20,30])
-    println(v)                  ;; --> 10,20,30
+    print(v)                  ;; --> 10,20,30
 }
 
 func num-iter (N) {
@@ -1794,7 +1796,7 @@ func num-iter (N) {
     :Iterator [f, N, 0]
 }
 loop in num-iter(5) {
-    println(it)                 ;; --> 0,1,2,3,4
+    print(it)                 ;; --> 0,1,2,3,4
 }
 ```
 
@@ -1829,9 +1831,9 @@ Examples:
 ```
 val x = catch :Error {
     error(:Error)
-    println("unreachable")
+    print("unreachable")
 }
-println(x)              ;; --> :Error
+print(x)              ;; --> :Error
 ```
 
 ```
@@ -1841,21 +1843,21 @@ val x =
             error(:X [10,20])
         }
     }
-println(x)              ;; --> :X [10,20]
+print(x)              ;; --> :X [10,20]
 ```
 
 ```
 func f () {
     catch :Err.One {                  ;; catches specific error
         defer {
-            println(1)
+            print(1)
         }
         error(:Err.Two ["err msg"])   ;; throws another error
     }
 }
 catch :Err {                          ;; catches generic error
     defer {
-        println(2)
+        print(2)
     }
     f()
     ;; unreachable
@@ -1884,21 +1886,21 @@ Examples:
 
 ```
 coro C (x) {                ;; first resume
-    println(x)              ;; --> 10
+    print(x)              ;; --> 10
     val w = yield(x + 1)    ;; returns 11, second resume, receives 12
-    println(w)              ;; --> 12
+    print(w)              ;; --> 12
     w + 1                   ;; returns 13
 }
 val c = coroutine(C)        ;; creates `c` from prototype `C`
 val y = resume c(10)        ;; starts  `c`, receives `11`
 val z = resume c(y+1)       ;; resumes `c`, receives `13`
-println(status(c))          ;; --> :terminated
+print(status(c))          ;; --> :terminated
 ```
 
 ```
 coro C () {
     defer {
-        println("aborted")
+        print("aborted")
     }
     yield()
 }
@@ -1928,7 +1930,7 @@ coro C () {
     <...>
 }
 val c = coroutine(C)
-println(C, c)   ;; --> coro: 0x... / exe-coro: 0x...
+print(C, c)   ;; --> coro: 0x... / exe-coro: 0x...
 ```
 
 ### Coroutine Status
@@ -1953,11 +1955,11 @@ coro C () {
     yield()
 }
 val c = coroutine(C)
-println(status(c))      ;; --> :yielded
+print(status(c))      ;; --> :yielded
 resume c()
-println(status(c))      ;; --> :yielded
+print(status(c))      ;; --> :yielded
 resume c()
-println(status(c))      ;; --> :terminated
+print(status(c))      ;; --> :terminated
 ```
 
 ### Resume
@@ -1982,9 +1984,9 @@ If omitted, the argument defaults to `nil`.
 
 ```
 coro C () {
-    println(:1)
+    print(:1)
     yield()
-    println(:2)
+    print(:2)
 }
 val co = coroutine(C)
 resume co()     ;; --> :1
@@ -2066,7 +2068,7 @@ val a2 = resume g(a1+1)                 ;; g(3),  a2=5
 val a3 = resume g(a2+1)                 ;; g(6),  a3=7
 val a4 = resume g(a3+1)                 ;; g(8),  a4=10
 val a5 = resume g(a4+1)                 ;; g(11), a5=10
-println(a1, a2, a3, a4, a5)             ;; --> 2, 5, 7, 10, 12
+print(a1, a2, a3, a4, a5)             ;; --> 2, 5, 7, 10, 12
 ```
 
 <!--
@@ -2140,18 +2142,18 @@ Examples:
 task T (x) {
     set pub = x                 ;; sets 1 or 2
     val n = await(:number)      ;; awaits a number broadcast
-    println(pub + n)            ;; --> 11 or 12
+    print(pub + n)            ;; --> 11 or 12
 }
 val t1 = spawn T(1)
 val t2 = spawn T(2)
-println(t1.pub, t2.pub)         ;; --> 1, 2
+print(t1.pub, t2.pub)         ;; --> 1, 2
 broadcast(10)                   ;; awakes all tasks passing 10
 ```
 
 ```
 task T () {
     val n = await(:number)
-    println(n)
+    print(n)
 }
 val ts = tasks()                ;; task pool
 do {
@@ -2181,7 +2183,7 @@ task T (v, vs) {                ;; task prototype accepts 2 args
     <...>
 }
 val t = spawn T(10, [1,2,3])    ;; starts task passing args
-println(t)                      ;; --> exe-task 0x...
+print(t)                      ;; --> exe-task 0x...
 ```
 
 ### X Task Pools
@@ -2207,7 +2209,7 @@ task T () {
 val ts = tasks(1)               ;; task pool
 val t1 = spawn T() in ts        ;; success
 val t2 = spawn T() in ts        ;; failure
-println(ts, t1, t2)             ;; --> tasks: 0x... / exe-task 0x... / nil
+print(ts, t1, t2)             ;; --> tasks: 0x... / exe-task 0x... / nil
 ```
 
 ### Task Status
@@ -2232,13 +2234,13 @@ task T () {
     await(|true)
 }
 val t = spawn T()
-println(status(t))      ;; --> :yielded
+print(status(t))      ;; --> :yielded
 toggle t(false)
 broadcast(nil)
-println(status(t))      ;; --> :toggled
+print(status(t))      ;; --> :toggled
 toggle t(true)
 broadcast(nil)
-println(status(t))      ;; --> :terminated
+print(status(t))      ;; --> :terminated
 ```
 
 ### Public Fields
@@ -2260,14 +2262,14 @@ Examples:
 task T () {
     set pub = 10
     await(|true)
-    println(pub)    ;; --> 20
+    print(pub)    ;; --> 20
     30              ;; final task value
 }
 val t = spawn T()
-println(t.pub)      ;; --> 10
+print(t.pub)      ;; --> 10
 set t.pub = 20
 broadcast(nil)
-println(t.pub)      ;; --> 30
+print(t.pub)      ;; --> 30
 ```
 
 ### Await
@@ -2304,7 +2306,7 @@ await(|false)                   ;; never awakes
 await(:key | it.code==:escape)  ;; awakes on :key with code=:escape
 await <1:h 10:min 30:s>         ;; awakes after the specified time
 await e {                       ;; awakes on any event
-    println(e)                  ;;  and shows it
+    print(e)                  ;;  and shows it
 }
 ```
 
@@ -2401,7 +2403,7 @@ Examples:
 ```
 spawn {
     await(:X)
-    println(":X occurred")
+    print(":X occurred")
 }
 ```
 
@@ -2409,7 +2411,7 @@ spawn {
 task T () {
     set pub = 10
     spawn {
-        println(pub)    ;; --> 10
+        print(pub)    ;; --> 10
     }
 }
 spawn T()
@@ -2481,18 +2483,18 @@ Examples:
 ```
 par {
     every <1:s> {
-        println("1 second has elapsed")
+        print("1 second has elapsed")
     }
 } with {
     every <1:min> {
-        println("1 minute has elapsed")
+        print("1 minute has elapsed")
     }
 } with {
     every <1:h> {
-        println("1 hour has elapsed")
+        print("1 hour has elapsed")
     }
 }
-println("never reached")
+print("never reached")
 ```
 
 ```
@@ -2500,7 +2502,7 @@ par-or {
     await <1:s>
 } with {
     await(:X)
-    println(":X occurred before 1 second")
+    print(":X occurred before 1 second")
 }
 ```
 
@@ -2510,7 +2512,7 @@ par-and {
 } with {
     await(:Y)
 }
-println(":X and :Y have occurred")
+print(":X and :Y have occurred")
 ```
 
 #### Every Blocks
@@ -2536,13 +2538,13 @@ Examples:
 
 ```
 every <1:s> {
-    println("1 more second has elapsed")
+    print("1 more second has elapsed")
 }
 ```
 
 ```
 every x :X | f(x) {
-    println(":X satisfies f(x)")
+    print(":X satisfies f(x)")
 }
 ```
 
@@ -2570,7 +2572,7 @@ Examples:
 ```
 watching <1:s> {
     every :X {
-        println("one more :X occurred before 1 second")
+        print("one more :X occurred before 1 second")
     }
 }
 ```
@@ -2623,7 +2625,7 @@ Examples:
 spawn {
     toggle :T {
         every :E {
-            println(it[0])  ;; --> 1 3
+            print(it[0])  ;; --> 1 3
         }
     }
 }
@@ -2651,7 +2653,7 @@ for documentation purposes only.
 func assert (v :any [,msg :any]) => :any
 func next (v :any [,x :any]) => :any
 func print (...) => :nil
-func println (...) => :nil
+func print (...) => :nil
 func sup? (t1 :tag, t2 :tag) => :boolean
 func tag (t :tag, v :dyn) => :dyn
 func tag (v :dyn) => :tag
@@ -2693,7 +2695,7 @@ Examples:
 val d = @[(:k1,10), (:k2,20)]
 val k1 = next(d)
 val k2 = next(d, k1)
-println(k1, k2)     ;; --> :k1 / :k2
+print(k1, k2)     ;; --> :k1 / :k2
 ```
 
 ```
@@ -2702,18 +2704,18 @@ spawn T() in ts     ;; tsk1
 spawn T() in ts     ;; tsk2
 val t1 = next(ts)
 val t2 = next(ts, t1)
-println(t1, t2)     ;; --> exe-task: 0x...   exe-task: 0x...
+print(t1, t2)     ;; --> exe-task: 0x...   exe-task: 0x...
 ```
 
-The functions `print` and `println` outputs the given values to the screen, and
+The functions `print` and `print` outputs the given values to the screen, and
 return the first received value.
 
 Examples:
 
 ```
-val x = println(1, :x)  ;; --> 1   :x
+val x = print(1, :x)  ;; --> 1   :x
 print(x)
-println(2)              ;; --> 12
+print(2)              ;; --> 12
 ```
 
 The function `sup?` receives tags `t1` and `t2`, and returns if `t1` is
