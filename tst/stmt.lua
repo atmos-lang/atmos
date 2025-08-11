@@ -622,7 +622,7 @@ do
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
         match x {
-            else => {
+            (atm_1 || true) => {
             }
         }
     ]])
@@ -646,7 +646,7 @@ do
             }
             (_is_(atm_1, 1) && (atm_1 || true)) => {
             }
-            else => {
+            (atm_1 || true) => {
                 x
             }
         }

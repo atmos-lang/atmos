@@ -1488,14 +1488,14 @@ An `if` tests a condition expression and executes one of the two possible
 branches:
 
 ```
-If  : `if´ Expr (Block | Lambda) [`else´  Block]
+If  : `if´ Expr (Block | Lambda) [`else´ (Block | Lambda)]
     | `if´ Expr `=>´ Expr `=>´ Expr
 ```
 
 The branches can be either [blocks](#blocks) or simple expressions prefixed by
 the arrow symbol `=>`.
 When using blocks, the `else` branch is optional.
-An `if` block can also use the [lambda notation](#lambda) to capture the value
+The blocks can also use the [lambda notation](#lambda) to capture the value
 of the condition being tested.
 
 If the condition is truthy, the `if` executes the first branch.
@@ -1523,7 +1523,7 @@ executing its associated branch:
 ```
 Ifs : `ifs´ `{´ {Case} [Else] `}´
 Case :  Expr  (`=>´ Expr | Block | Lambda)
-Else : `else´ (`=>´ Expr | Block)
+Else : `else´ (`=>´ Expr | Block | Lambda)
 ```
 
 If no condition is met, the `ifs` executes the optional `else` branch, which

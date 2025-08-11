@@ -380,8 +380,13 @@ function parser_1_prim ()
                 end
                 cases[#cases+1] = { cnd, t }
                 if accept('else') then
-                    local blk = parser_block()
-                    local f = { tag='func', lua=true, pars={}, blk=blk }
+                    local f
+                    if check('{') then
+                        local blk = parser_block()
+                        f = { tag='func', lua=true, pars={}, blk=blk }
+                    else
+                        f = parser_lambda()
+                    end
                     cases[#cases+1] = { 'else', f }
                 end
             else
@@ -416,7 +421,7 @@ function parser_1_prim ()
                     if check('{') then
                         local blk = parser_block()
                         f = { tag='func', lua=true, pars={}, blk=blk }
-                    elseif (not brk) and check('\\') then
+                    elseif check('\\') then
                         f = parser_lambda()
                     else
                         local blk = {tag='block', es={parser()}}
@@ -440,7 +445,12 @@ function parser_1_prim ()
                 local cnd; do
                     if accept('else') then
                         brk = true
-                        cnd = 'else'
+                        cnd = {
+                            tag = 'bin',
+                            op = { str='||' },
+                            e1 = { tag='acc', tk={str="atm_"..match.n} },
+                            e2 = { tag='bool', tk={str="true"} },
+                        }
                     elseif check('\\') then
                         local f = parser_lambda()
                         cnd = {
@@ -477,7 +487,7 @@ function parser_1_prim ()
                     if check('{') then
                         local blk = parser_block()
                         f = { tag='func', lua=true, pars={}, blk=blk }
-                    elseif (not brk) and check('\\') then
+                    elseif check('\\') then
                         f = parser_lambda()
                     else
                         local blk = { tag='block', es={parser()} }
