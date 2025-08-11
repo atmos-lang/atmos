@@ -1572,53 +1572,11 @@ Examples:
 
 ```
 match f() {
-    x :X     => x       ;; capture `x=f()`, return `x` if `x is? :X`
-    <= 5     => it      ;; capture `it=f()`, return `it` if `it <= 5`
-    10       => :ok     ;; return :ok if `f() == 10`
-    {{odd?}} => :ok     ;; return :ok if `odd?(f())`
-    else     => :no
+    :table   => print("f() is a table")
+    "hello"  => print("f() == hello")
+    \{it>10} => print("f() > 10")
+    else     => \{ print("f() is", it) }
 }
-```
-
-```
-match [10,20,30,40] {
-    | g(it) { \v => v }     ;; capture `it=[...]`, check `g(it)`
-                            ;;    capture and return `g(it)` as `v`
-    [10, i, j|j>10] => i+j  ;; capture `it=[...]`, check `#it>=3`,
-                            ;;    check `it[0]==10`
-                            ;;    capture `i=it[1]`
-                            ;;    capture `j=it[1]`, check `j>10`
-                            ;;    return i+j
-}
-```
-
-Patterns are also used in
-    [declarations](#declarations),
-    [iterators](#iterators-tuples), and
-    [await statements](#await).
-In the case of declarations and iterators, the patterns are assertive in the
-sense that they cannot fail, raising an error if the match fails.
-
-Examples:
-
-```
-val [1,x,y] = [1,2,3]
-print(x,y)            ;; --> 2 3
-
-val [10,x] = [20,20]    ;; ERROR: match fails
-
-val d = @[x=1, y=2]
-loop [k,v] in d {
-    print(k,v)        ;; --> x,1 y,2
-}
-```
-
-```
-spawn {
-    await(:Pos | it.x==it.y)
-}
-broadcast(:Pos [10,20])     ;; no match
-broadcast(:Pos [10,10])     ;; ok match
 ```
 
 ## Loop
