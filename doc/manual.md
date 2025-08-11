@@ -1514,48 +1514,35 @@ if f() \{                       ;; f() is assigned to it
 ```
 
 ### Ifs
-### Match
 
+An `ifs` tests multiple conditions in sequence, until one is satisfied,
+executing its associated branch:
 
 ```
 Ifs : `ifs´ `{´ {Case} [Else] `}´
-        Case :  Expr  (`=>´ Expr | Block | Lambda)
-        Else : `else´ (`=>´ Expr | Block)
+Case :  Expr  (`=>´ Expr | Block | Lambda)
+Else : `else´ (`=>´ Expr | Block)
 ```
 
-An `ifs` supports multiple conditions, which are tested in sequence, until one
-is satisfied, executing its associated branch.
-Otherwise, it executes the optional `else` branch, which defaults to `nil`.
+If no condition is met, the `ifs` executes the optional `else` branch, which
+defaults to `nil`.
 
-Except for `else` branches, note that branches can use the
-[lambda notation](#lambda-prototypes) to capture the value of the condition
-being tested.
-Even though it uses the lambda notation, the branches do not create an extra
-function to execute.
+Like in an [if](#if), branches can be blocks, simple `=>` expressions or
+lambdas.
 
 Examples:
 
-```
-val max = if x>y => x => y
-```
+<!-- exs/exp-19-ifs.atm -->
 
 ```
-ifs {
+val max = ifs {     ;; exclusive max value between `x` and `y`
     x > y => x
     x < y => y
-    else  => error(:error, "values are equal")
+    else  => throw(:error, "values are equal")
 }
 ```
 
-```
-if f() { \v =>
-    print("f() evaluates to " ++ to.string(v))
-} else {
-    print("f() evaluates to false")
-}
-```
-
-### Pattern Matching
+### Match
 
 The `match` statement allows to test a head expression against a series of
 patterns between `{` and `}`:

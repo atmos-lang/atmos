@@ -1,0 +1,9 @@
+val x,y = (1,10)
+
+val max = ifs {     ;; exclusive max value between `x` and `y`
+    x > y => x
+    x < y => y
+    else  => throw(:error, "values are equal")
+}
+
+print(max)
