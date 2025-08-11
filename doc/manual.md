@@ -289,7 +289,8 @@ The constructor `:Pos @{x=10,y=20}` is equivalent to `@{tag=:Pos,x=10,y=20}`.
 
 Tags can describe type hierarchies by splitting identifiers with (`.`).
 For instance, a tag such as `:T.A.x` is a subtype of `:T`, `:T.A`, and
-`:T.A.x` at the same time, as verified by the match operator `??`:
+`:T.A.x` at the same time, as verified by the
+[equivalence operator](#equivalence) `??`:
 
 ```
 print(:T.A.x ?? :T)         ;; --> true  (:T.A.x is a subtype of :T)
@@ -299,7 +300,7 @@ print(:T     ?? :T.A.x)     ;; --> false (:T is not a subtype of :T.A.x)
 print(:T.A   ?? :T.B)       ;; --> false
 ```
 
-The match operator `??` also works with tagged tables.
+The operator `??` also works with tagged tables.
 Therefore, tags, tables, and `??` can be combined as follows:
 
 ```
@@ -881,8 +882,8 @@ The first argument to escape is the [tag](#literals) or
 The whole block being escaped evaluates to the other arguments.
 If there is only a single argument, then the block evaluates to it.
 
-The block tags are checked with the match operator `??`, which also allows to
-compare them with tagged tables.
+The block tags are checked with the [equivalence operator](#equivalence) `??`,
+which also allows to compare them with tagged tables.
 
 The program raises an error if no enclosing blocks match the escape expression.
 
@@ -1487,17 +1488,18 @@ An `if` tests a condition expression and executes one of the two possible
 branches:
 
 ```
-If  : `if´ Expr (`=>´ Expr | Block | Lambda)
-        [`else´  (`=>´ Expr | Block)]
+If  : `if´ Expr (Block | Lambda) [`else´  Block]
+    | `if´ Expr `=>´ Expr `=>´ Expr
 ```
 
-If the condition is truthy, the `if` executes the first branch.
-Otherwise, it executes the optional `else` branch, which defaults to `nil`.
+The branches can be either [blocks](#blocks) or simple expressions prefixed by
+the arrow symbol `=>`.
+When using blocks, the `else` branch is optional.
+An `if` block can also use the [lambda notation](#lambda) to capture the value
+of the condition being tested.
 
-A branch can be either a [block](#blocks) or a simple expression prefixed
-by the arrow symbol `=>`.
-The `if` branch can also use the [lambda notation](#lambda) to capture the
-value of the condition being tested.
+If the condition is truthy, the `if` executes the first branch.
+Otherwise, it executes the `else` branch, which defaults to `nil` if absent.
 
 Examples:
 
@@ -1544,53 +1546,29 @@ val max = ifs {     ;; exclusive max value between `x` and `y`
 
 ### Match
 
-The `match` statement allows to test a head expression against a series of
-patterns between `{` and `}`:
+A `match` tests a head expression against a series of values, until one is
+satisfied, executing its associated branch:
 
 ```
 Match : `match´ Expr `{´ {Case} [Else] `}´
-        Case :  Patt  (`=>´ Expr | Block | Lambda)
-        Else : `else´ (`=>´ Expr | Block)
-
-Patt : [`(´] [ID] [TAG] [Const | Oper | Tuple] [`|´ Expr] [`)´]
-        Const : Expr
-        Oper  : OP [Expr]
-        Tuple : `[´ { Patt `,´ } `]´
+Case :  (Lambda | Expr)  (`=>´ Expr | Block | Lambda)
+Else : `else´ (`=>´ Expr | Block)
 ```
 
-The patterns are tested in sequence, until one is satisfied, executing its
-associated branch.
-Otherwise, it executes the optional `else` branch, which defaults to `nil`.
-A branch can be either a [block](#blocks) or a simple expression prefixed
-by the arrow symbol `=>`.
+If no case succeeds, the `match` executes the optional `else` branch, which
+defaults to `nil`.
 
-A pattern is satisfied if all of its optional forms to test the head expression
-are satisfied:
+The tests use `h ?? i`, where `h` is the head expression and `i` corresponds to
+each case expression.
+In addition, a case can be a [lambda constructor](#lambda), which receives the
+head expression and returns the test result.
 
-1. An identifier `ID` that always matches and captures the value of the head
-  expression with `ID = head`.
-  If omitted, it assumes the implicit identifier `it`.
-  If the pattern succeeds, the identifier can be used in its associated branch.
-2. A tag `TAG` that tests the head expression with `head is? TAG`.
-3. One of the three forms:
-    - A [static literal](#static-values) `Const` that tests the head expression
-      with `head == Const`.
-    - An operation `OP` followed by an optional expression `Expr` that tests
-      the head expression with `{{OP}}(head [,Expr])`.
-    - A tuple of patterns that tests if the head expression is a tuple, and
-      then applies each nested pattern recursively.
-      The head tuple size can be greater than the tuple pattern.
-4. An extra "such that" condition following the pipe symbol `|` that must be
-  satisfied, regardless of the head expression value.
-  If given, this condition becomes the capture value of the branch.
-
-Except for `else` branches, note that the branches can use the
-[lambda notation](#lambda-prototypes) to capture the value of the condition
-being tested.
-Even though it uses the lambda notation, the branches do not create an extra
-function to execute.
+Like in an [if](#if), branches can be blocks, simple `=>` expressions or
+lambdas.
 
 Examples:
+
+<!-- exs/exp-20-match.atm -->
 
 ```
 match f() {
