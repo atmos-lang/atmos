@@ -1465,6 +1465,8 @@ Therefore, operators at the same level require parenthesis for disambiguation.
 
 Examples:
 
+<!-- exs/exp-17-precedence.atm -->
+
 ```
 #f(10).x        ;; # ((f(10)) .x)
 x + 10 - 1      ;; ERROR: requires parenthesis
@@ -1480,24 +1482,46 @@ are interpreted as "falsy", and all other values from all other types as
 "truthy".
 
 ### If
-### Ifs
-### Match
+
+An `if` tests a condition expression and executes one of the two possible
+branches:
 
 ```
 If  : `if´ Expr (`=>´ Expr | Block | Lambda)
         [`else´  (`=>´ Expr | Block)]
+```
+
+If the condition is truthy, the `if` executes the first branch.
+Otherwise, it executes the optional `else` branch, which defaults to `nil`.
+
+A branch can be either a [block](#blocks) or a simple expression prefixed
+by the arrow symbol `=>`.
+The `if` branch can also use the [lambda notation](#lambda) to capture the
+value of the condition being tested.
+
+Examples:
+
+<!-- exs/exp-18-if.atm -->
+
+```
+val max = if x>y => x => y      ;; max value between `x` and `y`
+
+if f() \{                       ;; f() is assigned to it
+    print("f() evaluates to " ++ it)
+} else {
+    print("f() evaluates to 'false'")
+}
+```
+
+### Ifs
+### Match
+
+
+```
 Ifs : `ifs´ `{´ {Case} [Else] `}´
         Case :  Expr  (`=>´ Expr | Block | Lambda)
         Else : `else´ (`=>´ Expr | Block)
 ```
-
-An `if` tests a condition expression and executes one of the two possible
-branches.
-
-If the condition is truthy, the `if` executes the first branch.
-Otherwise, it executes the optional `else` branch, which defaults to `nil`.
-A branch can be either a [block](#blocks) or a simple expression prefixed
-by the arrow symbol `=>`.
 
 An `ifs` supports multiple conditions, which are tested in sequence, until one
 is satisfied, executing its associated branch.

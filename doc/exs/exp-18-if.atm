@@ -1,0 +1,11 @@
+val x,y = (9,10)
+val max = if x>y => x => y      ;; max value between `x` and `y`
+print(max)
+
+val f = \{10}
+if f() \{                       ;; f() is assigned to it
+    print("f() evaluates to " ++ it)
+} else {
+    print("f() evaluates to 'false'")
+}
+
