@@ -870,6 +870,15 @@ do
     assertx(out, "nil\n") -- TODO: true=>nil
 
     local src = [[
+        ifs {
+            100 => \{ print(it) }
+        }
+    ]]
+    print("Testing...", "ifs 1")
+    local out = atm_test(src)
+    assertx(out, "100\n")
+
+    local src = [[
         match 100 {
             10 => {}
             100 => print(:ok)
@@ -899,6 +908,43 @@ do
     print("Testing...", "match 3")
     local out = atm_test(src)
     assertx(out, "10\n")
+
+    local src = [[
+        match 100 {
+            100 => \{print(it)}
+        }
+    ]]
+    print("Testing...", "match 4")
+    local out = atm_test(src)
+    assertx(out, "true\n")
+
+    local src = [[
+        match 100 {
+            \{it==100} => print(:ok)
+        }
+    ]]
+    print("Testing...", "match 5")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        match 100 {
+            \{(it==100) && 10} => \(...){print(...)}
+        }
+    ]]
+    print("Testing...", "match 6")
+    local out = atm_test(src)
+    assertx(out, "10\n")
+
+    local src = [[
+        match 100 {
+            \{(it==100) && (100,10)} => \(...){print(...)}
+        }
+    ]]
+    print("Testing...", "match 6")
+    warn(false, "TODO: (100,10) inside lua exp context fails")
+    --local out = atm_test(src)
+    --assertx(out, "10\n")
 end
 
 print "--- LOOP / BREAK / UNTIL / WHILE / ITER ---"

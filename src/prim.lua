@@ -412,14 +412,17 @@ function parser_1_prim ()
                     end
                 end
                 accept_err('=>')
-                local blk; do
+                local f; do
                     if check('{') then
-                        blk = parser_block()
+                        local blk = parser_block()
+                        f = { tag='func', lua=true, pars={}, blk=blk }
+                    elseif check('\\') then
+                        f = parser_lambda()
                     else
-                        blk = {tag='block', es={parser()}}
+                        local blk = {tag='block', es={parser()}}
+                        f = { tag='func', lua=true, pars={}, blk=blk }
                     end
                 end
-                local f = { tag='func', lua=true, pars={}, blk=blk }
                 ts[#ts+1] = { cnd, f }
                 if brk then
                     break
@@ -438,6 +441,15 @@ function parser_1_prim ()
                     if accept('else') then
                         brk = true
                         cnd = 'else'
+                    elseif check('\\') then
+                        local f = parser_lambda()
+                        cnd = {
+                            tag = 'call',
+                            f = f,
+                            es = {
+                                { tag='acc', tk={str="atm_"..match.n} },
+                            },
+                        }
                     else
                         local cmp = parser()
                         cnd = {
@@ -451,14 +463,17 @@ function parser_1_prim ()
                     end
                 end
                 accept_err('=>')
-                local blk; do
+                local f; do
                     if check('{') then
-                        blk = parser_block()
+                        local blk = parser_block()
+                        f = { tag='func', lua=true, pars={}, blk=blk }
+                    elseif check('\\') then
+                        f = parser_lambda()
                     else
-                        blk = { tag='block', es={parser()} }
+                        local blk = { tag='block', es={parser()} }
+                        f = { tag='func', lua=true, pars={}, blk=blk }
                     end
                 end
-                local f = { tag='func', lua=true, pars={}, blk=blk }
                 ts[#ts+1] = { cnd, f }
                 if brk then
                     break
