@@ -1,0 +1,8 @@
+val f = \{10}
+
+match f() {
+    :table   => print("f() is a table")
+    "hello"  => print("f() == hello")
+    \{it>10} => print("f() > 10")
+    else     => \{ print("f() is", it) }
+}

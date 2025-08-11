@@ -589,7 +589,7 @@ Atmos differentiates between *value* and *reference* types:
 
 ## Clock
 
-The clock value type represents clock tables in the [format](#literals)
+The `clock` value type represents clock tables in the [format](#literals)
 `@{h=HH,min=MM,s=SS,ms=sss}`.
 
 Examples:
@@ -604,7 +604,7 @@ print(clk ?? :clock)    ;; --> true
 
 ## Vector
 
-The vector reference type represents tables with numerical indexes starting at
+The `vector` reference type represents tables with numerical indexes starting at
 `0`.
 
 A vector constructor `#{ * }` receives a list of expressions and assigns each
@@ -629,7 +629,7 @@ print(vs ?? :vector)    ;; --> true
 
 ## Table
 
-The table reference type represents [Lua tables](lua-types) with indexes of any
+The `table` reference type represents [Lua tables](lua-types) with indexes of any
 type.
 
 A table constructor `@{ * }` receives a list `*` of key-value assignments:
@@ -693,7 +693,7 @@ print(p ?? :Pos)        ;; --> true
 
 ## Function
 
-The function reference type represents [Lua functions](lua-function).
+The `function` reference type represents [Lua functions](lua-function).
 
 The basic constructor creates an anonymous function with a list of parameters
 and an execution block:
@@ -753,7 +753,7 @@ print(g(f(1,2)))        ;; --> 4
 
 ## Task
 
-The task reference type represents [tasks](#TODO).
+The `task` reference type represents [tasks](#TODO).
 
 A task constructor `task(f)` receives a [function](#function) and instantiates
 a task.
@@ -771,7 +771,7 @@ print(t ?? :task)       ;; --> true
 
 ## Task Pool
 
-The task pool reference type represents a [pool of tasks](#TODO).
+The task pool (`tasks`) reference type represents a [pool of tasks](#TODO).
 
 A task pool constructor `tasks([n])` creates a pool that holds at most `n`
 tasks.
@@ -1584,33 +1584,84 @@ match f() {
 Atmos supports loops and iterators as follows:
 
 ```
-Loop : `loop´ Block                                 ;; (1)
-     | `loop´ (ID [TAG] | Patt) `in´ Expr Block     ;; (2)
-     | `loop´ [ID] [`in´ Range] Block               ;; (3)
-            Range : (`}´|`{´) Expr `=>` Expr (`}´|`{´) [`:step` [`+´|`-´] Expr]
+Loop : `loop´ Block                 ;; infinite
+     | `loop´ ID Block              ;; numeric infinite
+     | `loop´ ID+ `in´ Expr Block   ;; iterator
+```
+
+A `loop` executes a block of code continuously until a termination condition is
+met.
+Atmos supports three loop variations:
+
+1. An *infinite loop* with an empty header, which only terminates from
+   [break](#breaks) conditions.
+2. A *numeric infinite loop* with a variable that ranges from `0` upwards.
+3. An *iterator loop* with multiple variables that range according to an
+   iterator expression.
+
+The following iterator expression types with predefined behaviors are
+supported:
+
+- `number`: ranges from `0` up to, but not including, the given number
+- `vector`: ranges over the indexes and values of a vector
+- `table`: ranges over the keys and values of a table
+- `tasks`: ranges over the indexes and tasks of a task pool
+- `function`: ranges over calls to the given function, until it returns `nil`
+
+A loop evaluates to `nil` as a whole, unless a [break](#breaks) condition
+occurs.
+
+Examples:
+
+<!-- exs/exp-21-loop.atm -->
+
+```
+loop {
+    await @1
+    print("1 more second elapsed...")
+}
+```
+
+```
+loop i {
+    print(i)        ;; --> 0, 1, 2, ...
+}
+```
+
+```
+val x = loop i in 2 {
+    print(i)        ;; --> 0, 1
+}
+print(x)            ;; --> false
+```
+
+```
+loop i,v in #{10,20,30} {
+    print(i,v)      ;; --> (0,10), (1,20), (2,30)
+}
+```
+
+```
+val f = func (s,e) {
+    var nxt = s
+    \{
+        val cur = nxt
+        set nxt = nxt + 1
+        if cur>=e => nil => cur
+    }
+}
+loop v in f(5,8) {
+    print(v)        ;; --> 5, 6, 7
+}
+```
+
+### Breaks
 
 Break : `break´ `(´ [Expr] `)´
       | `until´ Expr
       | `while´ Expr
 
 Skip  : `skip´ `(´ `)´
-```
-
-A `loop` executes a block of code continuously until a termination condition is
-met.
-Atmos supports three loop header variations:
-
-1. An *infinite loop* with an empty header, which only terminates from break
-   conditions.
-2. An [*iterator loop*](#iterator-loop) with an iterator expression that
-   executes on each step until it signals termination.
-3. A [*numeric loop*](#numeric-loop) with a range that specifies the number of
-   steps to execute.
-
-The iterator and numeric loops are detailed next.
-
-The loop block may contain three variations of a `break` statement for
-immediate termination:
 
 1. A `break <e>` terminates the loop with the value of `<e>`.
 2. An `until <e>` terminates the loop if `<e>` is [truthy](#conditionals), with
@@ -1625,18 +1676,14 @@ A loop that terminates from the header condition evaluates to `false`.
 The block may also contain a `skip()` statement to jump back to the next loop
 step.
 
-Examples:
 
-```
 var i = 1
 loop {                  ;; infinite loop
     print(i)          ;; --> 1,2,...,10
     while i < 10        ;; conditional termination
     set i = i + 1
 }
-```
 
-```
 var i = 0
 loop {                  ;; infinite loop
     set i = i + 1
@@ -1645,105 +1692,7 @@ loop {                  ;; infinite loop
     }
     print(i)          ;; --> 1,3,5,...
 }
-```
 
-### Numeric Loops
-
-A numeric loop specifies a range of numbers to iterate through:
-
-```
-Loop  : `loop´ [ID] [`in´ Range] Block
-Range : (`}´|`{´) Expr `=>` Expr (`}´|`{´) [`:step` [`+´|`-´] Expr]
-```
-
-At each loop step, the optional identifier receives the current number.
-If omitted, it assumes the implicit identifier `it`.
-
-The optional `in` clause specifies an interval `x => y` to iterate
-over.
-If omitted, then the loop iterates from `0` to infinity.
-
-The clause chooses open or closed range delimiters, and an optional signed
-`:step` expression to apply at each iteration.
-The open delimiters `}x` and `y{` exclude the given numbers from the interval,
-while the closed delimiters `{x` and `y}` include them.
-Note that for an open delimiter, the loop initializes the given number to its
-successor or predecessor, depending on the step direction.
-
-The loop terminates when `x` reaches or surpasses `y` considering the step sign
-direction, which defaults to `+1`.
-In this case, the loop evaluates to `false`.
-After each step, the step is added to `x` and compared against `y`.
-
-Examples:
-
-```
-loop i {
-    print(i)      ;; --> 0,1,2,...
-}
-```
-
-```
-loop in {0 => 3{ {
-    print(it)     ;; --> 0,1,2
-}
-```
-
-```
-loop v in }3 => 0} :step -1 {
-    print(v)      ;; --> 2,1,0
-}
-```
-
-### Iterator Loops
-
-An iterator loop evaluates a given iterator expression on each step, until it
-signals termination:
-
-```
-Loop | `loop´ (ID [TAG] | Patt) `in´ Expr Block
-```
-
-The loop first declares a control variable using the rules from
-[declarations](#declarations) to capture the results of the iterator
-expression, which appears after the keyword `in`.
-If the declaration is omitted, it assumes the implicit identifier `it`.
-
-The iterator expression `itr` must evaluate to a [tagged](#user-types) iterator
-[tuple](#collections) `:Iterator [f,...]`.
-
-The iterator tuple must hold a step function `f` at index `0`, followed by any
-other custom state required to operate.
-The function `f` expects the iterator tuple itself as argument, and returns its
-next value.
-On each iteration, the loop calls `f` passing the `itr`, and assigns the result
-to the loop control variable.
-To signal termination, `f` just needs to return `nil`.
-In this case, the loop as a whole evaluates to `false`.
-
-If the iterator expression is not an iterator tuple, the loop tries to
-transform it by calling [to.iter](#type-conversion-library) implicitly, which
-creates iterators from iterables, such as vectors and task pools.
-
-Examples:
-
-```
-loop v in [10,20,30] {          ;; implicit to.iter([10,20,30])
-    print(v)                  ;; --> 10,20,30
-}
-
-func num-iter (N) {
-    val f = func (t) {
-        val v = t[2]
-        set t[2] = v + 1
-        ((v < N) and v) or nil
-    }
-    :Iterator [f, N, 0]
-}
-loop in num-iter(5) {
-    print(it)                 ;; --> 0,1,2,3,4
-}
-```
 
 ## Exceptions
 

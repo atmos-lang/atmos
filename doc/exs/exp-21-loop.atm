@@ -1,0 +1,33 @@
+;;;
+loop {
+    await @1
+    print("1 more second elapsed...")
+}
+;;;
+
+;;;
+loop i {
+    print(i)        ;; --> 0, 1, 2, ...
+}
+;;;
+
+val x = loop i in 2 {
+    print(i)        ;; --> 0, 1
+}
+print(x)            ;; --> false
+
+loop i,v in #{10,20,30} {
+    print(i,v)      ;; --> (0,10), (1,20), (2,30)
+}
+
+val f = func (s,e) {
+    var nxt = s
+    \{
+        val cur = nxt
+        set nxt = nxt + 1
+        if cur>=e => nil => cur
+    }
+}
+loop v in f(5,8) {
+    print(v)        ;; --> 5, 6, 7
+}
