@@ -642,9 +642,9 @@ do
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
         match x {
-            _is_(atm_1, :X.Y) => {
+            (_is_(atm_1, :X.Y) && (atm_1 || true)) => {
             }
-            _is_(atm_1, 1) => {
+            (_is_(atm_1, 1) && (atm_1 || true)) => {
             }
             else => {
                 x

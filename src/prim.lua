@@ -416,7 +416,7 @@ function parser_1_prim ()
                     if check('{') then
                         local blk = parser_block()
                         f = { tag='func', lua=true, pars={}, blk=blk }
-                    elseif check('\\') then
+                    elseif (not brk) and check('\\') then
                         f = parser_lambda()
                     else
                         local blk = {tag='block', es={parser()}}
@@ -453,11 +453,21 @@ function parser_1_prim ()
                     else
                         local cmp = parser()
                         cnd = {
-                            tag = 'call',
-                            f = { tag='acc', tk={str="_is_"} },
-                            es = {
-                                { tag='acc', tk={str="atm_"..match.n} },
-                                cmp
+                            tag = 'bin',
+                            op = { str='&&' },
+                            e1 = {
+                                tag = 'call',
+                                f = { tag='acc', tk={str="_is_"} },
+                                es = {
+                                    { tag='acc', tk={str="atm_"..match.n} },
+                                    cmp
+                                },
+                            },
+                            e2 = {
+                                tag = 'bin',
+                                op = { str='||' },
+                                e1 = { tag='acc', tk={str="atm_"..match.n} },
+                                e2 = { tag='bool', tk={str="true"} },
                             },
                         }
                     end
@@ -467,7 +477,7 @@ function parser_1_prim ()
                     if check('{') then
                         local blk = parser_block()
                         f = { tag='func', lua=true, pars={}, blk=blk }
-                    elseif check('\\') then
+                    elseif (not brk) and check('\\') then
                         f = parser_lambda()
                     else
                         local blk = { tag='block', es={parser()} }

@@ -916,7 +916,7 @@ do
     ]]
     print("Testing...", "match 4")
     local out = atm_test(src)
-    assertx(out, "true\n")
+    assertx(out, "100\n")
 
     local src = [[
         match 100 {
@@ -938,10 +938,19 @@ do
 
     local src = [[
         match 100 {
+            :number => \{print(it)}
+        }
+    ]]
+    print("Testing...", "match 7")
+    local out = atm_test(src)
+    assertx(out, "100\n")
+
+    local src = [[
+        match 100 {
             \{(it==100) && (100,10)} => \(...){print(...)}
         }
     ]]
-    print("Testing...", "match 6")
+    print("Testing...", "match 8")
     warn(false, "TODO: (100,10) inside lua exp context fails")
     --local out = atm_test(src)
     --assertx(out, "10\n")
