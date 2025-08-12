@@ -258,6 +258,10 @@ the program, printing `tick A` and `tick B` in this order.
 The last event aborts the `watching` composition and prints `done`, before
 terminating the main body.
 
+### Bidimensional Stack Traces
+
+`TODO`
+
 ## Hierarchical Tags
 
 Tags represent unique human-readable values, and are similar to Lua strings or
@@ -1793,213 +1797,6 @@ throw :X
 ;;;
 ```
 
-## Coroutine Operations
-
-The API for coroutines has the following operations:
-
-- [coroutine](#coroutine-create): creates a new coroutine from a prototype
-- [status](#coroutine-status): consults the coroutine status
-- [resume](#spawn): starts or resumes a coroutine
-- [yield](#yield): suspends the resumed coroutine
-
-<!--
-5. [abort](#TODO): `TODO`
--->
-
-Note that `yield` is the only operation that is called from the coroutine
-itself, all others are called from the user code controlling the coroutine.
-The `resume` and `yield` operations transfer values between themselves,
-similarly to calls and returns in functions.
-
-Examples:
-
-```
-coro C (x) {                ;; first resume
-    print(x)              ;; --> 10
-    val w = yield(x + 1)    ;; returns 11, second resume, receives 12
-    print(w)              ;; --> 12
-    w + 1                   ;; returns 13
-}
-val c = coroutine(C)        ;; creates `c` from prototype `C`
-val y = resume c(10)        ;; starts  `c`, receives `11`
-val z = resume c(y+1)       ;; resumes `c`, receives `13`
-print(status(c))          ;; --> :terminated
-```
-
-```
-coro C () {
-    defer {
-        print("aborted")
-    }
-    yield()
-}
-do {
-    val c = coroutine(C)
-    resume c()
-}                           ;; --> aborted
-```
-
-### Coroutine Create
-
-The operation `coroutine` creates a new [active coroutine](#active-values) from
-a [coroutine prototype](#prototype-values):
-
-```
-Create : `coroutine´ `(´ Expr `)´
-```
-
-The operation `coroutine` expects a coroutine prototype (type
-[coro](#execution-units)) and returns its active reference (type
-[exe-coro](#execution-units)).
-
-Examples:
-
-```
-coro C () {
-    <...>
-}
-val c = coroutine(C)
-print(C, c)   ;; --> coro: 0x... / exe-coro: 0x...
-```
-
-### Coroutine Status
-
-The operation `status` returns the current state of the given active coroutine:
-
-```
-Status : `status´ `(´ Expr `)´
-```
-
-As described in [Active Values](#active-values), a coroutine has 3 possible
-status:
-
-1. `yielded`: idle and ready to be resumed
-2. `resumed`: currently executing
-3. `terminated`: terminated and unable to be resumed
-
-Examples:
-
-```
-coro C () {
-    yield()
-}
-val c = coroutine(C)
-print(status(c))      ;; --> :yielded
-resume c()
-print(status(c))      ;; --> :yielded
-resume c()
-print(status(c))      ;; --> :terminated
-```
-
-### Resume
-
-The operation `resume` executes a coroutine from its last suspension point:
-
-```
-Resume : `resume´ Expr `(´ List(Expr) `)´
-```
-
-The operation `resume` expects an active coroutine, and resumes it, passing
-optional arguments.
-The coroutine executes until it [yields](#yield) or terminates.
-After returning, the `resume` evaluates to the argument passed to `yield` or to
-the coroutine return value.
-
-The first resume is like a function call, starting the coroutine from its
-beginning, and passing any number of arguments.
-The subsequent resumes start the coroutine from its last [yield](#yield)
-suspension point, passing at most one argument, which substitutes the `yield`.
-If omitted, the argument defaults to `nil`.
-
-```
-coro C () {
-    print(:1)
-    yield()
-    print(:2)
-}
-val co = coroutine(C)
-resume co()     ;; --> :1
-resume co()     ;; --> :2
-```
-
-### Yield
-
-The operation `yield` suspends the execution of a running coroutine:
-
-```
-Yield : `yield´ `(´ [Expr] `)´
-```
-
-An `yield` expects an optional argument between parenthesis that is returned
-to whom resumed the coroutine.
-If omitted, the argument defaults to `nil`.
-Eventually, the suspended coroutine is resumed again with a value and the whole
-`yield` is substituted by that value.
-
-<!--
-If the resume came from a [broadcast](#broadcast), then the given expression is
-lost.
--->
-
-### Resume/Yield All
-
-The operation `resume-yield-all` continuously resumes the given active
-coroutine, collects its yields, and yields upwards each value, one at a time.
-It is typically used to delegate a job of an outer coroutine transparently to
-an inner coroutine:
-
-```
-All : `resume-yield-all´ Expr `(´ [Expr] `)´
-```
-
-The operation expects an active coroutine and an optional initial resume value
-between parenthesis, which defaults to `nil`.
-A `resume-yield-all <co> (<arg>)` expands as follows:
-
-```
-do {
-    val co  = <co>                  ;; given active coroutine
-    var arg = <arg>                 ;; given initial value (or nil)
-    loop {
-        val v = resume co(arg)      ;; resumes with current arg
-        if (status(co) == :terminated) {
-            break(v)
-        }
-        set arg = yield(v)          ;; takes next arg from upwards
-    }
-}
-```
-
-The loop in the expansion continuously resumes the target coroutine with a
-given argument, collects its yielded value, yields the same value upwards.
-Then, it expects to be resumed with the next target value, and loops until the
-target coroutine terminates.
-
-Examples:
-
-```
-coro G (b1) {                           ;; b1=1
-    coro L (c1) {                       ;; c1=4
-        val c2 = yield(c1+1)            ;; y(5), c2=6
-        val c3 = yield(c2+1)            ;; y(7), c3=8
-        c3+1                            ;; 9
-    }
-    val l = coroutine(L)
-    val b2 = yield(b1+1)                ;; y(2), b2=3
-    val b3 = resume-yield-all l(b2+1)   ;; b3=9
-    val b4 = yield(b3+1)                ;; y(10)
-    b4+1                                ;; 12
-}
-
-val g = coroutine(G)
-val a1 = resume g(1)                    ;; g(1),  a1=2
-val a2 = resume g(a1+1)                 ;; g(3),  a2=5
-val a3 = resume g(a2+1)                 ;; g(6),  a3=7
-val a4 = resume g(a3+1)                 ;; g(8),  a4=10
-val a5 = resume g(a4+1)                 ;; g(11), a5=10
-print(a1, a2, a3, a4, a5)             ;; --> 2, 5, 7, 10, 12
-```
-
 <!--
 ### Active Values
 
@@ -2053,13 +1850,14 @@ broadcast(:X)               ;; broadcast resumes `t`
 
 The API for tasks has the following operations:
 
-- [spawn](#spawn): creates and resumes a new task from a prototype
+- [task](#spawn): creates a new task from a function
+    - [spawn](#spawn): creates and starts a new task
 - [tasks](#task-pools): creates a pool of tasks
-- [status](#task-status): consults the task status
 - [pub](#public-field): exposes the task public field
 - [await](#await): yields the resumed task until it matches an event
-- [broadcast](#broadcast): broadcasts an event to awake all tasks
+- [emit](#broadcast): broadcasts an event to awake all tasks
 - [toggle](#toggle): either ignore or accept awakes
+- Compounds
 
 <!--
 5. [abort](#TODO): `TODO`
