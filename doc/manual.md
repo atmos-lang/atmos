@@ -1721,7 +1721,7 @@ Throw : `throw´ `(´ Expr* `)´
 Catch : `catch´ Expr Block
 ```
 
-A `catch` accepts the following expressions:
+A `catch` accepts the following check expressions:
 
 - `true`: catches any throw
 - `false`: ignores any throw
@@ -1730,16 +1730,18 @@ A `catch` accepts the following expressions:
 - otherwise: catches if the first throw value matches with `??`
 
 When it matches, a `catch` evaluates to the values passed to `throw` (or
-replaced by a function).
+replaced by the given function).
 
 Examples:
 
+<!-- exs/exp-23-exceptions.atm -->
+
 ```
 val x = catch :Error {
-    error(:Error)
+    throw(:Error)
     print("unreachable")
 }
-print(x)              ;; --> :Error
+print(x)              ;; --> Error
 ```
 
 ```

@@ -1,0 +1,5 @@
+val x = catch :Error {
+    throw(:Error)
+    print("unreachable")
+}
+print(x)              ;; --> Error
