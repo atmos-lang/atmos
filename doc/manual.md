@@ -1721,7 +1721,15 @@ Throw : `throw´ `(´ Expr* `)´
 Catch : `catch´ Expr Block
 ```
 
-A `catch` accepts the following check expressions:
+A `catch` executes its body as a normal block but tries to match an occurring
+exception with the given expression.
+If no exceptions occur, it evaluates to `true` plus the values of its body.
+If it catches an exception, it evaluates to `false` plus the values of the
+matching `throw`.
+Otherwise, it propagates the exception upwards in the execution stack and never
+returns.
+
+A `catch` accepts the following exception matching expressions:
 
 - `true`: catches any throw
 - `false`: ignores any throw
@@ -1729,29 +1737,39 @@ A `catch` accepts the following check expressions:
     returns `true`, replacing the throw values with additional arguments
 - otherwise: catches if the first throw value matches with `??`
 
-When it matches, a `catch` evaluates to the values passed to `throw` (or
-replaced by the given function).
-
 Examples:
 
 <!-- exs/exp-23-exceptions.atm -->
 
 ```
-val x = catch :Error {
-    throw(:Error)
-    print("unreachable")
+val ok, v = catch :X {
+    42
 }
-print(x)              ;; --> Error
+print(ok, v)        ;; --> true, 42
 ```
 
 ```
+val ok, x = catch :X {
+    throw(:X @{v=10, msg="error"})
+    print("unreachable")
+}
+print(ok, x.msg)    ;; --> false, error
+```
+
+```
+func f () {
+    error :X.Y
+}
 val x =
     catch :X {
-        catch :Y {
-            error(:X [10,20])
+        catch :X.Z {
+            defer {
+                print "ok"
+            }
+            f()
         }
-    }
-print(x)              ;; --> :X [10,20]
+    }               ;; --> ok (from defer)
+print(x)            ;; --> false
 ```
 
 ```

@@ -1,5 +1,25 @@
-val x = catch :Error {
-    throw(:Error)
+val ok, v = catch :X {
+    42
+}
+print(ok, v)        ;; --> true, 42
+
+val ok, x = catch :X {
+    throw(:X @{v=10, msg="error"})
     print("unreachable")
 }
-print(x)              ;; --> Error
+print(ok, x.msg)    ;; --> false, error
+
+func f () {
+    error :X.Y
+}
+val x =
+    catch :X {
+        catch :X.Z {
+            defer {
+                print "ok"
+            }
+            f()
+        }
+    }               ;; --> ok (from defer)
+print(x)            ;; --> false
+
