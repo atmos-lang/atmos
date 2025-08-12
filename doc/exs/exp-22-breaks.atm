@@ -1,0 +1,15 @@
+var i = 0
+loop {
+    set i = i + 1
+    print(i)        ;; --> 1,2,...,10
+    if i == 10 {
+        break()
+    }
+}
+
+val f = \{10}
+val x = loop {
+    until(f())      ;; escapes when f()
+}
+print(x)            ;; value of f()
+

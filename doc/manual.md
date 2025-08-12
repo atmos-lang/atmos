@@ -918,9 +918,8 @@ do :X {
 ```
 
 - `TODO`
-    - `escape` `return` `break` `until` `while`
     - may cross ... , but not function bodies
-    - bug as "dynamic scope"
+    - bug as "dynamic scope" (also return, break/until/while)
 
 ### Defer
 
@@ -1657,33 +1656,18 @@ loop v in f(5,8) {
 
 ### Breaks
 
-Break : `break´ `(´ [Expr] `)´
-      | `until´ Expr
-      | `while´ Expr
+An `break` immediately escapes the deepest enclosing loop:
 
+```
+Break : `break´ `(´ Expr* `)´
+      | `until´ `(´ Expr+ `)´
+      | `while´ `(´ Expr+ `)´
+```
+
+<!--
 Skip  : `skip´ `(´ `)´
-
-1. A `break <e>` terminates the loop with the value of `<e>`.
-2. An `until <e>` terminates the loop if `<e>` is [truthy](#conditionals), with
-   that value.
-3. A `while <e>` terminates the loop if `<e>` is [falsy](#basic-types), with
-   that value (`nil` or `false`).
-
-As any other statement, a loop is an expression that evaluates to a final value
-as a whole.
-A loop that terminates from the header condition evaluates to `false`.
-
 The block may also contain a `skip()` statement to jump back to the next loop
 step.
-
-
-var i = 1
-loop {                  ;; infinite loop
-    print(i)          ;; --> 1,2,...,10
-    while i < 10        ;; conditional termination
-    set i = i + 1
-}
-
 var i = 0
 loop {                  ;; infinite loop
     set i = i + 1
@@ -1692,33 +1676,61 @@ loop {                  ;; infinite loop
     }
     print(i)          ;; --> 1,3,5,...
 }
+-->
 
+The loop as a whole evaluates to the values passed to `break`.
+
+In addition to `break`, Atmos provides `until` and `while` clauses to escape
+loops on specific conditions:
+
+1. A `break(...)` escapes the loop with the values `...`.
+2. An `until(<cnd>,...)` is equivalent to `if <cnd> { break(... || <cnd>) }`.
+3. A `while(<cnd>,...)` is equivalent to `if not <cnd> { break(...) }`.
+
+Examples:
+
+<!-- exs/exp-22-breaks.atm -->
+
+```
+var i = 0
+loop {
+    set i = i + 1
+    print(i)        ;; --> 1,2,...,10
+    if i == 10 {
+        break()
+    }
+}
+```
+
+```
+val x = loop {
+    <...>
+    until(f())      ;; escapes when f()
+    <...>
+}
+print(x)            ;; value of f()
+```
 
 ## Exceptions
 
-The `error` expression raises an exception that aborts the execution of all
-enclosing blocks up to a matching `catch` block.
+An exception `throw` aborts all active enclosing blocks in the stack up to a
+matching `catch` clause:
 
 ```
-Error : `error´ `(´ [Expr] `)´
-Catch : `catch´ [TAG | `(´ TAG `)´] Block
+Throw : `throw´ `(´ Expr* `)´
+Catch : `catch´ Expr Block
 ```
 
-An `error` propagates upwards and aborts all enclosing [blocks](#blocks) and
-[execution units](#prototype-values) (functions, coroutines, and tasks) on the
-way.
-When crossing an execution unit, an `error` jumps back to the original calling
-site and continues to propagate upwards.
-The optional exception value, which defaults to `:nil`, must evaluate to a
-[tag](#static-values) or [tagged value](#hierarchical-tags) that represents the
-error.
+A `catch` accepts the following expressions:
 
-A `catch` executes its associated block normally, but also registers a
-[tag](#static-values) to compare against exception values from errors crossing
-it.
-If they match, the exception is caught and the `catch` terminates and evaluates
-to exception value, also aborting its associated block, and properly triggering
-nested [defer](#defer) statements.
+- `true`: catches any throw
+- `false`: ignores any throw
+- `:function`: passes the throw values to the function, which matches if
+    returns `true`, replacing the throw values with additional arguments
+- otherwise: catches if the first throw value matches with `??`
+
+When it matches, a `catch` evaluates to the values passed to `throw` (or
+replaced by a function).
 
 Examples:
 
