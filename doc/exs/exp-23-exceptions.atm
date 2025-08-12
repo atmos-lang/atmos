@@ -10,7 +10,7 @@ val ok, x = catch :X {
 print(ok, x.msg)    ;; --> false, error
 
 func f () {
-    error :X.Y
+    throw :X.Y
 }
 val x =
     catch :X {
@@ -23,3 +23,9 @@ val x =
     }               ;; --> ok (from defer)
 print(x)            ;; --> false
 
+val ok, v = catch \{(true,42)} {    ;; catches any error, transforms into 42
+    throw :X
+}
+print(ok, v)                        ;; --> false, 42
+
+throw :X

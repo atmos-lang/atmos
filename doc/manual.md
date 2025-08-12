@@ -1737,6 +1737,9 @@ A `catch` accepts the following exception matching expressions:
     returns `true`, replacing the throw values with additional arguments
 - otherwise: catches if the first throw value matches with `??`
 
+If a `throw` is not caught, the whole program aborts with a
+[stack trace](#TODO) debug message.
+
 Examples:
 
 <!-- exs/exp-23-exceptions.atm -->
@@ -1758,7 +1761,7 @@ print(ok, x.msg)    ;; --> false, error
 
 ```
 func f () {
-    error :X.Y
+    throw :X.Y
 }
 val x =
     catch :X {
@@ -1773,21 +1776,21 @@ print(x)            ;; --> false
 ```
 
 ```
-func f () {
-    catch :Err.One {                  ;; catches specific error
-        defer {
-            print(1)
-        }
-        error(:Err.Two ["err msg"])   ;; throws another error
-    }
+val ok, v = catch \{(true,42)} {    ;; catches any error, transforms into 42
+    throw :X
 }
-catch :Err {                          ;; catches generic error
-    defer {
-        print(2)
-    }
-    f()
-    ;; unreachable
-}                                     ;; --> 1, 2
+print(ok, v)                        ;; --> false, 42
+```
+
+```
+throw :X
+
+;;; error stack trace
+==> ERROR:
+ |  atmos:9 (call)
+ v  test.atm:1 (throw) <- atmos:9 (task)
+==> X
+;;;
 ```
 
 ## Coroutine Operations

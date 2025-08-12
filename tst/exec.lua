@@ -1343,6 +1343,25 @@ do
     print("Testing...", "catch 14")
     local out = atm_test(src)
     assertx(out, "{10, tag=Y.X}\n")
+
+    local src = [[
+        func f () {
+            throw :X.Y
+        }
+        val x =
+            catch :X {
+                catch :X.Z {
+                    defer {
+                        print "ok"
+                    }
+                    f()
+                }
+            }               ;; --> ok (from defer)
+        print(x)            ;; --> false
+    ]]
+    print("Testing...", "catch 15")
+    local out = atm_test(src)
+    assertx(out, "ok\nfalse\n")
 end
 
 -- EXEC / CORO / TASK / YIELD / SPAWN / RESUME
