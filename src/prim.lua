@@ -16,7 +16,7 @@ function parser_spawn ()
         local spw = spawn(TK0.lin, parser_block())
         return spw, spw
     else
-        -- spawn T(...) [in ...]
+        -- spawn [...] T(...)
         local tk = TK0
         local ts = nil; do
             if accept('[') then

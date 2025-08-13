@@ -57,9 +57,8 @@
         - `break` `until` `while`
     * Exceptions
         - `error` `catch`
-    * Coroutine Operations
-        - `coroutine` `status` `resume` `yield` `resume-yield-all` <!--`abort`-->
-    * Task Operations
+    * Task Manipulation
+        - `task`
         - `pub` `spawn` `tasks` `status` `await` `broadcast` `toggle`
         - `spawn {}` `every` `par` `par-and` `par-or` `watching` `toggle {}`
 * STANDARD LIBRARIES
@@ -208,7 +207,7 @@ Tasks can communicate through events as follows:
 
 <img src="bcast.png" align="right"/>
 
-Active tasks form a dynamic tree representing the structure of the program, as
+Tasks form a dynamic tree representing the structure of the program, as
 illustrated in the figure.
 This tree is traversed on every `emit` in a predictable way, since it
 respects the lexical structure of the program:
@@ -330,7 +329,7 @@ worth mentioning:
     - Atmos: `return (10)`, `break()` (parenthesis)
         - Atmos uses the same call syntax with parenthesis in all expressions
           that resemble statements or calls (`await`, `break`, `emit`,
-          `escape`, `return`, `throw`, `until`, and `while`).
+          `escape`, `return`, `task`, `tasks`, `throw`, `until`, and `while`).
         - The reason is to enforce an uniform syntax across all expressions.
         - Some workarounds: `return 'ok'`, `return <- 10`
 - Method call:
@@ -757,7 +756,7 @@ print(g(f(1,2)))        ;; --> 4
 
 ## Task
 
-The `task` reference type represents [tasks](#TODO).
+The `task` reference type represents [tasks](#task).
 
 A task constructor `task(f)` receives a [function](#function) and instantiates
 a task.
@@ -775,7 +774,7 @@ print(t ?? :task)       ;; --> true
 
 ## Task Pool
 
-The task pool (`tasks`) reference type represents a [pool of tasks](#TODO).
+The task pool (`tasks`) reference type represents a [pool of tasks](#tasks).
 
 A task pool constructor `tasks([n])` creates a pool that holds at most `n`
 tasks.
@@ -829,6 +828,8 @@ print(1) ; print(2)     ;; --> 1 \n 2
 print(...)              ;; --> a, b, c
 print(3)                ;; --> 3
 ```
+
+`TODO: program as a task`
 
 ### Blocks
 
@@ -1365,7 +1366,8 @@ Like in [Lua calls](#lua-call), if there is a single
 This is valid for strings, tags, vectors, tables, clocks, and native literals.
 
 The many call formats are also valid for the statements as follows:
-`await`, `break`, `emit`, `escape`, `return`, `throw`, `until`, and `while`.
+`await`, `break`, `emit`, `escape`, `return`, `task`, `tasks`, `throw`,
+`until`, and `while`.
 
 Examples:
 
@@ -1800,29 +1802,12 @@ throw :X
 <!--
 ### Active Values
 
-After they suspend, coroutines and tasks retain their execution state and can
-be resumed later from their previous suspension point.
-
-Coroutines and tasks have 4 possible status:
-
-- `yielded`: idle and ready to be resumed
-- `toggled`: ignoring resumes (only for tasks)
-- `resumed`: currently executing
-- `terminated`: terminated and unable to resume
-
-The main difference between coroutines and tasks is how they resume execution:
-
-- A coroutine resumes explicitly from a [resume operation](#resume).
-- A task resumes implicitly from a [broadcast operation](#broadcast).
-
-Like other [dynamic values](#dynamic-values), coroutines and tasks are also
+Tasks are also
 attached to enclosing [blocks](#block), which may terminate and deallocate all
 of its attached values.
 Nevertheless, before a coroutine or task is deallocated, it is implicitly
 aborted, and all active [defer statements](#defer) execute automatically in
 reverse order.
-
-`TODO: lex`
 
 A task pool groups related active tasks as a collection.
 A task that lives in a pool is lexically attached to the block in which the
@@ -1835,10 +1820,6 @@ The operations on [coroutines](#coroutine-operations) and
 Examples:
 
 ```
-coro C () { <...> }         ;; a coro prototype `C`
-val c = coroutine(C)        ;; is instantiated as `c`
-resume c()                  ;; and resumed explicitly
-
 val ts = tasks()            ;; a task pool `ts`
 task T () { <...> }         ;; a task prototype `T`
 val t = spawn T() in ts     ;; is instantiated as `t` in pool `ts`
@@ -1846,7 +1827,49 @@ broadcast(:X)               ;; broadcast resumes `t`
 ```
 -->
 
-## Task Operations
+## Task Manipulation
+
+### Task
+
+The `task` primitive receives a [function](#function) and returns a
+[task](#task):
+
+```
+Task : `task´ `(´ Exp `)´
+```
+
+The given function becomes the body of the task.
+
+Although the task is instantiated, it is only started by a subsequent
+[spawn](#spawn).
+
+A task can be assigned to a `pin` [declaration](#local-variables), in which
+case it becomes attached to the enclosing block.
+Therefore, when the block terminates or aborts, the task also aborts
+automatically.
+
+### Spawn
+
+A `spawn` receives a [task](#task), [function](#function), or [block](#blocks)
+and starts it as a task:
+
+```
+Spawn : `spawn` [`[´ Exp `]´] Exp `(´ Exp* `)`
+      | `spawn` Block
+```
+
+- The format `spawn [ts] T(...)` receives an optional [pool](#task-pool) to
+  hold the task, a task or function, and a list of arguments to pass to and
+  start the task body.
+- The format `spawn { ... }` starts an anonymous task body.
+
+
+](#function) and starts it
+  as a task.
+- A `spawn [ts] T(...)` 
+
+
+
 
 The API for tasks has the following operations:
 
