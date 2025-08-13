@@ -294,6 +294,13 @@ do
          v  [string "anon.atm"]:5 (throw) <- [C]:-1 (task)
         ==> X
     ]])
+
+    local src = [[
+        defer { print(:2) }
+    ]]
+    print("Testing...", "defer 5")
+    local out = atm_test(src)
+    assertx(out, "2\n")
 end
 
 -- DCL / VAL / VAR / SET

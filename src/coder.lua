@@ -16,7 +16,7 @@ local function L (tk)
 end
 
 local function is_stmt (e)
-    return e.tag=='dcl' or e.tag=='set' or (
+    return e.tag=='dcl' or e.tag=='set' or e.tag=='defer' or (
         e.tag=='call' and e.f.tag=='acc' and (
             -- prevents tail call b/c of error messasges
             e.f.tk.str=='throw' or e.f.tk.str=='emit' or e.f.tk.str=='emit_in'
