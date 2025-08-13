@@ -1848,6 +1848,19 @@ case it becomes attached to the enclosing block.
 Therefore, when the block terminates or aborts, the task also aborts
 automatically.
 
+Examples:
+
+<!-- exs/exp-24-task.atm -->
+
+```
+func T () { <...> }
+val t = task(T)
+
+do {
+    pin t = task(\{})
+} ;; aborts t
+```
+
 ### Spawn
 
 A `spawn` receives a [task](#task), [function](#function), or [block](#blocks)
