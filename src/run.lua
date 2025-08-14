@@ -1,10 +1,13 @@
-function atm_pin_chk (pin, ...)
+function atm_pin_chk_set (chk, pin, ...)
     local t = ...
     if _is_(t,'task') or _is_(t,'tasks') then
         if pin then
-            assertn(2, not t.pin, "invalid assignment : expected unpinned value")
+            assertn(2, (not chk) or (not t.pin),
+                "invalid assignment : expected unpinned value")
+            t.pin = true
         else
-            assertn(2, t.pin, "invalid assignment : expected pinned value")
+            assertn(2, (not chk) or t.pin,
+                "invalid assignment : expected pinned value")
         end
     end
     return ...

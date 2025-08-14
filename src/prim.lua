@@ -182,12 +182,13 @@ function parser_1_prim ()
             end
         -- spawn {}, spawn T()
         elseif check('spawn') then
+            local lin = TK1.lin
             local out,spw = parser_spawn()
             if spw.f.tk.str == 'spawn' then
                 -- force "pin" if no "in" target
                 out = {
                     tag = 'dcl',
-                    tk  = {tag='key',str='pin'},
+                    tk  = {tag='key',str='pin',lin=lin},
                     ids = { {tag='id',str='_'} },
                     set = out,
                 }
