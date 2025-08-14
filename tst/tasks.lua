@@ -634,7 +634,7 @@ do
             ;;emit(Event.Task [`mar_exe`])
         }
         spawn {
-            var exe = task(t2)
+            pin exe = task(t2)
             spawn exe()
             print(">>> A")
             var e = await(exe)
@@ -1362,9 +1362,9 @@ do
     --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
-         v  [string "anon.atm"]:1 (throw)
-        ==> invalid tasks limit : expected number
+        |  [C]:-1 (call)
+        v  [string "anon.atm"]:1 (throw)
+        ==> invalid assignment : expected pinned value
     ]])
     local src = [[
         val t = tasks()
