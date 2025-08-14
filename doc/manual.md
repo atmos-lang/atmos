@@ -32,7 +32,7 @@
     * Function
         - `func (*) { * }` `\(*) { * }`
     * Task
-        - `task`
+        - `task` `pub`
     * Task Pool
         - `tasks`
 * EXPRESSIONS
@@ -47,7 +47,7 @@
         - `?>` `!>`
         - `++`
     * Indexing
-        - `t[*]` `t.x` `t.pub` `t.(:X)` `t[=]`
+        - `t[*]` `t.x` `t[=]` `t[+]` `t[-]`
     * Calls
         - `f(*)` `-->` `->` `<-` `<--`
     * Conditionals
@@ -58,9 +58,8 @@
     * Exceptions
         - `error` `catch`
     * Task Manipulation
-        - `task`
-        - `pub` `spawn` `tasks` `status` `await` `broadcast` `toggle`
-        - `spawn {}` `every` `par` `par-and` `par-or` `watching` `toggle {}`
+        - `spawn` `tasks` `await` `emit` `toggle`
+        - `every` `par` `par_and` `par_or` `watching` `toggle`
 * STANDARD LIBRARIES
     * Basic Library
         - `assert` `copy` `create-resume` `next`
@@ -759,11 +758,20 @@ print(g(f(1,2)))        ;; --> 4
 The `task` reference type represents [tasks](#task).
 
 A task constructor `task(f)` receives a [function](#function) and instantiates
-a task.
+a task:
+
+```
+Task : `task´ `(´ Exp `)´
+```
+
+The given function becomes the body of the task.
+
+Although the task is instantiated, it is only started by a subsequent
+[spawn](#spawn).
 
 Examples:
 
-<!-- exs/val-05-task.atm -->
+<!-- exs/val-06-task.atm -->
 
 ```
 func T (...) { ... }    ;; a task prototype
@@ -771,6 +779,26 @@ print(T ?? :function)   ;; --> true
 val t = task(T)         ;; an instantiated task
 print(t ?? :task)       ;; --> true
 ```
+
+```
+func T () { <...> }
+val t = task(T)
+
+do {
+    pin t = task(\{})
+} ;; aborts t
+```
+
+### Task
+
+A task can only be assigned to a `pin` [declaration](#local-variables), in
+which case it becomes attached to the enclosing block.
+Therefore, when the block terminates or aborts, the task also aborts
+automatically.
+
+Examples:
+
+<!-- exs/exp-24-task.atm -->
 
 ## Task Pool
 
@@ -780,11 +808,9 @@ A task pool constructor `tasks([n])` creates a pool that holds at most `n`
 tasks.
 If `n` is omitted, the pool is unbounded.
 
-A task pool must be assigned to a `pin` [declaration](#local-variables).
-
 Examples:
 
-<!-- exs/val-06-pool.atm -->
+<!-- exs/val-07-pool.atm -->
 
 ```
 pin ts = tasks()        ;; a pool of tasks
@@ -1829,37 +1855,11 @@ broadcast(:X)               ;; broadcast resumes `t`
 
 ## Task Manipulation
 
-### Task
+`TODO: invisible`
 
-The `task` primitive receives a [function](#function) and returns a
-[task](#task):
+### Tasks
 
-```
-Task : `task´ `(´ Exp `)´
-```
-
-The given function becomes the body of the task.
-
-Although the task is instantiated, it is only started by a subsequent
-[spawn](#spawn).
-
-A task can be assigned to a `pin` [declaration](#local-variables), in which
-case it becomes attached to the enclosing block.
-Therefore, when the block terminates or aborts, the task also aborts
-automatically.
-
-Examples:
-
-<!-- exs/exp-24-task.atm -->
-
-```
-func T () { <...> }
-val t = task(T)
-
-do {
-    pin t = task(\{})
-} ;; aborts t
-```
+`TODO`
 
 ### Spawn
 
@@ -1872,16 +1872,54 @@ Spawn : `spawn` [`[´ Exp `]´] Exp `(´ Exp* `)`
 ```
 
 - The format `spawn [ts] T(...)` receives an optional [pool](#task-pool) to
-  hold the task, a task or function, and a list of arguments to pass to and
-  start the task body.
-- The format `spawn { ... }` starts an anonymous task body.
+  hold the task, a task or function, and a list of arguments to pass to the
+  body about to start.
+- The format `spawn { ... }` starts an anonymous task body that cannot be
+  assigned.
 
+Examples:
 
-](#function) and starts it
-  as a task.
-- A `spawn [ts] T(...)` 
+<!-- exs/exp-25-spawn.atm -->
 
+```
+func T (id) {
+    print(id, 'started')
+}
+pin ts = task()
+spawn [ts] T(:t1)
 
+spawn {
+    print(:t2, 'started')
+}
+
+pin t = spawn { ... }   ;; ERR: cannot assign
+```
+
+### Pub
+
+Tasks have a single public field `pub`, which can be accessed both internally
+and externally:
+
+```
+Pub : `pub`
+    | Expr `.´ `pub´
+```
+
+Internally, it can be accessed through the special variable `pub`.
+Externally, it can be accessed through `t.pub`, where `t` is a reference to the
+task.
+
+Examples:
+
+<!-- exs/exp-26-pub.atm -->
+
+```
+func T (n) {
+    set pub = n
+}
+val t = spawn T(10)
+print(t.pub)        ;; --> 10
+```
 
 
 The API for tasks has the following operations:

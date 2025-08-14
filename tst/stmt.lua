@@ -740,17 +740,23 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser)
-    assert(not ok)
-    assert(msg, "anon : line 1 : near 'spawn' : invalid spawn : expected pin declaration")
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "val t = spawn(false, T)")
+    --local ok, msg = pcall(parser)
+    --assert(not ok)
+    --assert(msg, "anon : line 1 : near 'spawn' : invalid spawn : expected pin declaration")
 
     local src = "val t = tasks()"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'tasks' : invalid tasks : expected pin declaration")
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "val t = tasks()")
+    --local ok, msg = pcall(parser)
+    --assertx(msg, "anon : line 1 : near 'tasks' : invalid tasks : expected pin declaration")
 end
 
 print '--- AWAIT / EVERY ---'

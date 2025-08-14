@@ -1335,6 +1335,35 @@ do
     warn(false, 'TODO :parent')
 end
 
+print '--- PIN ---'
+
+do
+    local src = [[
+        val t = spawn T()
+    ]]
+    print("Testing...", "pin 1")
+    local out = atm_test(src)
+    --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> invalid tasks limit : expected number
+    ]])
+    local src = [[
+        val t = tasks()
+    ]]
+    print("Testing...", "pin 2")
+    local out = atm_test(src)
+    --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:1 (throw)
+        ==> invalid tasks limit : expected number
+    ]])
+end
+
 print '--- TASK / TERMINATION ---'
 
 do

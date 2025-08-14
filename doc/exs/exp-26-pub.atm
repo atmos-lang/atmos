@@ -1,0 +1,5 @@
+func T (n) {
+    set pub = n
+}
+val t = spawn T(10)
+print(t.pub)        ;; --> 10

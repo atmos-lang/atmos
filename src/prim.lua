@@ -293,17 +293,8 @@ function parser_1_prim ()
         if accept('=') then
             if check('spawn') then
                 local tk1 = TK1
-                local out,spw = parser_spawn()
-                if tk.str=='pin' and spw.f.tk.str=='spawn_in' then
-                    err(tk1, "invalid spawn in : unexpected pin declaration")
-                elseif tk.str~='pin' and spw.f.tk.str=='spawn' then
-                    err(tk1, "invalid spawn : expected pin declaration")
-                end
-                set = out
+                set = parser_spawn()
             elseif accept('tasks') then
-                if tk.str ~= 'pin' then
-                    err(TK0, "invalid tasks : expected pin declaration")
-                end
                 local f = { tag='acc', tk={tag='id',str="tasks",lin=TK0.lin} }
                 accept_err('(')
                 local e

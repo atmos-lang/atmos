@@ -1,0 +1,14 @@
+func T (id) {
+    print(id, 'started')
+    set pub = id
+}
+pin ts = task()
+val t1 = spawn [ts] T(:t1)
+print(t1.pub)
+
+spawn {
+    print(:t2, 'started')
+    print(pub)
+}
+
+pin t = spawn {}

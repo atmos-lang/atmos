@@ -1,3 +1,15 @@
+function atm_pin_chk (pin, ...)
+    local t = ...
+    if _is_(t,'task') or _is_(t,'tasks') then
+        if pin then
+            assertn(2, not t.pin, "invalid assignment : expected unpinned value")
+        else
+            assertn(2, t.pin, "invalid assignment : expected pinned value")
+        end
+    end
+    return ...
+end
+
 function atm_tag_do (tag, t)
     assertn(2, type(t)=='table', 'invalid tag operation : expected table', 2)
     t.tag = tag
