@@ -134,12 +134,13 @@ function coder (e)
             end
         end
         local ids = join(', ', map(e.ids,  function(id) return id.str end))
+        local out = L(e.tk) .. 'local ' .. ids .. mod
         if not e.set then
-            return 'local ' .. ids .. mod
+            return out
         elseif e.tk.str == 'pin' then
-            return 'local ' .. ids .. mod .. ' = atm_pin_chk(true, '..coder(e.set)..')'
+            return out .. ' = atm_pin_chk(true, '..coder(e.set)..')'
         else
-            return 'local ' .. ids .. mod .. ' = atm_pin_chk(false, '..coder(e.set)..')'
+            return out .. ' = atm_pin_chk(false, '..coder(e.set)..')'
         end
     elseif e.tag == 'set' then
         return coder_args(e.dsts) .. ' = atm_pin_chk(false, ' .. coder(e.src) .. ')'

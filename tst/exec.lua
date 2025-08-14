@@ -1410,7 +1410,7 @@ do
             val b = await(:X)
             print(b)
         }
-        val t = task(T)
+        pin t = task(T)
         spawn t(10)
         emit(:X)
     ]]
@@ -2035,7 +2035,7 @@ do
     ]])
 
     local src = [[
-        val f = task(func () {})
+        pin f = task(func () {})
         toggle f() ; nil
     ]]
     print("Testing...", "toggle 2")

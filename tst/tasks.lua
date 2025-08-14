@@ -114,7 +114,7 @@ do
     local src = [[
         val T = func () { }
         val t1 = coroutine.create(T)
-        val t2 = task(T)
+        pin t2 = task(T)
         print(t1, t2)
     ]]
     print("Testing...", "task 3: coro/task")
@@ -384,7 +384,7 @@ do
             print(v)
             await(false)
         }
-        val t = do :X {
+        pin t = do :X {
             var v
             set v = 10
             escape(:X, (task(func() { return(T(v)) })))
@@ -395,6 +395,22 @@ do
     print("Testing...", "spawn 7")
     local out = atm_test(src)
     assertfx(out, "10\ntable: 0x")
+
+    local src = [[
+        val T = func (v) {
+        }
+        val t = do :X {
+            escape(:X, (task(func() { })))
+        }
+    ]]
+    print("Testing...", "spawn 7")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:3 (throw)
+        ==> invalid assignment : expected pinned value
+    ]])
 end
 
 -- EMIT
@@ -411,7 +427,7 @@ do
     ]]
     print("Testing...", "emit 1 : task term")
     local out = atm_test(src)
-    assert(string.find(out, "1\t1\n2\ttable: 0x"))
+    assertfx(out, "1\t1\n2\ttable: 0x")
 
     local src = [[
         val tk = func (v) {
