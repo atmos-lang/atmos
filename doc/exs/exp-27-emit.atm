@@ -1,0 +1,7 @@
+func T () {
+    val x = spawn X()
+    val e = :e
+    emit [:global] (e)  ;; global broadcast
+    emit [:task] (e)    ;; restricted to `T`
+    emit [x] (e)        ;; restricted to `x`
+}

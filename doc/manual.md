@@ -1965,7 +1965,7 @@ print(t)                        ;; --> exe-task 0x...
 
 ### Await
 
-An `await` suspends a task until a matching [emit](#emit) occurs:
+An `await` suspends a [task](#task) until a matching [emit](#emit) occurs:
 
 ```
 Await : `await´ `(´ Expr* `)´
@@ -1983,75 +1983,103 @@ The first format accepts any of the following expressions:
 - `v | matches if `e ?? v`, where `e` is the `emit` argument
 - `...` | each of the arguments must match each of the `emit` arguments
 
+The `await` evaluates to the matching `emit` payloads.
+
 The second format `await T(...)` [spawns](#spawn) and awaits the given task to
 terminate.
+In this case, the `await` evaluates to the task final value.
 
 Examples:
 
 <!-- exs/exp-26-await.atm -->
 
 ```
-await(true)             ;; awakes on any event
+await(false)            ;; never awakes
 await(:key, :escape)    ;; awakes on :key == :escape
 await @1:10:30          ;; awakes after 1h 10min 30s
 await(\{it>10})         ;; awakes if event > 10
 ```
 
+```
+spawn {
+    val x,y = await(true)
+    print(x, y)         ;; --> 10, 20
+}
+emit(10, 20)
+```
+
+```
+func T (v) {
+    v * 2
+}
+val v = await T(10)
+print(v)                ;; --> 20
+```
+
 ### Emit
 
-The operation `broadcast` signals an event to awake [awaiting](#await) tasks:
+An `emit` broadcasts an event that can awake [awaiting](#await) tasks:
 
 ```
-Bcast : `broadcast´ `(´ [Expr] `)´ [`in´ Expr]
+Emit : `emit´ [`[´ Exp `]´] `(´ Expr* `)´
 ```
 
-A `broadcast` expects an optional event expression and an optional target.
-If omitter, the event defaults to `nil`.
-The event is matched against the patterns in `await` operations, which
-determines the tasks to awake.
+The optional target between brackets determines the scope of the broadcast:
 
-The special event `:Clock [ms]` advances timer patterns in await conditions,
-in which `ms` corresponds to the number of milliseconds to advance.
+- `:task` (default): current task
+- `:parent`: parent task
+- `:global`: all tasks
+- `t: task`: the given task
+- `n: number`: `n`th level up in the task hierarchy (`0` = current task)
 
-The target expression, with the options as follows, restricts the scope of the
-broadcast:
-
-- `:task`: restricts the broadcast to nested tasks in the current task, which
-    is also the default behavior if the target is omitted;
-- `:global`: does not restrict the broadcast, which considers the program as a
-    whole;
-- otherwise, target must be a task, which restricts the broadcast to it and its
-    nested tasks.
+The arguments to `emit` are the event payloads matched against await
+operations.
 
 Examples:
 
+<!-- exs/exp-27-emit.atm -->
+
 ```
-<...>
-task T () {
-    <...>
+func T () {
     val x = spawn X()
-    <...>
-    broadcast(e) in :task       ;; restricted to enclosing task `T`
-    broadcast(e)                ;; restricted to enclosing task `T`
-    broadcast(e) in x           ;; restricted to spawned `x`
-    broadcast(e) in :global     ;; no restrictions
+    val e = <...>
+    emit [:global] (e)  ;; global broadcast
+    emit [:task] (e)    ;; restricted to `T`
+    emit [x] (e)        ;; restricted to `x`
 }
 ```
 
 ### Toggle
 
-The operation `toggle` configures an active task to either ignore or consider
-further `broadcast` operations:
+A `toggle` configures a task to either consider or disregard further
+[emit](#emit) operations:
 
 ```
 Toggle : `toggle´ Expr `(´ Expr `)´
 ```
 
-A `toggle` expects an active task and a [boolean](#basic-types) value
-between parenthesis, which is handled as follows:
+A `toggle` expects a task and a [boolean](#types--values), which is handled
+as follows:
 
-- `false`: the task ignores further broadcasts;
-- `true`: the task considers further broadcasts.
+- `true`: the task considers further broadcasts
+- `false`: the task disregards further emits and never awakes
+
+By default, all tasks consider events.
+Examples:
+
+<!-- exs/exp-28-toggle.atm -->
+
+```
+val T = func () {
+    await :X
+    print :ok
+}
+pin t = spawn T()
+toggle t(false)
+emit :X         ;; event ignored
+toggle t(true)
+emit :X         ;; --> ok
+```
 
 ### Syntactic Block Extensions
 

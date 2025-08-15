@@ -1,0 +1,10 @@
+val T = func () {
+    await :X
+    print :ok
+}
+pin t = spawn T()
+toggle t(false)
+emit :X         ;; event ignored
+toggle t(true)
+print :bef
+emit :X         ;; --> ok

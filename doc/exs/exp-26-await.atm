@@ -25,3 +25,15 @@ emit <-- 10
 print :g
 emit <-- 20
 print :h
+
+spawn {
+    val x,y = await(true)
+    print(x, y)         ;; --> 10, 20
+}
+emit(10, 20)
+
+func T (v) {
+    v * 2
+}
+val v = await T(10)
+print(v)                ;; --> 20
