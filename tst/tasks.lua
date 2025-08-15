@@ -1,3 +1,5 @@
+require "atmos.lang.exec"
+
 -- PARSER
 
 do
@@ -1348,13 +1350,14 @@ do
     local out = atm_test(src)
     assertx(out, "2\n")
 
-    warn(false, 'TODO :parent')
+    --warn(false, 'TODO :parent')
 end
 
 print '--- PIN ---'
 
 do
     local src = [[
+        val T = \{}
         val t = spawn T()
     ]]
     print("Testing...", "pin 1")
@@ -1363,9 +1366,10 @@ do
     assertx(trim(out), trim [[
         ==> ERROR:
         |  [C]:-1 (call)
-        v  [string "anon.atm"]:1 (throw)
+        v  [string "anon.atm"]:2 (throw)
         ==> invalid assignment : expected pinned value
     ]])
+
     local src = [[
         val t = tasks()
     ]]
@@ -1374,10 +1378,45 @@ do
     --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
-         v  [string "anon.atm"]:1 (throw)
-        ==> invalid tasks limit : expected number
+        |  [C]:-1 (call)
+        v  [string "anon.atm"]:1 (throw)
+        ==> invalid assignment : expected pinned value
     ]])
+
+    local src = [[
+        val t = tasks()
+    ]]
+    print("Testing...", "pin 2")
+    local out = atm_test(src)
+    --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+        |  [C]:-1 (call)
+        v  [string "anon.atm"]:1 (throw)
+        ==> invalid assignment : expected pinned value
+    ]])
+
+    local src = [[
+        pin t = tasks()
+        pin x = t
+    ]]
+    print("Testing...", "pin 3")
+    local out = atm_test(src)
+    --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  [string "anon.atm"]:2 (throw)
+        ==> invalid assignment : expected unpinned value
+    ]])
+
+    local src = [[
+        pin t = spawn {}
+        print(t)
+    ]]
+    print("Testing...", "pin 4")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 1 : near 'pin' : invalid assignment : unexpected transparent task")
 end
 
 print '--- TASK / TERMINATION ---'
@@ -1385,29 +1424,29 @@ print '--- TASK / TERMINATION ---'
 do
     local src = [[
         spawn {
-            val e = await(true)
+            pin e = await(true)
             print(:ok, e)
         }
-        pin t = spawn {
-        }
+        pin t = spawn (\{
+        })()
         emit(:T, t)
     ]]
     print("Testing...", "task-term 1")
     local out = atm_test(src)
-    assert(string.find(out, "ok\ttable: 0x"))
+    assertfx(out, "ok\ttable: 0x")
 
     local src = [[
         spawn {
-            val x = await(true)
+            pin x = await(true)
             print(:ok, x)
         }
-        pin t = spawn {
-        }
+        pin t = spawn (\{
+        }) ()
         emit(t)
     ]]
     print("Testing...", "task-term 2")
     local out = atm_test(src)
-    assert(string.find(out, "ok\ttable: 0x"))
+    assertfx(out, "ok\ttable: 0x")
 
     local src = [[
         spawn {
@@ -1416,10 +1455,10 @@ do
             val x = await(true)
             print(:ok, x)
         }
-        pin t = spawn {
+        pin t = spawn (\{
             await(true)
             print(:2)
-        }
+        }) ()
         emit(:nil)
         emit(:T, t)
     ]]
@@ -1429,10 +1468,10 @@ do
 
     local src = [[
         spawn {
-            pin t = spawn {
+            pin t = spawn (\{
                 val e = await(true)
                 print(:1, e)
-            }
+            }) ()
             print(:0)
             (func (x) {
                 if (type(x) == 'table') {
@@ -2544,7 +2583,7 @@ do
             defer {
                 print("last")
             }
-            var exe = task(t2)
+            pin exe = task(t2)
             spawn exe()
         }
     ]]

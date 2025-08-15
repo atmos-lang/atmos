@@ -1,7 +1,3 @@
-require "atmos.lang.lexer"
-require "atmos.lang.parser"
-require "atmos.lang.tosource"
-require "atmos.lang.coder"
 require "atmos.lang.exec"
 
 -- EXPR / STRING / TAG
@@ -1608,7 +1604,7 @@ do
         print(:1)
         do {
             print(:2)
-            pin x = spawn {
+            spawn {
                 defer {
                     print(:defer)
                 }
@@ -1698,11 +1694,11 @@ do
     local src = [[
         spawn {
             loop {
-                pin t = spawn {
+                ;;pin t = spawn {
                     await(:X)
                     print(:in)
-                }
-                await(t)
+                ;;}
+                ;;await(t)
             }
         }
         emit :X
@@ -1950,7 +1946,7 @@ print '--- AWAIT / TASK ---'
 do
     local src = [[
         spawn {
-            pin t = spawn { return(10) }
+            pin t = spawn (\{ return(10) }) ()
             val x = await(t)
             print(:ok, x)
         }
@@ -1961,10 +1957,10 @@ do
 
     local src = [[
         spawn {
-            pin t = spawn {
+            pin t = spawn (\{
                 await(:X)
                 return(10)
-            }
+            }) ()
             val x = await(t)
             print(:ok, x)
         }

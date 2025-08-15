@@ -757,6 +757,14 @@ do
     assertx(tosource(s), "val t = tasks()")
     --local ok, msg = pcall(parser)
     --assertx(msg, "anon : line 1 : near 'tasks' : invalid tasks : expected pin declaration")
+
+    local src = "val x = spawn {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'val' : invalid assignment : unexpected transparent task")
 end
 
 print '--- AWAIT / EVERY ---'

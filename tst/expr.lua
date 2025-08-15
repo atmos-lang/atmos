@@ -995,6 +995,18 @@ do
         }()
     ]])
 
+    local src = "spawn {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(e)), trim [[
+        pin _ = spawn(true, {
+        })
+    ]])
+
     local src = "(a,b) where {a,b=(10,10)}"
     print("Testing...", src)
     init()

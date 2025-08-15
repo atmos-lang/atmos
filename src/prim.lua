@@ -295,6 +295,10 @@ function parser_1_prim ()
             if check('spawn') then
                 local tk1 = TK1
                 set = parser_spawn()
+                local inv = set.es[1]
+                if inv.tag=='bool' and inv.tk.str=="true" then
+                    err(tk, "invalid assignment : unexpected transparent task")
+                end
             elseif accept('tasks') then
                 local f = { tag='acc', tk={tag='id',str="tasks",lin=TK0.lin} }
                 accept_err('(')
