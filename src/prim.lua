@@ -3,7 +3,7 @@ local function spawn (lin, blk)
         tag = 'call',
         f = { tag='acc', tk={tag='id', str='spawn', lin=lin} },
         es = {
-            { tag='bool', tk={str='true'} },    -- invisible=true
+            { tag='bool', tk={str='true'} },    -- transparent=true
             { tag='func', pars={}, blk=blk },
         },
     }

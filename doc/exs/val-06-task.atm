@@ -1,4 +1,18 @@
-func T (...) { ... }
-val t = task(T)
-print(t ?? :task)
-print(T ?? :function)
+func T (...) { ... }    ;; a task prototype
+print(T ?? :function)   ;; --> true
+pin t = task(T)         ;; an instantiated task
+print(t ?? :task)       ;; --> true
+val x = t               ;; OK: second assignment
+;;val y = task(T)         ;; ERR: first assignment requires `pin`
+
+func T () {
+    defer {
+        print'ok'
+    }
+    await(false)
+}
+do {
+    pin t = task(T)
+    spawn t()
+} ;; aborts t
+print'end'

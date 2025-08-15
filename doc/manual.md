@@ -767,7 +767,12 @@ Task : `task´ `(´ Exp `)´
 The given function becomes the body of the task.
 
 Although the task is instantiated, it is only started by a subsequent
-[spawn](#spawn).
+[spawn](#spawn) operation.
+
+A task must be first assigned to a `pin` [declaration](#local-variables) and
+becomes attached to the enclosing block.
+Therefore, when the block terminates or aborts, the task also aborts
+automatically.
 
 Examples:
 
@@ -776,29 +781,54 @@ Examples:
 ```
 func T (...) { ... }    ;; a task prototype
 print(T ?? :function)   ;; --> true
-val t = task(T)         ;; an instantiated task
+pin t = task(T)         ;; an instantiated task
 print(t ?? :task)       ;; --> true
+val x = t               ;; OK: second assignment
+val y = task(T)         ;; ERR: first assignment requires `pin`
 ```
 
 ```
-func T () { <...> }
-val t = task(T)
+func T () {
+    defer {
+        print "aborted"
+    }
+    await(false)
+}
 
 do {
-    pin t = task(\{})
-} ;; aborts t
+    pin t = task(T)
+    spawn t()
+}               ;; --> aborted
+print "end"     ;; --> end
 ```
 
-### Task
+### Pub
 
-A task can only be assigned to a `pin` [declaration](#local-variables), in
-which case it becomes attached to the enclosing block.
-Therefore, when the block terminates or aborts, the task also aborts
-automatically.
+A task has a single public field `pub`, which can be accessed both internally
+and externally:
+
+```
+Pub : `pub`
+    | Expr `.´ `pub´
+```
+
+Internally, it can be accessed through the special variable `pub`.
+Externally, it can be accessed through `t.pub`, where `t` is a reference to the
+task.
 
 Examples:
 
-<!-- exs/exp-24-task.atm -->
+<!-- exs/val-06-pub.atm -->
+
+```
+func T (n) {
+    set pub = n
+}
+val t = spawn T(10)
+print(t.pub)        ;; --> 10
+```
+
+### Transparent Task
 
 ## Task Pool
 
@@ -1874,7 +1904,7 @@ Spawn : `spawn` [`[´ Exp `]´] Exp `(´ Exp* `)`
 - The format `spawn [ts] T(...)` receives an optional [pool](#task-pool) to
   hold the task, a task or function, and a list of arguments to pass to the
   body about to start.
-- The format `spawn { ... }` starts an anonymous task body that cannot be
+- The format `spawn { ... }` starts a transparent task body that cannot be
   assigned.
 
 Examples:
@@ -1894,33 +1924,6 @@ spawn {
 
 pin t = spawn { ... }   ;; ERR: cannot assign
 ```
-
-### Pub
-
-Tasks have a single public field `pub`, which can be accessed both internally
-and externally:
-
-```
-Pub : `pub`
-    | Expr `.´ `pub´
-```
-
-Internally, it can be accessed through the special variable `pub`.
-Externally, it can be accessed through `t.pub`, where `t` is a reference to the
-task.
-
-Examples:
-
-<!-- exs/exp-26-pub.atm -->
-
-```
-func T (n) {
-    set pub = n
-}
-val t = spawn T(10)
-print(t.pub)        ;; --> 10
-```
-
 
 The API for tasks has the following operations:
 
@@ -2175,20 +2178,20 @@ The extensions expand to standard task operations.
 
 #### Spawn Blocks
 
-A `spawn` block starts an anonymous nested task:
+A `spawn` block starts an transparent nested task:
 
 ```
 Spawn : `spawn´ Block
 ```
 
-An anonymous task cannot be assigned or referred explicitly.
-Also, any access to `pub` refers to the enclosing non-anonymous task.
+An transparent task cannot be assigned or referred explicitly.
+Also, any access to `pub` refers to the enclosing non-transparent task.
 
 `TODO: :nested, :anon, escape bug`
 
 <!--
 The `:nested` annotation is an internal mechanism to indicate that nested task
-is anonymous and unassignable.
+is transparent and unassignable.
 -->
 
 The `spawn` extension expands as follows:
@@ -2220,7 +2223,7 @@ spawn T()
 
 #### Parallel Blocks
 
-A parallel block spawns multiple anonymous tasks:
+A parallel block spawns multiple transparent tasks:
 
 ```
 Par     : `par´     Block { `with´ Block }
