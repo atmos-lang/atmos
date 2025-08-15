@@ -1,2 +1,0 @@
-pin ts = tasks()        ;; a pool of tasks
-print(ts ?? :tasks)     ;; --> true

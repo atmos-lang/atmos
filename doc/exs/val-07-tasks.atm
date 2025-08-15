@@ -1,0 +1,13 @@
+func T () {
+    defer {
+        print :aborted
+    }
+    await(false)
+}
+do {
+    pin ts = tasks()        ;; a pool of tasks
+    print(ts ?? :tasks)     ;; --> true
+    val t1 = spawn [ts] T()
+    val t2 = spawn [ts] T()
+}
+print :end

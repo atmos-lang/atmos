@@ -33,7 +33,7 @@
         - `func (*) { * }` `\(*) { * }`
     * Task
         - `task` `pub`
-    * Task Pool
+    * Tasks
         - `tasks`
 * EXPRESSIONS
     * Program, Sequences and Blocks
@@ -855,21 +855,37 @@ func T () {
 spawn T()
 ```
 
-## Task Pool
+## Tasks
 
-The task pool (`tasks`) reference type represents a [pool of tasks](#tasks).
+The `tasks` reference type represents a pool of tasks, which groups related
+tasks as a collection.
 
-A task pool constructor `tasks([n])` creates a pool that holds at most `n`
-tasks.
-If `n` is omitted, the pool is unbounded.
+A task pool constructor `tasks(n)` creates a pool that holds at most `n`
+tasks:
+
+```
+Tasks : `tasks´ `(´ [Exp] `)´
+```
+
+The pool is unbounded it the limit is omitted.
+
+A pool must be first assigned to a `pin` [declaration](#local-variables) and
+becomes attached to the enclosing block.
+Therefore, when the block terminates or aborts, all tasks living in the pool
+also aborts automatically.
 
 Examples:
 
-<!-- exs/val-07-pool.atm -->
+<!-- exs/val-07-tasks.atm -->
 
 ```
-pin ts = tasks()        ;; a pool of tasks
-print(ts ?? :tasks)     ;; --> true
+do {
+    pin ts = tasks()        ;; a pool of tasks
+    print(ts ?? :tasks)     ;; --> true
+    val t1 = spawn [ts] T()
+    val t2 = spawn [ts] T()
+    <...>
+}                           ;; aborts t1, t2, ...
 ```
 
 # EXPRESSIONS
@@ -1880,41 +1896,7 @@ throw :X
 ;;;
 ```
 
-<!--
-### Active Values
-
-Tasks are also
-attached to enclosing [blocks](#block), which may terminate and deallocate all
-of its attached values.
-Nevertheless, before a coroutine or task is deallocated, it is implicitly
-aborted, and all active [defer statements](#defer) execute automatically in
-reverse order.
-
-A task pool groups related active tasks as a collection.
-A task that lives in a pool is lexically attached to the block in which the
-pool is created, such that when the block terminates, all tasks in the pool are
-implicitly terminated.
-
-The operations on [coroutines](#coroutine-operations) and
-[tasks](#tasks-operations) are discussed further.
-
-Examples:
-
-```
-val ts = tasks()            ;; a task pool `ts`
-task T () { <...> }         ;; a task prototype `T`
-val t = spawn T() in ts     ;; is instantiated as `t` in pool `ts`
-broadcast(:X)               ;; broadcast resumes `t`
-```
--->
-
 ## Task Manipulation
-
-`TODO: invisible`
-
-### Tasks
-
-`TODO`
 
 ### Spawn
 
