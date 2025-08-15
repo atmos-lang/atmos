@@ -1,0 +1,27 @@
+spawn {
+    print :1
+    await(true)            ;; never awakes
+    print :2
+    await(:key, :escape)    ;; awakes on :key == :escape
+    print :3
+    await @1:10:30          ;; awakes after 1h 10min 30s
+    print :4
+    await(\{it>10})         ;; awakes if event > 10
+    print :5
+}
+
+print :a
+emit :X
+print :b
+emit(:key, :escape)
+print :c
+emit @1:00:00
+print :d
+emit @10:00
+print :e
+emit @30
+print :f
+emit <-- 10
+print :g
+emit <-- 20
+print :h

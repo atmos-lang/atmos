@@ -1960,45 +1960,41 @@ task T (v, vs) {                ;; task prototype accepts 2 args
     <...>
 }
 val t = spawn T(10, [1,2,3])    ;; starts task passing args
-print(t)                      ;; --> exe-task 0x...
+print(t)                        ;; --> exe-task 0x...
 ```
 
 ### Await
 
-The operation `await` suspends the execution of a running task with a given
-[condition pattern](#pattern-matching) or clock timeout:
+An `await` suspends a task until a matching [emit](#emit) occurs:
 
 ```
-Await : `await´ Patt [Block]
-      | `await´ Clock
-Clock : `<´ { Expr [`:h´|`:min´|`:s´|`:ms´] } `>´
+Await : `await´ `(´ Expr* `)´
+      | `await´ ID `(´ Expr* `)´
 ```
 
-Whenever an event is [broadcast](#broadcasts), it is compared against the
-`await` pattern or clock timeout.
-If it succeeds, the task is resumed and executes the statement after the
-`await`.
+The first format accepts any of the following expressions:
 
-A clock timeout in milliseconds is the sum of the given time units multipled
-by prefix numeric expressions, e.g., `<1:s 500:ms>` corresponds to `1500ms`.
-The special broadcast event `:Clock [ms]` advances clock timeouts, in which
-`ms` corresponds to the number of milliseconds to advance.
-Therefore, a clock timeout such as `<1:s 500:ms>` expires after `:Clock` events
-accumulate `1500ms`.
+- `true` | matches any emit
+- `false` | never matches an emit
+- `c: clock` | matches a [clock](#clock) event (`c` decreases until expires)
+- `t: task` | matches a terminating task `t`
+- `ts: tasks` | matches any terminating task in `ts`
+- `f: function` | `f` receives the occuring event, matches if `f` returns `true`
+- `v | matches if `e ?? v`, where `e` is the `emit` argument
+- `...` | each of the arguments must match each of the `emit` arguments
 
-A condition pattern accepts an optional block that can access the event value
-when the condition pattern matches.
-If the block is omitted, the pattern requires parenthesis.
+The second format `await T(...)` [spawns](#spawn) and awaits the given task to
+terminate.
 
 Examples:
 
+<!-- exs/exp-26-await.atm -->
+
 ```
-await(|false)                   ;; never awakes
-await(:key | it.code==:escape)  ;; awakes on :key with code=:escape
-await <1:h 10:min 30:s>         ;; awakes after the specified time
-await e {                       ;; awakes on any event
-    print(e)                  ;;  and shows it
-}
+await(true)             ;; awakes on any event
+await(:key, :escape)    ;; awakes on :key == :escape
+await @1:10:30          ;; awakes after 1h 10min 30s
+await(\{it>10})         ;; awakes if event > 10
 ```
 
 ### Emit
