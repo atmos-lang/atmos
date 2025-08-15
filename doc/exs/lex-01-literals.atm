@@ -4,4 +4,3 @@ print <-- :X.Y                ;; tag literal
 print <-- """Hello!"""        ;; string literal
 print <-- 1.25                ;; number literal
 print <-- `x:f {"lua"}`       ;; native literal
-

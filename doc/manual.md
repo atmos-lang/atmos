@@ -534,7 +534,7 @@ expressions.
 
 Examples:
 
-<!-- exs/04-literals.atm -->
+<!-- exs/lex-01-literals.atm -->
 
 ```
 nil                 ;; nil literal
@@ -558,7 +558,7 @@ Multi-line comments are enclosed by three of more matching semi-colons.
 
 Examples:
 
-<!-- exs/05-comments.atm -->
+<!-- exs/lex-02-comments.atm -->
 
 ```
 ;; a comment        ;; single-line comment
