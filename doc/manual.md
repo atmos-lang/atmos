@@ -897,7 +897,6 @@ val t2 = spawn [ts] T()     ;; failure
 print(t1, t2)               ;; --> t1, nil
 ```
 
-
 # EXPRESSIONS
 
 Atmos is an expression-based language in which all statements are expressions
@@ -1962,66 +1961,6 @@ task T (v, vs) {                ;; task prototype accepts 2 args
 }
 val t = spawn T(10, [1,2,3])    ;; starts task passing args
 print(t)                      ;; --> exe-task 0x...
-```
-
-### Task Status
-
-The operation `status` returns the current state of the given active task:
-
-```
-Status : `status´ `(´ Expr `)´
-```
-
-As described in [Active Values](#active-values), a task has 4 possible status:
-
-- `yielded`: idle and ready to be resumed
-- `toggled`: ignoring resumes
-- `resumed`: currently executing
-- `terminated`: terminated and unable to be resumed
-
-Examples:
-
-```
-task T () {
-    await(|true)
-}
-val t = spawn T()
-print(status(t))      ;; --> :yielded
-toggle t(false)
-broadcast(nil)
-print(status(t))      ;; --> :toggled
-toggle t(true)
-broadcast(nil)
-print(status(t))      ;; --> :terminated
-```
-
-### Public Fields
-
-Tasks expose a public variable `pub` that is accessible externally:
-
-```
-Pub : `pub´ | Expr `.´ `pub´
-```
-
-The variable is accessed internally as `pub`, and externally as a
-[field operation](#indexing) `x.pub`, where `x` refers to the task.
-
-When the task terminates, the public field assumes the final task value.
-
-Examples:
-
-```
-task T () {
-    set pub = 10
-    await(|true)
-    print(pub)    ;; --> 20
-    30              ;; final task value
-}
-val t = spawn T()
-print(t.pub)      ;; --> 10
-set t.pub = 20
-broadcast(nil)
-print(t.pub)      ;; --> 30
 ```
 
 ### Await
