@@ -58,8 +58,8 @@
     * Exceptions
         - `error` `catch`
     * Task Operations
-        - `spawn` `tasks` `await` `emit` `toggle`
-        - `every` `par` `par_and` `par_or` `watching` `toggle`
+        - `spawn` `await` `emit` `toggle`
+        - `every` `watching` `par` `par_and` `par_or`
 * STANDARD LIBRARIES
     * Basic Library
         - `assert` `copy` `create-resume` `next`
@@ -2081,185 +2081,31 @@ toggle t(true)
 emit :X         ;; --> ok
 ```
 
-### Syntactic Block Extensions
+### Every
 
-Atmos provides many syntactic block extensions to work with tasks more
-effectively.
-The extensions expand to standard task operations.
-
-#### Spawn Blocks
-
-A `spawn` block starts an transparent nested task:
+An `every` statement is a [loop](#loop) that makes an iteration whenever an
+[await](#await) condition is satisfied:
 
 ```
-Spawn : `spawn´ Block
+Every : `every´ Expr* (Block | Lambda)
 ```
 
-An transparent task cannot be assigned or referred explicitly.
-Also, any access to `pub` refers to the enclosing non-transparent task.
-
-`TODO: :nested, :anon, escape bug`
-
-<!--
-The `:nested` annotation is an internal mechanism to indicate that nested task
-is transparent and unassignable.
--->
-
-The `spawn` extension expands as follows:
-
-```
-spawn (task :nested () {
-    <Block>
-}) ()
-```
+The block can also use the [lambda notation](#lambda) to capture the value
+of the occurring event.
 
 Examples:
 
-```
-spawn {
-    await(:X)
-    print(":X occurred")
-}
-```
+<!-- exs/exp-29-every.atm -->
 
 ```
-task T () {
-    set pub = 10
-    spawn {
-        print(pub)    ;; --> 10
-    }
-}
-spawn T()
-```
-
-#### Parallel Blocks
-
-A parallel block spawns multiple transparent tasks:
-
-```
-Par     : `par´     Block { `with´ Block }
-Par-And : `par-and´ Block { `with´ Block }
-Par-Or  : `par-or´  Block { `with´ Block }
-```
-
-A `par` never rejoins, even if all spawned tasks terminate.
-A `par-and` rejoins only after all spawned tasks terminate.
-A `par-or` rejoins as soon as any spawned task terminates, aborting the others.
-
-The `par` extension expands as follows:
-
-```
-do {
-    spawn {
-        <Block-1>       ;; first task
-    }
-    <...>
-    spawn {
-        <Block-N>       ;; Nth task
-    }
-    await(,false)       ;; never rejoins
-}
-```
-
-The `par-and` extension expands as follows:
-
-```
-do {
-    val t1 = spawn {
-        <Block-1>       ;; first task
-    }
-    <...>
-    val tN = spawn {
-        <Block-N>       ;; Nth task
-    }
-    await(, status(t1)==:terminated and ... and status(tN)==:terminated)
-}
-```
-
-A `par-or { <es1> } with { <es2> }` expands as follows:
-
-```
-do {
-    val t1 = spawn {
-        <Block-1>       ;; first task
-    }
-    <...>
-    val tN = spawn {
-        <Block-N>       ;; Nth task
-    }
-    await(, (status(t1)==:terminated and t1.pub) or
-            <...> or
-            (status(tN)==:terminated and tN.pub))
-}
-```
-
-Examples:
-
-```
-par {
-    every <1:s> {
-        print("1 second has elapsed")
-    }
-} with {
-    every <1:min> {
-        print("1 minute has elapsed")
-    }
-} with {
-    every <1:h> {
-        print("1 hour has elapsed")
-    }
-}
-print("never reached")
-```
-
-```
-par-or {
-    await <1:s>
-} with {
-    await(:X)
-    print(":X occurred before 1 second")
-}
-```
-
-```
-par-and {
-    await(:X)
-} with {
-    await(:Y)
-}
-print(":X and :Y have occurred")
-```
-
-#### Every Blocks
-
-An `every` block is a loop that makes an iteration whenever an await condition
-is satisfied:
-
-```
-Every : `every´ (Patt | Clock) Block
-```
-
-The `every` extension expands as follows:
-
-```
-loop {
-    await <Patt|Clock> {
-        <Block>
-    }
-}
-```
-
-Examples:
-
-```
-every <1:s> {
+every @1 {
     print("1 more second has elapsed")
 }
 ```
 
 ```
-every x :X | f(x) {
-    print(":X satisfies f(x)")
+every :X \{         ;; <-- (`emit :X @{v=10}`)
+    print(it.v)     ;; --> 10
 }
 ```
 
@@ -2290,6 +2136,66 @@ watching <1:s> {
         print("one more :X occurred before 1 second")
     }
 }
+```
+
+### Parallels
+
+A parallel statement spawns multiple transparent tasks:
+
+```
+Par : `par´     Block { `with´ Block }
+And : `par_and´ Block { `with´ Block }
+Or  : `par_or´  Block { `with´ Block }
+```
+
+A `par` never rejoins, even if all tasks terminate.
+
+A `par_and` rejoins only after all tasks terminate.
+It evaluates to a [table](#table) with the returns of the `n` tasks from `1` to
+`n`.
+
+A `par_or` rejoins as soon as any task terminates, aborting the others.
+It evaluates to the terminating task value.
+
+Examples:
+
+<!-- exs/exp-31-parallels.atm -->
+
+```
+par {
+    every @1 {
+        print("1 second has elapsed")
+    }
+} with {
+    every @1:0 {
+        print("1 minute has elapsed")
+    }
+} with {
+    every @1:0:0 {
+        print("1 hour has elapsed")
+    }
+}
+print("never reached")
+```
+
+```
+val v = par_or {
+    await @1
+} with {
+    await :X
+    print(":X occurred before 1 second")
+    :ok
+}
+print(v)        ;; --> ok
+```
+
+```
+val x,y = par_and {
+    await :X
+} with {
+    await :Y
+}
+print(x, y)     ;; --> X, Y
 ```
 
 #### Toggle Blocks

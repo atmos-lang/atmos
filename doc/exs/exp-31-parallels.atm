@@ -1,0 +1,42 @@
+require "atmos.env.clock"
+
+spawn {
+    par {
+        every @1 {
+            print("1 second has elapsed")
+        }
+    } with {
+        every @1:0 {
+            print("1 minute has elapsed")
+        }
+    } with {
+        every @1:0:0 {
+            print("1 hour has elapsed")
+        }
+    }
+    print("never reached")
+}
+
+spawn {
+    val v = par_or {
+        await @1
+    } with {
+        await :X
+        print(":X occurred before 1 second")
+        :ok
+    }
+    print(v)    ;; --> ok
+}
+
+spawn {
+    val x,y = par_and {
+        await :X
+    } with {
+        await :Y
+    }
+    print(x, y)     ;; --> X, Y
+}
+
+emit :Y
+emit :X
+await(false)

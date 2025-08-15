@@ -1,0 +1,16 @@
+require "atmos.env.clock"
+
+spawn {
+    every @1 {
+        print("1 more second has elapsed")
+    }
+}
+
+spawn {
+    every :X \{         ;; (`emit :X @{v=10}`)
+        print(it.v)     ;; --> 10
+    }
+}
+
+emit <-- :X @{v=10}
+await(false)

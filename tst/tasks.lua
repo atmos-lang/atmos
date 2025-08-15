@@ -3279,11 +3279,10 @@ do
     local out = atm_test(src)
     assertx(out, "X\nX\n")
 
---[=[
     local src = [[
         spawn {
-            every (:X, evt==10) {
-                print(:X, evt)
+            every :X,10 \(_,v){
+                print(:X, v)
             }
         }
         emit(:X)
@@ -3293,8 +3292,6 @@ do
     print("Testing...", "every 2")
     local out = atm_test(src)
     assertx(out, "X\t10\n")
-]=]
-    warn(false, "TODO: every payload")
 
     local src = [[
         spawn {
@@ -3333,6 +3330,18 @@ do
     print("Testing...", "every-clock")
     local out = atm_test(src)
     assertx(out, "ms\nx\nx\nms\n")
+
+    local src = [[
+        spawn {
+            every :X \{
+                print(it.v)
+            }
+        }
+        emit <-- :X @{v=10}
+    ]]
+    print("Testing...", "every table")
+    local out = atm_test(src)
+    assertx(out, "10\n")
 end
 
 print '--- PAR / PAR_AND / PAR_OR / WATCHING ---'
