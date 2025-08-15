@@ -2,7 +2,7 @@ func T (id) {
     print(id, 'started')
     set pub = id
 }
-pin ts = task()
+pin ts = tasks()
 val t1 = spawn [ts] T(:t1)
 print(t1.pub)
 
@@ -11,4 +11,4 @@ spawn {
     print(pub)
 }
 
-pin t = spawn {}
+;;pin t = spawn {}

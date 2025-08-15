@@ -1,0 +1,8 @@
+func T () {
+    set pub = 10
+    spawn {
+        set pub = 20
+    }
+    print(pub)  ;; --> 20
+}
+spawn T()

@@ -830,6 +830,31 @@ print(t.pub)        ;; --> 10
 
 ### Transparent Task
 
+Atmos support some structured constructs that create transparent tasks:
+    [spawn {}](#spawn),
+    [watching](#watching), and
+    [par, par_and, par_or](#parallels).
+
+A transparent task is implicitly pinned to its enclosing lexical block and
+cannot be assigned.
+In addition, it delegates [pub](#pub) and [emit](#emit) operations to its
+enclosing lexical task.
+
+Examples:
+
+<!-- exs/val-06-transparent.atm -->
+
+```
+func T () {
+    set pub = 10
+    spawn {
+        set pub = 20
+    }
+    print(pub)  ;; --> 20
+}
+spawn T()
+```
+
 ## Task Pool
 
 The task pool (`tasks`) reference type represents a [pool of tasks](#tasks).
@@ -1904,8 +1929,8 @@ Spawn : `spawn` [`[´ Exp `]´] Exp `(´ Exp* `)`
 - The format `spawn [ts] T(...)` receives an optional [pool](#task-pool) to
   hold the task, a task or function, and a list of arguments to pass to the
   body about to start.
-- The format `spawn { ... }` starts a transparent task body that cannot be
-  assigned.
+- The format `spawn { ... }` starts a [transparent task](#transparent-task)
+  body.
 
 Examples:
 
@@ -1914,12 +1939,14 @@ Examples:
 ```
 func T (id) {
     print(id, 'started')
+    set pub = id
 }
-pin ts = task()
-spawn [ts] T(:t1)
+pin ts = tasks()
+spawn [ts] T(:t1)   ;; --> t1, started
+print(t1.pub)       ;; --> t1
 
 spawn {
-    print(:t2, 'started')
+    print(:t2, 'started')   ;; t2, started
 }
 
 pin t = spawn { ... }   ;; ERR: cannot assign
