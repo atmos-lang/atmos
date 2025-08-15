@@ -3,12 +3,11 @@ func T (id) {
     set pub = id
 }
 pin ts = tasks()
-val t1 = spawn [ts] T(:t1)
-print(t1.pub)
+val t1 = spawn [ts] T(:t1)  ;; --> t1, started
+print(t1.pub)               ;; --> t1
 
 spawn {
-    print(:t2, 'started')
-    print(pub)
+    print(:t2, 'started')   ;; t2, started
 }
 
-;;pin t = spawn {}
+;;pin t = spawn {}            ;; ERR: cannot assign

@@ -57,7 +57,7 @@
         - `break` `until` `while`
     * Exceptions
         - `error` `catch`
-    * Task Manipulation
+    * Task Operations
         - `spawn` `tasks` `await` `emit` `toggle`
         - `every` `par` `par_and` `par_or` `watching` `toggle`
 * STANDARD LIBRARIES
@@ -867,12 +867,14 @@ tasks:
 Tasks : `tasks´ `(´ [Exp] `)´
 ```
 
-The pool is unbounded it the limit is omitted.
+If the limit is omitted, the pool is unbounded.
+If the pool becomes full, further spawns fail and return `nil`.
 
 A pool must be first assigned to a `pin` [declaration](#local-variables) and
 becomes attached to the enclosing block.
 Therefore, when the block terminates or aborts, all tasks living in the pool
 also aborts automatically.
+
 
 Examples:
 
@@ -887,6 +889,14 @@ do {
     <...>
 }                           ;; aborts t1, t2, ...
 ```
+
+```
+pin ts = tasks(1)           ;; bounded pool
+val t1 = spawn [ts] T()     ;; success
+val t2 = spawn [ts] T()     ;; failure
+print(t1, t2)               ;; --> t1, nil
+```
+
 
 # EXPRESSIONS
 
@@ -1896,7 +1906,16 @@ throw :X
 ;;;
 ```
 
-## Task Manipulation
+## Task Operations
+
+<!--
+The API for tasks has the following operations:
+- [await](#await): yields the resumed task until it matches an event
+- [emit](#broadcast): broadcasts an event to awake all tasks
+- [toggle](#toggle): either ignore or accept awakes
+- Compounds
+- [abort](#TODO): `TODO`
+-->
 
 ### Spawn
 
@@ -1911,6 +1930,7 @@ Spawn : `spawn` [`[´ Exp `]´] Exp `(´ Exp* `)`
 - The format `spawn [ts] T(...)` receives an optional [pool](#task-pool) to
   hold the task, a task or function, and a list of arguments to pass to the
   body about to start.
+  The operation returns a reference to spawned task.
 - The format `spawn { ... }` starts a [transparent task](#transparent-task)
   body.
 
@@ -1924,70 +1944,15 @@ func T (id) {
     set pub = id
 }
 pin ts = tasks()
-spawn [ts] T(:t1)   ;; --> t1, started
-print(t1.pub)       ;; --> t1
+val t1 = spawn [ts] T(:t1)  ;; --> t1, started
+print(t1.pub)               ;; --> t1
 
 spawn {
     print(:t2, 'started')   ;; t2, started
 }
 
-pin t = spawn { ... }   ;; ERR: cannot assign
-```
+pin t = spawn {}            ;; ERR: cannot assign```
 
-The API for tasks has the following operations:
-
-- [task](#spawn): creates a new task from a function
-    - [spawn](#spawn): creates and starts a new task
-- [tasks](#task-pools): creates a pool of tasks
-- [pub](#public-field): exposes the task public field
-- [await](#await): yields the resumed task until it matches an event
-- [emit](#broadcast): broadcasts an event to awake all tasks
-- [toggle](#toggle): either ignore or accept awakes
-- Compounds
-
-<!--
-5. [abort](#TODO): `TODO`
--->
-
-Examples:
-
-```
-task T (x) {
-    set pub = x                 ;; sets 1 or 2
-    val n = await(:number)      ;; awaits a number broadcast
-    print(pub + n)            ;; --> 11 or 12
-}
-val t1 = spawn T(1)
-val t2 = spawn T(2)
-print(t1.pub, t2.pub)         ;; --> 1, 2
-broadcast(10)                   ;; awakes all tasks passing 10
-```
-
-```
-task T () {
-    val n = await(:number)
-    print(n)
-}
-val ts = tasks()                ;; task pool
-do {
-    spawn T() in ts             ;; attached to outer pool,
-    spawn T() in ts             ;;  not to enclosing block
-}
-broadcast(10)                   ;; --> 10, 10
-```
-
-### Spawn
-
-A spawn creates and starts an [active task](#active-values) from a
-[task prototype](#prototypes):
-
-```
-Spawn : `spawn´ Expr `(´ { Expr `,´ } `)´ [`in´ Expr]
-```
-    
-A spawn expects a task protoype, an optional list of arguments, and an optional
-pool to hold the task.
-The operation returns a reference to the active task.
 
 Examples:
 
@@ -1997,32 +1962,6 @@ task T (v, vs) {                ;; task prototype accepts 2 args
 }
 val t = spawn T(10, [1,2,3])    ;; starts task passing args
 print(t)                      ;; --> exe-task 0x...
-```
-
-### X Task Pools
-
-The `tasks` operation creates a [task pool](#active-values) to hold
-[active tasks](#active-values):
-
-```
-Pool : `tasks´ `(´ Expr `)´
-```
-
-The operation receives an optional expression with the maximum number of task
-instances to hold.
-If omitted, there is no limit on the maximum number of tasks.
-If the pool is full, a further spawn fails and returns `nil`.
-
-Examples:
-
-```
-task T () {
-    <...>
-}
-val ts = tasks(1)               ;; task pool
-val t1 = spawn T() in ts        ;; success
-val t2 = spawn T() in ts        ;; failure
-print(ts, t1, t2)             ;; --> tasks: 0x... / exe-task 0x... / nil
 ```
 
 ### Task Status
