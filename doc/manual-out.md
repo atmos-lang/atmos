@@ -3,81 +3,67 @@
 - <a href="#design">1.</a> DESIGN
     - <a href="#structured-deterministic-concurrency">1.1.</a> Structured Deterministic Concurrency
     - <a href="#event-signaling-mechanisms">1.2.</a> Event Signaling Mechanisms
-    - <a href="#integration-with-lua">1.3.</a> Integration with Lua
+    - <a href="#hierarchical-tags">1.3.</a> Hierarchical Tags
+    - <a href="#integration-with-lua">1.4.</a> Integration with Lua
 - <a href="#execution">2.</a> EXECUTION
 - <a href="#lexicon">3.</a> LEXICON
     - <a href="#keywords">3.1.</a> Keywords
     - <a href="#symbols">3.2.</a> Symbols
     - <a href="#operators">3.3.</a> Operators
-        - comparison: `==` `!=` `??` `!?`
-        - arithmetic: `+` `-` `*` `/` `%`
-        - comparison: `>` `<` `>=` `<=`
-        - logical: `!` `||` `&&`
-        - membership: `?>` `<?` `!>` `<!`
-        - concatenation: `++`
-        - size: `#`
+        - `==` `!=` `??` `!?`
+        - `>` `<` `>=` `<=`
+        - `+` `-` `*` `/` `%`
+        - `!` `||` `&&`
+        - `?>` `!>` `++` `#`
     - <a href="#identifiers">3.4.</a> Identifiers
         - `[A-Za-z_][A-Za-z0-9_]*`
     - <a href="#literals">3.5.</a> Literals
-        - nil: `nil`
-        - boolean: `true` `false`
-        - tag: `:[A-Za-z0-9\.\_]+`
-        - number: `[0-9][0-9A-Za-z\.]*`
-        - string: `'.*'` `".*"`
-        - clock: `@(H:)?(M:)?(S:)?(\.ms)?`
-        - native: `` `.*` ``
+        - `nil` `true` `false`
+        - `:X` `10` `"hello"`
+        - `@10:20.1` `` `lua` ``
     - <a href="#comments">3.6.</a> Comments
-        - single-line: `;; *`
-        - multi-line:  `;;; * ;;;`
-- <a href="#types-constructors">4.</a> TYPES & CONSTRUCTORS
-    - <a href="#clocks">4.1.</a> Clocks
-    - <a href="#vectors">4.2.</a> Vectors
+        - `;; *` `;;; * ;;;`
+- <a href="#types-values">4.</a> TYPES & VALUES
+    - <a href="#clock">4.1.</a> Clock
+    - <a href="#vector">4.2.</a> Vector
         - `#{ * }`
-    - <a href="#tables">4.3.</a> Tables
-        - User Types
+    - <a href="#table">4.3.</a> Table
         - `@{ * }` `:X @{ * }`
-    - <a href="#functions">4.4.</a> Functions
-        - function: `func (*) { * }`
-        - lambda: `\(*) { * }`
-    - <a href="#tasks">4.5.</a> Tasks
-        - `task`
-    - <a href="#task-pools">4.6.</a> Task Pools
+    - <a href="#function">4.4.</a> Function
+        - `func (*) { * }` `\(*) { * }`
+    - <a href="#task">4.5.</a> Task
+        - `task` `pub`
+    - <a href="#tasks">4.6.</a> Tasks
         - `tasks`
 - <a href="#expressions">5.</a> EXPRESSIONS
     - <a href="#program-sequences-and-blocks">5.1.</a> Program, Sequences and Blocks
-        - `;` `do` `escape` `defer`
+        - `;` `do` `defer` `escape`
     - <a href="#declarations-and-assignments">5.2.</a> Declarations and Assignments
-        - `val` `var` `set`
-    - <a href="#tag-enumerations-and-tuple-templates">5.3.</a> Tag Enumerations and Tuple Templates
-        - `enum` `data`
-    - <a href="#calls-operations-and-indexing">5.4.</a> Calls, Operations and Indexing
-        - `-x` `x+y` `f(*)` `-->`
-        - `t[*]` `t.x` `t.pub` `t.(:X)` `t[=]`
-        - `where` `thus`
-    - <a href="#standard-operators">5.5.</a> Standard Operators
-        - length: `#`
-        - equality: `==` `/=` `===` `=/=`
-        - relational: `>` `>=` `<=` `<`
-        - arithmetic: `+` `-` `*` `/`
-        - logical: `and` `or` `not`
-        - equivalence: `is?` `is-not?`
-        - belongs-to: `in?` `in-not?`
-        - vector concatenation: `++` `<++`
-    - <a href="#conditionals-and-pattern-matching">5.6.</a> Conditionals and Pattern Matching
-        - `if` `ifs`
-    - <a href="#loops-and-iterators">5.7.</a> Loops and Iterators
+        - `val` `var` `pin` `where`
+        - `func` `return`
+        - `set`
+    - <a href="#operations">5.3.</a> Operations
+        - `??` `!?`
+        - `?>` `!>`
+        - `++`
+    - <a href="#indexing">5.4.</a> Indexing
+        - `t[*]` `t.x` `t[=]` `t[+]` `t[-]`
+    - <a href="#calls">5.5.</a> Calls
+        - `f(*)` `-->` `->` `<-` `<--`
+    - <a href="#conditionals">5.6.</a> Conditionals
+        - `if` `ifs` `match`
+    - <a href="#loop">5.7.</a> Loop
         - `loop` `loop in`
+        - `break` `until` `while`
     - <a href="#exceptions">5.8.</a> Exceptions
         - `error` `catch`
-    - <a href="#coroutine-operations">5.9.</a> Coroutine Operations
-        - `coroutine` `status` `resume` `yield` `resume-yield-all` <!--`abort`-->
-    - <a href="#task-operations">5.10.</a> Task Operations
-        - `pub` `spawn` `tasks` `status` `await` `broadcast` `toggle`
-        - `spawn {}` `every` `par` `par-and` `par-or` `watching` `toggle {}`
+    - <a href="#task-operations">5.9.</a> Task Operations
+        - `spawn` `tasks` `await` `emit` `toggle`
+        - `every` `par` `par_and` `par_or` `watching` `toggle`
 - <a href="#standard-libraries">6.</a> STANDARD LIBRARIES
     - <a href="#basic-library">6.1.</a> Basic Library
         - `assert` `copy` `create-resume` `next`
-        - `print` `println` `sup?` `tag` `tuple` `type`
+        - `print` `print` `sup?` `tag` `tuple` `type`
         - `dynamic?` `static?` `string?`
     - <a href="#type-conversions-library">6.2.</a> Type Conversions Library
         - `to.boolean` `to.char` `to.dict` `to.iter` `to.number`
@@ -160,14 +146,14 @@ structure of the source code as hierarchical blocks.
 In this sense, tasks in Atmos are treated in the same way as local variables of
 structured programming:
 When a [block](#blocks) of code terminates or goes out of scope, all of its
-[local variables](#declarations) become inaccessible to enclosing blocks.
-In addition, all of its [pinned tasks](#active-values) are aborted and properly
-finalized by [deferred statements](#defer).
+[local variables](#local-variables) become inaccessible to enclosing blocks.
+In addition, all of its [pinned tasks](#local-variables) are aborted and
+properly finalized by [deferred statements](#defer).
 
-Tasks in Atmos are built on top of [coroutines](#active-values), which adhere
-to a predictable "run-to-completion" semantics:
-Unlike OS threads, coroutines and tasks execute uninterruptedly up to explicit
-[yield](#yield) or [await](#awaits) operations.
+Tasks in Atmos are built on top of [Lua coroutines](#lua-coroutines), which
+adhere to a predictable "run-to-completion" semantics:
+Unlike OS threads, tasks execute uninterruptedly up to explicit [await](#await)
+operations.
 
 The next example illustrates structured concurrency, abortion of tasks, and
 deterministic scheduling.
@@ -211,20 +197,22 @@ how many times we re-execute it.
 Likewise, if the order of the two tasks inside the `par_or` were inverted, the
 example would always output `10`.
 
+[lua-coroutines]: https://www.lua.org/manual/5.4/manual.html#2.6
+
 <a name="event-signaling-mechanisms"/>
 
 ## 1.2. Event Signaling Mechanisms
 
 Tasks can communicate through events as follows:
 
-- The [await](#awaits) statement suspends a task until it matches an event
+- The [await](#await) statement suspends a task until it matches an event
   condition.
 - The [emit](#emit) statement broadcasts an event to all awaiting
   tasks.
 
 <img src="bcast.png" align="right"/>
 
-Active tasks form a dynamic tree representing the structure of the program, as
+Tasks form a dynamic tree representing the structure of the program, as
 illustrated in the figure.
 This tree is traversed on every `emit` in a predictable way, since it
 respects the lexical structure of the program:
@@ -274,9 +262,15 @@ the program, printing `tick A` and `tick B` in this order.
 The last event aborts the `watching` composition and prints `done`, before
 terminating the main body.
 
+<a name="bidimensional-stack-traces"/>
+
+### 1.2.1. Bidimensional Stack Traces
+
+`TODO`
+
 <a name="hierarchical-tags"/>
 
-### 1.2.1. Hierarchical Tags
+## 1.3. Hierarchical Tags
 
 Tags represent unique human-readable values, and are similar to Lua strings or
 [*symbols* or *atoms*][syms] in other programming languages.
@@ -307,7 +301,8 @@ The constructor `:Pos @{x=10,y=20}` is equivalent to `@{tag=:Pos,x=10,y=20}`.
 
 Tags can describe type hierarchies by splitting identifiers with (`.`).
 For instance, a tag such as `:T.A.x` is a subtype of `:T`, `:T.A`, and
-`:T.A.x` at the same time, as verified by the match operator `??`:
+`:T.A.x` at the same time, as verified by the
+[equivalence operator](#equivalence) `??`:
 
 ```
 print(:T.A.x ?? :T)         ;; --> true  (:T.A.x is a subtype of :T)
@@ -317,7 +312,7 @@ print(:T     ?? :T.A.x)     ;; --> false (:T is not a subtype of :T.A.x)
 print(:T.A   ?? :T.B)       ;; --> false
 ```
 
-The match operator `??` also works with tagged tables.
+The operator `??` also works with tagged tables.
 Therefore, tags, tables, and `??` can be combined as follows:
 
 ```
@@ -327,13 +322,17 @@ print(t ?? :T)              ;; --> true
 
 <a name="integration-with-lua"/>
 
-## 1.3. Integration with Lua
+## 1.4. Integration with Lua
 
 `TODO`
 
+- all types, libraries, coroutines, meta mechanisms
+- except syntax for statements
+- mix code, think of alternative syntax with available quotes
+
 <a name="lua-vs-atmos-subtleties"/>
 
-### 1.3.1. Lua vs Atmos Subtleties
+### 1.4.1. Lua vs Atmos Subtleties
 
 While most differences between Lua and Atmos are clear, some subtleties are
 worth mentioning:
@@ -343,7 +342,7 @@ worth mentioning:
     - Atmos: `return (10)`, `break()` (parenthesis)
         - Atmos uses the same call syntax with parenthesis in all expressions
           that resemble statements or calls (`await`, `break`, `emit`,
-          `escape`, `return`, `throw`, `until`, and `while`).
+          `escape`, `return`, `task`, `tasks`, `throw`, `until`, and `while`).
         - The reason is to enforce an uniform syntax across all expressions.
         - Some workarounds: `return 'ok'`, `return <- 10`
 - Method call:
@@ -357,6 +356,8 @@ worth mentioning:
         - A list of expressions in Atmos is an expression.
         - The reason is to simplify the grammar and to support lists in
           contexts such as `f <-- (1,2)`.
+    - Nevertheless, Atmos does not use parenthesis for variables in the left of
+      declarations and assignments.
 - Table constructor:
     - Lua: `{ ... }` (no `@` prefix)
     - Atmos: `@{ ... }` (`@` prefix)
@@ -453,7 +454,7 @@ The following symbols are designated in Atmos:
 ```
     {   }           ;; block/operators delimeters
     (   )           ;; expression delimeters
-    [   ]           ;; index/constructor delimeters
+    [   ]           ;; index delimeters
     #{              ;; vector constructor delimeter
     @{              ;; dictionary constructor delimeter
     \               ;; lambda declaration
@@ -477,20 +478,22 @@ The following operators are supported in Atmos:
 
 ```
     ==   !=   ??   !?           ;; comparison
+    >    <    >=   <=           ;; relational
     +    -    *    /    %       ;; arithmetic
-    >    <    >=   <=           ;; comparison
     !    ||   &&                ;; logical
-    ?>   <?   !>   <!           ;; membership
+    ?>   !>                     ;; membership
     ++                          ;; concatenation
-    #                           ;; size
+    #                           ;; length
 ```
+
+Operators are used in [operation](#operations) expressions.
 
 <a name="identifiers"/>
 
 ## 3.4. Identifiers
 
 Atmos uses identifiers to refer to [variables](#declarations-and-assignments),
-[functions](#functions), and [fields](#tables):
+[functions](#function), and [fields](#table):
 
 A variable identifier starts with a letter or underscore (`_`) and is followed
 by letters, digits, or underscores:
@@ -511,10 +514,10 @@ y10
 
 ## 3.5. Literals
 
-Atmos provides literals for all [value types](#types):
+Atmos provides literals for all [value types](#types--values):
     `nil`, `boolean`, `number`, `string`, and `clock`.
 
-It also provides literals for [tag](#TODO) and [native](#types--constructors) expressions,
+It also provides literals for [tag](#TODO) and [native](#TODO) expressions,
 which only exist at compile time.
 
 ```
@@ -534,7 +537,7 @@ The literal `nil` is the single value of the `nil` type.
 
 The literals `true` and `false` are the only values of the `boolean` type.
 
-A [tag](#TODO) literal starts with a colon (`:`) and is followed by letters,
+A `tag` literal starts with a colon (`:`) and is followed by letters,
 digits, and dots (`.`).
 
 A `string` literal is a sequence of characters enclosed by an odd number
@@ -551,7 +554,7 @@ At runtime, identifiers evaluate to the corresponding variable value.
 Clock literals are interpreted as a table in the format
 `@{h=HH,min=MM,s=SS,ms=sss}`.
 
-A [native](#TODO) literal is a sequence of characters enclosed by an odd number
+A `native` literal is a sequence of characters enclosed by an odd number
 of matching back quotes (`` ` ``).
 Atmos supports multi-line native literals when using multiple quote delimiters.
 Native literals are used in expressions and are interpreted as plain Lua
@@ -559,7 +562,7 @@ expressions.
 
 Examples:
 
-<!-- exs/04-literals.atm -->
+<!-- exs/lex-01-literals.atm -->
 
 ```
 nil                 ;; nil literal
@@ -585,7 +588,7 @@ Multi-line comments are enclosed by three of more matching semi-colons.
 
 Examples:
 
-<!-- exs/05-comments.atm -->
+<!-- exs/lex-02-comments.atm -->
 
 ```
 ;; a comment        ;; single-line comment
@@ -596,10 +599,9 @@ Examples:
 ;;;
 ```
 
-<a name="types-constructors"/>
+<a name="types-values"/>
 
-# 4. TYPES & CONSTRUCTORS
-{#types}
+# 4. TYPES & VALUES
 
 Atmos supports and mimics the semantics of the standard [Lua types](lua-types):
     `nil`, `boolean`, `number`, `string`,
@@ -612,23 +614,23 @@ special treatment from the language.
 
 Atmos differentiates between *value* and *reference* types:
 
-- Value types are built from the [basic literals](#TODO):
+- Value types are built from the [basic literals](#literals):
     `nil`, `boolean`, `number`, `string`, and `clock`.
 - Reference types are built from constructors:
     `function`, `userdata`, `thread`, `table`, `vector`, `task`, and `tasks`.
 
 [lua-types]: https://www.lua.org/manual/5.4/manual.html#2.1
 
-<a name="clocks"/>
+<a name="clock"/>
 
-## 4.1. Clocks
+## 4.1. Clock
 
-The clock value type represents clock tables in the [format](#TODO)
+The `clock` value type represents clock tables in the [format](#literals)
 `@{h=HH,min=MM,s=SS,ms=sss}`.
 
 Examples:
 
-<!-- exs/06-clocks.atm -->
+<!-- exs/val-01-clock.atm -->
 
 ```
 val clk = @1:15:40.2    ;; a clock declaration
@@ -636,19 +638,26 @@ print(clk.s)            ;; --> 40
 print(clk ?? :clock)    ;; --> true
 ```
 
-<a name="vectors"/>
+<a name="vector"/>
 
-## 4.2. Vectors
+## 4.2. Vector
 
-The vector reference type represents tables with numerical indexes starting at
+The `vector` reference type represents tables with numerical indexes starting at
 `0`.
 
-A vector constructor `#{ * }` receives a list of expressions `*` and assigns
-each expression to incrementing indexes starting at `0`.
+A vector constructor `#{ * }` receives a list of expressions and assigns each
+expression to incrementing indexes:
+
+```
+Vector : `#{´ Expr* `}´
+```
+
+`TODO: out of bounds errors`
+`TODO: length`
 
 Examples:
 
-<!-- exs/07-vectors.atm -->
+<!-- exs/val-02-vector.atm -->
 
 ```
 val vs = #{1, 2, 3}     ;; a vector of numbers (similar to @{ [0]=1, [1]=2, [2]=3 })
@@ -656,14 +665,22 @@ print(vs[1])            ;; --> 2
 print(vs ?? :vector)    ;; --> true
 ```
 
-<a name="tables"/>
+<a name="table"/>
 
-## 4.3. Tables
+## 4.3. Table
 
-The table reference type represents [Lua tables](lua-types) with indexes of any
+The `table` reference type represents [Lua tables](lua-types) with indexes of any
 type.
 
-A table constructor `@{ * }` receives a list `*` of key-value assignments.
+A table constructor `@{ * }` receives a list `*` of key-value assignments:
+
+```
+Table : `@{´ Key-Val* `}´
+Key-Val : `[` Expr `]´ `=´ Expr
+        | ID `=´ Expr
+        | Expr
+```
+
 Like [table constructors in Lua](lua-table), it accepts assignments in three
 formats:
 
@@ -672,12 +689,9 @@ formats:
 - `e` maps numeric index `i` to `e` (same as `[i]=e`), where `i` starts at `1`
   and increments after each assignment
 
-A table constructor may also be prefixed with a tag, which is assigned to key
-`"tag"`, i.e., `:X @{ * }` is equivalent to `@{ tag=:X, * }`.
-
 Examples:
 
-<!-- exs/08-tables.atm -->
+<!-- exs/val-03-table.atm -->
 
 ```
 val k = "idx"
@@ -696,12 +710,19 @@ print(t.idx, t["v"], t[2])  ;; --> 10, x, 30
 
 ### 4.3.1. User Types
 
-Tables can be associated associated with [tags](#TODO) that represent user
-types.
+A table constructor may also be prefixed with a [tag](#literals) to represent
+an user type:
+
+```
+User : TAG Table
+```
+
+The tag is assigned to key `"tag"`, i.e., `:X @{ * }` is equivalent to
+`@{ tag=:X, * }`
 
 Examples:
 
-<!-- exs/09-user.atm -->
+<!-- exs/val-04-users.atm -->
 
 ```
 val p = :Pos @{         ;; a tagged table:
@@ -712,99 +733,220 @@ print(p ?? :table)      ;; --> true
 print(p ?? :Pos)        ;; --> true
 ```
 
-<a name="functions"/>
+<a name="function"/>
 
-## 4.4. Functions
+## 4.4. Function
 
-The function reference type represents [Lua functions](lua-function).
+The `function` reference type represents [Lua functions](lua-function).
 
 The basic constructor creates an anonymous function with a list of parameters
-and an execution body, as follows:
+and an execution block:
 
 ```
-func (<pars>) {
-    <body>
+Func : `func´ `(´ ID* [`...´] `)´ Block
+```
+
+The parameters is a list of [identifiers](#identifiers) with an optional
+variadic symbol `...` at the end.
+The parameters are immutable as if they were `val`
+[declarations](#local-variables).
+The [block](#blocks) is a sequence of expressions.
+
+Examples:
+
+<!-- exs/val-05-function.atm -->
+
+```
+val f = func (x, y) {     ;; function to add arguments
+    x + y
 }
+print(f(1,2))       ;; --> 3
 ```
 
-The list of parameters `<pars>` is an optional list of
-variable [identifiers](#TODO) with a leading variadic parameter `...`.
-The parameters are immutable as if they were `val` [declarations](#TODO).
-The function body `<body>` is a [sequence](#TODO) of expressions.
+<a name="lambda"/>
 
-Atmos also supports alternative formats to create functions, as follows:
+### 4.4.1. Lambda
 
-- Function declarations:
-    - `func t.f (<pars>) { <body> }`:
-        equivalent to `set t.f = func (<pars>) { <body> }`
-    - `func o::f (<pars>) { <body> }`:
-        equivalent to `set o.f = func (self, <pars>) { <body> }`
+Atmos also supports an alternative lambda notation to create functions:
 
-- Lambda syntax:
-    - `\(<pars>) { <body> }`:
-        equivalent to `func (<pars>) { <body> }`
-    - `\<id> { <body> }`:
-        equivalent to `\(<id>) { <body> }`
-    - `\ { <body> }`:
-        equivalent to `\(it) { <body> }`
+```
+Lambda : `\` [ID | `(` ID* `)´] Block
+```
+
+There are three variations of lambdas:
+
+- `\(<ids>) { <body> }`:
+    equivalent to `func (<ids>) { <body> }`
+- `\<id> { <body> }`:
+    equivalent to `\(<id>) { <body> }`
+- `\{ <body> }`:
+    equivalent to `\(it) { <body> }`
 
 Note that the lambda notation is also used in
-    [conditionals](#conditionals) and [every statements](#TODO)
+    [conditionals](#conditionals) and [every statements](#every)
 to communicate values across blocks.
 
 Examples:
 
-<!-- exs/10-functions.atm -->
+<!-- exs/val-05-function.atm -->
 
 ```
-func f (x, y) {         ;; function to add arguments
-    x + y
-}
 val g = \{ it + 1 }     ;; function to increment argument
 print(g(f(1,2)))        ;; --> 4
 ```
 
 [lua-function]: https://www.lua.org/manual/5.4/manual.html#3.4.11
 
-<a name="tasks"/>
+<a name="task"/>
 
-## 4.5. Tasks
+## 4.5. Task
 
-The task reference type represents [tasks](#TODO).
+The `task` reference type represents [tasks](#task).
 
-A task constructor `task(f)` receives a [function](#TODO) and instantiates a
-task.
+A task constructor `task(f)` receives a [function](#function) and instantiates
+a task:
+
+```
+Task : `task´ `(´ Exp `)´
+```
+
+The given function becomes the body of the task.
+
+Although the task is instantiated, it is only started by a subsequent
+[spawn](#spawn) operation.
+
+A task must be first assigned to a `pin` [declaration](#local-variables) and
+becomes attached to the enclosing block.
+Therefore, when the block terminates or aborts, the task also aborts
+automatically.
 
 Examples:
 
-<!-- exs/11-tasks.atm -->
+<!-- exs/val-06-task.atm -->
 
 ```
 func T (...) { ... }    ;; a task prototype
 print(T ?? :function)   ;; --> true
-val t = task(T)         ;; an instantiated task
+pin t = task(T)         ;; an instantiated task
 print(t ?? :task)       ;; --> true
+val x = t               ;; OK: second assignment
+val y = task(T)         ;; ERR: first assignment requires `pin`
 ```
 
-<a name="task-pools"/>
+```
+func T () {
+    defer {
+        print "aborted"
+    }
+    await(false)
+}
 
-## 4.6. Task Pools
+do {
+    pin t = task(T)
+    spawn t()
+}               ;; --> aborted
+print "end"     ;; --> end
+```
 
-The task pool reference type represents a [pool of tasks](#TODO).
+<a name="pub"/>
 
-A task pool constructor `tasks([n])` creates a pool that holds at most `n`
-tasks.
-If `n` is omitted, the pool is unbounded.
+### 4.5.1. Pub
 
-A task pool must be assigned to a `pin` [declaration](#TODO).
+A task has a single public field `pub`, which can be accessed both internally
+and externally:
+
+```
+Pub : `pub`
+    | Expr `.´ `pub´
+```
+
+Internally, it can be accessed through the special variable `pub`.
+Externally, it can be accessed through `t.pub`, where `t` is a reference to the
+task.
 
 Examples:
 
-<!-- exs/12-pools.atm -->
+<!-- exs/val-06-pub.atm -->
 
 ```
-pin ts = tasks()        ;; a pool of tasks
-print(ts ?? :tasks)     ;; --> true
+func T (n) {
+    set pub = n
+}
+val t = spawn T(10)
+print(t.pub)        ;; --> 10
+```
+
+<a name="transparent-task"/>
+
+### 4.5.2. Transparent Task
+
+Atmos support some structured constructs that create transparent tasks:
+    [spawn {}](#spawn),
+    [watching](#watching), and
+    [par, par_and, par_or](#parallels).
+
+A transparent task is implicitly pinned to its enclosing lexical block and
+cannot be assigned.
+In addition, it delegates [pub](#pub) and [emit](#emit) operations to its
+enclosing lexical task.
+
+Examples:
+
+<!-- exs/val-06-transparent.atm -->
+
+```
+func T () {
+    set pub = 10
+    spawn {
+        set pub = 20
+    }
+    print(pub)  ;; --> 20
+}
+spawn T()
+```
+
+<a name="tasks"/>
+
+## 4.6. Tasks
+
+The `tasks` reference type represents a pool of tasks, which groups related
+tasks as a collection.
+
+A task pool constructor `tasks(n)` creates a pool that holds at most `n`
+tasks:
+
+```
+Tasks : `tasks´ `(´ [Exp] `)´
+```
+
+If the limit is omitted, the pool is unbounded.
+If the pool becomes full, further spawns fail and return `nil`.
+
+A pool must be first assigned to a `pin` [declaration](#local-variables) and
+becomes attached to the enclosing block.
+Therefore, when the block terminates or aborts, all tasks living in the pool
+also aborts automatically.
+
+
+Examples:
+
+<!-- exs/val-07-tasks.atm -->
+
+```
+do {
+    pin ts = tasks()        ;; a pool of tasks
+    print(ts ?? :tasks)     ;; --> true
+    val t1 = spawn [ts] T()
+    val t2 = spawn [ts] T()
+    <...>
+}                           ;; aborts t1, t2, ...
+```
+
+```
+pin ts = tasks(1)           ;; bounded pool
+val t1 = spawn [ts] T()     ;; success
+val t2 = spawn [ts] T()     ;; failure
+print(t1, t2)               ;; --> t1, nil
 ```
 
 <a name="expressions"/>
@@ -816,7 +958,13 @@ that evaluate to a final value.
 Therefore, we use the terms statement and expression interchangeably.
 
 All [identifiers](#identifiers), [literals](#literals) and
-[constructors](#TODO) are also valid expressions.
+[values](#types--values) are also valid expressions.
+
+<!--
+We use a BNF-like notation to describe the syntax of expressions in Atmos.
+As an extension, we use `X*` to mean `{ X ',' }`, but with the leading `,`
+being optional; and a `X+` variation with at least one `X`.
+-->
 
 <a name="program-sequences-and-blocks"/>
 
@@ -827,14 +975,13 @@ expressions enclosed by braces (`{` and `}`):
 
 ```
 Prog  : { Expr [`;´] }
-Block : `{´ { Expr [`;´] } `}´
+Block : `{´ Prog `}´
 ```
 
 Each expression in a sequence may be separated by an optional semicolon (`;`).
 A sequence of expressions evaluate to its last expression.
 
-A program collects all command-line arguments into the
-[variadic expression `...`](#TODO).
+A program collects all command-line arguments into variadic [`...`](#TODO).
 
 <!-- exs/exp-01-program.atm -->
 
@@ -844,18 +991,20 @@ print(...)              ;; --> a, b, c
 print(3)                ;; --> 3
 ```
 
+`TODO: program as a task`
+
 <a name="blocks"/>
 
 ### 5.1.1. Blocks
 
-A block delimits a lexical scope for [variable declarations](#declarations).
+A block delimits a lexical scope for
+[local variable declarations](#local-variables).
 
-When a block aborts or terminates, all [defer statements](#TODO) execute, and
-all [pin declarations](#TODO) abort.
+When a block aborts or terminates, all [defer statements](#defer) execute, and
+all [pin declarations](#local-variables) abort.
 
-Blocks appear in compound statements, such as
-[conditionals](#conditionals-and-pattern-matching),
-[loops](#loops-and-iterators), and many others.
+Blocks appear in compound statements, such as [if](#if), [loop](#loop), and
+many others.
 
 A block can also be created through an explicitly `do`:
 
@@ -863,7 +1012,7 @@ A block can also be created through an explicitly `do`:
 Do : `do´ [TAG] Block
 ```
 
-The optional [tag](#static-values) identifies the block such that it can match
+The optional [tag](#literals) identifies the block such that it can match
 [escape](#escape) statements.
 
 Examples:
@@ -871,9 +1020,9 @@ Examples:
 <!-- exs/exp-02-blocks.atm -->
 
 ```
-do {                    ;; block prints :ok and evals to 1
-    println(:ok)
-    1
+val v = do {            ;; block prints `:ok` and evals to `1`
+    print(:ok)
+    1                   ;; `v` receives 1
 }
 
 do {
@@ -896,16 +1045,16 @@ An `escape` immediately aborts the deepest enclosing block matching the given
 tag:
 
 ```
-Escape : `escape´ `(´ List(Expr) `)´
+Escape : `escape´ `(´ Expr* `)´
 ```
 
-The first argument to escape is the [tag](#TODO) or [tagged table](#TODO) to
-check.
+The first argument to escape is the [tag](#literals) or
+[tagged table](#user-types) to check.
 The whole block being escaped evaluates to the other arguments.
 If there is only a single argument, then the block evaluates to it.
 
-The block tags are checked with the match operator `??`, which also allows to
-compare them with tagged tables.
+The block tags are checked with the [equivalence operator](#equivalence) `??`,
+which also allows to compare them with tagged tables.
 
 The program raises an error if no enclosing blocks match the escape expression.
 
@@ -939,6 +1088,10 @@ do :X {
 }
 ```
 
+- `TODO`
+    - may cross ... , but not function bodies
+    - bug as "dynamic scope" (also return, break/until/while)
+
 <a name="defer"/>
 
 ### 5.1.2. Defer
@@ -954,7 +1107,7 @@ code.
 
 Examples:
 
-<!-- exs/exp-04-defers.atm -->
+<!-- exs/exp-04-defer.atm -->
 
 ```
 do {
@@ -1009,7 +1162,7 @@ Locals in Atmos must be declared before use, and are only visible inside the
 [block](#blocks) in which they are declared:
 
 ```
-Local : (`val´ | `var` | `pin`) List(ID) [`=´ Expr]
+Local : (`val´ | `var` | `pin`) ID* [`=´ Expr]
 ```
 
 A declaration first specifies one of `val`, `var` or `pin` variable modifier.
@@ -1024,9 +1177,8 @@ The optional initialization expression, which may evaluate to multiple values,
 assigns an initial value to the variable(s).
 
 Note that the `val` immutable modifier rejects re-assignments to its name, but
-does not prevent assignments to fields of [reference types](#TODO).
-
-[Function declarations](#functions)
+does not prevent assignments to fields of
+[reference types](#types--values).
 
 Examples:
 
@@ -1055,261 +1207,389 @@ do {
 }
 ```
 
-<a name="function-declarations"/>
+<a name="where"/>
 
-### 5.2.2. Function Declarations
+#### 5.2.1.1. Where
 
-[Execution unit](#execution-units) [prototypes](#prototype-values) can be
-declared as immutable variables as follows:
-
-```
-Proto : `func´ ID `(´ [List(ID [TAG])] `)´ Block
-      | `coro´ ID `(´ [List(ID [TAG])] `)´ Block
-      | `task´ ID `(´ [List(ID [TAG])] `)´ Block
-```
-
-The expression
+An expression can be suffixed with a `where` clause to define contextual
+locals:
 
 ```
-func <id> (...) {
-    ...
-}
+Expr : Expr `where´ `{´ Decl* `}´
+Decl : ID* `=´ Expr
 ```
 
-expands to
-
-```
-val <id> = func (...) {
-    ...
-}
-```
+A `where` initializes a list of immutable locals, which are only visible within
+the prefix expression and the clause itself.
 
 Examples:
 
 ```
-func f (v) {
-    v + 1
+val x = (2 * z) where {
+    y = 10
+    z = y+1
 }
-println(f(10))      ;; --> 11
+print(x)    ;; --> 22
+```
+
+<a name="functions"/>
+
+### 5.2.2. Functions
+
+Atmos supports global declarations for [functions](#function):
+
+```
+Func : `func´ ID {`.´ ID} [`::´ ID] `(´ ID* [`...´] `)´ Block
+```
+
+<!--
+For local declarations, it is possible to assign anonymous
+[function](#function) constructors to a local variable.
+-->
+
+There are three variations of declarations, which are based on
+[Lua functions](lua-functions):
+
+- `func f (<pars>) { <body> }`:
+    equivalent to `set f = func (<pars>) { <body> }`
+- `func t.x.y.f (<pars>) { <body> }`:
+    equivalent to `set t.x.y.f = func (<pars>) { <body> }`
+- `func o::f (<pars>) { <body> }`:
+    equivalent to `set o.f = func (self, <pars>) { <body> }`
+
+Examples:
+
+<!-- exs/exp-06-function.atm -->
+
+```
+func add (x, y) {
+    x + y
+}
+print(add(1,2))     ;; --> 3
+```
+
+```
+val o = @{ v=1 }
+func o::inc () {
+    set self.v = self.v + 1
+}
+o::inc()
+print(o.v)          ;; --> 2
 ```
 
 <a name="return"/>
 
 #### 5.2.2.1. Return
 
-A `return` immediately terminates the enclosing prototype:
+A `return` immediately terminates the enclosing function, aborting all active
+blocks:
 
 ```
-Return : `return´ `(´ [Expr] `)´
+Return : `return´ `(´ Expr* `)´
 ```
 
-The optional expression, which defaults to `nil`, becomes the final result of
-the terminating prototype.
+The list of return expressions becomes the final result of the corresponding
+call.
 
 Examples:
+
+<!-- exs/exp-07-return.atm -->
 
 ```
 func f () {
-    println(1)      ;; --> 1
+    print(1)    ;; --> 1
     return(2)
-    println(3)      ;; never executes
+    print(3)    ;; never executes
 }
-println(f())        ;; --> 2
+print(f())      ;; --> 2
 ```
 
-`TODO: move section to escape?`
+<a name="set"/>
 
-<a name="assignments"/>
+### 5.2.3. Set
 
-### 5.2.3. Assignments
-
-The `set` statement assigns the value in the right to the location in the left
-of the symbol `=`:
+The `set` statement assigns, to the list of locations in the left of `=`, the
+expression in the right of `=`:
 
 ```
-Set : `set´ Expr `=´ Expr
+Set : `set´ Expr* `=´ Expr
 ```
 
 The only valid locations are
-    [mutable variables](#declarations),
-    [indexes](#indexes-and-fields), and
-    [public fields](#public-fields).
+    [mutable `var` variables](#declarations),
+    [indexes](#indexing), and
+    [native expressions](#native-expressions).
 
 Examples:
+
+<!-- exs/exp-08-set.atm -->
 
 ```
 var x
 set x = 20              ;; OK
 
-val y = [10]
-set y = 0               ;; ERROR: cannot reassign `y`
+val y = #{10}
 set y[0] = 20           ;; OK
+set y = 0               ;; ERROR: cannot reassign `y`
 
-task T (v) {
-    set pub = v         ;; OK
-}
+set `z` = 10            ;; OK
 ```
 
-<a name="tag-enumerations-and-tuple-templates"/>
+<a name="operations"/>
 
-## 5.3. Tag Enumerations and Tuple Templates
+## 5.3. Operations
 
-[Tags](#hierarchical-tags) are global identifiers that need not to be
-predeclared.
-However, they may be explicitly declared when used as enumerations or tuple
-templates.
+Atmos provides the [operators](#operators) as follows:
 
-<a name="tag-enumerations"/>
+- comparison: `==` `!=` `??` `!?`
+- relational: `>` `<` `>=` `<=`
+- arithmetic: `+` `-` `*` `/` `%`
+- logical: `!` `||` `&&`
+- membership: `?>` `!>`
+- concatenation: `++`
+- length: `#`
 
-### 5.3.1. Tag Enumerations
-
-An `enum` groups related tags together in sequence:
+Unary operators (`-`, `!` and `#`) use prefix notation, while binary operators
+(all others, including binary `-`) use infix notation:
 
 ```
-Enum : `enum´ `{´ List(TAG) `}´
-     | `enum´ TAG `{´ List(ID) `}´
+Expr : OP Expr          ;; unary operation
+     | Expr OP Expr     ;; binary operation
 ```
 
-The first variation declares the tags in the given list.
-The second variation declares tags by prefixing the identifiers in the list
-with the given tag, separated by a dash (`-`).
+Atmos supports and mimics the semantics of standard
+[Lua operators](lua-operators):
+    (`==` `!=`),
+    (`>` `<` `>=` `<=`),
+    (`+` `-` `*` `/` `%`),
+    (`!` `||` `&&`),
+    (`++`), and
+    (`#`).
+Note that some operators have a [different syntax](#lua-vs-atmos-subtleties) in
+Lua.
 
-Enumerations can be used to interface with external libraries that use
-constants to represent a group of related values (e.g., key symbols).
-Tags in enumerations are guaranteed to form an incrementing sequence of
-numbers, and are supported in [arithmetic](#arithmetic-operators) and
-[relational](#relational-operators) operations.
+bins same line
+
+Next, we decribe the operations that Atmos modifies or introduces:
+    (`??` `!?`), (`?>` `!>`) and (`++`).
 
 Examples:
 
 ```
-enum { :x, :y, :z }     ;; declares :x, :y, :z in sequence
-println(:z - :x)        ;; --> 2
-println(:x + 1)         ;; --> :y
-println(:y < :z)        ;; --> true
+x
+ + y ;; err
 ```
 
-```
-enum :Key {
-    Left,               ;; declares :Key-Left (200)
-    Up,                 ;; declares :Key-Up   (201)
-    Right,              ;; ...
-    Down,               ;; ...
-}
-```
+[lua-operations]: https://www.lua.org/manual/5.4/manual.html#3.4
 
-<a name="tuple-templates"/>
+<a name="equivalence"/>
 
-### 5.3.2. Tuple Templates
+### 5.3.1. Equivalence
 
-A `data` declaration associates a tag with a tuple template, which associates
-tuple positions with field identifiers:
+The operators `??` and `!?` ("is" and "is not") check the equivalence between
+their operands.
+If any of the following conditions are met, then `a ?? b` is true:
 
-```
-Template : `data´ Data [`{´ { Data } `}´]
-                Data : TAG `=´ `[´ List(ID [TAG]) `]´
-```
+- `a == b`, (e.g., `'x' == 'x'`)
+- `type(a) == b`, (e.g, `10 ?? :number`)
+- `a.tag == b`, (e.g, `:X @{} ?? :X`)
+- `b` is "dot" prefix of `a`, (e.g., `'x.y.z' ?? 'x.y'`)
 
-After the keyword `data`, a declaration expects a tag followed by `=` and a
-template.
-A template is surrounded by brackets (`[` and `]`) to represent the tuple, and
-includes a list of identifiers, each mapping an index into a field.
-Each field can be followed by a tag to represent nested templates.
-
-A [variable declaration](#declarations) can specify a tuple template and hold a
-tuple that can be accessed by field.
+The operator `!?` is the negation of `??`.
 
 Examples:
 
+<!-- exs/exp-09-equivalence.atm -->
+
 ```
-data :Pos = [x,y]                       ;; a flat template
-val pos :Pos = [10,20]                  ;; pos uses :Pos as template
-println(pos.x, pos.y)                   ;; --> 10, 20
-
-data :Dim = [w,h]
-data :Rect = [pos :Pos, dim :Dim]       ;; a nested template
-val r1 :Rect = [pos, [100,100]]         ;; r uses :Rect as template
-println(r1.dim, r1.pos.x)               ;; --> [100,100], 10
-
-val r2 = :Rect [[0,0],[10,10]]          ;; combining tag template/constructor
-println(r2 is? :Rect, r2.dim.h)         ;; --> true, 10
+@{} ?? @{}          ;; --> false
+task(\{}) ?? :task  ;; --> true
+10 ?? nil           ;; --> false
+:X.Y @{} ?? :X      ;; --> true
 ```
 
-Based on [tags and sub-tags](#user-types), tuple templates can define
-hierarchies and reuse fields from parents.
-A declaration can be followed by a list of sub-templates enclosed by curly
-braces (`{` and `}`), which can nest to at most 4 levels.
-Each nested tag identifier assumes an implicit prefix of its super-tag, e.g.,
-in the context of tag `:X`, a sub-tag `:A` is actually `:X.A`.
-Templates are reused by concatenating a sub-template after its corresponding
-super-templates, e.g., `:X.A [a]` with `:X [x]` becomes `:X.A [x,a]`.
+<a name="membership"/>
+
+### 5.3.2. Membership
+
+The operators `?>` and `!>` ("in" and "not in") check the membership of the
+left operand in the right operand.
+If any of the following conditions are met, then `a ?> b` is true:
+
+- `b` is a [vector](#vector) and `a` is equal to any of its values
+- `b` is a [table](#table) and `a` is equal to any of its keys or values
+- `a` is equal to any of the results of `iter(b)`
+
+The operator `!>` is the negation of `?>`.
 
 Examples:
 
-```
-data :Event = [ts] {            ;; All events carry a timestamp
-    :Key = [key]                ;; :Event.Key [ts,key] is a sub-type of :Event [ts]
-    :Mouse = [pos :Pos] {       ;; :Event.Mouse [ts, pos :Pos]
-        :Motion = []            ;; :Event.Mouse.Motion [ts, pos :Pos]
-        :Button = [but]         ;; :Event.Mouse.Button [ts, pos :Pos, but]
-    }
-}
-
-val but = :Event.Mouse.Button [0, [10,20], 1]
-val evt :Event = but
-println(evt.ts, but.pos.y)      ;; --> 0, 20
-```
-
-<a name="calls-operations-and-indexing"/>
-
-## 5.4. Calls, Operations and Indexing
-
-<a name="calls-and-operations"/>
-
-### 5.4.1. Calls and Operations
-
-In Atmos, calls and operations are equivalent, i.e., an operation is a call that
-uses an [operator](#operatos) with prefix or infix notation:
+<!-- exs/exp-10-membership.atm -->
 
 ```
-Expr : OP Expr                      ;; unary operation
-     | Expr OP Expr                 ;; binary operation
-     | Expr `(´ [List(Expr)] `)´    ;; function call
+10 ?> #{10,20,30}       ;; true
+ 1 ?> #{10,20,30}       ;; false
+10 ?> @{10,20,30}       ;; true
+ 1 ?> @{10,20,30}       ;; true
 ```
 
-Operations are interpreted as function calls, i.e., `x + y` is equivalent to
-`{{+}} (x, y)`.
+<a name="concatenation"/>
+
+### 5.3.3. Concatenation
+
+The operator `++` ("concat") concatenates its operands into a new value.
+The operands must be collections of the same type.
+
+Follows the expected result of `a ++ b` for the supported types:
+
+- `string`: string with the characters of `a` followed by the characters of `b`
+            (same as `a .. b` in Lua)
+- `vector`: vector with the values of `a` followed by the values of `b`
+- `table`:  table with the key-values of `a` and `b`, favoring `b` in case of
+            duplicate keys
+- otherwise: vector with values of `iter(a)` and `iter(b)`
+
+For the last case, each value is extracted from an iteration of `iter`, taking
+the *second* return if present, or the first otherwise.
+
+Examples:
+
+<!-- exs/exp-11-concatenation.atm -->
+
+```
+'abc' ++ 'def'      ;; abcdef
+#{1,2} ++ #{3,4}    ;; #{1,2,3,4}
+@{x=1} ++ @{y=2}    ;; @{x=1, y=2}
+```
+
+```
+func T () { await(false) }
+pin xs = tasks()
+pin ys = tasks()
+val x = spawn [xs] T()
+val y = spawn [ys] T()
+val ts = xs ++ ys           ;; #{x, y}
+print(#ts, y?>ts, 10?>ts)   ;; 2, true, false
+```
+
+<a name="indexing"/>
+
+## 5.4. Indexing
+
+Atmos uses brackets (`[` and `]`) or a dot (`.`) to index [tables](#table) and
+[vectors](#vector):
+
+```
+Expr : Expr `[´ Expr `]´
+     | Expr `.´ ID
+```
+
+The dot notation only applies to tables and is a syntactic sugar to index
+string keys: `t.x` expands to `t["x"]`.
+
+Atmos mimics the semantics of [Lua indexing](lua-indexing) for tables.
+For vectors, the index must be in the range `[0,#[` for reading, and `[0,#]`
+for writing, where `#` is its length.
+
+Examples:
+
+<!-- exs/exp-12-indexing.atm -->
+
+```
+val t = @{ x=1 }
+print(t['x'])       ;; --> 1
+print(t[:x])        ;; --> 1
+print(t.x)          ;; --> 1
+print(t.y)          ;; --> nil
+
+val v = #{ 1 }
+set v[0] = 10       ;; #{ 10 }
+set v[#v] = 20      ;; #{ 10, 20 }
+print(v[0])         ;; --> 10
+print(v[#v-1])      ;; --> 20
+print(v[#v])        ;; ERR: out of bounds
+```
+
+[lua-indexing]: https://www.lua.org/manual/5.4/manual.html#3.2
+
+<a name="peek-push-pop"/>
+
+### 5.4.1. Peek, Push, Pop
+
+The *ppp operators* (peek, push, pop) manipulate vectors as stacks:
+
+```
+Expr : Expr `[´ (`=´|`+´|`-´) `]´
+```
+
+The peek operation `vec[=]` sets or gets the last element of a vector.
+The push operation `vec[+]` adds a new element to the end of a vector.
+The pop  operation `vec[-]` gets and removes the last element of a vector.
+
+Examples:
+
+<!-- exs/exp-13-ppp.atm -->
+
+```
+val stk = #{1,2,3}
+print(stk[=])         ;; --> 3
+set stk[=] = 30
+print(stk)            ;; --> #{1, 2, 30}
+print(stk[-])         ;; --> 30
+print(stk)            ;; --> #{1, 2}
+set stk[+] = 3
+print(stk)            ;; --> #{1, 2, 3}
+```
+
+<a name="calls"/>
+
+## 5.5. Calls
+
+Atmos supports many formats to call functions:
+
+```
+Expr : Expr `(´ Expr* `)´
+     | Expr Expr ;; single constructor argument
+```
 
 A call expects an expression of type [func](#prototype-values) and an
 optional list of expressions as arguments enclosed by parenthesis.
-A call transfers control to the function, which runs to completion and returns
-a value, which substitutes the call.
 
-As discussed in [Identifiers](#identifiers), the binary minus requires spaces
-around it to prevent ambiguity with identifiers containing dashes.
+Like in [Lua calls](#lua-call), if there is a single
+[constructor](#types--values) argument, then the parenthesis are optional.
+This is valid for strings, tags, vectors, tables, clocks, and native literals.
+
+The many call formats are also valid for the statements as follows:
+`await`, `break`, `emit`, `escape`, `return`, `task`, `tasks`, `throw`,
+`until`, and `while`.
 
 Examples:
 
+<!-- exs/exp-14-calls.atm -->
+
 ```
-#vec            ;; unary operation
-x - 10          ;; binary operation
-{{-}}(x,10)     ;; operation as call
-f(10,20)        ;; normal call
+print(1,2,3)    ;; --> 1 2 3
+print "Hello"   ;; --> Hello
+print :ok       ;; --> ok
+type @{}        ;; :table
 ```
 
-<a name="pipe-calls"/>
+[lua-call]: https://www.lua.org/manual/5.4/manual.html#3.4.10
 
-#### 5.4.1.1. Pipe Calls
+<a name="pipes"/>
 
-A pipe is an alternate notation to call a function:
+### 5.5.1. Pipes
+
+Atmos supports yet another format for function calls:
 
 ```
 Expr : Expr (`<--´ | `<-´ | `->´ | `-->´ ) Expr
 ```
 
-The operators `<--` and `<-` pass the argument in the right to the function in
-the left, while the operators `->` and `-->` pass the argument in the left to
-the function in the right.
+The pipe operators `<-` and `<--` pass the argument in the right to the
+function in the left.
+The pipe operators `->` and `-->` pass the argument in the left  to the
+function in the right.
 
 Single pipe operators `<-` and `->` have higher
 [precedence](@precedence-and-associativity) than double pipe operators
@@ -1322,1191 +1602,468 @@ and `<--`).
 
 Examples:
 
+<!-- exs/exp-15-pipes.atm -->
+
 ```
 f <-- 10 -> g   ;; equivalent to `f(g(10))`
 t -> f(10)      ;; equivalent to `f(t,10)`
 ```
 
-<a name="indexes-and-fields"/>
+<a name="parenthesis"/>
 
-### 5.4.2. Indexes and Fields
+### 5.5.2. Parenthesis
 
-[Collections](#collections) in Atmos are accessed through indexes or fields:
+Expressions can be enclosed by parenthesis:
 
 ```
-Expr : Expr `[´ Expr `]´        ;; Index
-     | Expr `.´ ID              ;; Field
-     | Expr `.´ `pub´ | `pub´   ;; Pub
+Expr : `(´ Expr+ `)´
 ```
 
-An index operation expects a collection and an index enclosed by brackets (`[`
-and `]`).
-For tuples and vectors, the index must be a number.
-For dictionaries, the index can be of any type.
-The operation evaluates to the current value in the given collection index, or
-`nil` if non existent.
+In Atmos, parenthesis have three uses:
 
-A field operation expects a dictionary or a tuple template, a dot separator
-(`.`), and a field identifier.
-If the collection is a dictionary `d`, the field must be a
-[tag literal](#literals) `k` (with the colon prefix `:` omitted), which is
-equivalent to the index operation `v[:k]`.
-If the collection is a [tuple template](#tag-enumerations-and-tuple-templates)
-`t`, the field must be an identifier that maps to a template index `i`, which
-is equivalent to the index operation `t[i]`.
-
-A `pub` operation accesses the public field of an [active task](#active-values)
-and is discussed [further](#task-operations).
+- group an operation to increase its precedence
+- group comma-separated expressions to create a multi-valued expression
+- revert a multi-valued expression into a single value
 
 Examples:
 
-```
-tup[3]              ;; tuple access by index
-vec[i]              ;; vector access by index
-
-dict[:x]            ;; dict access by index
-dict.x              ;; dict access by field
-
-val t :T            ;; tuple template
-t.x                 ;; tuple access by field
-
-val t = spawn T()
-t.pub               ;; public field of task
-```
-
-<a name="template-casting"/>
-
-#### 5.4.2.1. Template Casting
-
-An expression can be suffixed with a tag between parenthesis to cast it into a
-tuple template:
+<!-- exs/exp-16-parenthesis.atm -->
 
 ```
-Expr : Expr `.´ `(´ TAG `)´
-```
-
-Examples:
-
-```
-data :Pos = [x,y]
-val p = [10,20]
-println(p.(:Pos).x)     ;; `p` is cast to `:Pos`
-```
-
-<a name="peek-push-pop"/>
-
-#### 5.4.2.2. Peek, Push, Pop
-
-The *ppp operators* (peek, push, pop) manipulate vectors as stacks:
-
-```
-Expr : Expr `[´ (`=´|`+´|`-´) `]´
-```
-
-A peek operation `vec[=]` sets or gets the last element of a vector.
-The push operation `vec[+]` adds a new element to the end of a vector.
-The pop operation `vec[-]` gets and removes the last element of a vector.
-
-Examples:
-
-```
-val stk = #[1,2,3]
-println(stk[=])         ;; --> 3
-set stk[=] = 30
-println(stk)            ;; --> #[1, 2, 30]
-println(stk[-])         ;; --> 30
-println(stk)            ;; --> #[1, 2]
-set stk[+] = 3
-println(stk)            ;; --> #[1, 2, 3]
-```
-
-<a name="where-and-thus-clauses"/>
-
-### 5.4.3. Where and Thus Clauses
-
-Any expression can be suffixed by `where` and `thus` clauses:
-
-```
-Expr : Expr `where´ Block
-     | Expr `thus´ Lambda
-```
-
-A `where` clause executes its suffix block before the prefix expression and is
-allowed to declare variables that can be used by the expression.
-
-A `thus` clause uses the [lambda notation](#lambda-prototype) to pass the
-result of the prefix expression as an argument to execute the suffix block.
-Even though it uses the lambda notation, the clause does not create an extra
-function to execute.
-
-Examples:
-
-```
-val x = (2 * y) where {     ;; x = 20
-    val y = 10
-}
-```
-
-```
-(x * x) thus { \v =>
-    println(v)              ;; --> 400
-}
+f ('1' ++ '2')      ;; instead of (f '1') ++ '2'
+(1,2,3)             ;; multi-valued (1,2,3)
+((1,2,3))           ;; single value 1
 ```
 
 <a name="precedence-and-associativity"/>
 
-### 5.4.4. Precedence and Associativity
+### 5.5.3. Precedence and Associativity
 
-Operations in Atmos can be combined in expressions with the following precedence
-priority (from higher to lower):
+Operations in Atmos can be combined in expressions with the following
+precedence priority (from higher to lower):
 
-1. suffix (left associative)
-    - call:         `f()` `{{op}}()`
-    - index:        `t[i]` `t[=]` `t[+]` `t[-]`
-    - field:        `t.x` `t.pub` `t.(:T)`
-2. inner (left associative)
+1. primary:
+    - literal:      `nil` `true` `...` `:X` `'x'` `@.x` (etc)
+    - identifier:   `x`
+    - constructor:  `#{}` `@{}` `\{}`
+    - command:      `do` `set` `if` `await` (etc)
+    - declaration:  `func` `val` (etc)
+    - parenthesis:  `()`
+2. suffix:
+    - call:         `f()` `o::m()` `f ""` `f @{}` `f #{}`
+    - index:        `t[]`
+    - field:        `t.x`
+    - tag:          `:X()` `:X @{}`
+3. inner pipe:
     - single pipe:  `v->f` `f<-v`
-2. prefix (right associative)
-    - unary:        `not v` `#t` `-x`
-    - constructor:  `:T []` (see [Collection Values](#collection-values))
-3. infix (left associative)
+4. prefix:
+    - unary:        `-x` `!v` `#t`
+5. infix:
     - binary        `x*y` `r++s` `a or b`
-4. outer operations (left associative)
+6. outer pipe:
     - double pipe:  `v-->f` `f<--v`
+7. outer where:
     - where:        `v where {...}`
-    - thus:         `v thus {...}`
 
-All operations are left associative, except prefix operations, which are right
-associative.
-Note that all binary operators have the same precedence.
-Therefore, expressions with different operators but with the same precedence
-require parenthesis for disambiguation:
-
-```
-Expr : `(´ Expr `)´
-```
+Prefix operations are right associative, all others are left associative.
+Note that all binary operators at the same level have the same precedence.
+Therefore, operators at the same level require parenthesis for disambiguation.
 
 Examples:
+
+<!-- exs/exp-17-precedence.atm -->
 
 ```
 #f(10).x        ;; # ((f(10)) .x)
 x + 10 - 1      ;; ERROR: requires parenthesis
 - x + y         ;; (-x) + y
-x or y or z     ;; (x or y) or z
+x || y || z     ;; (x || y) || z
+f :X @{}        ;; ERROR: (f :X) @{}
 ```
-
-<a name="standard-operators"/>
-
-## 5.5. Standard Operators
-
-Atmos provides a number of standard operators:
-
-- length: `#`
-- equality: `==` `/=` `===` `=/=`
-- relational: `>` `>=` `<=` `<`
-- arithmetic: `+` `-` `*` `/`
-- logical: `and` `or` `not`
-- equivalence: `is?` `is-not?`
-- belongs-to: `in?` `in-not?`
-
-The function signatures that follow describe the operators and use tag
-annotations to describe the parameters and return types.
-However, note that the annotations are not part of the language, and are used
-for documentation purposes only.
-
-<a name="length-operator"/>
-
-### 5.5.1. Length Operator
-
-```
-func {{#}} (v :any) => :number
-```
-
-The operator `#` returns the length of the given tuple or vector.
-
-Examples:
-
-```
-val tup = []
-val vec = #[1,2,3]
-println(#tup, #vec)     ;; --> 0 / 3
-```
-
-<a name="equality-operators"/>
-
-### 5.5.2. Equality Operators
-
-```
-func {{==}} (v1 :any, v2 :any) => :boolean
-func {{/=}} (v1 :any, v2 :any) => :boolean
-```
-
-The operator `==` returns `true` if the values are equal and `false` otherwise.
-The operator `/=` is the negation of `==`.
-
-To be considered equal, first the values must be of the same type.
-In addition, [static values](#static-values) are compared *by value*, while
-[dynamic values](#dynamic-values) and [active values](#active-values) are
-compared *by reference*.
-
-Examples:
-
-```
-1 == 1          ;; --> true
-1 /= 1          ;; --> false
-1 == '1'        ;; --> false
-[1] == [1]      ;; --> false
-```
-
-```
-val t1 = [1]
-val t2 = t1
-t1 == t2        ;; --> true
-```
-
-<a name="deep-equality-operators"/>
-
-#### 5.5.2.1. Deep Equality Operators
-
-```
-func {===} (v1 :any, v2 :any) => :boolean
-func {=/=} (v1 :any, v2 :any) => :boolean
-```
-
-The operator `===` returns `true` if the values are deeply equal and `false`
-otherwise.
-The operator `=/=` is the negation of `===`.
-
-Except for [collections](#collections), deep equality behaves the same as
-[equality](#equality-operators).
-To be considered deeply equal, collections must be of the same type, have the
-same [user tags](#user-types), and all indexes and values must be deeply equal.
-
-Examples:
-
-```
-1 === 1                 ;; --> true
-1 =/= 1                 ;; --> false
-1 === '1'               ;; --> false
-#[1] === #[1]           ;; --> true
-@[(:x,1),(:y,2)] =/=
-@[(:y,2),(:x,1)]        ;; --> false
-```
-
-<a name="relational-operators"/>
-
-### 5.5.3. Relational Operators
-
-```
-func {{>}}  (n1 :number, n2 :number) => :boolean
-func {{>=}} (n1 :number, n2 :number) => :boolean
-func {{<=}} (n1 :number, n2 :number) => :boolean
-func {{<}}  (n1 :number, n2 :number) => :boolean
-```
-
-The operators `>`, `>=`, `<=` and `<` perform the standard relational
-operations of *greater than*, *greater or equal than*, *less than*, and
-*less or equal then*, respectively.
-
-`TODO: tags`
-
-Examples:
-
-```
-1 > 2       ;; --> false
-2 >= 1      ;; --> true
-1 <= 1      ;; --> true
-1 < 2       ;; --> true
-```
-
-<a name="arithmetic-operators"/>
-
-### 5.5.4. Arithmetic Operators
-
-```
-func {{+}} (n1 :number, n2 :number)   => :number
-func {{-}} (n1 :number [,n2 :number]) => :number
-func {{*}} (n1 :number, n2 :number)   => :number
-func {{/}} (n1 :number, n2 :number)   => :number
-func {{%}} (n1 :number, n2 :number)   => :number
-```
-
-The operators `+`, `-`, `*` and `/` perform the standard arithmetics operations
-of *addition*, *subtraction*, *multiplication*, and *division*, respectively.
-
-The operator `%` performs the *remainder* operation.
-
-The operator `-` is also used as the unary minus when it prefixes an
-expression.
-
-`TODO: tags`
-`TODO: *-*, //`
-
-Examples:
-
-```
-1 + 2       ;; --> 3
-1 - 2       ;; --> -1
-2 * 3       ;; --> 6
-5 / 2       ;; --> 2.5
-5 % 2       ;; --> 1
--20         ;; --> -20
-```
-
-<a name="logical-operators"/>
-
-### 5.5.5. Logical Operators
-
-```
-func not (v :any) => :boolean
-func and (v1 :any, v2 :any) => :any
-func or  (v1 :any, v2 :any) => :any
-```
-
-The logical operators `not`, `and`, and `or` are functions with a special
-syntax to be used as prefix (`not`) and infix operators (`and`,`or`).
-
-A `not` receives a value `v` and is equivalent to the code as follows:
-
-```
-if v { false } else { true }
-```
-
-The operators `and` and `or` return one of their operands `v1` or `v2`.
-
-An `and` is equivalent to the code as follows:
-
-```
-v1 thus {
-    if it { v2 } else { it }
-}
-```
-
-An `or` is equivalent to the code as follows:
-
-```
-v1 thus {
-    if it { it } else { v2 }
-}
-```
-
-Examples:
-
-```
-not not nil     ;; --> false
-nil or 10       ;; --> 10
-10 and nil      ;; --> nil
-```
-
-<a name="equivalence-operators"/>
-
-### 5.5.6. Equivalence Operators
-
-```
-func is?     (v1 :any, v2 :any) => :boolean
-func is-not? (v1 :any, v2 :any) => :boolean
-```
-
-The operators `is?` and `is-not?` are functions with a special syntax to be
-used as infix operators.
-
-The operator `is?` checks if `v1` matches `v2` as follows:
-
-```
-ifs {
-    (v1 === v2)        => true
-    (type(v1) == v2)   => true
-    (type(v2) == :tag) => sup?(v2, tag(v1))
-    else => false
-}
-```
-
-The operator `is-not?` is the negation of `is?`.
-
-Examples:
-
-```
-10 is? :number          ;; --> true
-10 is? nil              ;; --> false
-tag(:X,[]) is? :X       ;; --> true
-```
-
-<a name="belongsto-operators"/>
-
-### 5.5.7. Belongs-to Operators
-
-```
-func in?     (v :any, vs :any)
-func in-not? (v :any, vs :any)
-```
-
-The operators `in?` and `in-not?` are functions with a special syntax to be
-used as infix operators.
-
-The operator `in?` checks if `v` is part of [collection](#collections) `vs`.
-For tuples and vectors, the values are checked.
-For dictionaries, the indexes are checked.
-
-The operator `in-not?` is the negation of `in?`.
-
-Examples:
-
-```
-10 in? [1,10]            ;; true
-20 in? #[1,10]           ;; false
-10 in? @[(1,10)]         ;; false
-```
-
-<a name="vector-concatenation-operators"/>
-
-### 5.5.8. Vector Concatenation Operators
-
-```
-func {{++}}  (v1 :vector, v2 :vector) => :vector
-func {{<++}} (v1 :vector, v2 :vector) => :vector
-```
-
-The operators `++` and `<++` concatenate the given vectors.
-The operator `++` creates and returns a new vector, keeping the received
-vectors unmodified.
-The operator `<++` appends `v2` at the end of `v1`, returning `v1` modified.
-
-Examples:
-
-`TODO`
-
-<a name="conditionals-and-pattern-matching"/>
-
-## 5.6. Conditionals and Pattern Matching
-
-In a conditional context, [nil](#static-values) and [false](#static-values)
-are interpreted as "falsy", and all other values from all other types as
-"truthy".
 
 <a name="conditionals"/>
 
-### 5.6.1. Conditionals
+## 5.6. Conditionals
 
-Atmos supports conditionals as follows:
+In a conditional context, [nil](#types--values) and [false](#types--values)
+are interpreted as "falsy", and all other values from all other types as
+"truthy".
 
-```
-If  : `if´ Expr (`=>´ Expr | Block | Lambda)
-        [`else´  (`=>´ Expr | Block)]
-Ifs : `ifs´ `{´ {Case} [Else] `}´
-        Case :  Expr  (`=>´ Expr | Block | Lambda)
-        Else : `else´ (`=>´ Expr | Block)
-```
+<a name="if"/>
+
+### 5.6.1. If
 
 An `if` tests a condition expression and executes one of the two possible
-branches.
+branches:
+
+```
+If  : `if´ Expr (Block | Lambda) [`else´ (Block | Lambda)]
+    | `if´ Expr `=>´ Expr `=>´ Expr
+```
+
+The branches can be either [blocks](#blocks) or simple expressions prefixed by
+the arrow symbol `=>`.
+When using blocks, the `else` branch is optional.
+The blocks can also use the [lambda notation](#lambda) to capture the value
+of the condition being tested.
 
 If the condition is truthy, the `if` executes the first branch.
-Otherwise, it executes the optional `else` branch, which defaults to `nil`.
-A branch can be either a [block](#blocks) or a simple expression prefixed
-by the arrow symbol `=>`.
-
-An `ifs` supports multiple conditions, which are tested in sequence, until one
-is satisfied, executing its associated branch.
-Otherwise, it executes the optional `else` branch, which defaults to `nil`.
-
-Except for `else` branches, note that branches can use the
-[lambda notation](#lambda-prototypes) to capture the value of the condition
-being tested.
-Even though it uses the lambda notation, the branches do not create an extra
-function to execute.
+Otherwise, it executes the `else` branch, which defaults to `nil` if absent.
 
 Examples:
 
-```
-val max = if x>y => x => y
-```
+<!-- exs/exp-18-if.atm -->
 
 ```
-ifs {
+val max = if x>y => x => y      ;; max value between `x` and `y`
+
+if f() \{                       ;; f() is assigned to it
+    print("f() evaluates to " ++ it)
+} else {
+    print("f() evaluates to 'false'")
+}
+```
+
+<a name="ifs"/>
+
+### 5.6.2. Ifs
+
+An `ifs` tests multiple conditions in sequence, until one is satisfied,
+executing its associated branch:
+
+```
+Ifs : `ifs´ `{´ {Case} [Else] `}´
+Case :  Expr  (`=>´ Expr | Block | Lambda)
+Else : `else´ (`=>´ Expr | Block | Lambda)
+```
+
+If no condition is met, the `ifs` executes the optional `else` branch, which
+defaults to `nil`.
+
+Like in an [if](#if), branches can be blocks, simple `=>` expressions or
+lambdas.
+
+Examples:
+
+<!-- exs/exp-19-ifs.atm -->
+
+```
+val max = ifs {     ;; exclusive max value between `x` and `y`
     x > y => x
     x < y => y
-    else  => error(:error, "values are equal")
+    else  => throw(:error, "values are equal")
 }
 ```
 
-```
-if f() { \v =>
-    println("f() evaluates to " ++ to.string(v))
-} else {
-    println("f() evaluates to false")
-}
-```
+<a name="match"/>
 
-<a name="pattern-matching"/>
+### 5.6.3. Match
 
-### 5.6.2. Pattern Matching
-
-The `match` statement allows to test a head expression against a series of
-patterns between `{` and `}`:
+A `match` tests a head expression against a series of values, until one is
+satisfied, executing its associated branch:
 
 ```
 Match : `match´ Expr `{´ {Case} [Else] `}´
-        Case :  Patt  (`=>´ Expr | Block | Lambda)
-        Else : `else´ (`=>´ Expr | Block)
-
-Patt : [`(´] [ID] [TAG] [Const | Oper | Tuple] [`|´ Expr] [`)´]
-        Const : Expr
-        Oper  : OP [Expr]
-        Tuple : `[´ List(Patt) } `]´
+Case :  (Lambda | Expr)  (`=>´ Expr | Block | Lambda)
+Else : `else´ (`=>´ Expr | Block)
 ```
 
-The patterns are tested in sequence, until one is satisfied, executing its
-associated branch.
-Otherwise, it executes the optional `else` branch, which defaults to `nil`.
-A branch can be either a [block](#blocks) or a simple expression prefixed
-by the arrow symbol `=>`.
+If no case succeeds, the `match` executes the optional `else` branch, which
+defaults to `nil`.
 
-A pattern is satisfied if all of its optional forms to test the head expression
-are satisfied:
+The tests use `h ?? i`, where `h` is the head expression and `i` corresponds to
+each case expression.
+In addition, a case can be a [lambda constructor](#lambda), which receives the
+head expression and returns the test result.
 
-1. An identifier `ID` that always matches and captures the value of the head
-  expression with `ID = head`.
-  If omitted, it assumes the implicit identifier `it`.
-  If the pattern succeeds, the identifier can be used in its associated branch.
-2. A tag `TAG` that tests the head expression with `head is? TAG`.
-3. One of the three forms:
-    - A [static literal](#static-values) `Const` that tests the head expression
-      with `head == Const`.
-    - An operation `OP` followed by an optional expression `Expr` that tests
-      the head expression with `{{OP}}(head [,Expr])`.
-    - A tuple of patterns that tests if the head expression is a tuple, and
-      then applies each nested pattern recursively.
-      The head tuple size can be greater than the tuple pattern.
-4. An extra "such that" condition following the pipe symbol `|` that must be
-  satisfied, regardless of the head expression value.
-  If given, this condition becomes the capture value of the branch.
-
-Except for `else` branches, note that the branches can use the
-[lambda notation](#lambda-prototypes) to capture the value of the condition
-being tested.
-Even though it uses the lambda notation, the branches do not create an extra
-function to execute.
+Like in an [if](#if), branches can be blocks, simple `=>` expressions or
+lambdas.
 
 Examples:
+
+<!-- exs/exp-20-match.atm -->
 
 ```
 match f() {
-    x :X     => x       ;; capture `x=f()`, return `x` if `x is? :X`
-    <= 5     => it      ;; capture `it=f()`, return `it` if `it <= 5`
-    10       => :ok     ;; return :ok if `f() == 10`
-    {{odd?}} => :ok     ;; return :ok if `odd?(f())`
-    else     => :no
+    :table   => print("f() is a table")
+    "hello"  => print("f() == hello")
+    \{it>10} => print("f() > 10")
+    else     => \{ print("f() is", it) }
 }
 ```
 
-```
-match [10,20,30,40] {
-    | g(it) { \v => v }     ;; capture `it=[...]`, check `g(it)`
-                            ;;    capture and return `g(it)` as `v`
-    [10, i, j|j>10] => i+j  ;; capture `it=[...]`, check `#it>=3`,
-                            ;;    check `it[0]==10`
-                            ;;    capture `i=it[1]`
-                            ;;    capture `j=it[1]`, check `j>10`
-                            ;;    return i+j
-}
-```
+<a name="loop"/>
 
-Patterns are also used in
-    [declarations](#declarations),
-    [iterators](#iterators-tuples), and
-    [await statements](#awaits).
-In the case of declarations and iterators, the patterns are assertive in the
-sense that they cannot fail, raising an error if the match fails.
-
-Examples:
-
-```
-val [1,x,y] = [1,2,3]
-println(x,y)            ;; --> 2 3
-
-val [10,x] = [20,20]    ;; ERROR: match fails
-
-val d = @[x=1, y=2]
-loop [k,v] in d {
-    println(k,v)        ;; --> x,1 y,2
-}
-```
-
-```
-spawn {
-    await(:Pos | it.x==it.y)
-}
-broadcast(:Pos [10,20])     ;; no match
-broadcast(:Pos [10,10])     ;; ok match
-```
-
-<a name="loops-and-iterators"/>
-
-## 5.7. Loops and Iterators
+## 5.7. Loop
 
 Atmos supports loops and iterators as follows:
 
 ```
-Loop : `loop´ Block                                 ;; (1)
-     | `loop´ (ID [TAG] | Patt) `in´ Expr Block     ;; (2)
-     | `loop´ [ID] [`in´ Range] Block               ;; (3)
-            Range : (`}´|`{´) Expr `=>` Expr (`}´|`{´) [`:step` [`+´|`-´] Expr]
-
-Break : `break´ `(´ [Expr] `)´
-      | `until´ Expr
-      | `while´ Expr
-
-Skip  : `skip´ `(´ `)´
+Loop : `loop´ Block                 ;; infinite
+     | `loop´ ID Block              ;; numeric infinite
+     | `loop´ ID+ `in´ Expr Block   ;; iterator
 ```
 
 A `loop` executes a block of code continuously until a termination condition is
 met.
-Atmos supports three loop header variations:
+Atmos supports three loop variations:
 
-1. An *infinite loop* with an empty header, which only terminates from break
-   conditions.
-2. An [*iterator loop*](#iterator-loop) with an iterator expression that
-   executes on each step until it signals termination.
-3. A [*numeric loop*](#numeric-loop) with a range that specifies the number of
-   steps to execute.
+1. An *infinite loop* with an empty header, which only terminates from
+   [break](#breaks) conditions.
+2. A *numeric infinite loop* with a variable that ranges from `0` upwards.
+3. An *iterator loop* with multiple variables that range according to an
+   iterator expression.
 
-The iterator and numeric loops are detailed next.
+The following iterator expression types with predefined behaviors are
+supported:
 
-The loop block may contain three variations of a `break` statement for
-immediate termination:
+- `number`: ranges from `0` up to, but not including, the given number
+- `vector`: ranges over the indexes and values of a vector
+- `table`: ranges over the keys and values of a table
+- `tasks`: ranges over the indexes and tasks of a task pool
+- `function`: ranges over calls to the given function, until it returns `nil`
 
-1. A `break <e>` terminates the loop with the value of `<e>`.
-2. An `until <e>` terminates the loop if `<e>` is [truthy](#conditionals), with
-   that value.
-3. A `while <e>` terminates the loop if `<e>` is [falsy](#basic-types), with
-   that value (`nil` or `false`).
-
-As any other statement, a loop is an expression that evaluates to a final value
-as a whole.
-A loop that terminates from the header condition evaluates to `false`.
-
-The block may also contain a `skip()` statement to jump back to the next loop
-step.
+A loop evaluates to `nil` as a whole, unless a [break](#breaks) condition
+occurs.
 
 Examples:
 
+<!-- exs/exp-21-loop.atm -->
+
 ```
-var i = 1
-loop {                  ;; infinite loop
-    println(i)          ;; --> 1,2,...,10
-    while i < 10        ;; conditional termination
-    set i = i + 1
+loop {
+    await @1
+    print("1 more second elapsed...")
 }
 ```
 
 ```
+loop i {
+    print(i)        ;; --> 0, 1, 2, ...
+}
+```
+
+```
+val x = loop i in 2 {
+    print(i)        ;; --> 0, 1
+}
+print(x)            ;; --> false
+```
+
+```
+loop i,v in #{10,20,30} {
+    print(i,v)      ;; --> (0,10), (1,20), (2,30)
+}
+```
+
+```
+val f = func (s,e) {
+    var nxt = s
+    \{
+        val cur = nxt
+        set nxt = nxt + 1
+        if cur>=e => nil => cur
+    }
+}
+loop v in f(5,8) {
+    print(v)        ;; --> 5, 6, 7
+}
+```
+
+<a name="breaks"/>
+
+### 5.7.1. Breaks
+
+An `break` immediately escapes the deepest enclosing loop:
+
+```
+Break : `break´ `(´ Expr* `)´
+      | `until´ `(´ Expr+ `)´
+      | `while´ `(´ Expr+ `)´
+```
+
+<!--
+Skip  : `skip´ `(´ `)´
+The block may also contain a `skip()` statement to jump back to the next loop
+step.
 var i = 0
 loop {                  ;; infinite loop
     set i = i + 1
     if (i % 2) == 0 {
         skip()          ;; jump back
     }
-    println(i)          ;; --> 1,3,5,...
+    print(i)          ;; --> 1,3,5,...
 }
-```
+-->
 
-<a name="numeric-loops"/>
+The loop as a whole evaluates to the values passed to `break`.
 
-### 5.7.1. Numeric Loops
+In addition to `break`, Atmos provides `until` and `while` clauses to escape
+loops on specific conditions:
 
-A numeric loop specifies a range of numbers to iterate through:
-
-```
-Loop  : `loop´ [ID] [`in´ Range] Block
-Range : (`}´|`{´) Expr `=>` Expr (`}´|`{´) [`:step` [`+´|`-´] Expr]
-```
-
-At each loop step, the optional identifier receives the current number.
-If omitted, it assumes the implicit identifier `it`.
-
-The optional `in` clause specifies an interval `x => y` to iterate
-over.
-If omitted, then the loop iterates from `0` to infinity.
-
-The clause chooses open or closed range delimiters, and an optional signed
-`:step` expression to apply at each iteration.
-The open delimiters `}x` and `y{` exclude the given numbers from the interval,
-while the closed delimiters `{x` and `y}` include them.
-Note that for an open delimiter, the loop initializes the given number to its
-successor or predecessor, depending on the step direction.
-
-The loop terminates when `x` reaches or surpasses `y` considering the step sign
-direction, which defaults to `+1`.
-In this case, the loop evaluates to `false`.
-After each step, the step is added to `x` and compared against `y`.
+1. A `break(...)` escapes the loop with the values `...`.
+2. An `until(<cnd>,...)` is equivalent to `if <cnd> { break(... || <cnd>) }`.
+3. A `while(<cnd>,...)` is equivalent to `if not <cnd> { break(...) }`.
 
 Examples:
 
-```
-loop i {
-    println(i)      ;; --> 0,1,2,...
-}
-```
+<!-- exs/exp-22-breaks.atm -->
 
 ```
-loop in {0 => 3{ {
-    println(it)     ;; --> 0,1,2
-}
-```
-
-```
-loop v in }3 => 0} :step -1 {
-    println(v)      ;; --> 2,1,0
-}
-```
-
-<a name="iterator-loops"/>
-
-### 5.7.2. Iterator Loops
-
-An iterator loop evaluates a given iterator expression on each step, until it
-signals termination:
-
-```
-Loop | `loop´ (ID [TAG] | Patt) `in´ Expr Block
-```
-
-The loop first declares a control variable using the rules from
-[declarations](#declarations) to capture the results of the iterator
-expression, which appears after the keyword `in`.
-If the declaration is omitted, it assumes the implicit identifier `it`.
-
-The iterator expression `itr` must evaluate to a [tagged](#user-types) iterator
-[tuple](#collections) `:Iterator [f,...]`.
-
-The iterator tuple must hold a step function `f` at index `0`, followed by any
-other custom state required to operate.
-The function `f` expects the iterator tuple itself as argument, and returns its
-next value.
-On each iteration, the loop calls `f` passing the `itr`, and assigns the result
-to the loop control variable.
-To signal termination, `f` just needs to return `nil`.
-In this case, the loop as a whole evaluates to `false`.
-
-If the iterator expression is not an iterator tuple, the loop tries to
-transform it by calling [to.iter](#type-conversion-library) implicitly, which
-creates iterators from iterables, such as vectors and task pools.
-
-Examples:
-
-```
-loop v in [10,20,30] {          ;; implicit to.iter([10,20,30])
-    println(v)                  ;; --> 10,20,30
-}
-
-func num-iter (N) {
-    val f = func (t) {
-        val v = t[2]
-        set t[2] = v + 1
-        ((v < N) and v) or nil
+var i = 0
+loop {
+    set i = i + 1
+    print(i)        ;; --> 1,2,...,10
+    if i == 10 {
+        break()
     }
-    :Iterator [f, N, 0]
 }
-loop in num-iter(5) {
-    println(it)                 ;; --> 0,1,2,3,4
+```
+
+```
+val x = loop {
+    <...>
+    until(f())      ;; escapes when f()
+    <...>
 }
+print(x)            ;; value of f()
 ```
 
 <a name="exceptions"/>
 
 ## 5.8. Exceptions
 
-The `error` expression raises an exception that aborts the execution of all
-enclosing blocks up to a matching `catch` block.
+An exception `throw` aborts all active enclosing blocks in the stack up to a
+matching `catch` clause:
 
 ```
-Error : `error´ `(´ [Expr] `)´
-Catch : `catch´ [TAG | `(´ TAG `)´] Block
+Throw : `throw´ `(´ Expr* `)´
+Catch : `catch´ Expr Block
 ```
 
-An `error` propagates upwards and aborts all enclosing [blocks](#blocks) and
-[execution units](#prototype-values) (functions, coroutines, and tasks) on the
-way.
-When crossing an execution unit, an `error` jumps back to the original calling
-site and continues to propagate upwards.
-The optional exception value, which defaults to `:nil`, must evaluate to a
-[tag](#static-values) or [tagged value](#hierarchical-tags) that represents the
-error.
+A `catch` executes its body as a normal block but tries to match an occurring
+exception with the given expression.
+If no exceptions occur, it evaluates to `true` plus the values of its body.
+If it catches an exception, it evaluates to `false` plus the values of the
+matching `throw`.
+Otherwise, it propagates the exception upwards in the execution stack and never
+returns.
 
-A `catch` executes its associated block normally, but also registers a
-[tag](#static-values) to compare against exception values from errors crossing
-it.
-If they match, the exception is caught and the `catch` terminates and evaluates
-to exception value, also aborting its associated block, and properly triggering
-nested [defer](#defer) statements.
+A `catch` accepts the following exception matching expressions:
+
+- `true`: catches any throw
+- `false`: ignores any throw
+- `:function`: passes the throw values to the function, which matches if
+    returns `true`, replacing the throw values with additional arguments
+- otherwise: catches if the first throw value matches with `??`
+
+If a `throw` is not caught, the whole program aborts with a
+[stack trace](#TODO) debug message.
 
 Examples:
 
+<!-- exs/exp-23-exceptions.atm -->
+
 ```
-val x = catch :Error {
-    error(:Error)
-    println("unreachable")
+val ok, v = catch :X {
+    42
 }
-println(x)              ;; --> :Error
+print(ok, v)        ;; --> true, 42
 ```
 
 ```
-val x =
-    catch :X {
-        catch :Y {
-            error(:X [10,20])
-        }
-    }
-println(x)              ;; --> :X [10,20]
+val ok, x = catch :X {
+    throw(:X @{v=10, msg="error"})
+    print("unreachable")
+}
+print(ok, x.msg)    ;; --> false, error
 ```
 
 ```
 func f () {
-    catch :Err.One {                  ;; catches specific error
-        defer {
-            println(1)
+    throw :X.Y
+}
+val x =
+    catch :X {
+        catch :X.Z {
+            defer {
+                print "ok"
+            }
+            f()
         }
-        error(:Err.Two ["err msg"])   ;; throws another error
-    }
+    }               ;; --> ok (from defer)
+print(x)            ;; --> false
+```
+
+```
+val ok, v = catch \{(true,42)} {    ;; catches any error, transforms into 42
+    throw :X
 }
-catch :Err {                          ;; catches generic error
-    defer {
-        println(2)
-    }
-    f()
-    ;; unreachable
-}                                     ;; --> 1, 2
-```
-
-<a name="coroutine-operations"/>
-
-## 5.9. Coroutine Operations
-
-The API for coroutines has the following operations:
-
-- [coroutine](#coroutine-create): creates a new coroutine from a prototype
-- [status](#coroutine-status): consults the coroutine status
-- [resume](#spawn): starts or resumes a coroutine
-- [yield](#yield): suspends the resumed coroutine
-
-<!--
-5. [abort](#TODO): `TODO`
--->
-
-Note that `yield` is the only operation that is called from the coroutine
-itself, all others are called from the user code controlling the coroutine.
-The `resume` and `yield` operations transfer values between themselves,
-similarly to calls and returns in functions.
-
-Examples:
-
-```
-coro C (x) {                ;; first resume
-    println(x)              ;; --> 10
-    val w = yield(x + 1)    ;; returns 11, second resume, receives 12
-    println(w)              ;; --> 12
-    w + 1                   ;; returns 13
-}
-val c = coroutine(C)        ;; creates `c` from prototype `C`
-val y = resume c(10)        ;; starts  `c`, receives `11`
-val z = resume c(y+1)       ;; resumes `c`, receives `13`
-println(status(c))          ;; --> :terminated
+print(ok, v)                        ;; --> false, 42
 ```
 
 ```
-coro C () {
-    defer {
-        println("aborted")
-    }
-    yield()
-}
-do {
-    val c = coroutine(C)
-    resume c()
-}                           ;; --> aborted
+throw :X
+
+;;; error stack trace
+==> ERROR:
+ |  atmos:9 (call)
+ v  test.atm:1 (throw) <- atmos:9 (task)
+==> X
+;;;
 ```
-
-<a name="coroutine-create"/>
-
-### 5.9.1. Coroutine Create
-
-The operation `coroutine` creates a new [active coroutine](#active-values) from
-a [coroutine prototype](#prototype-values):
-
-```
-Create : `coroutine´ `(´ Expr `)´
-```
-
-The operation `coroutine` expects a coroutine prototype (type
-[coro](#execution-units)) and returns its active reference (type
-[exe-coro](#execution-units)).
-
-Examples:
-
-```
-coro C () {
-    <...>
-}
-val c = coroutine(C)
-println(C, c)   ;; --> coro: 0x... / exe-coro: 0x...
-```
-
-<a name="coroutine-status"/>
-
-### 5.9.2. Coroutine Status
-
-The operation `status` returns the current state of the given active coroutine:
-
-```
-Status : `status´ `(´ Expr `)´
-```
-
-As described in [Active Values](#active-values), a coroutine has 3 possible
-status:
-
-1. `yielded`: idle and ready to be resumed
-2. `resumed`: currently executing
-3. `terminated`: terminated and unable to be resumed
-
-Examples:
-
-```
-coro C () {
-    yield()
-}
-val c = coroutine(C)
-println(status(c))      ;; --> :yielded
-resume c()
-println(status(c))      ;; --> :yielded
-resume c()
-println(status(c))      ;; --> :terminated
-```
-
-<a name="resume"/>
-
-### 5.9.3. Resume
-
-The operation `resume` executes a coroutine from its last suspension point:
-
-```
-Resume : `resume´ Expr `(´ List(Expr) `)´
-```
-
-The operation `resume` expects an active coroutine, and resumes it, passing
-optional arguments.
-The coroutine executes until it [yields](#yield) or terminates.
-After returning, the `resume` evaluates to the argument passed to `yield` or to
-the coroutine return value.
-
-The first resume is like a function call, starting the coroutine from its
-beginning, and passing any number of arguments.
-The subsequent resumes start the coroutine from its last [yield](#yield)
-suspension point, passing at most one argument, which substitutes the `yield`.
-If omitted, the argument defaults to `nil`.
-
-```
-coro C () {
-    println(:1)
-    yield()
-    println(:2)
-}
-val co = coroutine(C)
-resume co()     ;; --> :1
-resume co()     ;; --> :2
-```
-
-<a name="yield"/>
-
-### 5.9.4. Yield
-
-The operation `yield` suspends the execution of a running coroutine:
-
-```
-Yield : `yield´ `(´ [Expr] `)´
-```
-
-An `yield` expects an optional argument between parenthesis that is returned
-to whom resumed the coroutine.
-If omitted, the argument defaults to `nil`.
-Eventually, the suspended coroutine is resumed again with a value and the whole
-`yield` is substituted by that value.
-
-<!--
-If the resume came from a [broadcast](#broadcast), then the given expression is
-lost.
--->
-
-<a name="resumeyield-all"/>
-
-### 5.9.5. Resume/Yield All
-
-The operation `resume-yield-all` continuously resumes the given active
-coroutine, collects its yields, and yields upwards each value, one at a time.
-It is typically used to delegate a job of an outer coroutine transparently to
-an inner coroutine:
-
-```
-All : `resume-yield-all´ Expr `(´ [Expr] `)´
-```
-
-The operation expects an active coroutine and an optional initial resume value
-between parenthesis, which defaults to `nil`.
-A `resume-yield-all <co> (<arg>)` expands as follows:
-
-```
-do {
-    val co  = <co>                  ;; given active coroutine
-    var arg = <arg>                 ;; given initial value (or nil)
-    loop {
-        val v = resume co(arg)      ;; resumes with current arg
-        if (status(co) == :terminated) {
-            break(v)
-        }
-        set arg = yield(v)          ;; takes next arg from upwards
-    }
-}
-```
-
-The loop in the expansion continuously resumes the target coroutine with a
-given argument, collects its yielded value, yields the same value upwards.
-Then, it expects to be resumed with the next target value, and loops until the
-target coroutine terminates.
-
-Examples:
-
-```
-coro G (b1) {                           ;; b1=1
-    coro L (c1) {                       ;; c1=4
-        val c2 = yield(c1+1)            ;; y(5), c2=6
-        val c3 = yield(c2+1)            ;; y(7), c3=8
-        c3+1                            ;; 9
-    }
-    val l = coroutine(L)
-    val b2 = yield(b1+1)                ;; y(2), b2=3
-    val b3 = resume-yield-all l(b2+1)   ;; b3=9
-    val b4 = yield(b3+1)                ;; y(10)
-    b4+1                                ;; 12
-}
-
-val g = coroutine(G)
-val a1 = resume g(1)                    ;; g(1),  a1=2
-val a2 = resume g(a1+1)                 ;; g(3),  a2=5
-val a3 = resume g(a2+1)                 ;; g(6),  a3=7
-val a4 = resume g(a3+1)                 ;; g(8),  a4=10
-val a5 = resume g(a4+1)                 ;; g(11), a5=10
-println(a1, a2, a3, a4, a5)             ;; --> 2, 5, 7, 10, 12
-```
-
-<!--
-<a name="active-values"/>
-
-### 5.9.6. Active Values
-
-After they suspend, coroutines and tasks retain their execution state and can
-be resumed later from their previous suspension point.
-
-Coroutines and tasks have 4 possible status:
-
-- `yielded`: idle and ready to be resumed
-- `toggled`: ignoring resumes (only for tasks)
-- `resumed`: currently executing
-- `terminated`: terminated and unable to resume
-
-The main difference between coroutines and tasks is how they resume execution:
-
-- A coroutine resumes explicitly from a [resume operation](#resume).
-- A task resumes implicitly from a [broadcast operation](#broadcast).
-
-Like other [dynamic values](#dynamic-values), coroutines and tasks are also
-attached to enclosing [blocks](#block), which may terminate and deallocate all
-of its attached values.
-Nevertheless, before a coroutine or task is deallocated, it is implicitly
-aborted, and all active [defer statements](#defer) execute automatically in
-reverse order.
-
-`TODO: lex`
-
-A task pool groups related active tasks as a collection.
-A task that lives in a pool is lexically attached to the block in which the
-pool is created, such that when the block terminates, all tasks in the pool are
-implicitly terminated.
-
-The operations on [coroutines](#coroutine-operations) and
-[tasks](#tasks-operations) are discussed further.
-
-Examples:
-
-```
-coro C () { <...> }         ;; a coro prototype `C`
-val c = coroutine(C)        ;; is instantiated as `c`
-resume c()                  ;; and resumed explicitly
-
-val ts = tasks()            ;; a task pool `ts`
-task T () { <...> }         ;; a task prototype `T`
-val t = spawn T() in ts     ;; is instantiated as `t` in pool `ts`
-broadcast(:X)               ;; broadcast resumes `t`
-```
--->
 
 <a name="task-operations"/>
 
-## 5.10. Task Operations
-
-The API for tasks has the following operations:
-
-- [spawn](#spawn): creates and resumes a new task from a prototype
-- [tasks](#task-pools): creates a pool of tasks
-- [status](#task-status): consults the task status
-- [pub](#public-field): exposes the task public field
-- [await](#awaits): yields the resumed task until it matches an event
-- [broadcast](#broadcast): broadcasts an event to awake all tasks
-- [toggle](#toggle): either ignore or accept awakes
+## 5.9. Task Operations
 
 <!--
-5. [abort](#TODO): `TODO`
+The API for tasks has the following operations:
+- [await](#await): yields the resumed task until it matches an event
+- [emit](#broadcast): broadcasts an event to awake all tasks
+- [toggle](#toggle): either ignore or accept awakes
+- Compounds
+- [abort](#TODO): `TODO`
 -->
-
-Examples:
-
-```
-task T (x) {
-    set pub = x                 ;; sets 1 or 2
-    val n = await(:number)      ;; awaits a number broadcast
-    println(pub + n)            ;; --> 11 or 12
-}
-val t1 = spawn T(1)
-val t2 = spawn T(2)
-println(t1.pub, t2.pub)         ;; --> 1, 2
-broadcast(10)                   ;; awakes all tasks passing 10
-```
-
-```
-task T () {
-    val n = await(:number)
-    println(n)
-}
-val ts = tasks()                ;; task pool
-do {
-    spawn T() in ts             ;; attached to outer pool,
-    spawn T() in ts             ;;  not to enclosing block
-}
-broadcast(10)                   ;; --> 10, 10
-```
 
 <a name="spawn"/>
 
-### 5.10.1. Spawn
+### 5.9.1. Spawn
 
-A spawn creates and starts an [active task](#active-values) from a
-[task prototype](#prototypes):
+A `spawn` receives a [task](#task), [function](#function), or [block](#blocks)
+and starts it as a task:
 
 ```
-Spawn : `spawn´ Expr `(´ [List(Expr)] `)´ [`in´ Expr]
+Spawn : `spawn` [`[´ Exp `]´] Exp `(´ Exp* `)`
+      | `spawn` Block
 ```
-    
-A spawn expects a task protoype, an optional list of arguments, and an optional
-pool to hold the task.
-The operation returns a reference to the active task.
+
+- The format `spawn [ts] T(...)` receives an optional [pool](#task-pool) to
+  hold the task, a task or function, and a list of arguments to pass to the
+  body about to start.
+  The operation returns a reference to spawned task.
+- The format `spawn { ... }` starts a [transparent task](#transparent-task)
+  body.
+
+Examples:
+
+<!-- exs/exp-25-spawn.atm -->
+
+```
+func T (id) {
+    print(id, 'started')
+    set pub = id
+}
+pin ts = tasks()
+val t1 = spawn [ts] T(:t1)  ;; --> t1, started
+print(t1.pub)               ;; --> t1
+
+spawn {
+    print(:t2, 'started')   ;; t2, started
+}
+
+pin t = spawn {}            ;; ERR: cannot assign```
+
 
 Examples:
 
@@ -2515,104 +2072,12 @@ task T (v, vs) {                ;; task prototype accepts 2 args
     <...>
 }
 val t = spawn T(10, [1,2,3])    ;; starts task passing args
-println(t)                      ;; --> exe-task 0x...
+print(t)                      ;; --> exe-task 0x...
 ```
 
-<a name="x-task-pools"/>
+<a name="await"/>
 
-### 5.10.2. X Task Pools
-
-The `tasks` operation creates a [task pool](#active-values) to hold
-[active tasks](#active-values):
-
-```
-Pool : `tasks´ `(´ Expr `)´
-```
-
-The operation receives an optional expression with the maximum number of task
-instances to hold.
-If omitted, there is no limit on the maximum number of tasks.
-If the pool is full, a further spawn fails and returns `nil`.
-
-Examples:
-
-```
-task T () {
-    <...>
-}
-val ts = tasks(1)               ;; task pool
-val t1 = spawn T() in ts        ;; success
-val t2 = spawn T() in ts        ;; failure
-println(ts, t1, t2)             ;; --> tasks: 0x... / exe-task 0x... / nil
-```
-
-<a name="task-status"/>
-
-### 5.10.3. Task Status
-
-The operation `status` returns the current state of the given active task:
-
-```
-Status : `status´ `(´ Expr `)´
-```
-
-As described in [Active Values](#active-values), a task has 4 possible status:
-
-- `yielded`: idle and ready to be resumed
-- `toggled`: ignoring resumes
-- `resumed`: currently executing
-- `terminated`: terminated and unable to be resumed
-
-Examples:
-
-```
-task T () {
-    await(|true)
-}
-val t = spawn T()
-println(status(t))      ;; --> :yielded
-toggle t(false)
-broadcast(nil)
-println(status(t))      ;; --> :toggled
-toggle t(true)
-broadcast(nil)
-println(status(t))      ;; --> :terminated
-```
-
-<a name="public-fields"/>
-
-### 5.10.4. Public Fields
-
-Tasks expose a public variable `pub` that is accessible externally:
-
-```
-Pub : `pub´ | Expr `.´ `pub´
-```
-
-The variable is accessed internally as `pub`, and externally as a
-[field operation](#indexes-and-fields) `x.pub`, where `x` refers to the task.
-
-When the task terminates, the public field assumes the final task value.
-
-Examples:
-
-```
-task T () {
-    set pub = 10
-    await(|true)
-    println(pub)    ;; --> 20
-    30              ;; final task value
-}
-val t = spawn T()
-println(t.pub)      ;; --> 10
-set t.pub = 20
-broadcast(nil)
-println(t.pub)      ;; --> 30
-```
-
-<a name="awaits"/>
-
-### 5.10.5. Awaits
+### 5.9.2. Await
 
 The operation `await` suspends the execution of a running task with a given
 [condition pattern](#pattern-matching) or clock timeout:
@@ -2646,15 +2111,15 @@ await(|false)                   ;; never awakes
 await(:key | it.code==:escape)  ;; awakes on :key with code=:escape
 await <1:h 10:min 30:s>         ;; awakes after the specified time
 await e {                       ;; awakes on any event
-    println(e)                  ;;  and shows it
+    print(e)                  ;;  and shows it
 }
 ```
 
-<a name="broadcasts"/>
+<a name="emit"/>
 
-### 5.10.6. Broadcasts
+### 5.9.3. Emit
 
-The operation `broadcast` signals an event to awake [awaiting](#awaits) tasks:
+The operation `broadcast` signals an event to awake [awaiting](#await) tasks:
 
 ```
 Bcast : `broadcast´ `(´ [Expr] `)´ [`in´ Expr]
@@ -2695,7 +2160,7 @@ task T () {
 
 <a name="toggle"/>
 
-### 5.10.7. Toggle
+### 5.9.4. Toggle
 
 The operation `toggle` configures an active task to either ignore or consider
 further `broadcast` operations:
@@ -2712,7 +2177,7 @@ between parenthesis, which is handled as follows:
 
 <a name="syntactic-block-extensions"/>
 
-### 5.10.8. Syntactic Block Extensions
+### 5.9.5. Syntactic Block Extensions
 
 Atmos provides many syntactic block extensions to work with tasks more
 effectively.
@@ -2720,22 +2185,22 @@ The extensions expand to standard task operations.
 
 <a name="spawn-blocks"/>
 
-#### 5.10.8.1. Spawn Blocks
+#### 5.9.5.1. Spawn Blocks
 
-A `spawn` block starts an anonymous nested task:
+A `spawn` block starts an transparent nested task:
 
 ```
 Spawn : `spawn´ Block
 ```
 
-An anonymous task cannot be assigned or referred explicitly.
-Also, any access to `pub` refers to the enclosing non-anonymous task.
+An transparent task cannot be assigned or referred explicitly.
+Also, any access to `pub` refers to the enclosing non-transparent task.
 
 `TODO: :nested, :anon, escape bug`
 
 <!--
 The `:nested` annotation is an internal mechanism to indicate that nested task
-is anonymous and unassignable.
+is transparent and unassignable.
 -->
 
 The `spawn` extension expands as follows:
@@ -2751,7 +2216,7 @@ Examples:
 ```
 spawn {
     await(:X)
-    println(":X occurred")
+    print(":X occurred")
 }
 ```
 
@@ -2759,7 +2224,7 @@ spawn {
 task T () {
     set pub = 10
     spawn {
-        println(pub)    ;; --> 10
+        print(pub)    ;; --> 10
     }
 }
 spawn T()
@@ -2767,9 +2232,9 @@ spawn T()
 
 <a name="parallel-blocks"/>
 
-#### 5.10.8.2. Parallel Blocks
+#### 5.9.5.2. Parallel Blocks
 
-A parallel block spawns multiple anonymous tasks:
+A parallel block spawns multiple transparent tasks:
 
 ```
 Par     : `par´     Block { `with´ Block }
@@ -2833,18 +2298,18 @@ Examples:
 ```
 par {
     every <1:s> {
-        println("1 second has elapsed")
+        print("1 second has elapsed")
     }
 } with {
     every <1:min> {
-        println("1 minute has elapsed")
+        print("1 minute has elapsed")
     }
 } with {
     every <1:h> {
-        println("1 hour has elapsed")
+        print("1 hour has elapsed")
     }
 }
-println("never reached")
+print("never reached")
 ```
 
 ```
@@ -2852,7 +2317,7 @@ par-or {
     await <1:s>
 } with {
     await(:X)
-    println(":X occurred before 1 second")
+    print(":X occurred before 1 second")
 }
 ```
 
@@ -2862,12 +2327,12 @@ par-and {
 } with {
     await(:Y)
 }
-println(":X and :Y have occurred")
+print(":X and :Y have occurred")
 ```
 
 <a name="every-blocks"/>
 
-#### 5.10.8.3. Every Blocks
+#### 5.9.5.3. Every Blocks
 
 An `every` block is a loop that makes an iteration whenever an await condition
 is satisfied:
@@ -2890,19 +2355,19 @@ Examples:
 
 ```
 every <1:s> {
-    println("1 more second has elapsed")
+    print("1 more second has elapsed")
 }
 ```
 
 ```
 every x :X | f(x) {
-    println(":X satisfies f(x)")
+    print(":X satisfies f(x)")
 }
 ```
 
 <a name="watching-blocks"/>
 
-#### 5.10.8.4. Watching Blocks
+#### 5.9.5.4. Watching Blocks
 
 A `watching` block executes a given block until an await condition is
 satisfied, which aborts the block:
@@ -2926,14 +2391,14 @@ Examples:
 ```
 watching <1:s> {
     every :X {
-        println("one more :X occurred before 1 second")
+        print("one more :X occurred before 1 second")
     }
 }
 ```
 
 <a name="toggle-blocks"/>
 
-#### 5.10.8.5. Toggle Blocks
+#### 5.9.5.5. Toggle Blocks
 
 A `toggle` block executes a given block and [toggles](#toggle) it when a
 broadcast event matches the given tag:
@@ -2981,7 +2446,7 @@ Examples:
 spawn {
     toggle :T {
         every :E {
-            println(it[0])  ;; --> 1 3
+            print(it[0])  ;; --> 1 3
         }
     }
 }
@@ -3013,7 +2478,7 @@ for documentation purposes only.
 func assert (v :any [,msg :any]) => :any
 func next (v :any [,x :any]) => :any
 func print (...) => :nil
-func println (...) => :nil
+func print (...) => :nil
 func sup? (t1 :tag, t2 :tag) => :boolean
 func tag (t :tag, v :dyn) => :dyn
 func tag (v :dyn) => :tag
@@ -3055,7 +2520,7 @@ Examples:
 val d = @[(:k1,10), (:k2,20)]
 val k1 = next(d)
 val k2 = next(d, k1)
-println(k1, k2)     ;; --> :k1 / :k2
+print(k1, k2)     ;; --> :k1 / :k2
 ```
 
 ```
@@ -3064,18 +2529,18 @@ spawn T() in ts     ;; tsk1
 spawn T() in ts     ;; tsk2
 val t1 = next(ts)
 val t2 = next(ts, t1)
-println(t1, t2)     ;; --> exe-task: 0x...   exe-task: 0x...
+print(t1, t2)     ;; --> exe-task: 0x...   exe-task: 0x...
 ```
 
-The functions `print` and `println` outputs the given values to the screen, and
+The functions `print` and `print` outputs the given values to the screen, and
 return the first received value.
 
 Examples:
 
 ```
-val x = println(1, :x)  ;; --> 1   :x
+val x = print(1, :x)  ;; --> 1   :x
 print(x)
-println(2)              ;; --> 12
+print(2)              ;; --> 12
 ```
 
 The function `sup?` receives tags `t1` and `t2`, and returns if `t1` is
