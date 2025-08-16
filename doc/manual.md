@@ -2056,15 +2056,24 @@ A `toggle` configures a task to either consider or disregard further
 
 ```
 Toggle : `toggle´ Expr `(´ Expr `)´
+       | `toggle´ TAG Block
 ```
 
-A `toggle` expects a task and a [boolean](#types--values), which is handled
-as follows:
+In the first format, a toggle expects a task and a [boolean](#types--values),
+which is handled as follows:
 
 - `true`: the task considers further broadcasts
 - `false`: the task disregards further emits and never awakes
 
 By default, all tasks consider events.
+
+In the second format, a toggle spawns and awaits a block as a
+[transparent task](#transparent-task).
+It also specifies a [tag](#literals) to toggle the block when matching an
+[emit](#emit).
+The emit must be in the format `emit(<tag>, <boolean>)` to set the toggle
+state.
+
 Examples:
 
 <!-- exs/exp-28-toggle.atm -->
@@ -2079,6 +2088,22 @@ toggle t(false)
 emit :X         ;; event ignored
 toggle t(true)
 emit :X         ;; --> ok
+```
+
+```
+spawn {
+    toggle :T {
+        loop {
+            val _,v = await(:E)
+            print(v)            ;; --> 1 3
+        }
+    }
+}
+emit(:E, 1)
+emit(:T, false)
+emit(:E, 2)
+emit(:T, true)
+emit(:E, 3)
 ```
 
 ### Every
@@ -2140,7 +2165,7 @@ watching <1:s> {
 
 ### Parallels
 
-A parallel statement spawns multiple transparent tasks:
+A parallel statement spawns multiple [transparent tasks](#transparent-tasks):
 
 ```
 Par : `par´     Block { `with´ Block }
@@ -2196,65 +2221,6 @@ val x,y = par_and {
     await :Y
 }
 print(x, y)     ;; --> X, Y
-```
-
-#### Toggle Blocks
-
-A `toggle` block executes a given block and [toggles](#toggle) it when a
-broadcast event matches the given tag:
-
-```
-Toggle : `toggle´ TAG Block
-```
-
-The control event must be a tagged tuple with the given tag, holding a single
-boolean value to toggle the block, e.g.:
-
-- `:X [true]`  activates the block.
-- `:X [false]` deactivates the block.
-
-The given block executes normally, until a `false` is received, toggling it
-off.
-Then, when a `true` is received, it toggles the block on.
-The whole composition terminates when the task representing the given block
-terminates.
-
-The `toggle` extension expands as follows:
-
-```
-do {
-    val t = spawn {
-        <Block>
-    }
-    if status(t) /= :terminated {
-        watching (|it==t) {
-            loop {
-                await(<TAG>, not it[0])
-                toggle t(false)
-                await(<TAG>, it[0])
-                toggle t(true)
-            }
-        }
-    }
-    t.pub
-}
-```
-
-Examples:
-
-```
-spawn {
-    toggle :T {
-        every :E {
-            print(it[0])  ;; --> 1 3
-        }
-    }
-}
-broadcast(:E [1])
-broadcast(:T [false])
-broadcast(:E [2])
-broadcast(:T [true])
-broadcast(:E [3])
 ```
 
 <!-- ---------------------------------------------------------------------- -->
