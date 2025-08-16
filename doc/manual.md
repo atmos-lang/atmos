@@ -494,11 +494,11 @@ which only exist at compile time.
 ```
 NIL  : nil
 BOOL : true | false
-TAG  : :[A-Za-z0-9\.\-]+      ;; colon + leter/digit/dot/dash
-NUM  : [0-9][0-9A-Za-z\.]*    ;; digit/letter/dot
-CHR  : '.' | '\.'             ;; single/backslashed character
-STR  : ".*"                   ;; string expression
-NAT  : `.*`                   ;; native expression
+TAG  : :[A-Za-z0-9_\.]+     ;; colon + leter/digit/under/dot
+NUM  : [0-9][0-9A-Za-z\.]*  ;; digit/letter/dot
+STR  : '.*' | ".*"          ;; string expression
+CLK  : (.*):(.*):(.*)\.(.*) ;; clock expression
+NAT  : `.*`                 ;; native expression
 ```
 
 The literals for `nil`, `boolean` and `number` follow the same
@@ -511,12 +511,12 @@ The literals `true` and `false` are the only values of the `boolean` type.
 A `tag` literal starts with a colon (`:`) and is followed by letters,
 digits, and dots (`.`).
 
+A `number` literal starts with a digit and is followed by digits, letters, and
+dots (`.`).
+
 A `string` literal is a sequence of characters enclosed by an odd number
 of matching double (`"`) or single (`'`) quotes.
 Atmos supports multi-line strings when using multiple quote delimiters.
-
-A `number` literal starts with a digit and is followed by digits, letters, and
-dots (`.`).
 
 A `clock` literal starts with an *at sign* (`@`) and is followed by the format
 `HH:MM:SS.sss` representing hours, minutes, seconds, and milliseconds.
@@ -615,8 +615,14 @@ expression to incrementing indexes:
 Vector : `#{´ Expr* `}´
 ```
 
-`TODO: out of bounds errors`
-`TODO: length`
+The [length](#operations) `#` of a vector `v` can only be modified as a stack,
+i.e, only pushes and pops are allowed:
+
+- push: `set v[#v] = x`
+- pop:  `set v[#v-1] = nil`
+
+Therefore, an insertion must be exactly at index `#v`, while removal must be
+exactly at index `#v-1`.
 
 Examples:
 
@@ -626,6 +632,8 @@ Examples:
 val vs = #{1, 2, 3}     ;; a vector of numbers (similar to @{ [0]=1, [1]=2, [2]=3 })
 print(vs[1])            ;; --> 2
 print(vs ?? :vector)    ;; --> true
+set vs[#vs] = 4         ;; #{1, 2, 3}
+set vs[2] = nil         ;; ERR: out of bounds
 ```
 
 ## Table
@@ -904,12 +912,6 @@ Therefore, we use the terms statement and expression interchangeably.
 
 All [identifiers](#identifiers), [literals](#literals) and
 [values](#types--values) are also valid expressions.
-
-<!--
-We use a BNF-like notation to describe the syntax of expressions in Atmos.
-As an extension, we use `X*` to mean `{ X ',' }`, but with the leading `,`
-being optional; and a `X+` variation with at least one `X`.
--->
 
 ## Program, Sequences and Blocks
 
@@ -2215,356 +2217,134 @@ val x,y = par_and {
 print(x, y)     ;; --> X, Y
 ```
 
-<!-- ---------------------------------------------------------------------- -->
-
 # STANDARD LIBRARIES
 
-Atmos provides many libraries with predefined functions.
+In addition to the [standard Lua libraries](lua-libraries), Atmos also provides
+the following functions:
 
-The function signatures that follow describe the operators and use tag
-annotations to describe the parameters and return types.
-However, note that the annotations are not part of the language, and are used
-for documentation purposes only.
+`TODO: between, to*, remove/insert (vector)`
 
-## Basic Library
+- `xtostring`
+- `xprint`
+- `xcopy`
 
-```
-func assert (v :any [,msg :any]) => :any
-func next (v :any [,x :any]) => :any
-func print (...) => :nil
-func print (...) => :nil
-func sup? (t1 :tag, t2 :tag) => :boolean
-func tag (t :tag, v :dyn) => :dyn
-func tag (v :dyn) => :tag
-func type (v :any) => :type
-```
-
-The function `assert` receives a value `v` of any type, and raises an error if
-it is [falsy](#basic-types).
-Otherwise, it returns the same `v`.
-The optional `msg` provides a string to accompany the error, or a function that
-generates the error string.
-
-`TODO: assert extra options`
-
-Examples:
-
-```
-assert((10<20) and :ok, "bug found")    ;; --> :ok
-assert(1 == 2) <-- { "1 /= 2" }         ;; --> ERROR: "1 /= 2"
-```
-
-The function `next` allows to traverse collections step by step.
-It supports as the collection argument `v` the types with behaviors as follows:
-
-- `:dict`:
-    `next` receives a dictionary `v`, a key `x`, and returns the key `y` that
-    follows `x`. If `x` is `nil`, the function returns the initial key. If
-    there are no remaining keys, `next` returns `nil`.
-- `:tasks`:
-    `next` receives a task pool `v`, a task `x`, and returns task `y` that
-    follows `x`. If `x` is `nil`, the function returns the initial task. If
-    there are no reamining tasks to enumerate, `next` returns `nil`.
-- `:exe-coro`: `TODO: description/examples`
-- `:Iterator`: `TODO: description/examples`
-
-Examples:
-
-```
-val d = @[(:k1,10), (:k2,20)]
-val k1 = next(d)
-val k2 = next(d, k1)
-print(k1, k2)     ;; --> :k1 / :k2
-```
-
-```
-val ts = tasks()
-spawn T() in ts     ;; tsk1
-spawn T() in ts     ;; tsk2
-val t1 = next(ts)
-val t2 = next(ts, t1)
-print(t1, t2)     ;; --> exe-task: 0x...   exe-task: 0x...
-```
-
-The functions `print` and `print` outputs the given values to the screen, and
-return the first received value.
-
-Examples:
-
-```
-val x = print(1, :x)  ;; --> 1   :x
-print(x)
-print(2)              ;; --> 12
-```
-
-The function `sup?` receives tags `t1` and `t2`, and returns if `t1` is
-a [super-tag](#hierarchical-tags) of `t2`.
-
-The function `tag` sets or queries tags of [user types](#user-types).
-To set a tag, the function receives a tag `t` and a value `v` to associate.
-The function returns the same value `v` passed to it.
-To query a tag, the function `tag` receives a value `v`, and returns its
-associated tag.
-
-The function `type` receives a value `v` and returns its [type](#types).
-
-Examples:
-
-```
-sup?(:T.A,   :T.A.x)    ;; --> true
-sup?(:T.A.x, :T)        ;; --> false
-
-val x = tag(:X, [])     ;; value x=[] is associated with tag :X
-tag(x)                  ;; --> :X
-
-type(10)                ;; --> :number
-```
-
-## Type Conversions Library
-
-The type conversion functions `to.*` receive a value `v` of any type and try to
-convert it to a value of the specified type:
-
-```
-func to.boolean    (v :any) => :boolean
-func to.char    (v :any) => :char
-func to.dict    (v :any) => :dict
-func to.number  (v :any) => :number
-func to.pointer (v :any) => :pointer
-func to.string  (v :any) => :vector (string)
-func to.tag     (v :any) => :tag
-func to.tuple   (v :any) => :tuple
-func to.vector  (v :any) => :vector
-```
-
-If the conversion is not possible, the functions return `nil`.
-
-`TODO: describe each`
-
-Examples:
-
-```
-to.boolean(nil)        ;; --> false
-to.char(65)         ;; --> 'A'
-to.dict([[:x,1]])   ;; --> @[(:x,1)]
-to.number("10")     ;; --> 10
-to.pointer(#[x])    ;; --> (C pointer to 1st element `x`)
-to.string(42)       ;; --> "42"
-to.tag(":number")   ;; --> :number
-to.tuple(#[1,2,3])  ;; --> [1,2,3]
-to.vector([1,2,3])  ;; --> #[1,2,3]
-```
-
-The function `to.iter` is used implicitly in [iterator loops](#iterator-loops)
-to convert iterables, such as vectors and task pools, into iterators:
-
-```
-func to.iter (v :any [,tp :any]) => :Iterator
-```
-
-`to.iter` receives an iterable `v`, an optional modifier `tp`, and returns a
-corresponding [:Iterator](#iterator-loops) tuple.
-The iterator provides a function that traverses the iterable step by step on
-each call.
-The modifier specifies what kind of value should the iterator return on each
-step.
-`to.iter` accepts the following iterables and modifiers:
-
-- `:tuple`, `:vector`, `:dict`:
-    - traverses the collection item by item
-    - `:val`: value of the current item
-    - `:idx`, `:key`: index or key of the current item
-    - `:tuple` and `:vector` default to modifier `:val`
-    - `:dict` defaults to modifier `[:key,:val]`
-- `:func`:
-    - simply calls the function each step, forwarding its return value
-- `:exe-coro`:
-    - resumes the coroutine on each step, and returns its yielded value
-- `:tasks`:
-    - traverses the pool item by item, returning the current task
-
-It is possible to pass multiple modifiers in a tuple (e.g., `[:key,:val]`).
-In this case, on each step, the iterator returns a tuple with the corresponding
-values.
-
-Examples:
-
-`TODO`
-
-## Math Library
-
-```
-val math.PI :number
-func math.between (min :number, n :number, max :number) => :number
-func math.ceil (n :number) => :number
-func math.cos (n :number) => :number
-func math.floor (n :number) => :number
-func math.max (n1 :number, n2 :number) => :number
-func math.min (n1 :number, n2 :number) => :number
-func math.round (n :number) => :number
-func math.sin (n :number) => :number
-```
-
-The functions `math.sin` and `math.cos` compute the sine and cossine of the
-given number in radians, respectively.
-
-The function `math.floor` return the integral floor of a given real number.
-
-`TODO: describe all functions`
-
-Examples:
-
-```
-math.PI                 ;; --> 3.14
-math.sin(math.PI)       ;; --> 0
-math.cos(math.PI)       ;; --> -1
-
-math.ceil(10.14)        ;; --> 11
-math.floor(10.14)       ;; --> 10
-math.round(10.14)       ;; --> 10
-
-math.min(10,20)         ;; --> 10
-math.max(10,20)         ;; --> 20
-math.between(10, 8, 20) ;; --> 10
-```
-
-## Random Numbers Library
-
-```
-func random.next () => :number
-func random.seed (n :number) => :nil
-```
-
-`TODO: describe all functions`
-
-Examples:
-
-```
-random.seed(0)
-random.next()       ;; --> :number
-```
+[lua-libraries]: https://www.lua.org/manual/5.4/manual.html#6
 
 # SYNTAX
 
+We use a BNF-like notation to describe the syntax of expressions in Atmos.
+As an extension, we use `X*` to mean `{ X ',' }`, but with the leading `,`
+being optional; and a `X+` variation with at least one `X`.
+
 ```
 Prog  : { Expr [`;´] }
-Block : `{´ { Expr [`;´] } `}´
-Expr  : `do´[TAG]  Block                                ;; explicit block
-      | `escape´ `(´ TAG [`,´ Expr] `)´                 ;; escape block
-      | `drop´ `(´ Expr `)´                             ;; drop value from block
-      | `group´ Block                                   ;; group statements
-      | `test´ Block                                    ;; test block
-      | `defer´ Block                                   ;; defer statements
-      | `(´ Expr `)´                                    ;; parenthesis
+Block : `{´ Prog `}´
+Expr  : `do´[TAG]  Block                            ;; explicit block
+      | `escape´ `(´ Expr* `)´                      ;; escape from block
+      | `defer´ Block                               ;; defer statements
 
-      | `val´ (ID [TAG] | Patt) [`=´ Expr]              ;; decl immutable
-      | `var´ (ID [TAG] | Patt) [`=´ Expr]              ;; decl mutable
+      | (`val´ | `var` | `pin`) ID* [`=´ Expr]      ;; local declarations
+      | Expr `where´ `{´ (ID* `=´ Expr)* `}´        ;; where clause
+      | `func´ ID {`.´ ID} [`::´ ID]                ;; function declaration
+               `(´ ID* [`...´] `)´
+               Block
+      | `return´ `(´ Expr* `)´                      ;; return from function
 
-      | `func´ ID `(´ [List(ID [TAG])] `)´ Block        ;; decl func
-      | `coro´ ID `(´ [List(ID [TAG])] `)´ Block        ;; decl coro
-      | `task´ ID `(´ [List(ID [TAG])] `)´ Block        ;; decl task
+      | `set´ Expr* `=´ Expr                        ;; assignment
 
-      | `set´ Expr `=´ Expr                             ;; assignment
+      | `(´ Expr* `)´                               ;; parenthesis
 
-      | `enum´ `{´ List(TAG) `}´                        ;; tags enum
-      | `enum´ TAG `{´ List(ID) `}´
-      | `data´ Data [`{´ { Data } `}´]                  ;; tuple template
-            Data : TAG `=´ `[´ List(ID [TAG]) `]´
+      | `nil´ | `false´ | `true´                    ;; literals
+      | TAG | NUM | NAT | CLK | ID                  ;;  & identifiers
 
-      | `nil´ | `false´ | `true´                        ;; literals,
-      | TAG | NUM | CHR | NAT                           ;; identifiers,
-      | ID | `{{´ OP `}}´ | `pub´                       ;; operators
+      | `#{´ Expr* `}´                              ;; vector
+      | x`@[´ [List(Key-Val)] `]´                        ;; dictionary
+        x    Key-Val : ID `=´ Expr
+        x            | `(´ Expr `,´ Expr `)´
+      | xSTR                                             ;; string
+      | xTAG `[´ [List(Expr)] `]´                        ;; tagged tuple
 
-      | `[´ [List(Expr)] `]´                            ;; tuple
-      | `#[´ [List(Expr)] `]´                           ;; vector
-      | `@[´ [List(Key-Val)] `]´                        ;; dictionary
-            Key-Val : ID `=´ Expr
-                    | `(´ Expr `,´ Expr `)´
-      | STR                                             ;; string
-      | TAG `[´ [List(Expr)] `]´                        ;; tagged tuple
+      | x`func´ `(´ [List(ID [TAG])] `)´ Block           ;; anon function
+      | x`coro´ `(´ [List(ID [TAG])] `)´ Block           ;; anon coroutine
+      | x`task´ `(´ [List(ID [TAG])] `)´ Block           ;; anon task
+      | xLambda                                          ;; anon function
 
-      | `func´ `(´ [List(ID [TAG])] `)´ Block           ;; anon function
-      | `coro´ `(´ [List(ID [TAG])] `)´ Block           ;; anon coroutine
-      | `task´ `(´ [List(ID [TAG])] `)´ Block           ;; anon task
-      | Lambda                                          ;; anon function
+      | xOP Expr                                         ;; pre ops
+      | xExpr OP Expr                                    ;; bin ops
+      | xExpr `(´ [List(Expr)] `)´                       ;; call
 
-      | OP Expr                                         ;; pre ops
-      | Expr OP Expr                                    ;; bin ops
-      | Expr `(´ [List(Expr)] `)´                       ;; call
+      | xExpr `[´ Expr `]´                               ;; index
+      | xExpr `.´ ID                                     ;; dict field
+      | xExpr `.´ `pub´                                  ;; task pub
+      | xExpr `.´ `(´ TAG `)´                            ;; cast
 
-      | Expr `[´ Expr `]´                               ;; index
-      | Expr `.´ ID                                     ;; dict field
-      | Expr `.´ `pub´                                  ;; task pub
-      | Expr `.´ `(´ TAG `)´                            ;; cast
+      | xExpr `[´ (`=´|`+´|`-´) `]´                      ;; stack peek,push,pop
+      | xExpr (`<--` | `<-` | `->` | `-->` ) Expr        ;; pipe calls
+      | xExpr `thus´ Lambda                              ;; thus clause
 
-      | Expr `[´ (`=´|`+´|`-´) `]´                      ;; stack peek,push,pop
-      | Expr (`<--` | `<-` | `->` | `-->` ) Expr        ;; pipe calls
-      | Expr `where´ Block                              ;; where clause
-      | Expr `thus´ Lambda                              ;; thus clause
+      | x`if´ Expr (`=>´ Expr | Block | Lambda)          ;; conditional
+        x[`else´  (`=>´ Expr | Block)]
 
-      | `if´ Expr (`=>´ Expr | Block | Lambda)          ;; conditional
-        [`else´  (`=>´ Expr | Block)]
+      | x`ifs´ `{´ {Case} [Else] `}´                     ;; conditionals
+        x    Case :  Expr  (`=>´ Expr | Block | Lambda)
+        x    Else : `else´ (`=>´ Expr | Block)
 
-      | `ifs´ `{´ {Case} [Else] `}´                     ;; conditionals
-            Case :  Expr  (`=>´ Expr | Block | Lambda)
-            Else : `else´ (`=>´ Expr | Block)
+      | x`match´ Expr `{´ {Case} [Else] `}´              ;; pattern matching
+        x    Case :  Patt  (`=>´ Expr | Block | Lambda)
+        x    Else : `else´ (`=>´ Expr | Block)
 
-      | `match´ Expr `{´ {Case} [Else] `}´              ;; pattern matching
-            Case :  Patt  (`=>´ Expr | Block | Lambda)
-            Else : `else´ (`=>´ Expr | Block)
+      | x`loop´ Block                                    ;; infinite loop
+      | x`loop´ (ID [TAG] | Patt) `in´ Expr Block        ;; iterator loop
+      | x`loop´ [ID] [`in´ Range] Block                  ;; numeric loop
+        x    Range : (`}´|`{´) Expr `=>` Expr (`}´|`{´) [`:step` [`+´|`-´] Expr]
+      | x`break´ `(´ [Expr] `)´                          ;; loop break
+      | x`until´ Expr
+      | x`while´ Expr
+      | x`skip´ `(´ `)´                                  ;; loop restart
 
-      | `loop´ Block                                    ;; infinite loop
-      | `loop´ (ID [TAG] | Patt) `in´ Expr Block        ;; iterator loop
-      | `loop´ [ID] [`in´ Range] Block                  ;; numeric loop
-            Range : (`}´|`{´) Expr `=>` Expr (`}´|`{´) [`:step` [`+´|`-´] Expr]
-      | `break´ `(´ [Expr] `)´                          ;; loop break
-      | `until´ Expr
-      | `while´ Expr
-      | `skip´ `(´ `)´                                  ;; loop restart
+      | x`catch´ [TAG | `(´ TAG `)´] Block               ;; catch exception
+      | x`error´ `(´ [Expr] `)´                          ;; throw exception
 
-      | `catch´ [TAG | `(´ TAG `)´] Block               ;; catch exception
-      | `error´ `(´ [Expr] `)´                          ;; throw exception
+      | x`status´ `(´ Expr `)´                           ;; coro/task status
 
-      | `status´ `(´ Expr `)´                           ;; coro/task status
+      | x`coroutine´ `(´ Expr `)´                        ;; create coro
+      | x`yield´ `(´ [Expr] `)´                          ;; yield from coro
+      | x`resume´ Expr `(´ List(Expr) `)´                ;; resume coro
+      | x`resume-yield-all´ Expr `(´ [Expr] `)´          ;; resume-yield nested coro
 
-      | `coroutine´ `(´ Expr `)´                        ;; create coro
-      | `yield´ `(´ [Expr] `)´                          ;; yield from coro
-      | `resume´ Expr `(´ List(Expr) `)´                ;; resume coro
-      | `resume-yield-all´ Expr `(´ [Expr] `)´          ;; resume-yield nested coro
+      | x`spawn´ Expr `(´ [List(Expr)] `)´ [`in´ Expr]   ;; spawn task
+      | x`tasks´ `(´ Expr `)´                            ;; task pool
+      | x`await´ Patt [Block]                            ;; await pattern
+      | x`await´ Clock                                   ;; await clock
+      | x`broadcast´ `(´ [Expr] `)´ [`in´ Expr]          ;; broadcast event
+      | x`toggle´ Expr `(´ Expr `)´                      ;; toggle task
 
-      | `spawn´ Expr `(´ [List(Expr)] `)´ [`in´ Expr]   ;; spawn task
-      | `tasks´ `(´ Expr `)´                            ;; task pool
-      | `await´ Patt [Block]                            ;; await pattern
-      | `await´ Clock                                   ;; await clock
-      | `broadcast´ `(´ [Expr] `)´ [`in´ Expr]          ;; broadcast event
-      | `toggle´ Expr `(´ Expr `)´                      ;; toggle task
+      | x`spawn´ Block                                   ;; spawn nested task
+      | x`every´ (Patt | Clock) Block                    ;; await event in loop
+      | x`watching´ (Patt | Clock) Block                 ;; abort on event
+      | x`par´ Block { `with´ Block }                    ;; spawn tasks
+      | x`par-and´ Block { `with´ Block }                ;; spawn tasks, rejoin on all
+      | x`par-or´ Block { `with´ Block }                 ;; spawn tasks, rejoin on any
+      | x`toggle´ TAG Block                              ;; toggle task on/off on tag
 
-      | `spawn´ Block                                   ;; spawn nested task
-      | `every´ (Patt | Clock) Block                    ;; await event in loop
-      | `watching´ (Patt | Clock) Block                 ;; abort on event
-      | `par´ Block { `with´ Block }                    ;; spawn tasks
-      | `par-and´ Block { `with´ Block }                ;; spawn tasks, rejoin on all
-      | `par-or´ Block { `with´ Block }                 ;; spawn tasks, rejoin on any
-      | `toggle´ TAG Block                              ;; toggle task on/off on tag
+xLambda : `{´ [`\´ List(ID [TAG]) `=>´] { Expr [`;´] } `}´
 
-Lambda : `{´ [`\´ List(ID [TAG]) `=>´] { Expr [`;´] } `}´
+xPatt : [`(´] [ID] [TAG] [Const | Oper | Tuple] [`|´ Expr] [`)´]
+x        Const : Expr
+x        Oper  : OP [Expr]
+x        Tuple : `[´ List(Patt) } `]´
 
-Patt : [`(´] [ID] [TAG] [Const | Oper | Tuple] [`|´ Expr] [`)´]
-        Const : Expr
-        Oper  : OP [Expr]
-        Tuple : `[´ List(Patt) } `]´
+xClock : `<´ { Expr [`:h´|`:min´|`:s´|`:ms´] } `>´
 
-Clock : `<´ { Expr [`:h´|`:min´|`:s´|`:ms´] } `>´
+xList(x) : x { `,´ x }                                   ;; comma-separated list
 
-List(x) : x { `,´ x }                                   ;; comma-separated list
-
-ID    : [`^´|`^^´] [A-Za-z_][A-Za-z0-9_\'\?\!\-]*       ;; identifier variable (`^´ upval)
-      | `{´ OP `}´                                      ;; identifier operation
-TAG   : :[A-Za-z0-9\.\-]+                               ;; identifier tag
-OP    : [+-*/%><=|&]+                                   ;; identifier operation
-      | `not´ | `or´ | `and´ | `is?´ | `is-not?´ | `in?´ | `in-not?´
-CHR   : '.' | '\\.'                                     ;; literal character
-NUM   : [0-9][0-9A-Za-z\.]*                             ;; literal number
-NAT   : `.*`                                            ;; native expression
-STR   : ".*"                                            ;; string expression
+xID    : [`^´|`^^´] [A-Za-z_][A-Za-z0-9_\'\?\!\-]*       ;; identifier variable (`^´ upval)
+x      | `{´ OP `}´                                      ;; identifier operation
+xTAG   : :[A-Za-z0-9\.\-]+                               ;; identifier tag
+xOP    : [+-*/%><=|&]+                                   ;; identifier operation
+x      | `not´ | `or´ | `and´ | `is?´ | `is-not?´ | `in?´ | `in-not?´
+xCHR   : '.' | '\\.'                                     ;; literal character
+xNUM   : [0-9][0-9A-Za-z\.]*                             ;; literal number
+xNAT   : `.*`                                            ;; native expression
+xSTR   : ".*"                                            ;; string expression
 ```

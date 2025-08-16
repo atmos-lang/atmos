@@ -1,3 +1,6 @@
 val vs = #{1, 2, 3}     ;; a vector of numbers
 print(vs[1])            ;; --> 2
 print(vs ?? :vector)    ;; --> true
+set vs[#vs] = 4         ;; #{1, 2, 3}
+xprint(vs)
+set vs[2] = nil         ;; ERR: out of bounds
