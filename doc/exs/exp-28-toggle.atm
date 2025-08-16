@@ -8,3 +8,17 @@ emit :X         ;; event ignored
 toggle t(true)
 print :bef
 emit :X         ;; --> ok
+
+spawn {
+    toggle :T {
+        loop {
+            val _,v = await(:E)
+            print(v)            ;; --> 1 3
+        }
+    }
+}
+emit(:E, 1)
+emit(:T, false)
+emit(:E, 2)
+emit(:T, true)
+emit(:E, 3)

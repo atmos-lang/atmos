@@ -53,8 +53,7 @@
     * Conditionals
         - `if` `ifs` `match`
     * Loop
-        - `loop` `loop in`
-        - `break` `until` `while`
+        - `loop` `break` `until` `while`
     * Exceptions
         - `error` `catch`
     * Task Operations
@@ -390,10 +389,10 @@ The following keywords are reserved in Atmos:
     escape              ;; escape block
     every               ;; every block
     false               ;; false value
-    func                ;; function prototype
+    func                ;; function
     if                  ;; if block                         (20)
     ifs                 ;; ifs block
-    in                  ;; in keyword
+    in                  ;; in iterator
     it                  ;; implicit parameter
     loop                ;; loop block
     match               ;; match block
@@ -409,7 +408,7 @@ The following keywords are reserved in Atmos:
     task                ;; task prototype
     tasks               ;; task pool
     throw               ;; throw error
-    toggle              ;; toggle coroutine/block
+    toggle              ;; toggle task
     true                ;; true value
     until               ;; until loop condition
     val                 ;; constant declaration             (50)
@@ -2108,7 +2107,7 @@ emit(:E, 3)
 
 ### Every
 
-An `every` statement is a [loop](#loop) that makes an iteration whenever an
+An `every` is a [loop](#loop) that makes an iteration whenever an
 [await](#await) condition is satisfied:
 
 ```
@@ -2134,29 +2133,22 @@ every :X \{         ;; <-- (`emit :X @{v=10}`)
 }
 ```
 
-#### Watching Blocks
+#### Watching
 
-A `watching` block executes a given block until an await condition is
+A `watching` spawns and awaits a block as a
+[transparent task](#transparent-task) until an [await](#await) condition is
 satisfied, which aborts the block:
 
 ```
-Watching : `watching´ (Patt | Clock) Block
-```
-
-A `watching` extension expands as follows:
-
-```
-par-or {
-    await(<Patt|Clock>)
-} with {
-    <Block>
-}
+Watching : `watching´ Expr* Block
 ```
 
 Examples:
 
+<!-- exs/exp-30-watching.atm -->
+
 ```
-watching <1:s> {
+watching @1 {
     every :X {
         print("one more :X occurred before 1 second")
     }

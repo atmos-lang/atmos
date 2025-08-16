@@ -1,0 +1,11 @@
+spawn {
+    watching @1 {
+        every :X {
+            print("one more :X occurred before 1 second")
+        }
+    }
+}
+emit :X
+emit :X
+emit @1
+emit :X
