@@ -644,8 +644,8 @@ type.
 A table constructor `@{ * }` receives a list `*` of key-value assignments:
 
 ```
-Table : `@{´ Key-Val* `}´
-Key-Val : `[` Expr `]´ `=´ Expr
+Table : `@{´ Key_Val* `}´
+Key_Val : `[` Expr `]´ `=´ Expr
         | ID `=´ Expr
         | Expr
 ```
@@ -768,7 +768,7 @@ A task constructor `task(f)` receives a [function](#function) and instantiates
 a task:
 
 ```
-Task : `task´ `(´ Exp `)´
+Task : `task´ `(´ Expr `)´
 ```
 
 The given function becomes the body of the task.
@@ -871,7 +871,7 @@ A task pool constructor `tasks(n)` creates a pool that holds at most `n`
 tasks:
 
 ```
-Tasks : `tasks´ `(´ [Exp] `)´
+Tasks : `tasks´ `(´ [Expr] `)´
 ```
 
 If the limit is omitted, the pool is unbounded.
@@ -1909,11 +1909,6 @@ throw :X
 ## Task Operations
 
 <!--
-The API for tasks has the following operations:
-- [await](#await): yields the resumed task until it matches an event
-- [emit](#broadcast): broadcasts an event to awake all tasks
-- [toggle](#toggle): either ignore or accept awakes
-- Compounds
 - [abort](#TODO): `TODO`
 -->
 
@@ -1923,7 +1918,7 @@ A `spawn` receives a [task](#task), [function](#function), or [block](#blocks)
 and starts it as a task:
 
 ```
-Spawn : `spawn` [`[´ Exp `]´] Exp `(´ Exp* `)`
+Spawn : `spawn` [`[´ Expr `]´] Expr `(´ Expr* `)`
       | `spawn` Block
 ```
 
@@ -2022,7 +2017,7 @@ print(v)                ;; --> 20
 An `emit` broadcasts an event that can awake [awaiting](#await) tasks:
 
 ```
-Emit : `emit´ [`[´ Exp `]´] `(´ Expr* `)´
+Emit : `emit´ [`[´ Expr `]´] `(´ Expr* `)´
 ```
 
 The optional target between brackets determines the scope of the broadcast:
@@ -2252,99 +2247,78 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
 
       | `set´ Expr* `=´ Expr                        ;; assignment
 
-      | `(´ Expr* `)´                               ;; parenthesis
-
       | `nil´ | `false´ | `true´                    ;; literals
-      | TAG | NUM | NAT | CLK | ID                  ;;  & identifiers
+      | TAG | NUM | STR | CLK | NAT
+      | ID | `pub´                                  ;;  identifiers
 
       | `#{´ Expr* `}´                              ;; vector
-      | x`@[´ [List(Key-Val)] `]´                        ;; dictionary
-        x    Key-Val : ID `=´ Expr
-        x            | `(´ Expr `,´ Expr `)´
-      | xSTR                                             ;; string
-      | xTAG `[´ [List(Expr)] `]´                        ;; tagged tuple
+      | [TAG] `@{´ Key_Val* `}´                     ;; table
+            Key_Val : `[` Expr `]´ `=´ Expr
+                    | ID `=´ Expr
+                    | Expr
 
-      | x`func´ `(´ [List(ID [TAG])] `)´ Block           ;; anon function
-      | x`coro´ `(´ [List(ID [TAG])] `)´ Block           ;; anon coroutine
-      | x`task´ `(´ [List(ID [TAG])] `)´ Block           ;; anon task
-      | xLambda                                          ;; anon function
+      | `func´ `(´ ID* [`...´] `)´ Block            ;; anon function
+      | `\` [ID | `(` ID* `)´] Block                ;; lambda notation
 
-      | xOP Expr                                         ;; pre ops
-      | xExpr OP Expr                                    ;; bin ops
-      | xExpr `(´ [List(Expr)] `)´                       ;; call
+      | `task´ `(´ Expr `)´                         ;; task
+      | `task´ `(´ [Expr] `)´                       ;; tasks pool
 
-      | xExpr `[´ Expr `]´                               ;; index
-      | xExpr `.´ ID                                     ;; dict field
-      | xExpr `.´ `pub´                                  ;; task pub
-      | xExpr `.´ `(´ TAG `)´                            ;; cast
+      | OP Expr                                     ;; pre ops
+      | Expr OP Expr                                ;; bin ops
+      | `(´ Expr+ `)´                               ;; parenthesis
 
-      | xExpr `[´ (`=´|`+´|`-´) `]´                      ;; stack peek,push,pop
-      | xExpr (`<--` | `<-` | `->` | `-->` ) Expr        ;; pipe calls
-      | xExpr `thus´ Lambda                              ;; thus clause
+      | Expr `.´ ID                                 ;; table field
+      | Expr `[´ Expr `]´                           ;; index
+      | Expr `[´ (`=´|`+´|`-´) `]´                  ;; ppp operations
 
-      | x`if´ Expr (`=>´ Expr | Block | Lambda)          ;; conditional
-        x[`else´  (`=>´ Expr | Block)]
+      | Expr `(´ Expr* `)´                          ;; call
+      | Expr Expr                                   ;; single-constructor call
+      | Expr (`<--` | `<-` | `->` | `-->` ) Expr    ;; pipe calls
 
-      | x`ifs´ `{´ {Case} [Else] `}´                     ;; conditionals
-        x    Case :  Expr  (`=>´ Expr | Block | Lambda)
-        x    Else : `else´ (`=>´ Expr | Block)
+      | `if´ Expr (Block | Lambda)                  ;; if block
+            [`else´ (Block | Lambda)]
+      | `if´ Expr `=>´ Expr `=>´ Expr               ;; if expr
 
-      | x`match´ Expr `{´ {Case} [Else] `}´              ;; pattern matching
-        x    Case :  Patt  (`=>´ Expr | Block | Lambda)
-        x    Else : `else´ (`=>´ Expr | Block)
+      | `ifs´ `{´ {Case} [Else] `}´                 ;; ifs
+            Case :  Expr  (`=>´ Expr | Block | Lambda)
+            Else : `else´ (`=>´ Expr | Block | Lambda)
 
-      | x`loop´ Block                                    ;; infinite loop
-      | x`loop´ (ID [TAG] | Patt) `in´ Expr Block        ;; iterator loop
-      | x`loop´ [ID] [`in´ Range] Block                  ;; numeric loop
-        x    Range : (`}´|`{´) Expr `=>` Expr (`}´|`{´) [`:step` [`+´|`-´] Expr]
-      | x`break´ `(´ [Expr] `)´                          ;; loop break
-      | x`until´ Expr
-      | x`while´ Expr
-      | x`skip´ `(´ `)´                                  ;; loop restart
+      | `match´ Expr `{´ {Case} [Else] `}´          ;; match
+            Case :  (Lambda | Expr)  (`=>´ Expr | Block | Lambda)
+            Else : `else´ (`=>´ Expr | Block)
 
-      | x`catch´ [TAG | `(´ TAG `)´] Block               ;; catch exception
-      | x`error´ `(´ [Expr] `)´                          ;; throw exception
+      | `loop´ Block                                ;; infinite loop
+      | `loop´ ID Block                             ;; numeric infinite loop
+      | `loop´ ID+ `in´ Expr Block                  ;; iterator loop
 
-      | x`status´ `(´ Expr `)´                           ;; coro/task status
+      | `break´ `(´ Expr* `)´                       ;; loop break
+      | `until´ `(´ Expr+ `)´
+      | `while´ `(´ Expr+ `)´
 
-      | x`coroutine´ `(´ Expr `)´                        ;; create coro
-      | x`yield´ `(´ [Expr] `)´                          ;; yield from coro
-      | x`resume´ Expr `(´ List(Expr) `)´                ;; resume coro
-      | x`resume-yield-all´ Expr `(´ [Expr] `)´          ;; resume-yield nested coro
+      | `throw´ `(´ Expr* `)´                       ;; throw exception
+      | `catch´ Expr Block                          ;; catch exception
 
-      | x`spawn´ Expr `(´ [List(Expr)] `)´ [`in´ Expr]   ;; spawn task
-      | x`tasks´ `(´ Expr `)´                            ;; task pool
-      | x`await´ Patt [Block]                            ;; await pattern
-      | x`await´ Clock                                   ;; await clock
-      | x`broadcast´ `(´ [Expr] `)´ [`in´ Expr]          ;; broadcast event
-      | x`toggle´ Expr `(´ Expr `)´                      ;; toggle task
+      | `spawn` [`[´ Expr `]´] Expr `(´ Expr* `)`   ;; spawn task
+      | `spawn´ Block                               ;; spawn block
 
-      | x`spawn´ Block                                   ;; spawn nested task
-      | x`every´ (Patt | Clock) Block                    ;; await event in loop
-      | x`watching´ (Patt | Clock) Block                 ;; abort on event
-      | x`par´ Block { `with´ Block }                    ;; spawn tasks
-      | x`par-and´ Block { `with´ Block }                ;; spawn tasks, rejoin on all
-      | x`par-or´ Block { `with´ Block }                 ;; spawn tasks, rejoin on any
-      | x`toggle´ TAG Block                              ;; toggle task on/off on tag
+      | `await´ `(´ Expr* `)´                       ;; await event
+      | `await´ ID `(´ Expr* `)´                    ;; await task
+      | `emit´ [`[´ Expr `]´] `(´ Expr* `)´         ;; emit event
 
-xLambda : `{´ [`\´ List(ID [TAG]) `=>´] { Expr [`;´] } `}´
+      | `toggle´ Expr `(´ Expr `)´                  ;; toggle task
+      | `toggle´ TAG Block                          ;; toggle block
 
-xPatt : [`(´] [ID] [TAG] [Const | Oper | Tuple] [`|´ Expr] [`)´]
-x        Const : Expr
-x        Oper  : OP [Expr]
-x        Tuple : `[´ List(Patt) } `]´
+      | `every´ Expr* (Block | Lambda)              ;; every event loop
+      | `watching´ Expr* Block                      ;; watching event block
 
-xClock : `<´ { Expr [`:h´|`:min´|`:s´|`:ms´] } `>´
+      | `par´     Block { `with´ Block }            ;; parallels
+      | `par_and´ Block { `with´ Block }
+      | `par_or´  Block { `with´ Block }
 
-xList(x) : x { `,´ x }                                   ;; comma-separated list
-
-xID    : [`^´|`^^´] [A-Za-z_][A-Za-z0-9_\'\?\!\-]*       ;; identifier variable (`^´ upval)
-x      | `{´ OP `}´                                      ;; identifier operation
-xTAG   : :[A-Za-z0-9\.\-]+                               ;; identifier tag
-xOP    : [+-*/%><=|&]+                                   ;; identifier operation
-x      | `not´ | `or´ | `and´ | `is?´ | `is-not?´ | `in?´ | `in-not?´
-xCHR   : '.' | '\\.'                                     ;; literal character
-xNUM   : [0-9][0-9A-Za-z\.]*                             ;; literal number
-xNAT   : `.*`                                            ;; native expression
-xSTR   : ".*"                                            ;; string expression
+ID    : [A-Za-z_][A-Za-z0-9_]*      ;; variable identifier
+TAG   : :[A-Za-z0-9_\.]+            ;; tag
+NUM   : [0-9][0-9A-Za-z\.]*         ;; number
+STR   : '.*' | ".*"                 ;; string
+CLK   : (.*):(.*):(.*)\.(.*)        ;; clock
+NAT   : `.*`                        ;; native expression
 ```
