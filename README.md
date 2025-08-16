@@ -1,7 +1,7 @@
 # The Programming Language Atmos
 
 [
-    [`v0.2`](https://github.com/lua-atmos/atmos/tree/v0.2_0.2.1) |
+    [`v0.2`](https://github.com/atmos-lang/atmos/tree/v0.2_0.2.1)
 ]
 
 <img src="atmos-logo.png" width="250" align="right">
