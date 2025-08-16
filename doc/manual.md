@@ -60,18 +60,7 @@
         - `spawn` `await` `emit` `toggle`
         - `every` `watching` `par` `par_and` `par_or`
 * STANDARD LIBRARIES
-    * Basic Library
-        - `assert` `copy` `create-resume` `next`
-        - `print` `print` `sup?` `tag` `tuple` `type`
-        - `dynamic?` `static?` `string?`
-    * Type Conversions Library
-        - `to.boolean` `to.char` `to.dict` `to.iter` `to.number`
-        - `to.pointer` `to.string` `to.tag` `to.tuple` `to.vector`
-    * Math Library
-        - `math.between` `math.ceil` `math.cos` `math.floor` `math.max`
-        - `math.min` `math.PI` `math.round` `math.sin`
-    * Random Numbers Library
-        - `random.next` `random.seed`
+    - `TODO`
 * SYNTAX
 
 <!-- CONTENTS -->

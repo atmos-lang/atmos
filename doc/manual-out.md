@@ -53,26 +53,14 @@
     - <a href="#conditionals">5.6.</a> Conditionals
         - `if` `ifs` `match`
     - <a href="#loop">5.7.</a> Loop
-        - `loop` `loop in`
-        - `break` `until` `while`
+        - `loop` `break` `until` `while`
     - <a href="#exceptions">5.8.</a> Exceptions
         - `error` `catch`
     - <a href="#task-operations">5.9.</a> Task Operations
-        - `spawn` `tasks` `await` `emit` `toggle`
-        - `every` `par` `par_and` `par_or` `watching` `toggle`
+        - `spawn` `await` `emit` `toggle`
+        - `every` `watching` `par` `par_and` `par_or`
 - <a href="#standard-libraries">6.</a> STANDARD LIBRARIES
-    - <a href="#basic-library">6.1.</a> Basic Library
-        - `assert` `copy` `create-resume` `next`
-        - `print` `print` `sup?` `tag` `tuple` `type`
-        - `dynamic?` `static?` `string?`
-    - <a href="#type-conversions-library">6.2.</a> Type Conversions Library
-        - `to.boolean` `to.char` `to.dict` `to.iter` `to.number`
-        - `to.pointer` `to.string` `to.tag` `to.tuple` `to.vector`
-    - <a href="#math-library">6.3.</a> Math Library
-        - `math.between` `math.ceil` `math.cos` `math.floor` `math.max`
-        - `math.min` `math.PI` `math.round` `math.sin`
-    - <a href="#random-numbers-library">6.4.</a> Random Numbers Library
-        - `random.next` `random.seed`
+    - `TODO`
 - <a href="#syntax">7.</a> SYNTAX
 
 <!-- CONTENTS -->
@@ -410,10 +398,10 @@ The following keywords are reserved in Atmos:
     escape              ;; escape block
     every               ;; every block
     false               ;; false value
-    func                ;; function prototype
+    func                ;; function
     if                  ;; if block                         (20)
     ifs                 ;; ifs block
-    in                  ;; in keyword
+    in                  ;; in iterator
     it                  ;; implicit parameter
     loop                ;; loop block
     match               ;; match block
@@ -429,7 +417,7 @@ The following keywords are reserved in Atmos:
     task                ;; task prototype
     tasks               ;; task pool
     throw               ;; throw error
-    toggle              ;; toggle coroutine/block
+    toggle              ;; toggle task
     true                ;; true value
     until               ;; until loop condition
     val                 ;; constant declaration             (50)
@@ -523,11 +511,11 @@ which only exist at compile time.
 ```
 NIL  : nil
 BOOL : true | false
-TAG  : :[A-Za-z0-9\.\-]+      ;; colon + leter/digit/dot/dash
-NUM  : [0-9][0-9A-Za-z\.]*    ;; digit/letter/dot
-CHR  : '.' | '\.'             ;; single/backslashed character
-STR  : ".*"                   ;; string expression
-NAT  : `.*`                   ;; native expression
+TAG  : :[A-Za-z0-9_\.]+     ;; colon + leter/digit/under/dot
+NUM  : [0-9][0-9A-Za-z\.]*  ;; digit/letter/dot
+STR  : '.*' | ".*"          ;; string expression
+CLK  : (.*):(.*):(.*)\.(.*) ;; clock expression
+NAT  : `.*`                 ;; native expression
 ```
 
 The literals for `nil`, `boolean` and `number` follow the same
@@ -540,12 +528,12 @@ The literals `true` and `false` are the only values of the `boolean` type.
 A `tag` literal starts with a colon (`:`) and is followed by letters,
 digits, and dots (`.`).
 
+A `number` literal starts with a digit and is followed by digits, letters, and
+dots (`.`).
+
 A `string` literal is a sequence of characters enclosed by an odd number
 of matching double (`"`) or single (`'`) quotes.
 Atmos supports multi-line strings when using multiple quote delimiters.
-
-A `number` literal starts with a digit and is followed by digits, letters, and
-dots (`.`).
 
 A `clock` literal starts with an *at sign* (`@`) and is followed by the format
 `HH:MM:SS.sss` representing hours, minutes, seconds, and milliseconds.
@@ -652,8 +640,14 @@ expression to incrementing indexes:
 Vector : `#{´ Expr* `}´
 ```
 
-`TODO: out of bounds errors`
-`TODO: length`
+The [length](#operations) `#` of a vector `v` can only be modified as a stack,
+i.e, only pushes and pops are allowed:
+
+- push: `set v[#v] = x`
+- pop:  `set v[#v-1] = nil`
+
+Therefore, an insertion must be exactly at index `#v`, while removal must be
+exactly at index `#v-1`.
 
 Examples:
 
@@ -663,6 +657,8 @@ Examples:
 val vs = #{1, 2, 3}     ;; a vector of numbers (similar to @{ [0]=1, [1]=2, [2]=3 })
 print(vs[1])            ;; --> 2
 print(vs ?? :vector)    ;; --> true
+set vs[#vs] = 4         ;; #{1, 2, 3}
+set vs[2] = nil         ;; ERR: out of bounds
 ```
 
 <a name="table"/>
@@ -675,8 +671,8 @@ type.
 A table constructor `@{ * }` receives a list `*` of key-value assignments:
 
 ```
-Table : `@{´ Key-Val* `}´
-Key-Val : `[` Expr `]´ `=´ Expr
+Table : `@{´ Key_Val* `}´
+Key_Val : `[` Expr `]´ `=´ Expr
         | ID `=´ Expr
         | Expr
 ```
@@ -807,7 +803,7 @@ A task constructor `task(f)` receives a [function](#function) and instantiates
 a task:
 
 ```
-Task : `task´ `(´ Exp `)´
+Task : `task´ `(´ Expr `)´
 ```
 
 The given function becomes the body of the task.
@@ -916,7 +912,7 @@ A task pool constructor `tasks(n)` creates a pool that holds at most `n`
 tasks:
 
 ```
-Tasks : `tasks´ `(´ [Exp] `)´
+Tasks : `tasks´ `(´ [Expr] `)´
 ```
 
 If the limit is omitted, the pool is unbounded.
@@ -959,12 +955,6 @@ Therefore, we use the terms statement and expression interchangeably.
 
 All [identifiers](#identifiers), [literals](#literals) and
 [values](#types--values) are also valid expressions.
-
-<!--
-We use a BNF-like notation to describe the syntax of expressions in Atmos.
-As an extension, we use `X*` to mean `{ X ',' }`, but with the leading `,`
-being optional; and a `X+` variation with at least one `X`.
--->
 
 <a name="program-sequences-and-blocks"/>
 
@@ -2018,11 +2008,6 @@ throw :X
 ## 5.9. Task Operations
 
 <!--
-The API for tasks has the following operations:
-- [await](#await): yields the resumed task until it matches an event
-- [emit](#broadcast): broadcasts an event to awake all tasks
-- [toggle](#toggle): either ignore or accept awakes
-- Compounds
 - [abort](#TODO): `TODO`
 -->
 
@@ -2034,7 +2019,7 @@ A `spawn` receives a [task](#task), [function](#function), or [block](#blocks)
 and starts it as a task:
 
 ```
-Spawn : `spawn` [`[´ Exp `]´] Exp `(´ Exp* `)`
+Spawn : `spawn` [`[´ Expr `]´] Expr `(´ Expr* `)`
       | `spawn` Block
 ```
 
@@ -2072,89 +2057,96 @@ task T (v, vs) {                ;; task prototype accepts 2 args
     <...>
 }
 val t = spawn T(10, [1,2,3])    ;; starts task passing args
-print(t)                      ;; --> exe-task 0x...
+print(t)                        ;; --> exe-task 0x...
 ```
 
 <a name="await"/>
 
 ### 5.9.2. Await
 
-The operation `await` suspends the execution of a running task with a given
-[condition pattern](#pattern-matching) or clock timeout:
+An `await` suspends a [task](#task) until a matching [emit](#emit) occurs:
 
 ```
-Await : `await´ Patt [Block]
-      | `await´ Clock
-Clock : `<´ { Expr [`:h´|`:min´|`:s´|`:ms´] } `>´
+Await : `await´ `(´ Expr* `)´
+      | `await´ ID `(´ Expr* `)´
 ```
 
-Whenever an event is [broadcast](#broadcasts), it is compared against the
-`await` pattern or clock timeout.
-If it succeeds, the task is resumed and executes the statement after the
-`await`.
+The first format accepts any of the following expressions:
 
-A clock timeout in milliseconds is the sum of the given time units multipled
-by prefix numeric expressions, e.g., `<1:s 500:ms>` corresponds to `1500ms`.
-The special broadcast event `:Clock [ms]` advances clock timeouts, in which
-`ms` corresponds to the number of milliseconds to advance.
-Therefore, a clock timeout such as `<1:s 500:ms>` expires after `:Clock` events
-accumulate `1500ms`.
+- `true` | matches any emit
+- `false` | never matches an emit
+- `c: clock` | matches a [clock](#clock) event (`c` decreases until expires)
+- `t: task` | matches a terminating task `t`
+- `ts: tasks` | matches any terminating task in `ts`
+- `f: function` | `f` receives the occuring event, matches if `f` returns `true`
+- `v | matches if `e ?? v`, where `e` is the `emit` argument
+- `...` | each of the arguments must match each of the `emit` arguments
 
-A condition pattern accepts an optional block that can access the event value
-when the condition pattern matches.
-If the block is omitted, the pattern requires parenthesis.
+The `await` evaluates to the matching `emit` payloads.
+
+The second format `await T(...)` [spawns](#spawn) and awaits the given task to
+terminate.
+In this case, the `await` evaluates to the task final value.
 
 Examples:
 
+<!-- exs/exp-26-await.atm -->
+
 ```
-await(|false)                   ;; never awakes
-await(:key | it.code==:escape)  ;; awakes on :key with code=:escape
-await <1:h 10:min 30:s>         ;; awakes after the specified time
-await e {                       ;; awakes on any event
-    print(e)                  ;;  and shows it
+await(false)            ;; never awakes
+await(:key, :escape)    ;; awakes on :key == :escape
+await @1:10:30          ;; awakes after 1h 10min 30s
+await(\{it>10})         ;; awakes if event > 10
+```
+
+```
+spawn {
+    val x,y = await(true)
+    print(x, y)         ;; --> 10, 20
 }
+emit(10, 20)
+```
+
+```
+func T (v) {
+    v * 2
+}
+val v = await T(10)
+print(v)                ;; --> 20
 ```
 
 <a name="emit"/>
 
 ### 5.9.3. Emit
 
-The operation `broadcast` signals an event to awake [awaiting](#await) tasks:
+An `emit` broadcasts an event that can awake [awaiting](#await) tasks:
 
 ```
-Bcast : `broadcast´ `(´ [Expr] `)´ [`in´ Expr]
+Emit : `emit´ [`[´ Expr `]´] `(´ Expr* `)´
 ```
 
-A `broadcast` expects an optional event expression and an optional target.
-If omitter, the event defaults to `nil`.
-The event is matched against the patterns in `await` operations, which
-determines the tasks to awake.
+The optional target between brackets determines the scope of the broadcast:
 
-The special event `:Clock [ms]` advances timer patterns in await conditions,
-in which `ms` corresponds to the number of milliseconds to advance.
+- `:task` (default): current task
+- `:parent`: parent task
+- `:global`: all tasks
+- `t: task`: the given task
+- `n: number`: `n`th level up in the task hierarchy (`0` = current task)
 
-The target expression, with the options as follows, restricts the scope of the
-broadcast:
-
-- `:task`: restricts the broadcast to nested tasks in the current task, which
-    is also the default behavior if the target is omitted;
-- `:global`: does not restrict the broadcast, which considers the program as a
-    whole;
-- otherwise, target must be a task, which restricts the broadcast to it and its
-    nested tasks.
+The arguments to `emit` are the event payloads matched against await
+operations.
 
 Examples:
 
+<!-- exs/exp-27-emit.atm -->
+
 ```
-<...>
-task T () {
-    <...>
+func T () {
     val x = spawn X()
-    <...>
-    broadcast(e) in :task       ;; restricted to enclosing task `T`
-    broadcast(e)                ;; restricted to enclosing task `T`
-    broadcast(e) in x           ;; restricted to spawned `x`
-    broadcast(e) in :global     ;; no restrictions
+    val e = <...>
+    emit [:global] (e)  ;; global broadcast
+    emit [:task] (e)    ;; restricted to `T`
+    emit [x] (e)        ;; restricted to `x`
 }
 ```
 
@@ -2162,150 +2154,151 @@ task T () {
 
 ### 5.9.4. Toggle
 
-The operation `toggle` configures an active task to either ignore or consider
-further `broadcast` operations:
+A `toggle` configures a task to either consider or disregard further
+[emit](#emit) operations:
 
 ```
 Toggle : `toggle´ Expr `(´ Expr `)´
+       | `toggle´ TAG Block
 ```
 
-A `toggle` expects an active task and a [boolean](#basic-types) value
-between parenthesis, which is handled as follows:
+In the first format, a toggle expects a task and a [boolean](#types--values),
+which is handled as follows:
 
-- `false`: the task ignores further broadcasts;
-- `true`: the task considers further broadcasts.
+- `true`: the task considers further broadcasts
+- `false`: the task disregards further emits and never awakes
 
-<a name="syntactic-block-extensions"/>
+By default, all tasks consider events.
 
-### 5.9.5. Syntactic Block Extensions
-
-Atmos provides many syntactic block extensions to work with tasks more
-effectively.
-The extensions expand to standard task operations.
-
-<a name="spawn-blocks"/>
-
-#### 5.9.5.1. Spawn Blocks
-
-A `spawn` block starts an transparent nested task:
-
-```
-Spawn : `spawn´ Block
-```
-
-An transparent task cannot be assigned or referred explicitly.
-Also, any access to `pub` refers to the enclosing non-transparent task.
-
-`TODO: :nested, :anon, escape bug`
-
-<!--
-The `:nested` annotation is an internal mechanism to indicate that nested task
-is transparent and unassignable.
--->
-
-The `spawn` extension expands as follows:
-
-```
-spawn (task :nested () {
-    <Block>
-}) ()
-```
+In the second format, a toggle spawns and awaits a block as a
+[transparent task](#transparent-task).
+It also specifies a [tag](#literals) to toggle the block when matching an
+[emit](#emit).
+The emit must be in the format `emit(<tag>, <boolean>)` to set the toggle
+state.
 
 Examples:
+
+<!-- exs/exp-28-toggle.atm -->
+
+```
+val T = func () {
+    await :X
+    print :ok
+}
+pin t = spawn T()
+toggle t(false)
+emit :X         ;; event ignored
+toggle t(true)
+emit :X         ;; --> ok
+```
 
 ```
 spawn {
-    await(:X)
-    print(":X occurred")
+    toggle :T {
+        loop {
+            val _,v = await(:E)
+            print(v)            ;; --> 1 3
+        }
+    }
+}
+emit(:E, 1)
+emit(:T, false)
+emit(:E, 2)
+emit(:T, true)
+emit(:E, 3)
+```
+
+<a name="every"/>
+
+### 5.9.5. Every
+
+An `every` is a [loop](#loop) that makes an iteration whenever an
+[await](#await) condition is satisfied:
+
+```
+Every : `every´ Expr* (Block | Lambda)
+```
+
+The block can also use the [lambda notation](#lambda) to capture the value
+of the occurring event.
+
+Examples:
+
+<!-- exs/exp-29-every.atm -->
+
+```
+every @1 {
+    print("1 more second has elapsed")
 }
 ```
 
 ```
-task T () {
-    set pub = 10
-    spawn {
-        print(pub)    ;; --> 10
-    }
-}
-spawn T()
-```
-
-<a name="parallel-blocks"/>
-
-#### 5.9.5.2. Parallel Blocks
-
-A parallel block spawns multiple transparent tasks:
-
-```
-Par     : `par´     Block { `with´ Block }
-Par-And : `par-and´ Block { `with´ Block }
-Par-Or  : `par-or´  Block { `with´ Block }
-```
-
-A `par` never rejoins, even if all spawned tasks terminate.
-A `par-and` rejoins only after all spawned tasks terminate.
-A `par-or` rejoins as soon as any spawned task terminates, aborting the others.
-
-The `par` extension expands as follows:
-
-```
-do {
-    spawn {
-        <Block-1>       ;; first task
-    }
-    <...>
-    spawn {
-        <Block-N>       ;; Nth task
-    }
-    await(,false)       ;; never rejoins
+every :X \{         ;; <-- (`emit :X @{v=10}`)
+    print(it.v)     ;; --> 10
 }
 ```
 
-The `par-and` extension expands as follows:
+<a name="watching"/>
+
+#### 5.9.5.1. Watching
+
+A `watching` spawns and awaits a block as a
+[transparent task](#transparent-task) until an [await](#await) condition is
+satisfied, which aborts the block:
 
 ```
-do {
-    val t1 = spawn {
-        <Block-1>       ;; first task
-    }
-    <...>
-    val tN = spawn {
-        <Block-N>       ;; Nth task
-    }
-    await(, status(t1)==:terminated and ... and status(tN)==:terminated)
-}
-```
-
-A `par-or { <es1> } with { <es2> }` expands as follows:
-
-```
-do {
-    val t1 = spawn {
-        <Block-1>       ;; first task
-    }
-    <...>
-    val tN = spawn {
-        <Block-N>       ;; Nth task
-    }
-    await(, (status(t1)==:terminated and t1.pub) or
-            <...> or
-            (status(tN)==:terminated and tN.pub))
-}
+Watching : `watching´ Expr* Block
 ```
 
 Examples:
 
+<!-- exs/exp-30-watching.atm -->
+
+```
+watching @1 {
+    every :X {
+        print("one more :X occurred before 1 second")
+    }
+}
+```
+
+<a name="parallels"/>
+
+### 5.9.6. Parallels
+
+A parallel statement spawns multiple [transparent tasks](#transparent-tasks):
+
+```
+Par : `par´     Block { `with´ Block }
+And : `par_and´ Block { `with´ Block }
+Or  : `par_or´  Block { `with´ Block }
+```
+
+A `par` never rejoins, even if all tasks terminate.
+
+A `par_and` rejoins only after all tasks terminate.
+It evaluates to a [table](#table) with the returns of the `n` tasks from `1` to
+`n`.
+
+A `par_or` rejoins as soon as any task terminates, aborting the others.
+It evaluates to the terminating task value.
+
+Examples:
+
+<!-- exs/exp-31-parallels.atm -->
+
 ```
 par {
-    every <1:s> {
+    every @1 {
         print("1 second has elapsed")
     }
 } with {
-    every <1:min> {
+    every @1:0 {
         print("1 minute has elapsed")
     }
 } with {
-    every <1:h> {
+    every @1:0:0 {
         print("1 hour has elapsed")
     }
 }
@@ -2313,512 +2306,136 @@ print("never reached")
 ```
 
 ```
-par-or {
-    await <1:s>
+val v = par_or {
+    await @1
 } with {
-    await(:X)
+    await :X
     print(":X occurred before 1 second")
+    :ok
 }
+print(v)        ;; --> ok
 ```
 
 ```
-par-and {
-    await(:X)
+val x,y = par_and {
+    await :X
 } with {
-    await(:Y)
+    await :Y
 }
-print(":X and :Y have occurred")
+print(x, y)     ;; --> X, Y
 ```
-
-<a name="every-blocks"/>
-
-#### 5.9.5.3. Every Blocks
-
-An `every` block is a loop that makes an iteration whenever an await condition
-is satisfied:
-
-```
-Every : `every´ (Patt | Clock) Block
-```
-
-The `every` extension expands as follows:
-
-```
-loop {
-    await <Patt|Clock> {
-        <Block>
-    }
-}
-```
-
-Examples:
-
-```
-every <1:s> {
-    print("1 more second has elapsed")
-}
-```
-
-```
-every x :X | f(x) {
-    print(":X satisfies f(x)")
-}
-```
-
-<a name="watching-blocks"/>
-
-#### 5.9.5.4. Watching Blocks
-
-A `watching` block executes a given block until an await condition is
-satisfied, which aborts the block:
-
-```
-Watching : `watching´ (Patt | Clock) Block
-```
-
-A `watching` extension expands as follows:
-
-```
-par-or {
-    await(<Patt|Clock>)
-} with {
-    <Block>
-}
-```
-
-Examples:
-
-```
-watching <1:s> {
-    every :X {
-        print("one more :X occurred before 1 second")
-    }
-}
-```
-
-<a name="toggle-blocks"/>
-
-#### 5.9.5.5. Toggle Blocks
-
-A `toggle` block executes a given block and [toggles](#toggle) it when a
-broadcast event matches the given tag:
-
-```
-Toggle : `toggle´ TAG Block
-```
-
-The control event must be a tagged tuple with the given tag, holding a single
-boolean value to toggle the block, e.g.:
-
-- `:X [true]`  activates the block.
-- `:X [false]` deactivates the block.
-
-The given block executes normally, until a `false` is received, toggling it
-off.
-Then, when a `true` is received, it toggles the block on.
-The whole composition terminates when the task representing the given block
-terminates.
-
-The `toggle` extension expands as follows:
-
-```
-do {
-    val t = spawn {
-        <Block>
-    }
-    if status(t) /= :terminated {
-        watching (|it==t) {
-            loop {
-                await(<TAG>, not it[0])
-                toggle t(false)
-                await(<TAG>, it[0])
-                toggle t(true)
-            }
-        }
-    }
-    t.pub
-}
-```
-
-Examples:
-
-```
-spawn {
-    toggle :T {
-        every :E {
-            print(it[0])  ;; --> 1 3
-        }
-    }
-}
-broadcast(:E [1])
-broadcast(:T [false])
-broadcast(:E [2])
-broadcast(:T [true])
-broadcast(:E [3])
-```
-
-<!-- ---------------------------------------------------------------------- -->
 
 <a name="standard-libraries"/>
 
 # 6. STANDARD LIBRARIES
 
-Atmos provides many libraries with predefined functions.
+In addition to the [standard Lua libraries](lua-libraries), Atmos also provides
+the following functions:
 
-The function signatures that follow describe the operators and use tag
-annotations to describe the parameters and return types.
-However, note that the annotations are not part of the language, and are used
-for documentation purposes only.
+`TODO: between, to*, remove/insert (vector)`
 
-<a name="basic-library"/>
+- `xtostring`
+- `xprint`
+- `xcopy`
 
-## 6.1. Basic Library
-
-```
-func assert (v :any [,msg :any]) => :any
-func next (v :any [,x :any]) => :any
-func print (...) => :nil
-func print (...) => :nil
-func sup? (t1 :tag, t2 :tag) => :boolean
-func tag (t :tag, v :dyn) => :dyn
-func tag (v :dyn) => :tag
-func type (v :any) => :type
-```
-
-The function `assert` receives a value `v` of any type, and raises an error if
-it is [falsy](#basic-types).
-Otherwise, it returns the same `v`.
-The optional `msg` provides a string to accompany the error, or a function that
-generates the error string.
-
-`TODO: assert extra options`
-
-Examples:
-
-```
-assert((10<20) and :ok, "bug found")    ;; --> :ok
-assert(1 == 2) <-- { "1 /= 2" }         ;; --> ERROR: "1 /= 2"
-```
-
-The function `next` allows to traverse collections step by step.
-It supports as the collection argument `v` the types with behaviors as follows:
-
-- `:dict`:
-    `next` receives a dictionary `v`, a key `x`, and returns the key `y` that
-    follows `x`. If `x` is `nil`, the function returns the initial key. If
-    there are no remaining keys, `next` returns `nil`.
-- `:tasks`:
-    `next` receives a task pool `v`, a task `x`, and returns task `y` that
-    follows `x`. If `x` is `nil`, the function returns the initial task. If
-    there are no reamining tasks to enumerate, `next` returns `nil`.
-- `:exe-coro`: `TODO: description/examples`
-- `:Iterator`: `TODO: description/examples`
-
-Examples:
-
-```
-val d = @[(:k1,10), (:k2,20)]
-val k1 = next(d)
-val k2 = next(d, k1)
-print(k1, k2)     ;; --> :k1 / :k2
-```
-
-```
-val ts = tasks()
-spawn T() in ts     ;; tsk1
-spawn T() in ts     ;; tsk2
-val t1 = next(ts)
-val t2 = next(ts, t1)
-print(t1, t2)     ;; --> exe-task: 0x...   exe-task: 0x...
-```
-
-The functions `print` and `print` outputs the given values to the screen, and
-return the first received value.
-
-Examples:
-
-```
-val x = print(1, :x)  ;; --> 1   :x
-print(x)
-print(2)              ;; --> 12
-```
-
-The function `sup?` receives tags `t1` and `t2`, and returns if `t1` is
-a [super-tag](#hierarchical-tags) of `t2`.
-
-The function `tag` sets or queries tags of [user types](#user-types).
-To set a tag, the function receives a tag `t` and a value `v` to associate.
-The function returns the same value `v` passed to it.
-To query a tag, the function `tag` receives a value `v`, and returns its
-associated tag.
-
-The function `type` receives a value `v` and returns its [type](#types).
-
-Examples:
-
-```
-sup?(:T.A,   :T.A.x)    ;; --> true
-sup?(:T.A.x, :T)        ;; --> false
-
-val x = tag(:X, [])     ;; value x=[] is associated with tag :X
-tag(x)                  ;; --> :X
-
-type(10)                ;; --> :number
-```
-
-<a name="type-conversions-library"/>
-
-## 6.2. Type Conversions Library
-
-The type conversion functions `to.*` receive a value `v` of any type and try to
-convert it to a value of the specified type:
-
-```
-func to.boolean    (v :any) => :boolean
-func to.char    (v :any) => :char
-func to.dict    (v :any) => :dict
-func to.number  (v :any) => :number
-func to.pointer (v :any) => :pointer
-func to.string  (v :any) => :vector (string)
-func to.tag     (v :any) => :tag
-func to.tuple   (v :any) => :tuple
-func to.vector  (v :any) => :vector
-```
-
-If the conversion is not possible, the functions return `nil`.
-
-`TODO: describe each`
-
-Examples:
-
-```
-to.boolean(nil)        ;; --> false
-to.char(65)         ;; --> 'A'
-to.dict([[:x,1]])   ;; --> @[(:x,1)]
-to.number("10")     ;; --> 10
-to.pointer(#[x])    ;; --> (C pointer to 1st element `x`)
-to.string(42)       ;; --> "42"
-to.tag(":number")   ;; --> :number
-to.tuple(#[1,2,3])  ;; --> [1,2,3]
-to.vector([1,2,3])  ;; --> #[1,2,3]
-```
-
-The function `to.iter` is used implicitly in [iterator loops](#iterator-loops)
-to convert iterables, such as vectors and task pools, into iterators:
-
-```
-func to.iter (v :any [,tp :any]) => :Iterator
-```
-
-`to.iter` receives an iterable `v`, an optional modifier `tp`, and returns a
-corresponding [:Iterator](#iterator-loops) tuple.
-The iterator provides a function that traverses the iterable step by step on
-each call.
-The modifier specifies what kind of value should the iterator return on each
-step.
-`to.iter` accepts the following iterables and modifiers:
-
-- `:tuple`, `:vector`, `:dict`:
-    - traverses the collection item by item
-    - `:val`: value of the current item
-    - `:idx`, `:key`: index or key of the current item
-    - `:tuple` and `:vector` default to modifier `:val`
-    - `:dict` defaults to modifier `[:key,:val]`
-- `:func`:
-    - simply calls the function each step, forwarding its return value
-- `:exe-coro`:
-    - resumes the coroutine on each step, and returns its yielded value
-- `:tasks`:
-    - traverses the pool item by item, returning the current task
-
-It is possible to pass multiple modifiers in a tuple (e.g., `[:key,:val]`).
-In this case, on each step, the iterator returns a tuple with the corresponding
-values.
-
-Examples:
-
-`TODO`
-
-<a name="math-library"/>
-
-## 6.3. Math Library
-
-```
-val math.PI :number
-func math.between (min :number, n :number, max :number) => :number
-func math.ceil (n :number) => :number
-func math.cos (n :number) => :number
-func math.floor (n :number) => :number
-func math.max (n1 :number, n2 :number) => :number
-func math.min (n1 :number, n2 :number) => :number
-func math.round (n :number) => :number
-func math.sin (n :number) => :number
-```
-
-The functions `math.sin` and `math.cos` compute the sine and cossine of the
-given number in radians, respectively.
-
-The function `math.floor` return the integral floor of a given real number.
-
-`TODO: describe all functions`
-
-Examples:
-
-```
-math.PI                 ;; --> 3.14
-math.sin(math.PI)       ;; --> 0
-math.cos(math.PI)       ;; --> -1
-
-math.ceil(10.14)        ;; --> 11
-math.floor(10.14)       ;; --> 10
-math.round(10.14)       ;; --> 10
-
-math.min(10,20)         ;; --> 10
-math.max(10,20)         ;; --> 20
-math.between(10, 8, 20) ;; --> 10
-```
-
-<a name="random-numbers-library"/>
-
-## 6.4. Random Numbers Library
-
-```
-func random.next () => :number
-func random.seed (n :number) => :nil
-```
-
-`TODO: describe all functions`
-
-Examples:
-
-```
-random.seed(0)
-random.next()       ;; --> :number
-```
+[lua-libraries]: https://www.lua.org/manual/5.4/manual.html#6
 
 <a name="syntax"/>
 
 # 7. SYNTAX
 
+We use a BNF-like notation to describe the syntax of expressions in Atmos.
+As an extension, we use `X*` to mean `{ X ',' }`, but with the leading `,`
+being optional; and a `X+` variation with at least one `X`.
+
 ```
 Prog  : { Expr [`;´] }
-Block : `{´ { Expr [`;´] } `}´
-Expr  : `do´[TAG]  Block                                ;; explicit block
-      | `escape´ `(´ TAG [`,´ Expr] `)´                 ;; escape block
-      | `drop´ `(´ Expr `)´                             ;; drop value from block
-      | `group´ Block                                   ;; group statements
-      | `test´ Block                                    ;; test block
-      | `defer´ Block                                   ;; defer statements
-      | `(´ Expr `)´                                    ;; parenthesis
+Block : `{´ Prog `}´
+Expr  : `do´[TAG]  Block                            ;; explicit block
+      | `escape´ `(´ Expr* `)´                      ;; escape from block
+      | `defer´ Block                               ;; defer statements
 
-      | `val´ (ID [TAG] | Patt) [`=´ Expr]              ;; decl immutable
-      | `var´ (ID [TAG] | Patt) [`=´ Expr]              ;; decl mutable
+      | (`val´ | `var` | `pin`) ID* [`=´ Expr]      ;; local declarations
+      | Expr `where´ `{´ (ID* `=´ Expr)* `}´        ;; where clause
+      | `func´ ID {`.´ ID} [`::´ ID]                ;; function declaration
+               `(´ ID* [`...´] `)´
+               Block
+      | `return´ `(´ Expr* `)´                      ;; return from function
 
-      | `func´ ID `(´ [List(ID [TAG])] `)´ Block        ;; decl func
-      | `coro´ ID `(´ [List(ID [TAG])] `)´ Block        ;; decl coro
-      | `task´ ID `(´ [List(ID [TAG])] `)´ Block        ;; decl task
+      | `set´ Expr* `=´ Expr                        ;; assignment
 
-      | `set´ Expr `=´ Expr                             ;; assignment
+      | `nil´ | `false´ | `true´                    ;; literals
+      | TAG | NUM | STR | CLK | NAT
+      | ID | `pub´                                  ;;  identifiers
 
-      | `enum´ `{´ List(TAG) `}´                        ;; tags enum
-      | `enum´ TAG `{´ List(ID) `}´
-      | `data´ Data [`{´ { Data } `}´]                  ;; tuple template
-            Data : TAG `=´ `[´ List(ID [TAG]) `]´
+      | `#{´ Expr* `}´                              ;; vector
+      | [TAG] `@{´ Key_Val* `}´                     ;; table
+            Key_Val : `[` Expr `]´ `=´ Expr
+                    | ID `=´ Expr
+                    | Expr
 
-      | `nil´ | `false´ | `true´                        ;; literals,
-      | TAG | NUM | CHR | NAT                           ;; identifiers,
-      | ID | `{{´ OP `}}´ | `pub´                       ;; operators
+      | `func´ `(´ ID* [`...´] `)´ Block            ;; anon function
+      | `\` [ID | `(` ID* `)´] Block                ;; lambda notation
 
-      | `[´ [List(Expr)] `]´                            ;; tuple
-      | `#[´ [List(Expr)] `]´                           ;; vector
-      | `@[´ [List(Key-Val)] `]´                        ;; dictionary
-            Key-Val : ID `=´ Expr
-                    | `(´ Expr `,´ Expr `)´
-      | STR                                             ;; string
-      | TAG `[´ [List(Expr)] `]´                        ;; tagged tuple
+      | `task´ `(´ Expr `)´                         ;; task
+      | `task´ `(´ [Expr] `)´                       ;; tasks pool
 
-      | `func´ `(´ [List(ID [TAG])] `)´ Block           ;; anon function
-      | `coro´ `(´ [List(ID [TAG])] `)´ Block           ;; anon coroutine
-      | `task´ `(´ [List(ID [TAG])] `)´ Block           ;; anon task
-      | Lambda                                          ;; anon function
+      | OP Expr                                     ;; pre ops
+      | Expr OP Expr                                ;; bin ops
+      | `(´ Expr+ `)´                               ;; parenthesis
 
-      | OP Expr                                         ;; pre ops
-      | Expr OP Expr                                    ;; bin ops
-      | Expr `(´ [List(Expr)] `)´                       ;; call
+      | Expr `.´ ID                                 ;; table field
+      | Expr `[´ Expr `]´                           ;; index
+      | Expr `[´ (`=´|`+´|`-´) `]´                  ;; ppp operations
 
-      | Expr `[´ Expr `]´                               ;; index
-      | Expr `.´ ID                                     ;; dict field
-      | Expr `.´ `pub´                                  ;; task pub
-      | Expr `.´ `(´ TAG `)´                            ;; cast
+      | Expr `(´ Expr* `)´                          ;; call
+      | Expr Expr                                   ;; single-constructor call
+      | Expr (`<--` | `<-` | `->` | `-->` ) Expr    ;; pipe calls
 
-      | Expr `[´ (`=´|`+´|`-´) `]´                      ;; stack peek,push,pop
-      | Expr (`<--` | `<-` | `->` | `-->` ) Expr        ;; pipe calls
-      | Expr `where´ Block                              ;; where clause
-      | Expr `thus´ Lambda                              ;; thus clause
+      | `if´ Expr (Block | Lambda)                  ;; if block
+            [`else´ (Block | Lambda)]
+      | `if´ Expr `=>´ Expr `=>´ Expr               ;; if expr
 
-      | `if´ Expr (`=>´ Expr | Block | Lambda)          ;; conditional
-        [`else´  (`=>´ Expr | Block)]
-
-      | `ifs´ `{´ {Case} [Else] `}´                     ;; conditionals
+      | `ifs´ `{´ {Case} [Else] `}´                 ;; ifs
             Case :  Expr  (`=>´ Expr | Block | Lambda)
+            Else : `else´ (`=>´ Expr | Block | Lambda)
+
+      | `match´ Expr `{´ {Case} [Else] `}´          ;; match
+            Case :  (Lambda | Expr)  (`=>´ Expr | Block | Lambda)
             Else : `else´ (`=>´ Expr | Block)
 
-      | `match´ Expr `{´ {Case} [Else] `}´              ;; pattern matching
-            Case :  Patt  (`=>´ Expr | Block | Lambda)
-            Else : `else´ (`=>´ Expr | Block)
+      | `loop´ Block                                ;; infinite loop
+      | `loop´ ID Block                             ;; numeric infinite loop
+      | `loop´ ID+ `in´ Expr Block                  ;; iterator loop
 
-      | `loop´ Block                                    ;; infinite loop
-      | `loop´ (ID [TAG] | Patt) `in´ Expr Block        ;; iterator loop
-      | `loop´ [ID] [`in´ Range] Block                  ;; numeric loop
-            Range : (`}´|`{´) Expr `=>` Expr (`}´|`{´) [`:step` [`+´|`-´] Expr]
-      | `break´ `(´ [Expr] `)´                          ;; loop break
-      | `until´ Expr
-      | `while´ Expr
-      | `skip´ `(´ `)´                                  ;; loop restart
+      | `break´ `(´ Expr* `)´                       ;; loop break
+      | `until´ `(´ Expr+ `)´
+      | `while´ `(´ Expr+ `)´
 
-      | `catch´ [TAG | `(´ TAG `)´] Block               ;; catch exception
-      | `error´ `(´ [Expr] `)´                          ;; throw exception
+      | `throw´ `(´ Expr* `)´                       ;; throw exception
+      | `catch´ Expr Block                          ;; catch exception
 
-      | `status´ `(´ Expr `)´                           ;; coro/task status
+      | `spawn` [`[´ Expr `]´] Expr `(´ Expr* `)`   ;; spawn task
+      | `spawn´ Block                               ;; spawn block
 
-      | `coroutine´ `(´ Expr `)´                        ;; create coro
-      | `yield´ `(´ [Expr] `)´                          ;; yield from coro
-      | `resume´ Expr `(´ List(Expr) `)´                ;; resume coro
-      | `resume-yield-all´ Expr `(´ [Expr] `)´          ;; resume-yield nested coro
+      | `await´ `(´ Expr* `)´                       ;; await event
+      | `await´ ID `(´ Expr* `)´                    ;; await task
+      | `emit´ [`[´ Expr `]´] `(´ Expr* `)´         ;; emit event
 
-      | `spawn´ Expr `(´ [List(Expr)] `)´ [`in´ Expr]   ;; spawn task
-      | `tasks´ `(´ Expr `)´                            ;; task pool
-      | `await´ Patt [Block]                            ;; await pattern
-      | `await´ Clock                                   ;; await clock
-      | `broadcast´ `(´ [Expr] `)´ [`in´ Expr]          ;; broadcast event
-      | `toggle´ Expr `(´ Expr `)´                      ;; toggle task
+      | `toggle´ Expr `(´ Expr `)´                  ;; toggle task
+      | `toggle´ TAG Block                          ;; toggle block
 
-      | `spawn´ Block                                   ;; spawn nested task
-      | `every´ (Patt | Clock) Block                    ;; await event in loop
-      | `watching´ (Patt | Clock) Block                 ;; abort on event
-      | `par´ Block { `with´ Block }                    ;; spawn tasks
-      | `par-and´ Block { `with´ Block }                ;; spawn tasks, rejoin on all
-      | `par-or´ Block { `with´ Block }                 ;; spawn tasks, rejoin on any
-      | `toggle´ TAG Block                              ;; toggle task on/off on tag
+      | `every´ Expr* (Block | Lambda)              ;; every event loop
+      | `watching´ Expr* Block                      ;; watching event block
 
-Lambda : `{´ [`\´ List(ID [TAG]) `=>´] { Expr [`;´] } `}´
+      | `par´     Block { `with´ Block }            ;; parallels
+      | `par_and´ Block { `with´ Block }
+      | `par_or´  Block { `with´ Block }
 
-Patt : [`(´] [ID] [TAG] [Const | Oper | Tuple] [`|´ Expr] [`)´]
-        Const : Expr
-        Oper  : OP [Expr]
-        Tuple : `[´ List(Patt) } `]´
-
-Clock : `<´ { Expr [`:h´|`:min´|`:s´|`:ms´] } `>´
-
-List(x) : x { `,´ x }                                   ;; comma-separated list
-
-ID    : [`^´|`^^´] [A-Za-z_][A-Za-z0-9_\'\?\!\-]*       ;; identifier variable (`^´ upval)
-      | `{´ OP `}´                                      ;; identifier operation
-TAG   : :[A-Za-z0-9\.\-]+                               ;; identifier tag
-OP    : [+-*/%><=|&]+                                   ;; identifier operation
-      | `not´ | `or´ | `and´ | `is?´ | `is-not?´ | `in?´ | `in-not?´
-CHR   : '.' | '\\.'                                     ;; literal character
-NUM   : [0-9][0-9A-Za-z\.]*                             ;; literal number
-NAT   : `.*`                                            ;; native expression
-STR   : ".*"                                            ;; string expression
+ID    : [A-Za-z_][A-Za-z0-9_]*      ;; variable identifier
+TAG   : :[A-Za-z0-9_\.]+            ;; tag
+NUM   : [0-9][0-9A-Za-z\.]*         ;; number
+STR   : '.*' | ".*"                 ;; string
+CLK   : (.*):(.*):(.*)\.(.*)        ;; clock
+NAT   : `.*`                        ;; native expression
 ```
