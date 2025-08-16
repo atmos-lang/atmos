@@ -48,10 +48,10 @@ git push --set-upstream origin v-NEW
 - LuaRocks
 
 ```
-cp atmos-OLD.rockspec atmos-NEW.rockspec
-vi atmos-NEW.rockspec
+cp atmos-lang-OLD.rockspec atmos-lang-NEW.rockspec
+vi atmos-lang-NEW.rockspec
     # set version, source.branch
-luarocks upload atmos-NEW.rockspec --api-key=...
+luarocks upload atmos-lang-NEW.rockspec --api-key=...
 ```
 
 - Install
