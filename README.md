@@ -33,7 +33,7 @@ programming with two main functionalities:
       `watching`, `every`, `par_or`).
 - Event Signaling Mechanisms:
     - An `await` primitive suspends a task and wait for events.
-    - An `emit` primitive signal events and awake awaiting tasks.
+    - An `emit` primitive broadcasts events and awake awaiting tasks.
 
 Atmos is inspired by [synchronous programming languages][sync] like [Ceu][ceu]
 and [Esterel][esterel].
