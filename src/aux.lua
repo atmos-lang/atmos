@@ -50,7 +50,7 @@ function contains (t, v)
     return false
 end
 
-function stringify (v)
+function xtostring (v)
     if type(v) ~= 'table' then
         return tostring(v)
     elseif v.tag == 'vector' then
@@ -61,7 +61,7 @@ function stringify (v)
             if not fst then
                 vs = vs .. ', '
             end
-            vs = vs .. stringify(x)
+            vs = vs .. xtostring(x)
             fst = false
         end
         return "#{" .. vs .. "}"
@@ -84,9 +84,9 @@ function stringify (v)
             end
             if tonumber(k) == i then
                 i = i + 1
-                vs = vs .. stringify(x)
+                vs = vs .. xtostring(x)
             else
-                vs = vs .. k .. '=' .. stringify(x)
+                vs = vs .. k .. '=' .. xtostring(x)
             end
             fst = false
         end
@@ -95,10 +95,10 @@ function stringify (v)
     end
 end
 
-function dump (...)
+function xprint (...)
     local ret = {}
     for i=1, select('#', ...) do
-        ret[#ret+1] = stringify(select(i, ...))
+        ret[#ret+1] = xtostring(select(i, ...))
     end
     print(table.unpack(ret))
 end
@@ -112,13 +112,13 @@ function any (t, f)
     return false
 end
 
-function copy (v)
+function xcopy (v)
     if type(v) ~= 'table' then
         return v
     end
     local ret = {}
     for k,x in pairs(v) do
-        ret[k] = copy(x)
+        ret[k] = xcopy(x)
     end
     return ret
 end

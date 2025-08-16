@@ -169,7 +169,7 @@ do
                 escape(:X,10)
             }
         }
-        dump(x)
+        xprint(x)
     ]]
     print("Testing...", "do 0")
     local out = atm_test(src)
@@ -181,7 +181,7 @@ do
             set x = @{0}
             escape(:X,x)   ;; escape but no access
         }
-        dump(x)
+        xprint(x)
     ]]
     print("Testing...", "do 1")
     local out = atm_test(src)
@@ -211,7 +211,7 @@ do
         val x = do :X {
             escape <- :X @{10}
         }
-        dump(x)
+        xprint(x)
     ]]
     print("Testing...", "do 4")
     local out = atm_test(src)
@@ -411,12 +411,12 @@ do
     local out = atm_test(src)
     assertx(out, "1\n")
 
-    local src = "dump((#{#{1}})[(#{0})[0]])"
+    local src = "xprint((#{#{1}})[(#{0})[0]])"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "#{1}\n")
 
-    local src = "dump(@{[:key]=:val})"
+    local src = "xprint(@{[:key]=:val})"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "{key=val}\n")
@@ -434,7 +434,7 @@ do
     local out = atm_test(src)
     assert(out == "1\t1\n")
 
-    local src = "dump(:X @{10})"
+    local src = "xprint(:X @{10})"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "{10, tag=X}\n")
@@ -481,15 +481,15 @@ do
         set t[#t] = 4
         set t[#t] = 5
         set t[#t-1] = nil
-        dump(x ++ t ++ #{5,6,7})
+        xprint(x ++ t ++ #{5,6,7})
     ]]
     print("Testing...", "vector 4")
     local out = atm_test(src)
     assertx(out, "#{1, 2, 3, 4, 5, 6, 7}\n")
 
     local src = [[
-        dump(@{x=1} ++ @{y=2} ++ @{z=3})
-        dump(#{1} ++ #{2} ++ #{3})
+        xprint(@{x=1} ++ @{y=2} ++ @{z=3})
+        xprint(#{1} ++ #{2} ++ #{3})
     ]]
     print("Testing...", "expr 2")
     local out = atm_test(src)
@@ -505,7 +505,7 @@ do
         set t[#t] = 2
         set t[#t] = 3
         print(t[1])
-        dump(t)
+        xprint(t)
     ]]
     print("Testing...", "ppp 1")
     local out = atm_test(src)
@@ -514,7 +514,7 @@ do
     local src = [[
         val t = #{}
         set t[#t-1] = nil
-        dump(t)
+        xprint(t)
     ]]
     print("Testing...", "ppp 2: error pop")
     local out = atm_test(src)
@@ -546,7 +546,7 @@ do
         set t[0]  = t[0] + 1
         set t[1]  = t[1] + 1
         set t[2]  = 99
-        dump(t)
+        xprint(t)
     ]]
     print("Testing...", "ppp 4")
     local out = atm_test(src)
@@ -572,7 +572,7 @@ do
     local src = [[
         val t = #{}
         set t[#t+1] = 10
-        dump(t)
+        xprint(t)
     ]]
     print("Testing...", "ppp 6: error push")
     local out = atm_test(src)
@@ -587,11 +587,11 @@ do
         val stk = #{1,2,3}
         print(stk[=])       ;; --> 3
         set stk[=] = 30
-        dump(stk)           ;; --> #[1, 2, 30]
+        xprint(stk)           ;; --> #[1, 2, 30]
         print(stk[-])       ;; --> 30
-        dump(stk)           ;; --> #[1, 2]
+        xprint(stk)           ;; --> #[1, 2]
         set stk[+] = 3
-        dump(stk)           ;; --> #[1, 2, 3]
+        xprint(stk)           ;; --> #[1, 2, 3]
     ]]
     print("Testing...", "ppp 5")
     local out = atm_test(src)
@@ -599,7 +599,7 @@ do
 
 --[=[
     local src = [[
-        dump(tovector(1) ++ tovector(2))
+        xprint(tovector(1) ++ tovector(2))
     ]]
     print("Testing...", "expr 2")
     local out = atm_test(src)
@@ -731,7 +731,7 @@ do
                 0
             }
         }
-        dump(f(2))
+        xprint(f(2))
     ]]
     print("Testing...", "func 5: recursive table")
     local out = atm_test(src)
@@ -746,7 +746,7 @@ do
                 0
             }
         }
-        dump(f(3))
+        xprint(f(3))
     ]]
     print("Testing...", "func 7: recursive table")
     local out = atm_test(src)
@@ -1277,7 +1277,7 @@ do
                 throw <- :X @{10}
             }
         }
-        dump(x)
+        xprint(x)
     ]]
     print("Testing...", "catch 11")
     local out = atm_test(src)
@@ -1341,7 +1341,7 @@ do
             }
             :ok
         }
-        dump(x)
+        xprint(x)
     ]]
     print("Testing...", "catch 14")
     local out = atm_test(src)

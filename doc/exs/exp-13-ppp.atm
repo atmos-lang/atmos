@@ -1,9 +1,9 @@
 val stk = #{1,2,3}
-dump(stk[=])         ;; --> 3
+xprint(stk[=])         ;; --> 3
 set stk[=] = 30
-dump(stk)            ;; --> #{1, 2, 30}
-dump(stk[-])         ;; --> 30
-dump(stk)            ;; --> #{1, 2}
+xprint(stk)            ;; --> #{1, 2, 30}
+xprint(stk[-])         ;; --> 30
+xprint(stk)            ;; --> #{1, 2}
 set stk[+] = 3
-dump(stk)            ;; --> #{1, 2, 3}
+xprint(stk)            ;; --> #{1, 2, 3}
 

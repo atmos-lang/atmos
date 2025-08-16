@@ -281,7 +281,7 @@ do
     local src = [[
         var tk
         set tk = func () {
-            dump((await(true)))
+            xprint((await(true)))
         }
         pin co = spawn tk()
         var f = func () {
@@ -299,7 +299,7 @@ do
     local src = [[
         var tk
         set tk = func () {
-            dump(await(true))
+            xprint(await(true))
         }
         pin co = spawn tk()
         var f = func () {
@@ -317,7 +317,7 @@ do
     local src = [[
         var tk
         set tk = func () {
-            dump(await(true))
+            xprint(await(true))
         }
         spawn(tk)()
         ;;var f = func' () {
@@ -332,7 +332,7 @@ do
     local src = [[
         var T = func () {
             do {
-                dump(await(true))
+                xprint(await(true))
             }
         }
         pin t = spawn T()
@@ -548,7 +548,7 @@ do
     local src = [[
         val T = func (v) {
             val _,e = await(true)
-            dump(e)
+            xprint(e)
         }
         spawn T(10)
         catch true {
@@ -566,7 +566,7 @@ do
             do {
                 var _,v =
                     await(true)
-                dump(v)
+                xprint(v)
             }
         }
         spawn T()
@@ -582,7 +582,7 @@ do
     local src = [[
         var T = func () {
             var _,v = await(true)
-            dump(v)
+            xprint(v)
         }
         pin t = spawn T()
         do {
@@ -602,7 +602,7 @@ do
 
     local src = [[
         var T = func () {
-            dump(await(true))
+            xprint(await(true))
         }
         spawn T()
         do {
@@ -616,7 +616,7 @@ do
 
     local src = [[
         var fff = func (...) {
-            dump(...)
+            xprint(...)
         }
         var T = func () {
             fff(await(true))
@@ -655,7 +655,7 @@ do
     local src = [[
         val T = func (v) {
             val _,e = await(true)
-            dump(e)
+            xprint(e)
         }
         spawn T(10)
         (func () {
@@ -669,7 +669,7 @@ do
     local src = [[
         val T = func (v) {
             val _,x = await(true)
-            dump(x)
+            xprint(x)
         }
         spawn T(10)
         (func () {
@@ -683,7 +683,7 @@ do
     local src = [[
         val T = func () {
             val _,e = await(true)
-            dump(e)
+            xprint(e)
             await(true)
         }
         spawn T()
@@ -697,7 +697,7 @@ do
     local src = [[
         val T = func (v) {
             await(true)
-            dump(v)
+            xprint(v)
         }
         spawn T(@{})
         emit(:ok)
@@ -713,7 +713,7 @@ do
                     type(x)
                     return(x)
                 }) (await(true))
-            dump(e)
+            xprint(e)
         }
         spawn T()
         do {
@@ -730,9 +730,9 @@ do
         set tk = func (v) {
             print(v)
             val e1 = await(func(_,e) { (e,e) })
-            dump(e1)
+            xprint(e1)
             val e2 = await(func(_,e) { (e,e) })
-            dump(e2)
+            xprint(e2)
         }
         print(:1)
         spawn (tk) (10)
@@ -767,7 +767,7 @@ do
         val f = func (_,v) {
             (func (x) {
                 set x[0] = v[0]
-                dump(x[0])
+                xprint(x[0])
             }) (#{0})
         }
         var T = func () {
@@ -782,7 +782,7 @@ do
 
     local src = [[
         val f = func (_,v) {
-            dump(v[1])
+            xprint(v[1])
         }
         var T = func () {
             f(await(true))
@@ -798,7 +798,7 @@ do
         val f = func (_,v) {
             (func (x) {
                 set x[1] = v[1]
-                dump(x[1])
+                xprint(x[1])
             }) (@{0})
         }
         var T = func () {
@@ -813,7 +813,7 @@ do
 
     local src = [[
         val f = func (_,v) {
-            dump(v)
+            xprint(v)
         }
         val T = func () {
             f(await(true))
@@ -837,7 +837,7 @@ do
 
     local src = [[
         val f = func (_,v) {
-            dump(v)
+            xprint(v)
         }
         val T = func () {
             do {
@@ -861,7 +861,7 @@ do
         var T = func () {
             var v =
                 (func (_,it) {return(it)}) (await(true))
-            dump(v)
+            xprint(v)
         }
         spawn T()
         ;;print(:1111)
@@ -915,7 +915,7 @@ do
         var x
         set x = @{}
         emit (:t,x)
-        dump(x)
+        xprint(x)
     ]]
     print("Testing...", "alien 0")
     local out = atm_test(src)
@@ -924,7 +924,7 @@ do
     local src = [[
         spawn (func () {
             val _,v = await(true)
-            dump(v)
+            xprint(v)
             await(false)
         }) (nil)
         do {
@@ -940,7 +940,7 @@ do
     local src = [[
         val T = func () {
             val _,x = await(true)
-            dump(x)
+            xprint(x)
         }
         spawn T()
         do {
@@ -958,7 +958,7 @@ do
             val _,evt = await(true)
             val x = @{nil}
             set x[1] = evt
-            dump(x)
+            xprint(x)
         }) ()
         do {
             val x
@@ -974,7 +974,7 @@ do
             val _,evt = await(true)
             do {
                 val x = evt
-                dump(x)
+                xprint(x)
                 await(true)
             }
         }) ()
@@ -991,7 +991,7 @@ do
         spawn (func () {
             val _,evt = await(true)
             val x = evt[0]
-            dump(x)
+            xprint(x)
         }) ()
         do {
             val e = #{#{10}}
@@ -1005,7 +1005,7 @@ do
     local src = [=[
         var f = func (_,v) {  ;; *** v is no longer fleeting ***
             val x = v[1]    ;; v also holds x, both are fleeting -> unsafe
-            dump(x)      ;; x will be freed and v would contain dangling pointer
+            xprint(x)      ;; x will be freed and v would contain dangling pointer
         }
         var T = func () {
             f(await(true))
@@ -1020,7 +1020,7 @@ do
     local src = [=[
         var f = func (v) {
             val x = v[1]    ;; v also holds x, both are fleeting -> unsafe
-            dump(x)      ;; x will be freed and v would contain dangling pointer
+            xprint(x)      ;; x will be freed and v would contain dangling pointer
         }
         var T = func () {
             val xevt = await(true) ;;thus { it => it}   ;; NOT FLEETING (vs prv test)
@@ -1100,9 +1100,9 @@ do
         spawn (func () {
             var _,evt = await(true)
             val x = evt
-            dump(x)
+            xprint(x)
             set _,evt = await(true)
-            dump(x)
+            xprint(x)
         }) ()
         do {
             val e = @{10}
@@ -1164,7 +1164,7 @@ do
         spawn {
             var evt
             loop {
-                dump(evt)
+                xprint(evt)
                 set evt = await(true)
             }
         }
@@ -1201,7 +1201,7 @@ do
     local src = [[
         func tsk () {
             var e = await(func (e) { (e??:X) && (e.v==10) })
-            dump(e)
+            xprint(e)
         }
         spawn tsk()
         emit(:X @{v=99})
@@ -1515,7 +1515,7 @@ do
         }
         pin a = spawn (t) ()
         val x = a.pub
-        dump(x)
+        xprint(x)
     ]]
     print("Testing...", "pub 1")
     local out = atm_test(src)
@@ -1554,7 +1554,7 @@ do
             }
         }
         pin t = spawn T()
-        dump(t.pub)
+        xprint(t.pub)
     ]]
     print("Testing...", "pub 4")
     local out = atm_test(src)
@@ -1568,7 +1568,7 @@ do
             val x = @{}
             set t.pub = x
         }
-        dump(t.pub)
+        xprint(t.pub)
     ]]
     print("Testing...", "pub 5")
     local out = atm_test(src)
@@ -1631,7 +1631,7 @@ do
             val t = @{}
             spawn (func () {
                 await(true)
-                dump(t)
+                xprint(t)
             }) ()
             await(true)
         }) ()
@@ -2827,9 +2827,9 @@ do
             await(true)
             return(@{2})
         } )()
-        dump(atmos.status(t), t.pub)
+        xprint(atmos.status(t), t.pub)
         emit(:)
-        dump(atmos.status(t), t.pub, t.ret)
+        xprint(atmos.status(t), t.pub, t.ret)
     ]]
     print("Testing...", "return 1")
     local out = atm_test(src)
@@ -3132,7 +3132,7 @@ do
         loop _,t in ts {
             var x = t.pub
             emit [t] (:nil)
-            dump(x)
+            xprint(x)
         }
         print(999)
     ]]
@@ -3513,7 +3513,7 @@ do
                 20
             }
             emit(:10)
-            dump(x)
+            xprint(x)
         }
     ]]
     print("Testing...", "par_and 3: return")
