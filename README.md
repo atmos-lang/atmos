@@ -1,5 +1,9 @@
 # The Programming Language Atmos
 
+[
+    [`v0.2`](https://github.com/lua-atmos/atmos/tree/v0.2_0.2.1) |
+]
+
 <img src="atmos-logo.png" width="250" align="right">
 
 ***Structured Event-Driven Concurrency***
