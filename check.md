@@ -12,6 +12,14 @@ cd tst/
 lua5.4 all.lua
 ```
 
+- Examples:
+
+```
+cd exs/
+atmos hello.atm
+atmos click-drag-cancel.atm
+```
+
 - Projects
     - `sdl-birds/`
         - `atmos birds-11.atm`
@@ -57,19 +65,18 @@ luarocks upload atmos-lang-NEW.rockspec --api-key=...
 - Install
 
 ```
-lua5.4 /x/lua-atmos/atmos/atmos/env/clock/exs/hello.lua
+atmos /x/atmos-lang/atmos/exs/hello.atm
     # works
 
-cd /usr/local/share/lua/5.4/
-ls -l atmos         # check if link to dev
-sudo rm atmos
+# remove lua-atmos-dev
+# install lua-atmos
 
-lua5.4 /x/lua-atmos/atmos/atmos/env/clock/exs/hello.lua
+atmos /x/atmos-lang/atmos/exs/hello.atm
     # fails
 
-sudo luarocks install atmos --lua-version=5.4  # check if atmos-NEW
+sudo luarocks install atmos-lang --lua-version=5.4  # check if atmos-lang-NEW
 
-lua5.4 /x/lua-atmos/atmos/atmos/env/clock/exs/hello.lua
+atmos /x/atmos-lang/atmos/exs/hello.atm
     # works
 ```
 
@@ -80,17 +87,17 @@ git checkout main
 git merge v-NEW
 git push
 
-lua5.4 /x/lua-atmos/atmos/atmos/env/clock/exs/hello.lua
+atmos /x/atmos-lang/atmos/exs/hello.atm
     # works
 
 cd /usr/local/share/lua/5.4/
 sudo rm -Rf atmos/
 
-lua5.4 /x/lua-atmos/atmos/atmos/env/clock/exs/hello.lua
+atmos /x/atmos-lang/atmos/exs/hello.atm
     # fails
 
 sudo ln -s /x/lua-atmos/atmos/atmos
 
-lua5.4 /x/lua-atmos/atmos/atmos/env/clock/exs/hello.lua
+atmos /x/atmos-lang/atmos/exs/hello.atm
     # works
 ```

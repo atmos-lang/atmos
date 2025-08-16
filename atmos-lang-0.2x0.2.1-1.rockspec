@@ -43,14 +43,14 @@ build = {
       }
    },
    modules = {
-      ["atmos-lang.aux"]      = "src/aux.lua",
-      ["atmos-lang.coder"]    = "src/coder.lua",
-      ["atmos-lang.exec"]     = "src/exec.lua",
-      ["atmos-lang.global"]   = "src/global.lua",
-      ["atmos-lang.lexer"]    = "src/lexer.lua",
-      ["atmos-lang.parser"]   = "src/parser.lua",
-      ["atmos-lang.prim"]     = "src/prim.lua",
-      ["atmos-lang.run"]      = "src/run.lua",
-      ["atmos-lang.tosource"] = "src/tosource.lua",
+      ["atmos.lang.aux"]      = "src/aux.lua",
+      ["atmos.lang.coder"]    = "src/coder.lua",
+      ["atmos.lang.exec"]     = "src/exec.lua",
+      ["atmos.lang.global"]   = "src/global.lua",
+      ["atmos.lang.lexer"]    = "src/lexer.lua",
+      ["atmos.lang.parser"]   = "src/parser.lua",
+      ["atmos.lang.prim"]     = "src/prim.lua",
+      ["atmos.lang.run"]      = "src/run.lua",
+      ["atmos.lang.tosource"] = "src/tosource.lua",
    },
 }
