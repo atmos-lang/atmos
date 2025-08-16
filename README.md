@@ -11,7 +11,7 @@
 [
     [About](#about)                 |
     [Hello World!](#hello-world)    |
-    [Install](#install)             |
+    [Install & Run](#install--run)  |
     [Documentation](#documentation) |
     [Resources](#resources)
 ]

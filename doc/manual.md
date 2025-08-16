@@ -1,4 +1,4 @@
-# The Programming Language Atmos (v0.1)
+# The Programming Language Atmos
 
 * DESIGN
     * Structured Deterministic Concurrency
