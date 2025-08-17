@@ -21,7 +21,19 @@ end
 
 -------------------------------------------------------------------------------
 
+local function inext (t, i)
+    i = i + 1
+    if i < #t then
+        return i, t[i]
+    else
+        return nil
+    end
+end
+
 local meta_vector = {
+    __ipairs = function (t)
+        return inext, t, -1
+    end,
     __index = function (t, i)
         local vs = rawget(t, 'vs')
         if i == '=' then
@@ -73,45 +85,24 @@ function atm_cat (v1, v2)
     local m2 = getmetatable(v2)
     if t1 == 'string' then
         return v1 .. v2
-    elseif m1 and m2 and m1.__pairs and m2.__pairs then
+    elseif m1 and m2 and m1.__ipairs and m2.__ipairs then
         local ret = atm_vector{}
-        for i,x in iter(v1) do
-            if x == nil then
-                ret[#ret] = i
-            else
-                ret[#ret] = x
-            end
+        for _, x in m1.__ipairs(v1) do
+            ret[#ret] = x
         end
-        for i,x in iter(v2) do
-            if x == nil then
-                ret[#ret] = i
-            else
-                ret[#ret] = x
-            end
+        for _, x in m2.__ipairs(v2) do
+            ret[#ret] = x
         end
         return ret
-    elseif t1=='table' and t2=='table' then
-        if v1.tag=='vector' and v2.tag=='vector' then
-            local ret = atm_vector{}
-            for i=1, #v1 do
-                ret[#ret] = v1[i-1]
-            end
-            for i=1, #v2 do
-                ret[#ret] = v2[i-1]
-            end
-            return ret
-        else
-            local ret = {}
-            for k,x in pairs(v1) do
-                ret[k] = x
-            end
-            for k,x in pairs(v2) do
-                ret[k] = x
-            end
-            return ret
-        end
     else
-        error('invalid ++ : unsupported type', 2)
+        local ret = {}
+        for k,x in pairs(v1) do
+            ret[k] = x
+        end
+        for k,x in pairs(v2) do
+            ret[k] = x
+        end
+        return ret
     end
 end
 
@@ -213,15 +204,6 @@ end
 -- ITER
 -------------------------------------------------------------------------------
 
-local function inext (t, i)
-    i = i + 1
-    if i < #t then
-        return i, t[i]
-    else
-        return nil
-    end
-end
-
 local function fi (N, i)
     i = i + 1
     if i == N then
@@ -231,20 +213,19 @@ local function fi (N, i)
 end
 
 function iter (t)
-    if t == nil then
+    local mt = getmetatable(t)
+    if mt and mt.__ipairs then
+        return mt.__ipairs(t)
+    elseif mt and mt.__pairs then
+        return mt.__pairs(t)
+    elseif t == nil then
         return fi, nil, -1
     elseif type(t) == 'function' then
         return t
     elseif type(t) == 'number' then
         return fi, t, -1
     elseif type(t) == 'table' then
-        if t.tag == 'vector' then
-            return inext, t, -1
-        elseif _is_(t, 'tasks') then
-            return getmetatable(t).__pairs(t)
-        else
-            return next, t, nil
-        end
+        return next, t, nil
     else
         error("TODO - iter(t)")
     end
