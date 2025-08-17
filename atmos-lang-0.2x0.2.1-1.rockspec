@@ -33,15 +33,16 @@ description = {
    license = "MIT",
 }
 dependencies = {
-   "lua ~> 5.4",
+   "lua ~> 5.4", "atmos",
 }
 build = {
    type = "builtin",
    install = {
       bin = {
          ["atmos"] = "atmos"
-      }
+      },
    },
+   copy_directories = { "exs" },
    modules = {
       ["atmos.lang.aux"]       = "src/aux.lua",
       ["atmos.lang.coder"]     = "src/coder.lua",
@@ -52,6 +53,5 @@ build = {
       ["atmos.lang.prim"]      = "src/prim.lua",
       ["atmos.lang.run"]       = "src/run.lua",
       ["atmos.lang.tosource"]  = "src/tosource.lua",
-      ["atmos.lang.exs.hello"] = "exs/hello.atm",
    },
 }
