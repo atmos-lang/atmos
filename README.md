@@ -130,3 +130,5 @@ The standard distribution of Atmos provides the following environments:
     - http://ceu-lang.org/chico/#ceu
 - Mailing list (Ceu):
     - https://groups.google.com/g/ceu-lang
+
+[toy]: https://fsantanna.github.io/toy.html
