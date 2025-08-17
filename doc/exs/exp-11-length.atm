@@ -1,0 +1,7 @@
+print <-- #(#{1,2,3})     ;; --> 3
+
+func T () { await(false) }
+pin ts = tasks()
+spawn [ts] T()
+spawn [ts] T()
+print(#ts)      ;; --> 2

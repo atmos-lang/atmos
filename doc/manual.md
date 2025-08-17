@@ -14,7 +14,7 @@
         - `>` `<` `>=` `<=`
         - `+` `-` `*` `/` `%`
         - `!` `||` `&&`
-        - `?>` `!>` `++` `#`
+        - `#` `++` `?>` `!>`
     * Identifiers
         - `[A-Za-z_][A-Za-z0-9_]*`
     * Literals
@@ -44,8 +44,8 @@
         - `set`
     * Operations
         - `??` `!?`
+        - `#` `++`
         - `?>` `!>`
-        - `++`
     * Indexing
         - `t[*]` `t.x` `t[=]` `t[+]` `t[-]`
     * Calls
@@ -445,9 +445,9 @@ The following operators are supported in Atmos:
     >    <    >=   <=           ;; relational
     +    -    *    /    %       ;; arithmetic
     !    ||   &&                ;; logical
-    ?>   !>                     ;; membership
-    ++                          ;; concatenation
     #                           ;; length
+    ++                          ;; concatenation
+    ?>   !>                     ;; membership
 ```
 
 Operators are used in [operation](#operations) expressions.
@@ -1259,9 +1259,9 @@ Atmos provides the [operators](#operators) as follows:
 - relational: `>` `<` `>=` `<=`
 - arithmetic: `+` `-` `*` `/` `%`
 - logical: `!` `||` `&&`
-- membership: `?>` `!>`
-- concatenation: `++`
 - length: `#`
+- concatenation: `++`
+- membership: `?>` `!>`
 
 Unary operators (`-`, `!` and `#`) use prefix notation, while binary operators
 (all others, including binary `-`) use infix notation:
@@ -1277,15 +1277,15 @@ Atmos supports and mimics the semantics of standard
     (`>` `<` `>=` `<=`),
     (`+` `-` `*` `/` `%`),
     (`!` `||` `&&`),
-    (`++`), and
-    (`#`).
+    (`#`), and
+    (`++`).
 Note that some operators have a [different syntax](#lua-vs-atmos-subtleties) in
 Lua.
 
 bins same line
 
 Next, we decribe the operations that Atmos modifies or introduces:
-    (`??` `!?`), (`?>` `!>`) and (`++`).
+    (`??` `!?`), (`#`), (`++`), and (`?>` `!>`).
 
 Examples:
 
@@ -1320,27 +1320,27 @@ task(\{}) ?? :task  ;; --> true
 :X.Y @{} ?? :X      ;; --> true
 ```
 
-### Membership
+### Length
 
-The operators `?>` and `!>` ("in" and "not in") check the membership of the
-left operand in the right operand.
-If any of the following conditions are met, then `a ?> b` is true:
+The operator `#` ("length") evaluates the number of elements in the given
+collection.
 
-- `b` is a [vector](#vector) and `a` is equal to any of its values
-- `b` is a [table](#table) and `a` is equal to any of its keys or values
-- `a` is equal to any of the results of `iter(b)`
+Atmos preserves the semantics of the [Lua length operator](lua-length), and
+adds support for the [types](#types--values) `vector` and `tasks`.
 
-The operator `!>` is the negation of `?>`.
+[lua-length]: https://www.lua.org/manual/5.4/manual.html#3.4.7
 
 Examples:
 
-<!-- exs/exp-10-membership.atm -->
+<!-- exs/exp-11-length.atm -->
 
 ```
-10 ?> #{10,20,30}       ;; true
- 1 ?> #{10,20,30}       ;; false
-10 ?> @{10,20,30}       ;; true
- 1 ?> @{10,20,30}       ;; true
+#(#{1,2,3})     ;; --> 3
+
+pin ts = tasks()
+spawn [ts] T(...)
+spawn [ts] T(...)
+print(#ts)      ;; --> 2
 ```
 
 ### Concatenation
@@ -1378,6 +1378,29 @@ val x = spawn [xs] T()
 val y = spawn [ys] T()
 val ts = xs ++ ys           ;; #{x, y}
 print(#ts, y?>ts, 10?>ts)   ;; 2, true, false
+```
+
+### Membership
+
+The operators `?>` and `!>` ("in" and "not in") check the membership of the
+left operand in the right operand.
+If any of the following conditions are met, then `a ?> b` is true:
+
+- `b` is a [vector](#vector) and `a` is equal to any of its values
+- `b` is a [table](#table) and `a` is equal to any of its keys or values
+- `a` is equal to any of the results of `iter(b)`
+
+The operator `!>` is the negation of `?>`.
+
+Examples:
+
+<!-- exs/exp-10-membership.atm -->
+
+```
+10 ?> #{10,20,30}       ;; true
+ 1 ?> #{10,20,30}       ;; false
+10 ?> @{10,20,30}       ;; true
+ 1 ?> @{10,20,30}       ;; true
 ```
 
 ## Indexing
