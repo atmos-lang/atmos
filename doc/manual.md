@@ -15,6 +15,7 @@
         - `+` `-` `*` `/` `%`
         - `!` `||` `&&`
         - `#` `++` `?>` `!>`
+        - `?.` (safe navigation)
     * Identifiers
         - `[A-Za-z_][A-Za-z0-9_]*`
     * Literals
@@ -47,7 +48,7 @@
         - `#` `++`
         - `?>` `!>`
     * Indexing
-        - `t[*]` `t.x` `t[=]` `t[+]` `t[-]`
+        - `t[*]` `t.x` `t[=]` `t[+]` `t[-]` `t?.x` (safe navigation)
     * Calls
         - `f(*)` `-->` `->` `<-` `<--`
     * Conditionals
@@ -289,6 +290,31 @@ print(:T.A.x ?? :T.A.x)     ;; --> true
 print(:T     ?? :T.A.x)     ;; --> false (:T is not a subtype of :T.A.x)
 print(:T.A   ?? :T.B)       ;; --> false
 ```
+
+### Safe Navigation Operator `?.`
+
+The safe navigation operator `?.` allows you to safely access nested properties of an object without having to explicitly check for `nil` at each level. If any part of the chain is `nil` or not a table, the expression evaluates to `nil` without throwing an error.
+
+Examples:
+```lua
+-- Safe access to nested properties
+val user = { profile = { name = "Alice" } }
+print(user?.profile?.name)  -- "Alice"
+print(user?.address?.city)  -- nil (no error)
+
+-- Works with function calls
+val result = getData()?.items?.[0]?.name
+
+-- Safe method calls
+val length = user?.getName()?.length()
+
+-- Combined with other operators
+val city = user?.address?.city ?? "Unknown"
+```
+
+The `?.` operator is particularly useful when working with optional or dynamically structured data where some properties might be missing.
+
+### The `??` Operator
 
 The operator `??` also works with tagged tables.
 Therefore, tags, tables, and `??` can be combined as follows:

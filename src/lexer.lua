@@ -174,7 +174,19 @@ local function _lexer_ (str)
                 end
             end
 
-        -- operators:  +  >=  #
+        -- operators:  +  >=  #  ?.
+        elseif c == '?' then
+            local c2 = read()
+            if c2 == '.' then
+                coroutine.yield { tag='op', str='?.', lin=LIN,sep=SEP }
+            else
+                unread()
+                local op = read_while(c, function (c) return contains(OPS.cs,c) end)
+                if not contains(OPS.vs,op) then
+                    err({str=op,lin=LIN,sep=SEP}, "invalid operator")
+                end
+                coroutine.yield { tag='op', str=op, lin=LIN,sep=SEP }
+            end
         elseif contains(OPS.cs, c) then
             local op = read_while(c, function (c) return contains(OPS.cs,c) end)
             if not contains(OPS.vs,op) then
