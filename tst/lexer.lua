@@ -53,7 +53,7 @@ end
 -- OPERATORS
 
 do
-    local src = "< > = # - == ! ++ != #[ # >= # / || * +"
+    local src = "< > = # - == =- ! ++ != #[ # >= # / || * +"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -63,6 +63,8 @@ do
     assert(LEX().str == '#')
     assert(LEX().str == '-')
     assert(LEX().str == '==')
+    assert(LEX().str == '=')
+    assert(LEX().str == '-')
     assert(LEX().str == '!')
     assert(LEX().str == '++')
     assert(LEX().str == '!=')
@@ -89,8 +91,12 @@ do
     print("Testing...", src)
     init()
     lexer_init("anon", src)
-    local ok, msg = pcall(LEX)
-    assert(not ok and msg=="anon : line 1 : near '!!' : invalid operator")
+    assert(LEX().str == '!')
+    assert(LEX().str == '!')
+    assert(LEX().tag == 'eof')
+    assert(LEX() == nil)
+    --local ok, msg = pcall(LEX)
+    --assert(not ok and msg=="anon : line 1 : near '!!' : invalid operator")
 
     local src = "!> ?? !? ?>"
     print("Testing...", src)

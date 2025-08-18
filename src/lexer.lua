@@ -177,13 +177,18 @@ local function _lexer_ (str)
         -- operators:  +  >=  #
         elseif contains(OPS.cs, c) then
             local op = read_while(c, function (c) return contains(OPS.cs,c) end)
-            if not contains(OPS.vs,op) then
-                err({str=op,lin=LIN,sep=SEP}, "invalid operator")
+            local cur = op
+            while not contains(OPS.vs,cur) do
+                if string.len(cur) == 0 then
+                    err({str=op,lin=LIN,sep=SEP}, "invalid operator")
+                end
+                unread()
+                cur = string.sub(cur, 1, -2)
             end
             if op=='~~' or op=='!~' then
                 error("TODO : ~~ !~ : not implemented")
             end
-            coroutine.yield { tag='op', str=op, lin=LIN,sep=SEP }
+            coroutine.yield { tag='op', str=cur, lin=LIN,sep=SEP }
 
         -- tags:  :X  :a:b:c
         elseif c == ':' then

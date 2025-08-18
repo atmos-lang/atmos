@@ -405,6 +405,15 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(tosource(s), 'set pub = 10')
+
+    local src = "val x=-10"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), 'val x = (-10)')
 end
 
 -- IF-ELSE / IFS
