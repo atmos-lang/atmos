@@ -2015,6 +2015,24 @@ do
     print("Testing...", "await 2: clock")
     local out = atm_test(src)
     assertx(out, "x\ny\n")
+
+    local src = [[
+        spawn {
+            await(@00:01:02.003)
+            print(:ok)
+        }
+        emit(@1:0)
+        print(:1)
+        emit(@0:02)
+        print(:2)
+        emit(@.1)
+        print(:3)
+        emit(@.2)
+        print(:4)
+    ]]
+    print("Testing...", "await 3: clock")
+    local out = atm_test(src)
+    assertx(out, "1\n2\n3\nok\n4\n")
 end
 
 print '--- TOGGLE ---'
