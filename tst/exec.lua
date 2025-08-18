@@ -1131,6 +1131,20 @@ do
     print("Testing...", "loop 11")
     local out = atm_test(src)
     assertx(out, "1\n2\n3\n10\n")
+
+    local src = [[
+        func f () {
+            break()
+        }
+        loop {
+            f()
+        }
+        print:ok
+    ]]
+    print("Testing...", "loop 12 : break crosses func")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
+    warn(false, "TODO: should be an error")
 end
 
 -- CATCH / THROW
