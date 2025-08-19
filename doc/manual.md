@@ -315,7 +315,7 @@ worth mentioning:
     - Lua: `return 10`, `break` (no parenthesis)
     - Atmos: `return (10)`, `break()` (parenthesis)
         - Atmos uses the same call syntax with parenthesis in all expressions
-          that resemble statements or calls (`await`, `break`, `emit`,
+          that resemble statements or calls (`await`, `break`, `do`, `emit`,
           `escape`, `return`, `task`, `tasks`, `throw`, `until`, and `while`).
         - The reason is to enforce an uniform syntax across all expressions.
         - Some workarounds: `return 'ok'`, `return <- 10`
@@ -942,10 +942,14 @@ A block can also be created through an explicitly `do`:
 
 ```
 Do : `do´ [TAG] Block
+   | `do´ `(´ Expr `)´
 ```
 
 The optional [tag](#literals) identifies the block such that it can match
 [escape](#escape) statements.
+
+The `do` keyword may also be used as a call to execute a simple expression as a
+statement.
 
 Examples:
 
@@ -967,6 +971,8 @@ do {
     pin t = spawn T()   ;; attaches task T to enclosing block
     <...>
 }                       ;; aborts t
+
+do(10)                  ;; innocuous `10`
 ```
 
 #### Escape
@@ -1485,7 +1491,7 @@ Like in [Lua calls](#lua-call), if there is a single
 This is valid for strings, tags, vectors, tables, clocks, and native literals.
 
 The many call formats are also valid for the statements as follows:
-`await`, `break`, `emit`, `escape`, `return`, `task`, `tasks`, `throw`,
+`await`, `break`, `do`, `emit`, `escape`, `return`, `task`, `tasks`, `throw`,
 `until`, and `while`.
 
 Examples:
@@ -2247,6 +2253,7 @@ being optional; and a `X+` variation with at least one `X`.
 Prog  : { Expr [`;´] }
 Block : `{´ Prog `}´
 Expr  : `do´[TAG]  Block                            ;; explicit block
+      | `do´ `(´ Expr `)´                           ;; expression as statement
       | `escape´ `(´ Expr* `)´                      ;; escape from block
       | `defer´ Block                               ;; defer statements
 
