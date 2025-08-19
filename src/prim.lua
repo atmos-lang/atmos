@@ -26,7 +26,7 @@ function parser_spawn ()
         end
         local call = parser_6_pip()
         if call.tag ~= 'call' then
-            err(tk, "expected call")
+            err(tk, "expected call syntax")
         end
 
         local f; do
@@ -147,7 +147,7 @@ function parser_1_prim ()
             local cmd = { tag='acc', tk={tag='id',str=f,lin=TK0.lin} }
             local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
             if call.tag ~= 'call' then
-                err(tk, "expected call")
+                err(tk, "expected call syntax")
             end
             if f == 'emit_in' then
                 table.insert(call.es, 1, to)
@@ -159,7 +159,7 @@ function parser_1_prim ()
             if check(nil,'id') then
                 local call = parser_6_pip()
                 if call.tag ~= 'call' then
-                    err(tk, "expected call")
+                    err(tk, "expected call syntax")
                 end
                 return parser_7_out {
                     tag = 'call',
@@ -176,7 +176,7 @@ function parser_1_prim ()
                 local cmd = { tag='acc', tk={tag='id',str='await',lin=tk.lin} }
                 local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
                 if call.tag ~= 'call' then
-                    err(tk, "expected call")
+                    err(tk, "expected call syntax")
                 end
                 return parser_7_out(call)
             end
@@ -216,7 +216,7 @@ function parser_1_prim ()
                 local cmd = { tag='acc', tk={tag='id', str='toggle', lin=TK0.lin} }
                 local call = parser_6_pip()
                 if call.tag ~= 'call' then
-                    err(tk, "expected call")
+                    err(tk, "expected call syntax")
                 end
                 table.insert(call.es, 1, call.f)
                 return parser_7_out({ tag='call', f=cmd, es=call.es })
@@ -337,14 +337,18 @@ function parser_1_prim ()
         -- do :X {...}
         -- do(...)
         if accept('do') then
-            if accept('(') then
-                local e = parser()
-                accept_err(')')
-                return { tag='do', blk={tag='block',es={e}} }
-            else
+            if check(nil,'tag') or check('{') then
                 local tag = accept(nil, 'tag')
                 local blk = parser_block()
                 return { tag='do', esc=tag, blk=blk }
+            else
+                local tk = TK0
+                local cmd = { tag='acc', tk={tag='id',str='atm_id',lin=TK0.lin} }
+                local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
+                if call.tag ~= 'call' then
+                    err(tk, "expected call syntax")
+                end
+                return call
             end
         -- catch
         elseif accept('catch') then

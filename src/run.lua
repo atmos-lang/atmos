@@ -19,6 +19,9 @@ function atm_tag_do (tag, t)
     return t
 end
 
+function atm_id ()
+end
+
 -------------------------------------------------------------------------------
 
 local function inext (t, i)

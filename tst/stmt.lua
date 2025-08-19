@@ -279,12 +279,32 @@ do
     assert(check('<eof>'))
     assertx(tosource(s), trim [[
         do {
-            do {
-                1
-            }
+            atm_id(1)
             2
         }
     ]])
+
+    local src = "do { do <- 1 ; 2 }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), trim [[
+        do {
+            atm_id(1)
+            2
+        }
+    ]])
+
+    local src = "do { do 1 ; 2 }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local _,msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near 'do' : expected call syntax")
 end
 
 -- DCL / VAL / VAR / SET
@@ -742,7 +762,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assert(not ok and msg=="anon : line 1 : near 'spawn' : expected call")
+    assert(not ok and msg=="anon : line 1 : near 'spawn' : expected call syntax")
 
     local src = "val t = spawn T()"
     print("Testing...", src)

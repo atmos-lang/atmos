@@ -1224,7 +1224,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'toggle' : expected call")
+    assertx(msg, "anon : line 1 : near 'toggle' : expected call syntax")
 
     local src = "toggle"
     print("Testing...", src)

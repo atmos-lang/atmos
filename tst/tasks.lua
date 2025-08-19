@@ -49,7 +49,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local _,msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'await' : expected call")
+    assertx(msg, "anon : line 1 : near 'await' : expected call syntax")
 
     local src = "set y = await(:X)"
     print("Testing...", src)
@@ -78,7 +78,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'spawn' : expected call")
+    assertx(msg, "anon : line 1 : near 'spawn' : expected call syntax")
     --assertx(msg, "anon : line 1 : near '(' : call error : expected prefix expression")
 
     local src = "val x = nil.pub"
@@ -225,7 +225,7 @@ do
     ]]
     print("Testing...", "spawn 3: error")
     local out = atm_test(src)
-    assertx(out, "anon.atm : line 1 : near 'spawn' : expected call")
+    assertx(out, "anon.atm : line 1 : near 'spawn' : expected call syntax")
 
     local src = [[
         val T = func (v) {
