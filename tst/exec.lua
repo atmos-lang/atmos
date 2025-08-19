@@ -1,3 +1,4 @@
+local atmos = require "atmos"
 require "atmos.lang.exec"
 
 -- EXPR / STRING / TAG
@@ -230,6 +231,40 @@ do
     print("Testing...", "do 5")
     local out = atm_test(src)
     assertx(out, "10\n")
+end
+
+print "--- TEST ---"
+
+do
+    local src = [[
+        val x = test {
+            do :Y {
+                escape(:X,10)
+            }
+        }
+        print(x)
+    ]]
+    print("Testing...", "test 1")
+    local out = atm_test(src)
+    assertx(out, "nil\n")
+
+    atmos.test = true
+
+    local src = [[
+        val x = test {
+            do :X {
+                test {
+                    escape(:X,10)
+                }
+            }
+        }
+        print(x)
+    ]]
+    print("Testing...", "test 1")
+    local out = atm_test(src)
+    assertx(out, "10\n")
+
+    atmos.test = false
 end
 
 print "--- DEFER ---"
