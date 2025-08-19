@@ -1,3 +1,5 @@
+local atmos = require "atmos"
+
 local function spawn (lin, blk)
     return {
         tag = 'call',
@@ -333,7 +335,7 @@ function parser_1_prim ()
         return { tag='set', dsts=dsts, src=src }
 
     -- do, defer, catch
-    elseif check('do') or check('catch') or check('defer') then
+    elseif check('do') or check('test') or check('catch') or check('defer') then
         -- do :X {...}
         -- do(...)
         if accept('do') then
@@ -350,6 +352,13 @@ function parser_1_prim ()
                 end
                 return call
             end
+        -- test
+        elseif accept('test') then
+            local blk = parser_block()
+            if not atmos.test then
+                blk.es = {}
+            end
+            return { tag='do', blk=blk }
         -- catch
         elseif accept('catch') then
             local cnd = parser()

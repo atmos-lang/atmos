@@ -23,9 +23,9 @@ SYMS = { '{', '}', '(', ')', '[', ']', ',', '\\' }
 KEYS = {
     'await', 'catch', 'defer', 'do', 'else', 'emit', 'every', 'false', 'func',
     'if', 'ifs', 'in', 'loop', 'match', 'nil', 'par', 'par_and', 'par_or',
-    'pin', 'set', 'spawn', 'tasks', 'toggle', 'true', 'val', 'var', 'watching',
-    'where', 'with',
-    -- 'break', 'escape', 'it', 'pub', 'return', 'skip', 'task', 'test',
+    'pin', 'set', 'spawn', 'tasks', 'test', 'toggle', 'true', 'val', 'var',
+    'watching', 'where', 'with',
+    -- 'break', 'escape', 'it', 'pub', 'return', 'skip', 'task',
     -- 'throw', 'until', 'while'
 }
 

@@ -1,3 +1,4 @@
+local atmos = require "atmos"
 require "atmos.lang.lexer"
 require "atmos.lang.parser"
 require "atmos.lang.tosource"
@@ -305,6 +306,38 @@ do
     lexer_next()
     local _,msg = pcall(parser_main)
     assertx(msg, "anon : line 1 : near 'do' : expected call syntax")
+end
+
+print '--- TEST ---'
+
+do
+    local src = "test { print:ok }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        do {
+
+        }
+    ]])
+
+    atmos.test = true
+    local src = "test { print:ok }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        do {
+            print(:ok)
+        }
+    ]])
+    atmos.test = false
 end
 
 -- DCL / VAL / VAR / SET
