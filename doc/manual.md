@@ -1056,11 +1056,10 @@ do {
 }                   ;; --> 1, 4, 3, 2
 ```
 
-<!--
---### Test
+### Test
 
 A `test` block behaves like a normal block, but is only included in the program
-when compiled with the flag `--test`:
+when [executing](#executions) it with the flag `--test`:
 
 ```
 Test : `test´ Block
@@ -1068,15 +1067,18 @@ Test : `test´ Block
 
 Examples:
 
+<!-- exs/exp-05-test.atm -->
+
 ```
 func add (x,y) {
     x + y
 }
 test {
     assert(add(10,20) == 30)
+    assert(add(-10,10) == 0)
+    print("All tests passed...")
 }
 ```
--->
 
 ## Declarations and Assignments
 

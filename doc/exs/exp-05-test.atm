@@ -1,0 +1,8 @@
+func add (x,y) {
+    x + y
+}
+test {
+    assert(add(10,20) == 30)
+    assert(add(-10,10) == 0)
+    print("All tests passed...")
+}
