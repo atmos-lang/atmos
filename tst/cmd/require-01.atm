@@ -1,0 +1,2 @@
+val X = require "x"
+print(X.f(10))
