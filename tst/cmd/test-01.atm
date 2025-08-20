@@ -1,0 +1,5 @@
+print :1
+test {
+    print :2
+}
+print :3
