@@ -1,4 +1,4 @@
-# The Programming Language Atmos (v0.1)
+# The Programming Language Atmos
 
 - <a href="#design">1.</a> DESIGN
     - <a href="#structured-deterministic-concurrency">1.1.</a> Structured Deterministic Concurrency
@@ -14,7 +14,7 @@
         - `>` `<` `>=` `<=`
         - `+` `-` `*` `/` `%`
         - `!` `||` `&&`
-        - `?>` `!>` `++` `#`
+        - `#` `++` `?>` `!>`
     - <a href="#identifiers">3.4.</a> Identifiers
         - `[A-Za-z_][A-Za-z0-9_]*`
     - <a href="#literals">3.5.</a> Literals
@@ -36,16 +36,16 @@
     - <a href="#tasks">4.6.</a> Tasks
         - `tasks`
 - <a href="#expressions">5.</a> EXPRESSIONS
-    - <a href="#program-sequences-and-blocks">5.1.</a> Program, Sequences and Blocks
-        - `;` `do` `defer` `escape`
+    - <a href="#chunks">5.1.</a> Chunks
+        - `;` `do` `escape` `defer` `test`
     - <a href="#declarations-and-assignments">5.2.</a> Declarations and Assignments
         - `val` `var` `pin` `where`
         - `func` `return`
         - `set`
     - <a href="#operations">5.3.</a> Operations
         - `??` `!?`
+        - `#` `++`
         - `?>` `!>`
-        - `++`
     - <a href="#indexing">5.4.</a> Indexing
         - `t[*]` `t.x` `t[=]` `t[+]` `t[-]`
     - <a href="#calls">5.5.</a> Calls
@@ -329,7 +329,7 @@ worth mentioning:
     - Lua: `return 10`, `break` (no parenthesis)
     - Atmos: `return (10)`, `break()` (parenthesis)
         - Atmos uses the same call syntax with parenthesis in all expressions
-          that resemble statements or calls (`await`, `break`, `emit`,
+          that resemble statements or calls (`await`, `break`, `do`, `emit`,
           `escape`, `return`, `task`, `tasks`, `throw`, `until`, and `while`).
         - The reason is to enforce an uniform syntax across all expressions.
         - Some workarounds: `return 'ok'`, `return <- 10`
@@ -375,7 +375,34 @@ embed native expressions in programs.
 
 # 2. EXECUTION
 
-`TODO`
+To execute Atmos, simply pass the program filename to the interpreted, e.g.:
+
+```
+$ atmos hello.atm
+```
+
+The `--help` flag shows all execution options:
+
+
+```
+$ atmos --help
+
+Usage: atmos [-h] [-t] [-v] <input>
+
+The Programming Language Atmos.
+
+Arguments:
+   input                 Input file.
+
+Options:
+   -h, --help            Show this help message and exit.
+   -t, --test            Enable test blocks.
+   -v, --version         Show version.
+
+For more information, please visit our website:
+
+    https://github.com/atmos-lang/atmos/
+```
 
 <a name="lexicon"/>
 
@@ -469,9 +496,9 @@ The following operators are supported in Atmos:
     >    <    >=   <=           ;; relational
     +    -    *    /    %       ;; arithmetic
     !    ||   &&                ;; logical
-    ?>   !>                     ;; membership
-    ++                          ;; concatenation
     #                           ;; length
+    ++                          ;; concatenation
+    ?>   !>                     ;; membership
 ```
 
 Operators are used in [operation](#operations) expressions.
@@ -956,22 +983,26 @@ Therefore, we use the terms statement and expression interchangeably.
 All [identifiers](#identifiers), [literals](#literals) and
 [values](#types--values) are also valid expressions.
 
-<a name="program-sequences-and-blocks"/>
+<a name="chunks"/>
 
-## 5.1. Program, Sequences and Blocks
+## 5.1. Chunks
 
-A program in Atmos is a sequence of expressions, and a block is a sequence of
-expressions enclosed by braces (`{` and `}`):
+Like in Lua, a sequence of expressions in Atmos is called a
+[chunk][lua-chunks], which is their unit of compilation.
+A program in Atmos is a chunk, and a block is also a chunk but enclosed by
+braces (`{` and `}`):
 
 ```
-Prog  : { Expr [`;´] }
-Block : `{´ Prog `}´
+Chunk : { Expr [`;´] }
+Prog  : Chunk
+Block : `{´ Chunk `}´
 ```
 
 Each expression in a sequence may be separated by an optional semicolon (`;`).
 A sequence of expressions evaluate to its last expression.
 
-A program collects all command-line arguments into variadic [`...`](#TODO).
+A program collects all command-line arguments into the variadic symbol
+[`...`](#TODO).
 
 <!-- exs/exp-01-program.atm -->
 
@@ -982,6 +1013,8 @@ print(3)                ;; --> 3
 ```
 
 `TODO: program as a task`
+
+[lua-chunks]: https://www.lua.org/manual/5.4/manual.html#3.3.2
 
 <a name="blocks"/>
 
@@ -1000,10 +1033,14 @@ A block can also be created through an explicitly `do`:
 
 ```
 Do : `do´ [TAG] Block
+   | `do´ `(´ Expr `)´
 ```
 
 The optional [tag](#literals) identifies the block such that it can match
 [escape](#escape) statements.
+
+The `do` keyword may also be used as a call to execute a simple expression as a
+statement.
 
 Examples:
 
@@ -1025,6 +1062,8 @@ do {
     pin t = spawn T()   ;; attaches task T to enclosing block
     <...>
 }                       ;; aborts t
+
+do(10)                  ;; innocuous `10`
 ```
 
 <a name="escape"/>
@@ -1112,11 +1151,12 @@ do {
 }                   ;; --> 1, 4, 3, 2
 ```
 
-<!--
---### Test
+<a name="test"/>
+
+### 5.1.3. Test
 
 A `test` block behaves like a normal block, but is only included in the program
-when compiled with the flag `--test`:
+when [executing](#executions) it with the flag `--test`:
 
 ```
 Test : `test´ Block
@@ -1124,15 +1164,18 @@ Test : `test´ Block
 
 Examples:
 
+<!-- exs/exp-05-test.atm -->
+
 ```
 func add (x,y) {
     x + y
 }
 test {
     assert(add(10,20) == 30)
+    assert(add(-10,10) == 0)
+    print("All tests passed...")
 }
 ```
--->
 
 <a name="declarations-and-assignments"/>
 
@@ -1335,9 +1378,9 @@ Atmos provides the [operators](#operators) as follows:
 - relational: `>` `<` `>=` `<=`
 - arithmetic: `+` `-` `*` `/` `%`
 - logical: `!` `||` `&&`
-- membership: `?>` `!>`
-- concatenation: `++`
 - length: `#`
+- concatenation: `++`
+- membership: `?>` `!>`
 
 Unary operators (`-`, `!` and `#`) use prefix notation, while binary operators
 (all others, including binary `-`) use infix notation:
@@ -1353,15 +1396,15 @@ Atmos supports and mimics the semantics of standard
     (`>` `<` `>=` `<=`),
     (`+` `-` `*` `/` `%`),
     (`!` `||` `&&`),
-    (`++`), and
-    (`#`).
+    (`#`), and
+    (`++`).
 Note that some operators have a [different syntax](#lua-vs-atmos-subtleties) in
 Lua.
 
 bins same line
 
 Next, we decribe the operations that Atmos modifies or introduces:
-    (`??` `!?`), (`?>` `!>`) and (`++`).
+    (`??` `!?`), (`#`), (`++`), and (`?>` `!>`).
 
 Examples:
 
@@ -1398,29 +1441,29 @@ task(\{}) ?? :task  ;; --> true
 :X.Y @{} ?? :X      ;; --> true
 ```
 
-<a name="membership"/>
+<a name="length"/>
 
-### 5.3.2. Membership
+### 5.3.2. Length
 
-The operators `?>` and `!>` ("in" and "not in") check the membership of the
-left operand in the right operand.
-If any of the following conditions are met, then `a ?> b` is true:
+The operator `#` ("length") evaluates the number of elements in the given
+collection.
 
-- `b` is a [vector](#vector) and `a` is equal to any of its values
-- `b` is a [table](#table) and `a` is equal to any of its keys or values
-- `a` is equal to any of the results of `iter(b)`
+Atmos preserves the semantics of the [Lua length operator](lua-length), and
+adds support for the [types](#types--values) `vector` and `tasks`.
 
-The operator `!>` is the negation of `?>`.
+[lua-length]: https://www.lua.org/manual/5.4/manual.html#3.4.7
 
 Examples:
 
-<!-- exs/exp-10-membership.atm -->
+<!-- exs/exp-11-length.atm -->
 
 ```
-10 ?> #{10,20,30}       ;; true
- 1 ?> #{10,20,30}       ;; false
-10 ?> @{10,20,30}       ;; true
- 1 ?> @{10,20,30}       ;; true
+#(#{1,2,3})     ;; --> 3
+
+pin ts = tasks()
+spawn [ts] T(...)
+spawn [ts] T(...)
+print(#ts)      ;; --> 2
 ```
 
 <a name="concatenation"/>
@@ -1460,6 +1503,31 @@ val x = spawn [xs] T()
 val y = spawn [ys] T()
 val ts = xs ++ ys           ;; #{x, y}
 print(#ts, y?>ts, 10?>ts)   ;; 2, true, false
+```
+
+<a name="membership"/>
+
+### 5.3.4. Membership
+
+The operators `?>` and `!>` ("in" and "not in") check the membership of the
+left operand in the right operand.
+If any of the following conditions are met, then `a ?> b` is true:
+
+- `b` is a [vector](#vector) and `a` is equal to any of its values
+- `b` is a [table](#table) and `a` is equal to any of its keys or values
+- `a` is equal to any of the results of `iter(b)`
+
+The operator `!>` is the negation of `?>`.
+
+Examples:
+
+<!-- exs/exp-10-membership.atm -->
+
+```
+10 ?> #{10,20,30}       ;; true
+ 1 ?> #{10,20,30}       ;; false
+10 ?> @{10,20,30}       ;; true
+ 1 ?> @{10,20,30}       ;; true
 ```
 
 <a name="indexing"/>
@@ -1550,7 +1618,7 @@ Like in [Lua calls](#lua-call), if there is a single
 This is valid for strings, tags, vectors, tables, clocks, and native literals.
 
 The many call formats are also valid for the statements as follows:
-`await`, `break`, `emit`, `escape`, `return`, `task`, `tasks`, `throw`,
+`await`, `break`, `do`, `emit`, `escape`, `return`, `task`, `tasks`, `throw`,
 `until`, and `while`.
 
 Examples:
@@ -2352,6 +2420,7 @@ being optional; and a `X+` variation with at least one `X`.
 Prog  : { Expr [`;´] }
 Block : `{´ Prog `}´
 Expr  : `do´[TAG]  Block                            ;; explicit block
+      | `do´ `(´ Expr `)´                           ;; expression as statement
       | `escape´ `(´ Expr* `)´                      ;; escape from block
       | `defer´ Block                               ;; defer statements
 

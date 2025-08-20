@@ -36,8 +36,8 @@
     * Tasks
         - `tasks`
 * EXPRESSIONS
-    * Program, Sequences and Blocks
-        - `;` `do` `defer` `escape`
+    * Chunks
+        - `;` `do` `escape` `defer` `test`
     * Declarations and Assignments
         - `val` `var` `pin` `where`
         - `func` `return`
@@ -359,7 +359,34 @@ embed native expressions in programs.
 
 # EXECUTION
 
-`TODO`
+To execute Atmos, simply pass the program filename to the interpreted, e.g.:
+
+```
+$ atmos hello.atm
+```
+
+The `--help` flag shows all execution options:
+
+
+```
+$ atmos --help
+
+Usage: atmos [-h] [-t] [-v] <input>
+
+The Programming Language Atmos.
+
+Arguments:
+   input                 Input file.
+
+Options:
+   -h, --help            Show this help message and exit.
+   -t, --test            Enable test blocks.
+   -v, --version         Show version.
+
+For more information, please visit our website:
+
+    https://github.com/atmos-lang/atmos/
+```
 
 # LEXICON
 
@@ -902,20 +929,24 @@ Therefore, we use the terms statement and expression interchangeably.
 All [identifiers](#identifiers), [literals](#literals) and
 [values](#types--values) are also valid expressions.
 
-## Program, Sequences and Blocks
+## Chunks
 
-A program in Atmos is a sequence of expressions, and a block is a sequence of
-expressions enclosed by braces (`{` and `}`):
+Like in Lua, a sequence of expressions in Atmos is called a
+[chunk][lua-chunks], which is their unit of compilation.
+A program in Atmos is a chunk, and a block is also a chunk but enclosed by
+braces (`{` and `}`):
 
 ```
-Prog  : { Expr [`;´] }
-Block : `{´ Prog `}´
+Chunk : { Expr [`;´] }
+Prog  : Chunk
+Block : `{´ Chunk `}´
 ```
 
 Each expression in a sequence may be separated by an optional semicolon (`;`).
 A sequence of expressions evaluate to its last expression.
 
-A program collects all command-line arguments into variadic [`...`](#TODO).
+A program collects all command-line arguments into the variadic symbol
+[`...`](#TODO).
 
 <!-- exs/exp-01-program.atm -->
 
@@ -926,6 +957,8 @@ print(3)                ;; --> 3
 ```
 
 `TODO: program as a task`
+
+[lua-chunks]: https://www.lua.org/manual/5.4/manual.html#3.3.2
 
 ### Blocks
 
