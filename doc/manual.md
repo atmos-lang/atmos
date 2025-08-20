@@ -359,24 +359,27 @@ embed native expressions in programs.
 
 # EXECUTION
 
-To execute Atmos, simply pass the program filename to the interpreted, e.g.:
+To execute Atmos, simply pass the program filename and arguments to the
+interpreter, e.g.:
 
 ```
-$ atmos hello.atm
+$ atmos hello.atm 1000
 ```
+
+The arguments are passed to the [program main chunk](#chunks).
 
 The `--help` flag shows all execution options:
-
 
 ```
 $ atmos --help
 
-Usage: atmos [-h] [-t] [-v] <input>
+Usage: atmos [-h] [-t] [-v] <input> [<args>] ...
 
 The Programming Language Atmos.
 
 Arguments:
-   input                 Input file.
+   input                 Input program.
+   args                  Program arguments.
 
 Options:
    -h, --help            Show this help message and exit.
@@ -386,6 +389,7 @@ Options:
 For more information, please visit our website:
 
     https://github.com/atmos-lang/atmos/
+
 ```
 
 # LEXICON
