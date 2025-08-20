@@ -15,7 +15,8 @@ For more information, please visit our website:
 
     https://github.com/atmos-lang/atmos/
 ]]
-cmd:argument("input", "Input file.")
+cmd:argument("input", "Input program.")
+cmd:argument("args", "Program arguments."):args('*')
 --cmd:option("-o --output", "Output file.", "a.out")
 --cmd:option("-I --include", "Include locations."):count("*")
 cmd:flag("-t --test", "Enable test blocks.")
@@ -29,4 +30,4 @@ if cmd.version then
     os.exit(0)
 end
 
-atmos.call(assert(atm_loadfile(cmd.input)))
+atmos.call(assert(atm_loadfile(cmd.input)), table.unpack(cmd.args))
