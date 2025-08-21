@@ -1,0 +1,97 @@
+^["@/pico/pico.ceu"]
+pico.set.font("tiny.ttf", 10)
+
+val {{||}} = pico.pct-to-pos
+
+func layout-to-rects (lay, parent :Rect) {
+    println(parent)
+    val COL = #lay[0]
+    val LIN = #lay
+
+    val rs1 = #[]
+    loop l in {0 => LIN{ {
+        loop c in {0 => COL{ {
+            if lay[l][c] == #rs1 {
+                val r :Rect = [[c,l],[nil,nil]]
+                loop c' in {c => COL{ {
+                    until lay[l][c'] /= #rs1
+                    set r.dim.w = (c' - c) + 1
+                }
+                loop l' in {l => LIN{ {
+                    until lay[l'][c] /= #rs1
+                    set r.dim.h = (l' - l) + 1
+                }
+                set rs1[+] = drop(r)
+            }
+        }
+    }
+
+    val rs2 = #[]
+    do {
+        val [[X,Y],[W,H]] =
+            if parent {
+                [[x,y], parent.dim] where {
+                    val [x,y] = [parent.pos.x-(parent.dim.w/2), parent.pos.y-(parent.dim.h/2)]
+                }
+            } else {
+                [[0,0], pico.get.size(:internal)] thus { println(it) ; it }
+            }
+println(:rr, [[X,Y],[W,H]])
+        val [px,py] = [W/COL, H/LIN]
+        loop [i,r:Rect] in rs1->to.iter([:idx,:val]) {
+            set rs2[+] = [[x,y], [w,h]] where {
+                val w = r.dim.w * px
+                val h = r.dim.h * py
+                val x = X + (r.pos.x * px) + (w/2)
+                val y = Y + (r.pos.y * py) + (h/2)
+            }
+        }
+    }
+    drop(rs2)
+}
+
+task Grid (rs) {
+    spawn {
+        every :Pico.Draw {
+            pico.set.style(:Style.Stroke)
+            loop r in rs {
+                pico.output.draw.rect(r)
+            }
+        }
+    }
+    await(|false)
+}
+
+test {
+    do {
+        println(:1)
+        val lay = [
+            [0, 1]
+        ]
+        val rs = layout-to-rects(lay, [[0,0],[2,1]])
+        println(rs)
+        assert(rs === #[
+            [[0.5,0.5], [1,1]],
+            [[1.5,0.5], [1,1]],
+        ])
+    }
+    do {
+        println(:2)
+        val lay = [
+            [0,0,1],
+            [0,0,1],
+            [2,2,3],
+            [4,5,3],
+        ]
+        val rs = layout-to-rects(lay, [#lay[0],#lay])
+        println(rs)
+        assert(rs === #[
+            [[1.0,1.0],[2,2]],
+            [[2.5,1.0],[1,2]],
+            [[1.0,2.5],[2,1]],
+            [[2.5,3.0],[1,2]],
+            [[0.5,3.5],[1,1]],
+            [[1.5,3.5],[1,1]]
+        ])
+    }
+}
