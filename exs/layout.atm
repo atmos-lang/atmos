@@ -1,55 +1,50 @@
-^["@/pico/pico.ceu"]
-pico.set.font("tiny.ttf", 10)
-
-val {{||}} = pico.pct-to-pos
-
-func layout-to-rects (lay, parent :Rect) {
-    println(parent)
+func layout_to_rects (lay, parent) {
     val COL = #lay[0]
     val LIN = #lay
 
-    val rs1 = #[]
-    loop l in {0 => LIN{ {
-        loop c in {0 => COL{ {
+    val rs1 = #{}
+    loop l in LIN {
+        loop c in COL {
             if lay[l][c] == #rs1 {
-                val r :Rect = [[c,l],[nil,nil]]
-                loop c' in {c => COL{ {
-                    until lay[l][c'] /= #rs1
-                    set r.dim.w = (c' - c) + 1
+                val r = @{x=c,y=l,w=nil,h=nil}
+                loop cx in (c,COL) {
+                    until (lay[l][cx] != #rs1)
+                    set r.w = (cx - c) + 1
                 }
-                loop l' in {l => LIN{ {
-                    until lay[l'][c] /= #rs1
-                    set r.dim.h = (l' - l) + 1
+                loop lx in (l,LIN) {
+                    until (lay[lx][c] != #rs1)
+                    set r.h = (lx - l) + 1
                 }
-                set rs1[+] = drop(r)
+                set rs1[+] = r
             }
         }
     }
 
-    val rs2 = #[]
+    val rs2 = #{}
     do {
-        val [[X,Y],[W,H]] =
+        val X,Y,W,H =
             if parent {
-                [[x,y], parent.dim] where {
-                    val [x,y] = [parent.pos.x-(parent.dim.w/2), parent.pos.y-(parent.dim.h/2)]
+                (x,y, parent.w,parent.w) where {
+                    x,y = (parent.x-(parent.w/2), parent.y-(parent.h/2))
                 }
             } else {
-                [[0,0], pico.get.size(:internal)] thus { println(it) ; it }
+                (0,0, pico.get.size(:internal)) --> \(...){ print(...) ; ... }
             }
-println(:rr, [[X,Y],[W,H]])
-        val [px,py] = [W/COL, H/LIN]
-        loop [i,r:Rect] in rs1->to.iter([:idx,:val]) {
-            set rs2[+] = [[x,y], [w,h]] where {
-                val w = r.dim.w * px
-                val h = r.dim.h * py
-                val x = X + (r.pos.x * px) + (w/2)
-                val y = Y + (r.pos.y * py) + (h/2)
+print(:rr, X,Y,W,H)
+        val px,py = (W/COL, H/LIN)
+        loop i,r in rs1 {
+            set rs2[+] = @{x=x,y=y,w=w,h=h} where {
+                w = r.w * px
+                h = r.h * py
+                x = X + (r.x * px) + (w/2)
+                y = Y + (r.y * py) + (h/2)
             }
         }
     }
-    drop(rs2)
+    rs2
 }
 
+;;;
 task Grid (rs) {
     spawn {
         every :Pico.Draw {
@@ -61,30 +56,34 @@ task Grid (rs) {
     }
     await(|false)
 }
+;;;
 
 test {
     do {
-        println(:1)
-        val lay = [
-            [0, 1]
-        ]
-        val rs = layout-to-rects(lay, [[0,0],[2,1]])
-        println(rs)
-        assert(rs === #[
+        print(:1)
+        val lay = #{
+            #{0, 1}
+        }
+        val rs = layout_to_rects(lay, #{#{0,0},#{2,1}})
+        xprint(rs)
+;;;
+        assert(rs === #{
             [[0.5,0.5], [1,1]],
             [[1.5,0.5], [1,1]],
-        ])
+        })
+;;;
     }
+;;;
     do {
-        println(:2)
+        print(:2)
         val lay = [
             [0,0,1],
             [0,0,1],
             [2,2,3],
             [4,5,3],
         ]
-        val rs = layout-to-rects(lay, [#lay[0],#lay])
-        println(rs)
+        val rs = layout_to_rects(lay, [#lay[0],#lay])
+        print(rs)
         assert(rs === #[
             [[1.0,1.0],[2,2]],
             [[2.5,1.0],[1,2]],
@@ -94,4 +93,5 @@ test {
             [[1.5,3.5],[1,1]]
         ])
     }
+;;;
 }
