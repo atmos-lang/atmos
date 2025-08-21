@@ -1032,14 +1032,55 @@ do
     local out = atm_test(src)
     assertx(out, "0\n1\n2\n")
 
-    local src = [[
-        loop x in 2 {
-            print(x)
-        }
-    ]]
-    print("Testing...", "loop 3")
-    local out = atm_test(src)
-    assert(out == "0\n1\n")
+    do -- numeric loop
+        local src = [[
+            loop x in 2 {
+                print(x)
+            }
+        ]]
+        print("Testing...", "loop num 1")
+        local out = atm_test(src)
+        assert(out == "0\n1\n")
+
+        local src = [[
+            loop x in (10,12) {
+                print(x)
+            }
+        ]]
+        print("Testing...", "loop num 2")
+        local out = atm_test(src)
+        assertx(out, "10\n11\n")
+
+        local src = [[
+            loop x in 0 {
+                print(x)
+            }
+            print:ok
+        ]]
+        print("Testing...", "loop num 3")
+        local out = atm_test(src)
+        assert(out == "ok\n")
+
+        local src = [[
+            loop x in -1 {
+                print(x)
+            }
+            print:ok
+        ]]
+        print("Testing...", "loop num 4")
+        local out = atm_test(src)
+        assert(out == "ok\n")
+
+        local src = [[
+            loop x in (10,10) {
+                print(x)
+            }
+            print:ok
+        ]]
+        print("Testing...", "loop num 5")
+        local out = atm_test(src)
+        assert(out == "ok\n")
+    end
 
     local src = [[
         print(:1)

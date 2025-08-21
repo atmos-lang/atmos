@@ -33,6 +33,7 @@ func layout_to_rects (lay, parent) {
 print(:rr, X,Y,W,H)
         val px,py = (W/COL, H/LIN)
         loop i,r in rs1 {
+xprint(r)
             set rs2[+] = @{x=x,y=y,w=w,h=h} where {
                 w = r.w * px
                 h = r.h * py
@@ -64,7 +65,7 @@ test {
         val lay = #{
             #{0, 1}
         }
-        val rs = layout_to_rects(lay, #{#{0,0},#{2,1}})
+        val rs = layout_to_rects(lay, @{x=0,y=0,w=2,h=1})
         xprint(rs)
 ;;;
         assert(rs === #{

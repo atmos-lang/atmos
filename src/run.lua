@@ -209,13 +209,13 @@ end
 
 local function fi (N, i)
     i = i + 1
-    if i == N then
+    if N and i>=N then
         return nil
     end
     return i
 end
 
-function iter (t)
+function iter (t, ...)
     local mt = getmetatable(t)
     if mt and mt.__ipairs then
         return mt.__ipairs(t)
@@ -226,7 +226,13 @@ function iter (t)
     elseif type(t) == 'function' then
         return t
     elseif type(t) == 'number' then
-        return fi, t, -1
+        local fr, to
+        if ... then
+            fr, to = t-1, ...
+        else
+            fr, to = -1, t
+        end
+        return fi, to, fr
     elseif type(t) == 'table' then
         return next, t, nil
     else
