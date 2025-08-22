@@ -1316,6 +1316,8 @@ Expr : OP Expr          ;; unary operation
      | Expr OP Expr     ;; binary operation
 ```
 
+For binary operations, the first operand and operator must be at the same line.
+
 Atmos supports and mimics the semantics of standard
 [Lua operators](lua-operators):
     (`==` `!=`),
@@ -1327,16 +1329,19 @@ Atmos supports and mimics the semantics of standard
 Note that some operators have a [different syntax](#lua-vs-atmos-subtleties) in
 Lua.
 
-bins same line
-
 Next, we decribe the operations that Atmos modifies or introduces:
     (`??` `!?`), (`#`), (`++`), and (`?>` `!>`).
 
 Examples:
 
+<!-- exs/exp-08-operations.atm -->
+
 ```
-x
- + y ;; err
+-(1 + 10)           ;; --> -11
+!(true && false)    ;; --> true
+#(#{1,2,3})         ;; --> 3
+x                   ;; ERR: `x`,`+` not at same line
+ + y
 ```
 
 [lua-operations]: https://www.lua.org/manual/5.4/manual.html#3.4

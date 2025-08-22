@@ -389,6 +389,16 @@ do
     assert(check('<eof>'))
     assert(xtostring(e) == "{e1={tag=acc, tk={lin=1, sep=1, str=a, tag=id}}, e2={tag=num, tk={lin=1, sep=1, str=10, tag=num}}, op={lin=1, sep=1, str=+, tag=op}, tag=bin}")
 
+    local src = "a \n + 10"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(tosource(e), "a")
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 2 : near '+' : expected expression")
+
     local src = "2 + 3 - 1"
     print("Testing...", src)
     init()

@@ -277,7 +277,7 @@ end
 
 function parser_5_bin (pre)
     local e1 = pre or parser_4_pre()
-    local ok = check(nil,'op') and contains(OPS.bins, TK1.str)
+    local ok = check(nil,'op') and contains(OPS.bins, TK1.str) and (TK0.lin==TK1.lin)
     if not ok then
         return e1
     end

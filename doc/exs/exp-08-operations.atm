@@ -1,0 +1,5 @@
+print <-- -(1 + 10)           ;; --> -11
+print <-- !(true && false)    ;; --> true
+print <-- #(#{1,2,3})         ;; --> 3
+print <-- x                   ;; ERR: `x`,`+` not at same line
+  + y
