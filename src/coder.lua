@@ -77,7 +77,12 @@ function coder (e)
     elseif e.tag == 'uno' then
         return '('..(OPS.lua[e.op.str] or e.op.str)..' '..coder(e.e)..')'
     elseif e.tag == 'bin' then
-        if e.op.str == '++' then
+        if false then
+        elseif e.op.str == '===' then
+            return "atm_equal(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
+        elseif e.op.str == '=!=' then
+            return "(not atm_equal(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
+        elseif e.op.str == '++' then
             return "atm_cat(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '??' then
             return "_is_(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'

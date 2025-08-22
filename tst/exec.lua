@@ -24,6 +24,70 @@ do
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "true\n")
+
+    -- === / =!=
+    do
+        local src = "print(0xA === 10)"
+        print("Testing...", src)
+        local out = atm_test(src)
+        assertx(out, "true\n")
+
+        local src = "print(#{1,2,3} === #{1,2,3})"
+        print("Testing...", src)
+        local out = atm_test(src)
+        assertx(out, "true\n")
+
+        local src = "print(@{x=1} =!= @{x=1})"
+        print("Testing...", src)
+        local out = atm_test(src)
+        assertx(out, "false\n")
+
+        local src = [[
+            print(#{ } =!= @{ })
+            print(#{1} === #{1})
+            print(#{ } === #{1})
+            print(#{1} =!= #{1})
+            print(#{1,#{},#{1,2,3}} === #{1,#{},#{1,2,3}})
+            print(@{nil,#{@{1,1},1}} === @{nil,#{@{1,1},1}})
+            print(#{1,#{1},1} =!= #{1,#{1},1})
+            print(@{[:y]=false} === @{[:x]=true})
+            print(#{@{}} === #{@{}})
+            print(@{[#{}]=true} === @{[#{}]=true})  ;; table keys (=== false)
+        ]]
+        print("Testing...", "expr ===")
+        local out = atm_test(src)
+        assertx(out, "true\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\nfalse\ntrue\nfalse\n")
+
+        local src = [[
+            print(@{} ==  @{})
+            print(@{} === @{})
+            print(@{} !=  @{})
+            print(@{} =!= @{})
+        ]]
+        print("Testing...", "expr ===: table")
+        local out = atm_test(src)
+        assertx(out, "false\ntrue\ntrue\nfalse\n")
+
+        local src = [[
+            print(#{}  ==  #{})
+            print(#{1} === #{1})
+            print(#{1} !=  #{1})
+            print(#{}  =!= #{})
+        ]]
+        print("Testing...", "expr ===: vector")
+        local out = atm_test(src)
+        assertx(out, "false\ntrue\ntrue\nfalse\n")
+
+        local src = [[
+            print(#{#{},@{}} ==  #{#{},@{}})
+            print(#{#{},@{}} !=  #{#{},@{}})
+            print(#{#{1},@{[:y]=false,[:x]=true}} === #{#{1},@{[:x]=true,[:y]=false}})
+            print(#{#{},@{}} =!= #{#{},@{}})
+        ]]
+        print("Testing...", "expr ===: vector")
+        local out = atm_test(src)
+        assertx(out, "false\ntrue\ntrue\nfalse\n")
+    end
 end
 
 print "--- NATIVE ---"

@@ -53,7 +53,7 @@ end
 -- OPERATORS
 
 do
-    local src = "< > = # - == =- ! ++ != #[ # >= # / || * +"
+    local src = "< > = # - == =- === =!= ! ++ != #[ # >= # / || * +"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -65,6 +65,8 @@ do
     assert(LEX().str == '==')
     assert(LEX().str == '=')
     assert(LEX().str == '-')
+    assert(LEX().str == '===')
+    assert(LEX().str == '=!=')
     assert(LEX().str == '!')
     assert(LEX().str == '++')
     assert(LEX().str == '!=')

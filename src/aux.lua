@@ -123,6 +123,91 @@ function xcopy (v)
     return ret
 end
 
+function atm_equal (v1, v2)
+    if v1 == v2 then
+        return true
+    end
+
+    local t1 = type(v1)
+    local t2 = type(v2)
+    if t1 ~= t2 then
+        return false
+    end
+
+    local mt1 = getmetatable(v1)
+    local mt2 = getmetatable(v2)
+    if mt1 ~= mt2 then
+        return false
+    end
+
+    if t1 == 'table' then
+        for k1,x1 in pairs(v1) do
+            local x2 = v2[k1]
+            if not atm_equal(x1,x2) then
+                return false
+            end
+        end
+        for k2,x2 in pairs(v2) do
+            local x1 = v1[k2]
+            if not atm_equal(x2,x1) then
+                return false
+            end
+        end
+        return true
+    end
+
+    return false
+end
+
+function atm_cat (v1, v2)
+    local t1 = type(v1)
+    local t2 = type(v2)
+    local m1 = getmetatable(v1)
+    local m2 = getmetatable(v2)
+    if t1 == 'string' then
+        return v1 .. v2
+    elseif m1 and m2 and m1.__ipairs and m2.__ipairs then
+        local ret = atm_vector{}
+        for _, x in m1.__ipairs(v1) do
+            ret[#ret] = x
+        end
+        for _, x in m2.__ipairs(v2) do
+            ret[#ret] = x
+        end
+        return ret
+    else
+        local ret = {}
+        for k,x in pairs(v1) do
+            ret[k] = x
+        end
+        for k,x in pairs(v2) do
+            ret[k] = x
+        end
+        return ret
+    end
+end
+
+function atm_in (v, t)
+    if type(t) == 'table' then
+        if t.tag == 'vector' then
+            for i=0, #t-1 do
+                if t[i] == v then
+                    return true
+                end
+            end
+            return false
+        elseif t[v] ~= nil then
+            return true
+        end
+    end
+    for x,y in iter(t) do
+        if x==v or y==v then
+            return true
+        end
+    end
+    return false
+end
+
 function map (t, f)
     local ret = {}
     for i,v in ipairs(t) do

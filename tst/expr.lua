@@ -459,6 +459,15 @@ do
     lexer_next()
     local ok, msg = pcall(parser)
     assert(not ok and msg=="anon : line 1 : near ')' : expected expression")
+
+    local src = "(x===y) && (x=!=y)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "((x === y) && (x =!= y))")
 end
 
 print '--- IF / IFS ---'

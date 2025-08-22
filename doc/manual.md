@@ -10,7 +10,7 @@
     * Keywords
     * Symbols
     * Operators
-        - `==` `!=` `??` `!?`
+        - `==` `!=` `===` `=!=` `??` `!?`
         - `>` `<` `>=` `<=`
         - `+` `-` `*` `/` `%`
         - `!` `||` `&&`
@@ -472,13 +472,13 @@ The following symbols are designated in Atmos:
 The following operators are supported in Atmos:
 
 ```
-    ==   !=   ??   !?           ;; comparison
-    >    <    >=   <=           ;; relational
-    +    -    *    /    %       ;; arithmetic
-    !    ||   &&                ;; logical
-    #                           ;; length
-    ++                          ;; concatenation
-    ?>   !>                     ;; membership
+    ==   !=   ===  =!=  ??   !?     ;; comparison
+    >    <    >=   <=               ;; relational
+    +    -    *    /    %           ;; arithmetic
+    !    ||   &&                    ;; logical
+    #                               ;; length
+    ++                              ;; concatenation
+    ?>   !>                         ;; membership
 ```
 
 Operators are used in [operation](#operations) expressions.
@@ -1300,7 +1300,7 @@ set `z` = 10            ;; OK
 
 Atmos provides the [operators](#operators) as follows:
 
-- comparison: `==` `!=` `??` `!?`
+- comparison: `==` `!=` `===` `=!=` `??` `!?`
 - relational: `>` `<` `>=` `<=`
 - arithmetic: `+` `-` `*` `/` `%`
 - logical: `!` `||` `&&`
@@ -1330,7 +1330,7 @@ Note that some operators have a [different syntax](#lua-vs-atmos-subtleties) in
 Lua.
 
 Next, we decribe the operations that Atmos modifies or introduces:
-    (`??` `!?`), (`#`), (`++`), and (`?>` `!>`).
+    (`===` `=!=`), (`??` `!?`), (`#`), (`++`), and (`?>` `!>`).
 
 Examples:
 
