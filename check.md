@@ -18,6 +18,7 @@ lua5.4 all.lua
 cd exs/
 atmos hello.atm
 atmos click-drag-cancel.atm
+atmos layout.atm
 ```
 
 - Projects

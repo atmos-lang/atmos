@@ -11,8 +11,8 @@ loop i {
 }
 ;;;
 
-val x = loop i in 2 {
-    print(i)        ;; --> 0, 1
+val x = loop i in (1,3) {
+    print(i)        ;; --> 1, 2
 }
 print(x)            ;; --> false
 

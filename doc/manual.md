@@ -1771,11 +1771,13 @@ Atmos supports three loop variations:
 The following iterator expression types with predefined behaviors are
 supported:
 
-- `number`: ranges from `0` up to, but not including, the given number
-- `vector`: ranges over the indexes and values of a vector
-- `table`: ranges over the keys and values of a table
-- `tasks`: ranges over the indexes and tasks of a task pool
-- `function`: ranges over calls to the given function, until it returns `nil`
+- `:vector`: ranges over the indexes and values of a vector
+- `:table`: ranges over the keys and values of a table
+- `:tasks`: ranges over the indexes and tasks of a task pool
+- `:function`: ranges over calls to the given function, until it returns `nil`
+- `(:number,:number)`: ranges from the first number up to, but not including,
+    the second number
+- `:number`: equivalent to `(0,x)` where `x` is the given number
 
 A loop evaluates to `nil` as a whole, unless a [break](#breaks) condition
 occurs.
@@ -1798,8 +1800,8 @@ loop i {
 ```
 
 ```
-val x = loop i in 2 {
-    print(i)        ;; --> 0, 1
+val x = loop i in (1,3) {
+    print(i)        ;; --> 1, 2
 }
 print(x)            ;; --> false
 ```
