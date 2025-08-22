@@ -1352,10 +1352,12 @@ The operators `??` and `!?` ("is" and "is not") check the equivalence between
 their operands.
 If any of the following conditions are met, then `a ?? b` is true:
 
-- `a == b`, (e.g., `'x' == 'x'`)
-- `type(a) == b`, (e.g, `10 ?? :number`)
-- `a.tag == b`, (e.g, `:X @{} ?? :X`)
-- `b` is "dot" prefix of `a`, (e.g., `'x.y.z' ?? 'x.y'`)
+- `a === b` (e.g., `'x' ?? 'x'`)
+- `type(a) === b` (e.g, `10 ?? :number`)
+- `a.tag === b` (e.g, `:X @{} ?? :X`)
+- `b` is "dot" prefix of `a` (e.g., `'x.y.z' ?? 'x.y'`)
+
+Note that the comparisons use [deep equality](#deep-equality).
 
 The operator `!?` is the negation of `??`.
 

@@ -2385,6 +2385,16 @@ do
     assertx(out, "true\ntrue\nfalse\ntrue\ntrue\ntrue\n")
 
     local src = [[
+        print(#{} ?? #{})
+        print(#{} ?? @{})
+        print(#{1,2,3} ?? #{1,2,3})
+        print(\{} !? \{})
+    ]]
+    print("Testing...", "is 4")
+    local out = atm_test(src)
+    assertx(out, "true\nfalse\ntrue\ntrue\n")
+
+    local src = [[
         val t = @{1,2,3}
         print(2 ?> t)
         print(4 ?> t)

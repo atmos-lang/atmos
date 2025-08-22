@@ -159,6 +159,10 @@ function atm_equal (v1, v2)
     return false
 end
 
+function atm_is (v1, v2)
+    return atm_equal(v1,v2) or _is_(v1,v2)
+end
+
 function atm_cat (v1, v2)
     local t1 = type(v1)
     local t2 = type(v2)

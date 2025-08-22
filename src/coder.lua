@@ -85,9 +85,9 @@ function coder (e)
         elseif e.op.str == '++' then
             return "atm_cat(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '??' then
-            return "_is_(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
+            return "atm_is(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '!?' then
-            return "(not _is_(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
+            return "(not atm_is(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
         elseif e.op.str == '?>' then
             return "atm_in(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '!>' then
