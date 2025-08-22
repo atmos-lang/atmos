@@ -10,7 +10,7 @@
     - <a href="#keywords">3.1.</a> Keywords
     - <a href="#symbols">3.2.</a> Symbols
     - <a href="#operators">3.3.</a> Operators
-        - `==` `!=` `??` `!?`
+        - `==` `!=` `===` `=!=` `??` `!?`
         - `>` `<` `>=` `<=`
         - `+` `-` `*` `/` `%`
         - `!` `||` `&&`
@@ -496,13 +496,13 @@ The following symbols are designated in Atmos:
 The following operators are supported in Atmos:
 
 ```
-    ==   !=   ??   !?           ;; comparison
-    >    <    >=   <=           ;; relational
-    +    -    *    /    %       ;; arithmetic
-    !    ||   &&                ;; logical
-    #                           ;; length
-    ++                          ;; concatenation
-    ?>   !>                     ;; membership
+    ==   !=   ===  =!=  ??   !?     ;; comparison
+    >    <    >=   <=               ;; relational
+    +    -    *    /    %           ;; arithmetic
+    !    ||   &&                    ;; logical
+    #                               ;; length
+    ++                              ;; concatenation
+    ?>   !>                         ;; membership
 ```
 
 Operators are used in [operation](#operations) expressions.
@@ -661,8 +661,8 @@ print(clk ?? :clock)    ;; --> true
 
 ## 4.2. Vector
 
-The `vector` reference type represents tables with numerical indexes starting at
-`0`.
+The `vector` reference type represents tables with numerical indexes starting
+at `0`.
 
 A vector constructor `#{ * }` receives a list of expressions and assigns each
 expression to incrementing indexes:
@@ -679,6 +679,11 @@ i.e, only pushes and pops are allowed:
 
 Therefore, an insertion must be exactly at index `#v`, while removal must be
 exactly at index `#v-1`.
+
+Note that internally, a vector is represented as a table with a custom
+[Lua metatable][lua-metatables].
+
+[lua-metatables]: https://www.lua.org/manual/5.4/manual.html#2.4
 
 Examples:
 
@@ -1378,7 +1383,7 @@ set `z` = 10            ;; OK
 
 Atmos provides the [operators](#operators) as follows:
 
-- comparison: `==` `!=` `??` `!?`
+- comparison: `==` `!=` `===` `=!=` `??` `!?`
 - relational: `>` `<` `>=` `<=`
 - arithmetic: `+` `-` `*` `/` `%`
 - logical: `!` `||` `&&`
@@ -1394,6 +1399,8 @@ Expr : OP Expr          ;; unary operation
      | Expr OP Expr     ;; binary operation
 ```
 
+For binary operations, the first operand and operator must be at the same line.
+
 Atmos supports and mimics the semantics of standard
 [Lua operators](lua-operators):
     (`==` `!=`),
@@ -1405,32 +1412,71 @@ Atmos supports and mimics the semantics of standard
 Note that some operators have a [different syntax](#lua-vs-atmos-subtleties) in
 Lua.
 
-bins same line
-
 Next, we decribe the operations that Atmos modifies or introduces:
-    (`??` `!?`), (`#`), (`++`), and (`?>` `!>`).
+    (`===` `=!=`), (`??` `!?`), (`#`), (`++`), and (`?>` `!>`).
 
 Examples:
 
+<!-- exs/exp-08-operations.atm -->
+
 ```
-x
- + y ;; err
+-(1 + 10)           ;; --> -11
+!(true && false)    ;; --> true
+#(#{1,2,3})         ;; --> 3
+x                   ;; ERR: `x`,`+` not at same line
+ + y
 ```
 
 [lua-operations]: https://www.lua.org/manual/5.4/manual.html#3.4
 
+<a name="deep-equality"/>
+
+### 5.3.1. Deep Equality
+
+The operators `===` and `=!=` ("deep equal" and "not deep equal") check if
+their operands have or not structural equality.
+Therefore, tables are not only compared by reference, but also by their stored
+values.
+The check if `a === b` is true, the following tests are made in order:
+
+1. if `a == b`, then `a === b` is `true` (e.g., `'x' === 'x')
+2. if `type(a) != type(b)`, then `a === b` is `false` (e.g, `10 === 'x'`)
+3. if `a` and `b` are not tables, then `a === b` is `false` (e.g., functions `f === g`)
+4. if all key-value pairs `ka=va` in `a` are equal to all `kb=vb` in `b` (and vice-versa), then `a === b` is `true`
+    - the keys are compared with `==`
+    - the values are compares with `===`
+
+Note that the [Lua metatables](#lua-metatables) of the values being compared
+must also be equal.
+
+The operator `=!=` is the negation of `===`.
+
+Examples:
+
+<!-- exs/exp-09-deep-equality.atm -->
+
+```
+#{1,2,3} === #{1,2,3}       ;; --> true
+#{} === @{}                 ;; --> false (different metatables)
+@{v=#{}} === @{v=#{}}       ;; --> true
+@{[#{}]=1} === @{[#{}]=1}   ;; --> false (keys are not `==`)
+\{} === \{}                 ;; --> false (functions are not `==`)
+```
+
 <a name="equivalence"/>
 
-### 5.3.1. Equivalence
+### 5.3.2. Equivalence
 
 The operators `??` and `!?` ("is" and "is not") check the equivalence between
 their operands.
 If any of the following conditions are met, then `a ?? b` is true:
 
-- `a == b`, (e.g., `'x' == 'x'`)
-- `type(a) == b`, (e.g, `10 ?? :number`)
-- `a.tag == b`, (e.g, `:X @{} ?? :X`)
-- `b` is "dot" prefix of `a`, (e.g., `'x.y.z' ?? 'x.y'`)
+- `a === b` (e.g., `'x' ?? 'x'`)
+- `type(a) === b` (e.g, `10 ?? :number`)
+- `a.tag === b` (e.g, `:X @{} ?? :X`)
+- `b` is "dot" prefix of `a` (e.g., `'x.y.z' ?? 'x.y'`)
+
+Note that the comparisons use [deep equality](#deep-equality).
 
 The operator `!?` is the negation of `??`.
 
@@ -1447,7 +1493,7 @@ task(\{}) ?? :task  ;; --> true
 
 <a name="length"/>
 
-### 5.3.2. Length
+### 5.3.3. Length
 
 The operator `#` ("length") evaluates the number of elements in the given
 collection.
@@ -1472,7 +1518,7 @@ print(#ts)      ;; --> 2
 
 <a name="concatenation"/>
 
-### 5.3.3. Concatenation
+### 5.3.4. Concatenation
 
 The operator `++` ("concat") concatenates its operands into a new value.
 The operands must be collections of the same type.
@@ -1511,7 +1557,7 @@ print(#ts, y?>ts, 10?>ts)   ;; 2, true, false
 
 <a name="membership"/>
 
-### 5.3.4. Membership
+### 5.3.5. Membership
 
 The operators `?>` and `!>` ("in" and "not in") check the membership of the
 left operand in the right operand.
@@ -1879,11 +1925,13 @@ Atmos supports three loop variations:
 The following iterator expression types with predefined behaviors are
 supported:
 
-- `number`: ranges from `0` up to, but not including, the given number
-- `vector`: ranges over the indexes and values of a vector
-- `table`: ranges over the keys and values of a table
-- `tasks`: ranges over the indexes and tasks of a task pool
-- `function`: ranges over calls to the given function, until it returns `nil`
+- `:vector`: ranges over the indexes and values of a vector
+- `:table`: ranges over the keys and values of a table
+- `:tasks`: ranges over the indexes and tasks of a task pool
+- `:function`: ranges over calls to the given function, until it returns `nil`
+- `(:number,:number)`: ranges from the first number up to, but not including,
+    the second number
+- `:number`: equivalent to `(0,x)` where `x` is the given number
 
 A loop evaluates to `nil` as a whole, unless a [break](#breaks) condition
 occurs.
@@ -1906,8 +1954,8 @@ loop i {
 ```
 
 ```
-val x = loop i in 2 {
-    print(i)        ;; --> 0, 1
+val x = loop i in (1,3) {
+    print(i)        ;; --> 1, 2
 }
 print(x)            ;; --> false
 ```
