@@ -1,48 +1,42 @@
-func layout_to_rects (lay, parent) {
-    val COL = #lay[0]
-    val LIN = #lay
-
-    val rs1 = #{}
-    loop l in LIN {
-        loop c in COL {
-            if lay[l][c] == #rs1 {
+val unit = func (lay) {
+    val L, C = (#lay, #lay[0])
+    val ret = #{}
+    loop l in L {
+        loop c in C {
+            if lay[l][c] == #ret {
                 val r = @{x=c,y=l,w=nil,h=nil}
-                loop cx in (c,COL) {
-                    until (lay[l][cx] != #rs1)
+                loop cx in (c,C) {
+                    until (lay[l][cx] != #ret)
                     set r.w = (cx - c) + 1
                 }
-                loop lx in (l,LIN) {
-                    until (lay[lx][c] != #rs1)
+                loop lx in (l,L) {
+                    until (lay[lx][c] != #ret)
                     set r.h = (lx - l) + 1
                 }
-                set rs1[+] = r
+                set ret[+] = r
             }
         }
     }
+    ret
+}
 
-    val rs2 = #{}
-    do {
-        val X,Y,W,H =
-            if parent {
-                (x,y, parent.w,parent.w) where {
-                    x,y = (parent.x-(parent.w/2), parent.y-(parent.h/2))
-                }
-            } else {
-                (0,0, pico.get.size(:internal)) --> \(...){ print(...) ; ... }
-            }
-print(:rr, X,Y,W,H)
-        val px,py = (W/COL, H/LIN)
-        loop i,r in rs1 {
-xprint(r)
-            set rs2[+] = @{x=x,y=y,w=w,h=h} where {
-                w = r.w * px
-                h = r.h * py
-                x = X + (r.x * px) + (w/2)
-                y = Y + (r.y * py) + (h/2)
-            }
+val mult = func (lay, ref, rs) {
+    val ret = #{}
+    val px,py = (ref.w/#lay[0], ref.h/#lay)
+    loop i,r in rs {
+        set ret[+] = @{x=x,y=y,w=w,h=h} where {
+            w = r.w * px
+            h = r.h * py
+            x = ref.x + (r.x * px)
+            y = ref.y + (r.y * py)
         }
     }
-    rs2
+    ret
+}
+
+func layout (lay, ref) {
+    set ref = assert(ref)
+    mult(lay, ref) <- unit(lay)
 }
 
 ;;;
@@ -61,38 +55,71 @@ task Grid (rs) {
 
 test {
     do {
-        print(:1)
+        print "Test 1..."
         val lay = #{
             #{0, 1}
         }
-        val rs = layout_to_rects(lay, @{x=0,y=0,w=2,h=1})
-        xprint(rs)
-;;;
-        assert(rs === #{
-            [[0.5,0.5], [1,1]],
-            [[1.5,0.5], [1,1]],
+        val u = unit(lay)
+        assert(u === #{
+            @{x=0,y=0,w=1,h=1},
+            @{x=1,y=0,w=1,h=1},
         })
-;;;
+
+        val m1 = mult(lay, @{x=0,y=0,w=2,h=1}, u)
+        assert(m1 === #{
+            @{x=0,y=0,w=1,h=1},
+            @{x=1,y=0,w=1,h=1},
+        })
+
+        val m2 = layout(lay, @{x=0,y=0,w=2,h=1})
+        assert(m2 === #{
+            @{x=0,y=0,w=1,h=1},
+            @{x=1,y=0,w=1,h=1},
+        })
+
+        val m2 = layout(lay, @{x=100,y=200,w=10,h=10})
+        assert(m2 === #{
+            @{x=100,y=200,w=5,h=10},
+            @{x=105,y=200,w=5,h=10},
+        })
     }
-;;;
+
     do {
-        print(:2)
-        val lay = [
-            [0,0,1],
-            [0,0,1],
-            [2,2,3],
-            [4,5,3],
-        ]
-        val rs = layout_to_rects(lay, [#lay[0],#lay])
-        print(rs)
-        assert(rs === #[
-            [[1.0,1.0],[2,2]],
-            [[2.5,1.0],[1,2]],
-            [[1.0,2.5],[2,1]],
-            [[2.5,3.0],[1,2]],
-            [[0.5,3.5],[1,1]],
-            [[1.5,3.5],[1,1]]
-        ])
+        print "Test 2..."
+        val lay = #{
+            #{0,0,1},
+            #{0,0,1},
+            #{2,2,3},
+            #{4,5,3},
+        }
+        val rs = layout(lay, @{x=0,y=0,w=30,h=40})
+        assert(rs === #{
+            @{x=00,y=00,w=20,h=20},
+            @{x=20,y=00,w=10,h=20},
+            @{x=00,y=20,w=20,h=10},
+            @{x=20,y=20,w=10,h=20},
+            @{x=00,y=30,w=10,h=10},
+            @{x=10,y=30,w=10,h=10}
+        })
     }
-;;;
+
+    do {
+        print "Test 3..."
+        val lay = #{
+            #{0,0,1},
+            #{0,0,1},
+            #{2,2,3},
+            #{4,5,6},
+        }
+        val rs = layout(lay, @{x=0,y=0,w=30,h=40})
+        assert(rs === #{
+            @{x=00,y=00,w=20,h=20},
+            @{x=20,y=00,w=10,h=20},
+            @{x=00,y=20,w=20,h=10},
+            @{x=20,y=20,w=10,h=10},
+            @{x=00,y=30,w=10,h=10},
+            @{x=10,y=30,w=10,h=10},
+            @{x=20,y=30,w=10,h=10},
+        })
+    }
 }
