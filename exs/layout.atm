@@ -34,9 +34,20 @@ val mult = func (lay, ref, rs) {
     ret
 }
 
-func layout (lay, ref) {
+val tags = func (ids, ms) {
+    assert(#ms == #ids)
+    val ret = @{}
+    loop i,r in ms {
+        set ret[ids[i]] = r
+    }
+    ret
+}
+
+func layout (ids, lay, ref) {
     set ref = assert(ref)
-    mult(lay, ref) <- unit(lay)
+    val us = unit(lay)
+    val ms = mult(lay, ref, us)
+    if ids => tags(ids, ms) => ms
 }
 
 ;;;
@@ -59,28 +70,32 @@ test {
         val lay = #{
             #{0, 1}
         }
-        val u = unit(lay)
-        assert(u === #{
+        val us = unit(lay)
+        assert(us === #{
             @{x=0,y=0,w=1,h=1},
             @{x=1,y=0,w=1,h=1},
         })
 
-        val m1 = mult(lay, @{x=0,y=0,w=2,h=1}, u)
+        val m1 = mult(lay, @{x=0,y=0,w=2,h=1}, us)
         assert(m1 === #{
             @{x=0,y=0,w=1,h=1},
             @{x=1,y=0,w=1,h=1},
         })
 
-        val m2 = layout(lay, @{x=0,y=0,w=2,h=1})
-        assert(m2 === #{
-            @{x=0,y=0,w=1,h=1},
-            @{x=1,y=0,w=1,h=1},
+        val ts = tags(#{:l, :r}, m1)
+        assert(ts.l === @{x=0,y=0,w=1,h=1})
+        assert(ts.r === @{x=1,y=0,w=1,h=1})
+
+        val m2 = layout(#{:l,:r}, lay, @{x=0,y=0,w=2,h=1})
+        assert(m2 === @{
+            l = @{x=0,y=0,w=1,h=1},
+            r = @{x=1,y=0,w=1,h=1},
         })
 
-        val m2 = layout(lay, @{x=100,y=200,w=10,h=10})
-        assert(m2 === #{
-            @{x=100,y=200,w=5,h=10},
-            @{x=105,y=200,w=5,h=10},
+        val m3 = layout(#{:l,:r}, lay, @{x=100,y=200,w=10,h=10})
+        assert(m3 === @{
+            l = @{x=100,y=200,w=5,h=10},
+            r = @{x=105,y=200,w=5,h=10},
         })
     }
 
@@ -92,7 +107,7 @@ test {
             #{2,2,3},
             #{4,5,3},
         }
-        val rs = layout(lay, @{x=0,y=0,w=30,h=40})
+        val rs = layout(nil, lay, @{x=0,y=0,w=30,h=40})
         assert(rs === #{
             @{x=00,y=00,w=20,h=20},
             @{x=20,y=00,w=10,h=20},
@@ -111,7 +126,7 @@ test {
             #{2,2,3},
             #{4,5,6},
         }
-        val rs = layout(lay, @{x=0,y=0,w=30,h=40})
+        val rs = layout(nil, lay, @{x=0,y=0,w=30,h=40})
         assert(rs === #{
             @{x=00,y=00,w=20,h=20},
             @{x=20,y=00,w=10,h=20},
