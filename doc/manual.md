@@ -625,8 +625,8 @@ print(clk ?? :clock)    ;; --> true
 
 ## Vector
 
-The `vector` reference type represents tables with numerical indexes starting at
-`0`.
+The `vector` reference type represents tables with numerical indexes starting
+at `0`.
 
 A vector constructor `#{ * }` receives a list of expressions and assigns each
 expression to incrementing indexes:
@@ -643,6 +643,11 @@ i.e, only pushes and pops are allowed:
 
 Therefore, an insertion must be exactly at index `#v`, while removal must be
 exactly at index `#v-1`.
+
+Note that internally, a vector is represented as a table with a custom
+[Lua metatable][lua-metatables].
+
+[lua-metatables]: https://www.lua.org/manual/5.4/manual.html#2.4
 
 Examples:
 
@@ -1345,6 +1350,38 @@ x                   ;; ERR: `x`,`+` not at same line
 ```
 
 [lua-operations]: https://www.lua.org/manual/5.4/manual.html#3.4
+
+### Deep Equality
+
+The operators `===` and `=!=` ("deep equal" and "not deep equal") check if
+their operands have or not structural equality.
+Therefore, tables are not only compared by reference, but also by their stored
+values.
+The check if `a === b` is true, the following tests are made in order:
+
+1. if `a == b`, then `a === b` is `true` (e.g., `'x' === 'x')
+2. if `type(a) != type(b)`, then `a === b` is `false` (e.g, `10 === 'x'`)
+3. if `a` and `b` are not tables, then `a === b` is `false` (e.g., functions `f === g`)
+4. if all key-value pairs `ka=va` in `a` are equal to all `kb=vb` in `b` (and vice-versa), then `a === b` is `true`
+    - the keys are compared with `==`
+    - the values are compares with `===`
+
+Note that the [Lua metatables](#lua-metatables) of the values being compared
+must also be equal.
+
+The operator `=!=` is the negation of `===`.
+
+Examples:
+
+<!-- exs/exp-09-deep-equality.atm -->
+
+```
+#{1,2,3} === #{1,2,3}       ;; --> true
+#{} === @{}                 ;; --> false (different metatables)
+@{v=#{}} === @{v=#{}}       ;; --> true
+@{[#{}]=1} === @{[#{}]=1}   ;; --> false (keys are not `==`)
+\{} === \{}                 ;; --> false (functions are not `==`)
+```
 
 ### Equivalence
 

@@ -37,6 +37,11 @@ do
         local out = atm_test(src)
         assertx(out, "true\n")
 
+        local src = "print(\\{} =!= \\{})"
+        print("Testing...", src)
+        local out = atm_test(src)
+        assertx(out, "true\n")
+
         local src = "print(@{x=1} =!= @{x=1})"
         print("Testing...", src)
         local out = atm_test(src)
