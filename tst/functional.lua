@@ -6,27 +6,26 @@ local src = [[
     val my_capped_counter = my_counter::take(5)
     val my_array = my_capped_counter::to_array()
     print(type(my_array))
-    loop _,v in my_array {
-      print(v)
+    loop i,v in my_array {
+      print(i,v)
     }
 ]]
 print("Testing...", "func 1")
 local out = atm_test(src)
-assertx(out, "table\n1\n2\n3\n4\n5\n")
+assertx(out, "table\n1\t1\n2\t2\n3\t3\n4\t4\n5\t5\n")
 
 local src = [[
     val f = require "atmos.lang.functional"
     val my_array =
         f.counter()::
-            take(5)::
-            to_array()  ;; my_array
-    loop i,v in my_array {
-      print(i,v)
+            take(5)
+    loop v in my_array {
+      print(v)
     }
 ]]
 print("Testing...", "func 2")
 local out = atm_test(src)
-assertx(out, "1\t1\n2\t2\n3\t3\n4\t4\n5\t5\n")
+assertx(out, "1\n2\n3\n4\n5\n")
 
 local src = [[
     val f = require "atmos.lang.functional"
@@ -76,7 +75,7 @@ local src = [[
     val fix_case = func (name) {
       name::sub(1,1)::upper() ++ name::sub(2)::lower()
     }
-    loop _,name in f.map(names, fix_case)::to_array() {
+    loop name in f.map(names, fix_case) {
       print(name)
     }
 ]]

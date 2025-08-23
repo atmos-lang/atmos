@@ -1826,6 +1826,8 @@ supported:
 A loop evaluates to `nil` as a whole, unless a [break](#breaks) condition
 occurs.
 
+`TODO: __ipairs, __pairs, __call metamethods`
+
 Examples:
 
 <!-- exs/exp-21-loop.atm -->

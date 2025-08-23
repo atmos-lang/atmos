@@ -172,6 +172,8 @@ function iter (t, ...)
         return mt.__ipairs(t)
     elseif mt and mt.__pairs then
         return mt.__pairs(t)
+    elseif mt and mt.__call then
+        return t
     elseif t == nil then
         return fi, nil, -1
     elseif type(t) == 'function' then
