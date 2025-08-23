@@ -2052,16 +2052,6 @@ spawn {
 }
 
 pin t = spawn {}            ;; ERR: cannot assign```
-
-
-Examples:
-
-```
-task T (v, vs) {                ;; task prototype accepts 2 args
-    <...>
-}
-val t = spawn T(10, [1,2,3])    ;; starts task passing args
-print(t)                        ;; --> exe-task 0x...
 ```
 
 ### Await
