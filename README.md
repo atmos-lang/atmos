@@ -88,6 +88,10 @@ into your `lua-atmos` path (e.g., `/usr/local/share/lua/5.4/atmos/`):
 TODO
 ```
 
+The Atmos distribution includes the single-file projects
+    [argparse](https://github.com/mpeterv/argparse) and
+    [functional](https://github.com/wqferr/functional).
+
 # Documentation
 
 <!--
