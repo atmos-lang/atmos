@@ -1,4 +1,3 @@
-local atmos = require "atmos"
 require "atmos.lang.exec"
 
 -- EXPR / STRING / TAG

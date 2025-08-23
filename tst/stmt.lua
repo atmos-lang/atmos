@@ -1,7 +1,5 @@
 local atmos = require "atmos"
-require "atmos.lang.lexer"
-require "atmos.lang.parser"
-require "atmos.lang.tosource"
+require "atmos.lang.exec"
 
 print '--- CALL / FUNC / NATIVE ---'
 
