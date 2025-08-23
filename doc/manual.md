@@ -2320,15 +2320,42 @@ print(x, y)     ;; --> X, Y
 # STANDARD LIBRARIES
 
 In addition to the [standard Lua libraries](lua-libraries), Atmos also provides
-the following functions:
+the following modules:
 
 `TODO: between, to*, remove/insert (vector)`
 
-- `xtostring`
-- `xprint`
-- `xcopy`
+- `functional`
+- `x`
+    - `xtostring`
+    - `xprint`
+    - `xcopy`
 
 [lua-libraries]: https://www.lua.org/manual/5.4/manual.html#6
+
+## Lua Standard Libraries
+
+Extracted from the [Lua manual](lua-libraries):
+
+- `TODO`: complete for all below
+
+01. [Basic Functions](https://www.lua.org/manual/5.4/manual.html#6.1):
+    - [assert](https://www.lua.org/manual/5.4/manual.html#pdf-assert):
+        raises an error if its argument is false
+    - `collectgarbage` `dofile` `error` `getmetatable` `ipairs` `load`
+    - `loadfile` `next` `pairs` `pcall` `print` `rawequal` `rawget` `rawlen`
+    - `rawset` `require` `select` `setmetatable` `tonumber` `tostring` `type`
+    - `warn` `xpcall`
+02. Coroutine Manipulation
+03. Modules
+04. String Manipulation
+    1. Patterns
+    2. Format Strings for Pack and Unpack
+05. UTF-8 Support
+06. Table Manipulation
+07. Mathematical Functions
+08. Input and Output Facilities
+09. Operating System Facilities
+10. The Debug Library
 
 # SYNTAX
 
