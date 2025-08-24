@@ -60,6 +60,7 @@
         - `spawn` `await` `emit` `toggle`
         - `every` `watching` `par` `par_and` `par_or`
 * STANDARD LIBRARIES
+    - Lua Standard Libraries
     - `TODO`
 * SYNTAX
 
@@ -391,6 +392,10 @@ For more information, please visit our website:
     https://github.com/atmos-lang/atmos/
 
 ```
+
+## Environments
+
+`TODO`
 
 # LEXICON
 
@@ -2324,12 +2329,12 @@ the following modules:
 
 ## Lua Standard Libraries
 
-Extracted from the [Lua manual](lua-libraries):
+All libraries are extracted as is from the [Lua manual](lua-libraries):
 
 - `TODO`: complete for all below
 
 01. [Basic Functions](https://www.lua.org/manual/5.4/manual.html#6.1):
-    - [assert](https://www.lua.org/manual/5.4/manual.html#pdf-assert):
+    - [`assert`](https://www.lua.org/manual/5.4/manual.html#pdf-assert):
         raises an error if its argument is false
     - `collectgarbage` `dofile` `error` `getmetatable` `ipairs` `load`
     - `loadfile` `next` `pairs` `pcall` `print` `rawequal` `rawget` `rawlen`
