@@ -78,6 +78,13 @@ local curried_function__meta = {}
 
 local unpack = table.unpack or unpack
 
+function Iterator.xawait (...)
+    local args = { ... }
+    return Iterator.over(function ()
+        return await(table.unpack(args))
+    end)
+end
+
 --- Iterate over the given <code>iterable</code>.
 -- <p>If <code>iterable</code> is an array, create an Iterator instance
 -- that returns its values one by one. If it is an
@@ -85,6 +92,13 @@ local unpack = table.unpack or unpack
 -- @tparam iterable iterable the values to be iterated over
 -- @treturn Iterator the new Iterator
 function Iterator.over(iterable)
+  local mt = getmetatable(iterable)
+  if type(iterable)=='function' or (mt and mt.__call)  then
+    local it = Iterator.counter()
+    it.next = iterable
+    return it
+  end
+
   internal.assert_table(iterable, "iterable")
 
   if internal.is_iterator(iterable) then
@@ -1880,6 +1894,7 @@ end
 curried_function__meta.__call = internal.curried_function_call
 
 exports.Iterator = Iterator
+exports.xawait = Iterator.xawait
 
 for name, exported_func in pairs(exports) do
   M[name] = exported_func

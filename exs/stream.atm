@@ -1,0 +1,7 @@
+require "atmos.env.clock"
+
+val F = require "atmos.lang.functional"
+
+print:antes
+F.xawait(@1)::take(5)::last()
+print:depois
