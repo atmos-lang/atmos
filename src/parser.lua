@@ -212,12 +212,35 @@ function parser_2_suf (pre)
         end
         accept_err(']')
         ret = { tag='index', t=e, idx=idx }
-    elseif accept('.') then
-        -- (t) .id
+    elseif accept('.') or accept('?.') then
+        -- (t) .id  or  (t) ?.id
+        local safe = (TK0.str == '?.')
         local id = accept_err(nil,'id')
         id = { tag='tag', str=':'..id.str }
         local idx = { tag='tag', tk=id }
-        ret = { tag='index', t=e, idx=idx }
+        if safe then
+            -- For safe access, we'll generate: (type(e) == 'table' and e.id) or nil
+            local table_check = {
+                tag = 'bin',
+                op = {str='==', tag='op'},
+                e1 = {tag='call', f={tag='id',str='type'}, es={{tag='parens', e=e}}},
+                e2 = {tag='str',str='table'}
+            }
+            local safe_access = {
+                tag = 'bin',
+                op = {str='and', tag='op'},
+                e1 = table_check,
+                e2 = {tag='index', t=e, idx=idx}
+            }
+            ret = {
+                tag = 'bin',
+                op = {str='or', tag='op'},
+                e1 = safe_access,
+                e2 = {tag='nil'}
+            }
+        else
+            ret = { tag='index', t=e, idx=idx }
+        end
     elseif accept('::') then
         -- (o) ::m
         local id = accept_err(nil,'id')
