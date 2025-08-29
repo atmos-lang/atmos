@@ -529,14 +529,18 @@ function parser_1_prim ()
         -- every { ... }
         if accept('every') then
             local clo = function () return (check'{' or check'\\') end
+            local ids = {}
             local awt = parser_list(',', clo, parser)
-            local cb
-            if check('{') then
-                local blk = parser_block()
-                cb = { tag='func', lua=true, pars={}, blk=blk }
-            else
-                cb = parser_lambda()
+            if accept('in') then
+                ids = awt
+                for i,v in ipairs(ids) do
+                    assert(v.tag == 'acc')
+                    ids[i] = v.tk
+                end
+                awt = parser_list(',', clo, parser)
             end
+            local blk = parser_block()
+            local cb = { tag='func', lua=true, pars=ids, blk=blk }
             return {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='every'} },

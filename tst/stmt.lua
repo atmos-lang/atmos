@@ -844,7 +844,7 @@ do
 end
 
 do
-    local src = "every :X \\{}"
+    local src = "every it in :X {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -858,7 +858,7 @@ do
 end
 
 do
-    local src = "every :X,10 \\{}"
+    local src = "every x,y in :X,10 {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -866,7 +866,7 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        every(:X, 10, \(it){
+        every(:X, 10, \(x, y){
         })
     ]])
 end

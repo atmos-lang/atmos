@@ -3281,7 +3281,7 @@ do
 
     local src = [[
         spawn {
-            every :X,10 \(_,v){
+            every _,v in :X,10 {
                 print(:X, v)
             }
         }
@@ -3333,7 +3333,7 @@ do
 
     local src = [[
         spawn {
-            every :X \{
+            every it in :X {
                 print(it.v)
             }
         }
