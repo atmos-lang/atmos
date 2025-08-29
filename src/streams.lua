@@ -1,5 +1,15 @@
 local S = require "streams"
 
+local from = S.from
+
+function S.from (v, ...)
+    if _is_(v, 'vector') then
+        return S.fr_vector(v)
+    else
+        return from(v, ...)
+    end
+end
+
 function S.fr_vector (t)
     local i = 0
     local f = function ()
