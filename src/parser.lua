@@ -173,7 +173,7 @@ local function is_prefix (e)
 end
 
 local function check_call_arg ()
-    return check('@{') or check('#{') or
+    return check('@{') or check('#{') or check('\\') or
            check(nil,'str') or check(nil,'tag') or
            check(nil,'nat') or check(nil,'clk')
 end

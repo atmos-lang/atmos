@@ -919,6 +919,11 @@ do
     local out = atm_test(src)
     warn(false, "TODO: return w/o atm_func")
     --assertx(out, "")
+
+    local src = "(\\{it()}) \\{print :ok}"
+    print("Testing...", src)
+    local out = atm_test(src)
+    assertx(out, "ok\n")
 end
 
 print "--- IF-ELSE / IFS / MATCH ---"
@@ -2380,7 +2385,7 @@ do
         print(#{} ?? :vector)
         print(@{} ?? :vector)
         print(@1 ?? :clock)
-        print(task(\{}) ?? :task)
+        print(task\{} ?? :task)
         pin xs = tasks()
         print(xs ?? :tasks)
     ]]
