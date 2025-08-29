@@ -74,8 +74,6 @@ The program body is a task in Atmos that behaves as follows:
 
 # Install & Run
 
-Atmos depends on [lua-atmos][lua-atmos].
-
 ```
 sudo luarocks install atmos-lang --lua-version=5.4
 atmos <lua-path>/atmos/lang/exs/hello.lua
@@ -91,6 +89,8 @@ TODO
 The Atmos distribution includes the single-file projects
     [argparse](https://github.com/mpeterv/argparse) and
     [functional](https://github.com/wqferr/functional).
+
+Atmos depends on [lua-atmos][lua-atmos].
 
 # Documentation
 
