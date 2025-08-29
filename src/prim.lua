@@ -528,16 +528,15 @@ function parser_1_prim ()
     elseif check('every') or check('par') or check('par_and') or check('par_or') or check('watching') then
         -- every { ... }
         if accept('every') then
-            local clo = function () return (check'{' or check'\\') end
             local ids = {}
-            local awt = parser_list(',', clo, parser)
+            local awt = parser_list(',', '{', parser)
             if accept('in') then
                 ids = awt
                 for i,v in ipairs(ids) do
                     assert(v.tag == 'acc')
                     ids[i] = v.tk
                 end
-                awt = parser_list(',', clo, parser)
+                awt = parser_list(',', '{', parser)
             end
             local blk = parser_block()
             local cb = { tag='func', lua=true, pars=ids, blk=blk }
