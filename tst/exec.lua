@@ -938,7 +938,7 @@ do
     assert(out == "t\nf\n")
 
     local src = [[
-        if 10 \{
+        if 10 => \{
             print(it)
         }
         if false {

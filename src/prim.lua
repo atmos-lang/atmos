@@ -379,36 +379,36 @@ function parser_1_prim ()
         if accept('if') then
             local cnd = parser()
             local cases = {}
-            if check('{') or check('\\') then
-                local t
-                if check('{') then
-                    local blk = parser_block()
-                    t = { tag='func', lua=true, pars={}, blk=blk }
-                else
-                    t = parser_lambda()
-                end
+            if check('{') then
+                local blk = parser_block()
+                local t = { tag='func', lua=true, pars={}, blk=blk }
                 cases[#cases+1] = { cnd, t }
                 if accept('else') then
-                    local f
-                    if check('{') then
-                        local blk = parser_block()
-                        f = { tag='func', lua=true, pars={}, blk=blk }
-                    else
-                        f = parser_lambda()
-                    end
+                    local blk = parser_block()
+                    local f = { tag='func', lua=true, pars={}, blk=blk }
                     cases[#cases+1] = { 'else', f }
                 end
             else
                 accept_err('=>')
-                cases[#cases+1] = {
-                    cnd,
-                    { tag='func', lua=true, pars={}, blk={tag='block', es={parser()}} },
-                }
-                accept_err('=>')
-                cases[#cases+1] = {
-                    'else',
-                    { tag='func', lua=true, pars={}, blk={tag='block', es={parser()}} },
-                }
+                local f
+                if check('\\') then
+                    f = parser_lambda()
+                else
+                    local e = parser()
+                    f = { tag='func', lua=true, pars={}, blk={tag='block', es={e}} }
+                end
+                cases[#cases+1] = { cnd, f }
+
+                if accept('=>') then
+                    local f
+                    if check('\\') then
+                        f = parser_lambda()
+                    else
+                        local e = parser()
+                        f = { tag='func', lua=true, pars={}, blk={tag='block', es={e}} }
+                    end
+                    cases[#cases+1] = { 'else', f }
+                end
             end
             return { tag='ifs', cases=cases }
         -- ifs { x => a ; y => b ; else => c }
