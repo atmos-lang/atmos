@@ -96,6 +96,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e1 = parser()
+    --assertx(xtostring(e1), "{es={{tag=tag, tk={lin=2, sep=1, str=:1._, tag=tag}}}, f={tag=tag, tk={lin=1, sep=1, str=:x, tag=tag}}, tag=call}")
     assertx(xtostring(e1), "{tag=tag, tk={lin=1, sep=1, str=:x, tag=tag}}")
     local e2 = parser()
     assert(check('<eof>'))
@@ -107,9 +108,9 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e1 = parser()
-    assert(xtostring(e1) == "{tag=str, tk={lin=1, sep=1, str=xxx, tag=str}}")
+    assertx(xtostring(e1), "{tag=str, tk={lin=1, sep=1, str=xxx, tag=str}}")
     local e2 = parser()
-    assert(xtostring(e2) == "{tag=str, tk={lin=2, sep=2, str=1\n2\n, tag=str}}")
+    assertx(xtostring(e2), "{tag=str, tk={lin=2, sep=2, str=1\n2\n, tag=str}}")
 
     local src = "```f()```"
     print("Testing...", "native 1")
@@ -395,9 +396,9 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assertx(tosource(e), "a")
-    local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 2 : near '+' : expected expression")
+    assertx(tosource(e), "(a + 10)")
+    --local ok, msg = pcall(parser)
+    --assertx(msg, "anon : line 2 : near '+' : expected expression")
 
     local src = "2 + 3 - 1"
     print("Testing...", src)

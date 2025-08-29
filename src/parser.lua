@@ -182,7 +182,8 @@ function parser_2_suf (pre)
     local no = check('emit') or check('spawn') or check('toggle')
     local e = pre or parser_1_prim()
 
-    local ok = (not no) and (TK0.sep==TK1.sep) and is_prefix(e)
+    local ok = (not no) and is_prefix(e) and
+                (TK0.sep==TK1.sep or TK1.str=='.' or TK1.str=='::')
     if not ok then
         return e
     end
@@ -277,7 +278,7 @@ end
 
 function parser_5_bin (pre)
     local e1 = pre or parser_4_pre()
-    local ok = check(nil,'op') and contains(OPS.bins, TK1.str) and (TK0.lin==TK1.lin)
+    local ok = check(nil,'op') and contains(OPS.bins, TK1.str) --and (TK0.lin==TK1.lin)
     if not ok then
         return e1
     end
@@ -291,7 +292,7 @@ end
 
 function parser_6_pip (pre)
     local e = pre or parser_5_bin()
-    local ok = (TK0.lin==TK1.lin)
+    local ok = true --(TK0.lin==TK1.lin)
     if not ok then
         return e
     end
@@ -322,7 +323,7 @@ end
 
 function parser_7_out (pre)
     local e = pre or parser_6_pip()
-    local ok = (TK0.lin==TK1.lin)
+    local ok = true --(TK0.lin==TK1.lin)
     if not ok then
         return e
     end
