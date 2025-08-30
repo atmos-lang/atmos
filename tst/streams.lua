@@ -52,7 +52,7 @@ local src = [[
       "Caleb",
       "Dennis"
     }
-    val names_with_b = S.from(names)
+    val names_with_b = tostream(names)
         ::filter(\{it::find("[Bb]")})
         ::map(string.upper)
         ::to_vector()
@@ -88,7 +88,7 @@ assertx(out, "Hellen\nOdysseus\nAchilles\nPatroclus\n")
 
 local src = [[
     val S = require "atmos.lang.streams"
-    val numbers = S.from(10,15)
+    val numbers = tostream(10,15)
     val sum = numbers::to_acc(0) <- \(acc,new){acc+new}
     print(sum)
 ]]
@@ -103,7 +103,7 @@ local src = [[
     val is_even = \{(it % 2) == 0}
     xprint <-- S.fr_vector(numbers)::filter(is_even)::to_vector()
 
-    xprint <-- S.from(numbers)::filter(\{(it % 2) == 0})::to_table()
+    xprint <-- tostream(numbers)::filter(\{(it % 2) == 0})::to_table()
 ]]
 print("Testing...", "func 8")
 local out = atm_test(src)

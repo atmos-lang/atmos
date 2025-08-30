@@ -10,6 +10,8 @@ function S.from (v, ...)
     end
 end
 
+tostream = S.from
+
 function S.fr_vector (t)
     local i = 0
     local f = function ()
