@@ -50,7 +50,10 @@ spawn {
 
 spawn {
     ;;;
-    ;;  - < 50 tokens
+    ;;  - TODO: misturar solucoes
+    ;;  - 24 lines, ~100 tokens
+    ;;  - < XX tokens
+    ;;  - event click silence of at least 250
     ;;  - Hot observable
     ;;  - :click.dn (pos, n)
     ;;      - N cliques espacados em 250ms na mesma posicao
@@ -64,16 +67,9 @@ spawn {
     loop {
         val dn = await <- SDL.event.MouseButtonDown
         var n = 1
-        var up
-        spawn {
-            every v in SDL.event.MouseButtonUp {
-                set up = v
-            }
-        }
         watching SDL.event.MouseMotion {
             loop {
                 watching SDL.event.MouseButtonDown {
-                    set up = nil
                     await @.250
                     break()
                 }
@@ -82,10 +78,12 @@ spawn {
         }
         emit(:sdl.mouse.button.dn, dn, n)
         par_and {
-            if !up {
-                await <- SDL.event.MouseButtonUp
+            var state, x, y = SDL.getMouseState()
+            if state[SDL.mouseMask.Left] {
+                val pos = await <- SDL.event.MouseButtonUp
+                set x,y = (pos.x, pos.y)
             }
-            emit(:sdl.mouse.button.up, up)
+            emit(:sdl.mouse.button.up, @{x=x,y=y})
         } with {
             await @.250
         }
