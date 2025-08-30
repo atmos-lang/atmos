@@ -3572,4 +3572,27 @@ do
     print("Testing...", "par_or 5")
     local out = atm_test(src)
     assertx(out, "x\nor\nok\n")
+
+    local src = [[
+        spawn {
+            par_or {
+                await (false)
+            } with {
+                do :X {
+                    par_or {
+                        await (false)
+                    } with {
+                        await :A
+                        escape :X
+                    }
+                }
+                print :1
+            }
+            print :2
+        }
+        emit :A
+    ]]
+    print("Testing...", "par_or 6")
+    local out = atm_test(src)
+    assertx(out, "1\n2\n")
 end

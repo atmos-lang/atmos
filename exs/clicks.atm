@@ -1,0 +1,95 @@
+val SDL = require "SDL"
+val TTF = require "SDL.ttf"
+require "atmos"
+set sdl = require "atmos.env.sdl"
+
+SDL.init() --> assert
+TTF.init() --> assert
+
+defer {
+    TTF.quit()
+    SDL.quit()
+}
+
+set WIN = SDL.createWindow @{
+	title  = "Atmos-SDL: Clicks",
+	width  = 256,
+	height = 256,
+    flags  = @{ SDL.flags.OpenGL },
+} --> assert
+
+set REN = SDL.createRenderer(WIN,-1) --> assert
+set sdl.ren = REN
+set FNT = TTF.open("DejaVuSans.ttf", 10) --> assert
+
+var txts = #{}
+
+val D = 20
+val R = 10
+var rect = @{x=(256/2)-R,y=(256/2)-R, w=D,h=D}
+
+spawn {
+    par {
+        every :sdl.draw {
+            REN::setDrawColor(0x000000)
+            REN::clear()
+            REN::setDrawColor(0xFFFFFF)
+            REN::fillRect(rect)
+            loop i,t in txts {
+                sdl.write(FNT, t, @{x=256-70, y=20+(i*15)})
+            }
+            REN::present()
+        }
+    } with {
+        every m in SDL.event.MouseMotion {
+            set rect.x = m.x - R
+            set rect.y = m.y - R
+        }
+    }
+}
+
+spawn {
+    ;;;
+    ;;  - < 50 tokens
+    ;;  - Hot observable
+    ;;  - :click.dn (pos, n)
+    ;;      - N cliques espacados em 250ms na mesma posicao
+    ;;      - caso a pos mude, reconheca como esta
+    ;;      - somente apos 250ms um outro dn pode ser reconhecido
+    ;;  - :click.up (pos, n)
+    ;;      - reconhecido apenas apos um dn
+    ;;      - em qq circunstancia
+    ;;;
+    loop {
+        val pos = await <- SDL.event.MouseButtonDown
+        var n = 1
+        watching SDL.event.MouseMotion {
+            loop {
+                watching SDL.event.MouseButtonDown {
+                    await @.250
+                    break()
+                }
+                set n = n + 1
+            }
+        }
+        emit(:sdl.mouse.button.dn, pos, n)
+        await @.250
+    }
+}
+
+spawn {
+    loop {
+        await <- :sdl.mouse.button.dn
+        loop {
+            watching SDL.event.MouseButtonDown {
+                await @1
+                set txts = #{}
+            }
+        }
+    }
+}
+
+loop {
+    val _,pos,n = await :sdl.mouse.button.dn
+    set txts[+] = "dn (" ++ pos.x++','++pos.y ++"): " ++ n
+}
