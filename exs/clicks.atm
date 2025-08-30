@@ -59,37 +59,60 @@ spawn {
     ;;  - :click.up (pos, n)
     ;;      - reconhecido apenas apos um dn
     ;;      - em qq circunstancia
+    ;;      - imediato apos dn se estado up
     ;;;
     loop {
-        val pos = await <- SDL.event.MouseButtonDown
+        val dn = await <- SDL.event.MouseButtonDown
         var n = 1
+        var up
+        spawn {
+            every v in SDL.event.MouseButtonUp {
+                set up = v
+            }
+        }
         watching SDL.event.MouseMotion {
             loop {
                 watching SDL.event.MouseButtonDown {
+                    set up = nil
                     await @.250
                     break()
                 }
                 set n = n + 1
             }
         }
-        emit(:sdl.mouse.button.dn, pos, n)
-        await @.250
-    }
-}
-
-spawn {
-    loop {
-        await <- :sdl.mouse.button.dn
-        loop {
-            watching SDL.event.MouseButtonDown {
-                await @1
-                set txts = #{}
+        emit(:sdl.mouse.button.dn, dn, n)
+        par_and {
+            if !up {
+                await <- SDL.event.MouseButtonUp
             }
+            emit(:sdl.mouse.button.up, up)
+        } with {
+            await @.250
         }
     }
 }
 
-loop {
-    val _,pos,n = await :sdl.mouse.button.dn
-    set txts[+] = "dn (" ++ pos.x++','++pos.y ++"): " ++ n
+par {
+    loop {
+        await <- :sdl.mouse.button
+        loop {
+            par_or {
+                await <- SDL.event.MouseButtonDown
+            } with {
+                await <- SDL.event.MouseButtonUp
+            } with {
+                await @1
+                set txts = #{}
+                break()
+            }
+        }
+    }
+} with {
+    every _,pos,n in :sdl.mouse.button.dn {
+        set txts[+] = "dn (" ++ pos.x++','++pos.y ++"): " ++ n
+    }
+} with {
+    every _,pos in :sdl.mouse.button.up {
+        set txts[+] = "up (" ++ pos.x++','++pos.y ++")"
+    }
 }
