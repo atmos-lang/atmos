@@ -2,6 +2,7 @@ val SDL = require "SDL"
 val TTF = require "SDL.ttf"
 require "atmos"
 set sdl = require "atmos.env.sdl"
+val S = require "atmos.lang.streams"
 
 SDL.init() --> assert
 TTF.init() --> assert
@@ -90,20 +91,22 @@ spawn {
     }
 }
 
+func Throttle (evt, to) {
+    await(evt)
+    loop {
+        watching evt {
+            await(to)
+            break()
+        }
+    }
+    return <- true
+}
+
+;;;
 par {
     loop {
-        await <- :sdl.mouse.button
-        loop {
-            par_or {
-                await <- SDL.event.MouseButtonDown
-            } with {
-                await <- SDL.event.MouseButtonUp
-            } with {
-                await @1
-                set txts = #{}
-                break()
-            }
-        }
+        await Throttle(_or_(SDL.event.MouseButtonDown,SDL.event.MouseButtonUp), @1)
+        set txts = #{}
     }
 } with {
     every _,pos,n in :sdl.mouse.button.dn {
@@ -114,3 +117,29 @@ par {
         set txts[+] = "up (" ++ pos.x++','++pos.y ++")"
     }
 }
+;;;
+
+- fazer isso funcionar
+- fazer throttle em IA
+- mudar para IA aqui
+- depois buffer, depois dclick
+
+val clear =
+    S.fr_spawns(Throttle, _or_(SDL.event.MouseButtonDown,SDL.event.MouseButtonUp), @1)
+        ::tap \{ set txts = #{} }
+
+val dn = 
+    S.fr_awaits(:sdl.mouse.button.dn)
+        ::tap \(_,pos,n) {
+            set txts[+] = "dn (" ++ pos.x++','++pos.y ++"): " ++ n
+        }
+
+val up =
+    S.fr_awaits(:sdl.mouse.button.up)
+        ::tap \(_,pos,n) {
+            set txts[+] = "up (" ++ pos.x++','++pos.y ++")"
+        }
+
+up::to()
+;;clear::parx(dn)::parx(up)::to()
+await(false)
