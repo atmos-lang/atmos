@@ -117,12 +117,12 @@ par {
         set txts[+] = "up (" ++ pos.x++','++pos.y ++")"
     }
 }
-;;;
 
 - fazer isso funcionar
 - fazer throttle em IA
 - mudar para IA aqui
 - depois buffer, depois dclick
+;;;
 
 val clear =
     S.fr_spawns(Throttle, _or_(SDL.event.MouseButtonDown,SDL.event.MouseButtonUp), @1)
@@ -140,6 +140,5 @@ val up =
             set txts[+] = "up (" ++ pos.x++','++pos.y ++")"
         }
 
-up::to()
-;;clear::parx(dn)::parx(up)::to()
+S.from(@{clear,dn,up})::xpar()::to()
 await(false)
