@@ -2499,10 +2499,30 @@ do
     assertx(out, "30\n")
 
     local src = [[
+        func f (...) { print(...) ; f }
+        f 'a' 'b'
+    ]]
+    print("Testing...", "call-call: 1")
+    local out = atm_test(src)
+    assertx(out, "a\nb\n")
+
+    local src = [[
+        func f (self, v) {
+            print(v)
+            self
+        }
+        val o = @{f=f}
+        print(o::f'v'::f\{})
+    ]]
+    print("Testing...", "method 7")
+    local out = atm_test(src)
+    assertfx(out, "v\nfunction: 0x.-\ntable: 0x.-")
+
+    local src = [[
         func f (...) { print(...) }
         (10,20) --> f(30,40)
     ]]
-    print("Testing...", "method 6")
+    print("Testing...", "method 8")
     local out = atm_test(src)
     assertx(out, "10\t20\t30\t40\n")
 end

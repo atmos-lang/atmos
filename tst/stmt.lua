@@ -124,8 +124,14 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local _,msg = pcall(parser_main)
-    assertx(msg, "anon : line 1 : near '@{' : sequence error : expected ';' or new line")
+    local s = parser()
+    --local _,msg = pcall(parser_main)
+    --assertx(msg, "anon : line 1 : near '@{' : sequence error : expected ';' or new line")
+    assertx(tosource(s), trim [[
+        catch :X {
+            throw(atm_tag_do(:X, @{}))
+        }
+    ]])
 
     local src = "catch :X { throw :X;@{} }"
     print("Testing...", src)

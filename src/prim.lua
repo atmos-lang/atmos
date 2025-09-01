@@ -52,14 +52,15 @@ function parser_spawn ()
     end
 end
 
-local lits = { {'nil','true','false','...'}, {'tag','num','str','nat','clk'} }
+local lits = { {'nil','true','false','...'}, {'num','str','nat','clk'} }
 
 function parser_1_prim ()
     local function check_(tag)
         return check(nil, tag)
     end
 
-    -- literals: nil, true, false, ..., tag, str, nat, clock
+    -- literals: nil, true, false, ..., str, nat, clock
+    -- (except tag)
     if any(lits[1],check) or any(lits[2],check_) then
         -- nil, true, false, ...
         if accept('nil') then
@@ -75,8 +76,6 @@ function parser_1_prim ()
             return { tag='str', tk=TK0 }
         elseif accept(nil,'nat') then
             return { tag='nat', tk=TK0 }
-        elseif accept(nil,'tag') then
-            return { tag='tag', tk=TK0 }
         elseif accept(nil,'clk') then
             return { tag='clk', tk=TK0 }
         else
@@ -86,6 +85,18 @@ function parser_1_prim ()
     -- id: x, __v
     elseif accept(nil,'id') then
         return { tag='acc', tk=TK0 }
+
+    -- tag
+    elseif accept(nil,'tag') then
+        local e = { tag='tag', tk=TK0 }
+        if (check'(' or check'@{') and (TK0.sep == TK1.sep) then
+            -- (:X) @{...}
+            local t = parser_1_prim()
+            local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
+            return { tag='call', f=f, es={e,t} }
+        else
+            return e
+        end
 
     -- table: @{...}
     elseif accept('@{') then

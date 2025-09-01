@@ -191,18 +191,7 @@ function parser_2_suf (pre)
     local tk0 = TK0
     local ret
 
-    -- END
-    if (e.tag == 'tag') and (check'(' or check'@{') then
-        -- (:X) @{...}
-        local t = parser_1_prim()
-        local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
-        return { tag='call', f=f, es={e,t} }
-    elseif check_call_arg() then
-        local v = parser_1_prim()
-        return { tag='call', f=e, es={v} }
-
-    -- MID
-    elseif accept('[') then
+    if accept('[') then
         -- (t) [...]
         local idx; do
             if accept('=') or accept('+') or accept('-') then
@@ -229,7 +218,9 @@ function parser_2_suf (pre)
         local es = parser_list(',', ')', parser)
         accept_err(')')
         ret = { tag='call', f=e, es=es }
-
+    elseif check_call_arg() then
+        local v = parser_1_prim()
+        ret = { tag='call', f=e, es={v} }
     else
         -- nothing consumed, not a suffix
         return e

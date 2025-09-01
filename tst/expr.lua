@@ -665,8 +665,9 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    check_err('@{')
-    assertx(tosource(e), 'f("10")')
+    assertx(tosource(e), 'f("10")(@{[1]=20})')
+    --check_err('@{')
+    --assertx(tosource(e), 'f("10")')
     --local _,msg = pcall(parser)
     --assertx(msg, "anon : line 1 : near '@{' : expected '<eof>'\n")
 
@@ -1104,8 +1105,8 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assert(check('@{'))
-    assertx(tosource(e), "emit(:X)")
+    --assert(check('@{'))
+    assertx(tosource(e), "emit(atm_tag_do(:X, @{}))")
 
     local src = "emit :X(10)"
     print("Testing...", src)
@@ -1113,8 +1114,8 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
-    assert(check('('))
-    assertx(tosource(e), "emit(:X)")
+    --assert(check('('))
+    assertx(tosource(e), "emit(atm_tag_do(:X, (10)))")
 
     local src = "spawn T(1,2,3)"
     print("Testing...", src)
