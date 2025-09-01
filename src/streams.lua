@@ -1,5 +1,7 @@
 local S = require "atmos.streams"
 
+-------------------------------------------------------------------------------
+
 local from = S.from
 
 function S.from (v, ...)
@@ -24,7 +26,9 @@ function S.fr_vector (t)
     return setmetatable({f=f}, S.mt)
 end
 
-S.parx = S.par
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
 
 function S.to_vector (s)
     return S.to_acc(s, atm_vector{}, function(a,x) a[#a]=x ; return a end)
