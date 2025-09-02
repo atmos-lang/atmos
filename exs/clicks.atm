@@ -91,11 +91,27 @@ spawn {
     }
 }
 
-func Throttle (evt, to) {
-    await(evt)
+;; vamos comecar com o dclick simples
+
+;; TODO: await(stream)
+
+func Buffer (src, ctl) {
+    val ret = #{}
+    val v = await(src)
+    set ret[+] = v
+    watching ctl {
+        every v in src {
+            set ret[+] = v
+        }
+    }
+    ret
+}
+
+func Debounce (src, ctl) {
+    await(src)
     loop {
-        watching evt {
-            await(to)
+        watching src {
+            await(ctl)
             break()
         }
     }
@@ -105,7 +121,7 @@ func Throttle (evt, to) {
 ;;;
 par {
     loop {
-        await Throttle(_or_(SDL.event.MouseButtonDown,SDL.event.MouseButtonUp), @1)
+        await Debounce(_or_(SDL.event.MouseButtonDown,SDL.event.MouseButtonUp), @1)
         set txts = #{}
     }
 } with {
@@ -125,7 +141,7 @@ par {
 ;;;
 
 val clear =
-    S.fr_spawns(Throttle, _or_(SDL.event.MouseButtonDown,SDL.event.MouseButtonUp), @1)
+    S.fr_spawns(Debounce, _or_(SDL.event.MouseButtonDown,SDL.event.MouseButtonUp), @1)
         ::tap \{ set txts = #{} }
 
 val dn = 
@@ -140,5 +156,5 @@ val up =
             set txts[+] = "up (" ++ pos.x++','++pos.y ++")"
         }
 
-S.from(@{clear,dn,up})::xpar()::to()
+S.from@{clear,dn,up}::xpar()::to()
 await(false)
