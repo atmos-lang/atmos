@@ -18,8 +18,8 @@
 
 # About
 
-Atmos is a programming language reconciles *[Structured Concurrency][sc]* with
-*[Event-Driven Programming][events]*, extending classical structured
+Atmos is a programming language that reconciles *[Structured Concurrency][sc]*
+with *[Event-Driven Programming][events]*, extending classical structured
 programming with two main functionalities:
 
 - Structured Deterministic Concurrency:
