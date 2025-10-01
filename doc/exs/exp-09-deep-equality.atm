@@ -1,5 +1,5 @@
 print <-- #{1,2,3} === #{1,2,3}       ;; --> true
-print <-- #{} === @{}                 ;; --> false (different metatables)
-print <-- @{v=#{}} === @{v=#{}}       ;; --> true
+print <-- #{} =!= @{}                 ;; --> true (different metatables)
+print <-- @{v=#{}} =!= @{v=#{}}       ;; --> true
 print <-- @{[#{}]=1} === @{[#{}]=1}   ;; --> false (keys are not `==`)
 print <-- \{} === \{}                 ;; --> false (functions are not `==`)

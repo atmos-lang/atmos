@@ -1,10 +1,3 @@
-- Version:
-    - GitHub:   `vATM_LUA`
-    - LuaRocks: `vATMxLUA`
-    - ex: `v0.2_0.2.1`
-        - Atmos: `v0.2`
-        - lua-Atmos: `v0.2.1`
-
 - Self tests:
 
 ```
@@ -16,9 +9,7 @@ lua5.4 all.lua
 
 ```
 cd exs/
-atmos hello.atm
-atmos click-drag-cancel.atm
-atmos layout.atm
+atmos *.atm
 ```
 
 - Projects

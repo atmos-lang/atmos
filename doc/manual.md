@@ -1326,7 +1326,9 @@ Expr : OP Expr          ;; unary operation
      | Expr OP Expr     ;; binary operation
 ```
 
+<!--
 For binary operations, the first operand and operator must be at the same line.
+-->
 
 Atmos supports and mimics the semantics of standard
 [Lua operators](lua-operators):
@@ -1382,8 +1384,8 @@ Examples:
 
 ```
 #{1,2,3} === #{1,2,3}       ;; --> true
-#{} === @{}                 ;; --> false (different metatables)
-@{v=#{}} === @{v=#{}}       ;; --> true
+#{} =!= @{}                 ;; --> true (different metatables)
+@{v=#{}} =!= @{v=#{}}       ;; --> false
 @{[#{}]=1} === @{[#{}]=1}   ;; --> false (keys are not `==`)
 \{} === \{}                 ;; --> false (functions are not `==`)
 ```
@@ -1576,7 +1578,8 @@ optional list of expressions as arguments enclosed by parenthesis.
 
 Like in [Lua calls](#lua-call), if there is a single
 [constructor](#types--values) argument, then the parenthesis are optional.
-This is valid for strings, tags, vectors, tables, clocks, and native literals.
+This is valid for strings, tags, vectors, tables, lambdas, clocks, and native
+literals.
 
 The many call formats are also valid for the statements as follows:
 `await`, `break`, `do`, `emit`, `escape`, `return`, `task`, `tasks`, `throw`,
@@ -1663,7 +1666,7 @@ precedence priority (from higher to lower):
     - declaration:  `func` `val` (etc)
     - parenthesis:  `()`
 2. suffix:
-    - call:         `f()` `o::m()` `f ""` `f @{}` `f #{}`
+    - call:         `f()` `o::m()` `f ""` `f @{}` `f #{}` `f \{}` `f @clk`
     - index:        `t[]`
     - field:        `t.x`
     - tag:          `:X()` `:X @{}`

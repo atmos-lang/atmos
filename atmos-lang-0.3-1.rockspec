@@ -42,7 +42,7 @@ description = {
    license = "MIT",
 }
 dependencies = {
-   "lua ~> 5.4", "atmos",
+   "lua ~> 5.4", "atmos ~> 0.3",
 }
 build = {
    type = "builtin",

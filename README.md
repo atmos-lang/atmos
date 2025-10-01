@@ -1,12 +1,16 @@
 # The Programming Language Atmos
 
+***Structured Event-Driven Concurrency***
+
 [
+    [`v0.3`](https://github.com/atmos-lang/atmos/tree/v0.3)      |
     [`v0.2`](https://github.com/atmos-lang/atmos/tree/v0.2_0.2.1)
 ]
 
-<img src="atmos-logo.png" width="250" align="right">
-
-***Structured Event-Driven Concurrency***
+<!--
+This is the unstable `main` branch.
+Please, switch to stable [`v0.3`](https://github.com/atmos-lang/atmos/tree/v0.3).
+-->
 
 [
     [About](#about)                 |
@@ -15,6 +19,8 @@
     [Documentation](#documentation) |
     [Resources](#resources)
 ]
+
+<img src="atmos-logo.png" width="250" align="right">
 
 # About
 
