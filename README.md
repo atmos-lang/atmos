@@ -18,24 +18,30 @@
 
 # About
 
-Atmos is a programming language that reconciles *[Structured Concurrency][sc]*
-with *[Event-Driven Programming][events]*, extending classical structured
-programming with two main functionalities:
+Atmos is a programming language that reconciles *[Structured Concurrency][sc]*,
+*[Event-Driven Programming][events]*, and *[Functional Streams][streams]*,
+extending classical structured programming with three main functionalities:
 
 - Structured Deterministic Concurrency:
     - A `task` primitive with deterministic scheduling provides predictable
       behavior and safe abortion.
+    - Structured primitives compose concurrent tasks with lexical scope (e.g.,
+      `watching`, `every`, `par_or`).
     - A `tasks` container primitive holds attached tasks and control their
       lifecycle.
     - A `pin` declaration attaches a task or tasks to its enclosing lexical
       scope.
-    - Structured primitives compose concurrent tasks with lexical scope (e.g.,
-      `watching`, `every`, `par_or`).
 - Event Signaling Mechanisms:
     - An `await` primitive suspends a task and wait for events.
-    - An `emit` primitive broadcasts events and awake awaiting tasks.
+    - An `emit` primitive signals events and awake awaiting tasks.
+- Functional Streams (à la [ReactiveX][rx]):
+    - Functional combinators for lazy (infinite) lists.
+    - Interoperability with tasks & events:
+        tasks and events as streams, and
+        streams as events.
+    - Safe finalization of stateful (task-based) streams.
 
-Atmos is inspired by [synchronous programming languages][sync] like [Ceu][ceu]
+Atmos is inspired by [synchronous programming languages][sync] like [Céu][ceu]
 and [Esterel][esterel].
 
 Atmos compiles to [Lua][lua] and relies on [lua-atmos][lua-atmos] for its
@@ -43,6 +49,8 @@ concurrency runtime.
 
 [sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
 [events]:       https://en.wikipedia.org/wiki/Event-driven_programming
+[streams]:      https://en.wikipedia.org/wiki/Stream_(abstract_data_type)
+[rx]:           https://en.wikipedia.org/wiki/ReactiveX
 [sync]:         https://fsantanna.github.io/sc.html
 [ceu]:          http://www.ceu-lang.org/
 [esterel]:      https://en.wikipedia.org/wiki/Esterel
@@ -130,9 +138,9 @@ The standard distribution of Atmos provides the following environments:
     - [click-drag-cancel.atm](exs/click-drag-cancel.atm)
 - A simple but complete 2D game in Atmos:
     - https://github.com/atmos-lang/sdl-rocks/
-- Academic publications (Ceu):
+- Academic publications (Céu):
     - http://ceu-lang.org/chico/#ceu
-- Mailing list (Ceu):
+- Mailing list (Céu & Atmos):
     - https://groups.google.com/g/ceu-lang
 
 [toy]: https://fsantanna.github.io/toy.html
