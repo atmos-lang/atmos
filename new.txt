@@ -10,15 +10,11 @@
 - if 10 => \{...} vs
     if 10 \{...}
 
-
 = NO
 - streams
 - remove vector, loop range [1,x]
 - f \{}, f @clk
 - every in: tests for parser fail
-- HISTORY (atmos-lang, lua-atmos)
-
-- `functional`
 - `x`
     - `xtostring`
     - `xprint`

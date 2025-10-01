@@ -2322,7 +2322,6 @@ the following modules:
 
 `TODO: between, to*, remove/insert (vector)`
 
-- `functional`
 - `x`
     - `xtostring`
     - `xprint`
