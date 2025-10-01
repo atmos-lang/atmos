@@ -408,45 +408,45 @@ The following keywords are reserved in Atmos:
     break               ;; loop break
     catch               ;; catch exception
     defer               ;; defer block
-    do                  ;; do block                         (10)
+    do                  ;; do block
     else                ;; else block
     emit                ;; emit event
     escape              ;; escape block
     every               ;; every block
-    false               ;; false value
+    false               ;; false value                      (10)
     func                ;; function
-    if                  ;; if block                         (20)
+    if                  ;; if block
     ifs                 ;; ifs block
     in                  ;; in iterator
     it                  ;; implicit parameter
     loop                ;; loop block
     match               ;; match block
-    nil                 ;; nil value                        (30)
+    nil                 ;; nil value
     par                 ;; par block
-    par_and             ;; par-and block
+    par_and             ;; par-and block                    (20)
     par_or              ;; par-or block
     pin                 ;; pin declaration
     pub                 ;; public variable
     return              ;; escape prototype
-    set                 ;; assign expression                (40)
+    set                 ;; assign expression
     spawn               ;; spawn coroutine
     task                ;; task prototype
     tasks               ;; task pool
-    throw               ;; throw error
+    test                ;; test block
+    throw               ;; throw error                      (30)
     toggle              ;; toggle task
     true                ;; true value
     until               ;; until loop condition
-    val                 ;; constant declaration             (50)
+    val                 ;; constant declaration
     var                 ;; variable declaration
     watching            ;; watching block
     where               ;; where block
     while               ;; while loop condition
-    with                ;; with block
+    with                ;; with block                       (39)
 ```
 
 <!--
     skip                ;; loop skip
-    test                ;; test block
 -->
 
 ## Symbols
@@ -2368,6 +2368,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `do´ `(´ Expr `)´                           ;; expression as statement
       | `escape´ `(´ Expr* `)´                      ;; escape from block
       | `defer´ Block                               ;; defer statements
+      | `test´ Block                                ;; test block
 
       | (`val´ | `var` | `pin`) ID* [`=´ Expr]      ;; local declarations
       | Expr `where´ `{´ (ID* `=´ Expr)* `}´        ;; where clause
