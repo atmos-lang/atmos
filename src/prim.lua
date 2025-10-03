@@ -125,12 +125,6 @@ function parser_1_prim ()
         accept_err('}')
         return { tag='table', es=es }
 
-    -- vector: #{...}
-    elseif accept('#{') then
-        local es = parser_list(',', '}', parser)
-        accept_err('}')
-        return { tag='vector', es=es }
-
     -- parens: (...)
     elseif accept('(') then
         local tk = TK0

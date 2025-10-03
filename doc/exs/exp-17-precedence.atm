@@ -1,5 +1,5 @@
 func f (v) {
-    @{x = #{v}}
+    @{x = @{v}}
 }
 print <-- #f(10).x        ;; # ((f(10)) .x)
 ;;print <-- x + 10 - 1      ;; ERROR: requires parenthesis

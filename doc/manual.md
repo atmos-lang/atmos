@@ -1413,29 +1413,28 @@ print(#ts)      ;; --> 2
 ### Concatenation
 
 The operator `++` ("concat") concatenates its operands into a new value.
-The operands must be collections of the same type.
 
-Follows the expected result of `a ++ b` for the supported types:
+For strings, numbers, and values with the `__concat` metamethod, `a ++ b`
+behaves the same as [`a .. b`](lua-concat) in Lua.
 
-- `string`: string with the characters of `a` followed by the characters of `b`
-            (same as `a .. b` in Lua)
-- `table` or :
-    for numeric keys, table with values of `a` followed by the values of `b`;
-    for non-numeric keys, table with the key-values of `a` and `b`,
-    favoring `b` in case of duplicate keys
-- otherwise: vector with values of `iter(a)` and `iter(b)`
+<!-- `__` -->
 
-For the last case, each value is extracted from an iteration of `iter`, taking
-the *second* return if present, or the first otherwise.
+Otherwise, `a ++ b` creates a table with key-values resulting from
+[iterations](#loop) over `a` and `b`, favoring `b` in case of duplicate keys.
+If the iterations return numeric indexes starting from `1` with no holes, they
+are treated as [vector](#table) values and are put in sequence in the resulting
+table.
+
+[lua-concat]: https://www.lua.org/manual/5.4/manual.html#3.4.6
 
 Examples:
 
 <!-- exs/exp-11-concatenation.atm -->
 
 ```
-'abc' ++ 'def'      ;; abcdef
-@{1,2} ++ @{3,4}    ;; @{1,2,3,4}
-@{x=1} ++ @{y=2}    ;; @{x=1, y=2}
+'abc' ++ 'def'          ;; abcdef
+@{1,2} ++ @{3,4}        ;; @{1,2,3,4}
+@{x=10} ++ @{x=1,y=2}   ;; @{x=1, y=2}
 ```
 
 ```
@@ -1452,10 +1451,10 @@ print(#ts, x?>ts, y?>ts, 10?>ts)   ;; 2, true, false
 
 The operators `?>` and `!>` ("in" and "not in") check the membership of the
 left operand in the right operand.
-If any of the following conditions are met, then `a ?> b` is true:
 
-- `b` is a [table](#table) and `a` is equal to any of its values
-- `a` is equal to any of the results of `iter(b)`
+The expression `a ?> b` compares `a` against each key-value `k`-`v` resulting
+from an [iteration](#loop) over `b`.
+If `a` is equal to `v` or is equal to a non-numeric `k`, then `a ?> b` is true.
 
 The operator `!>` is the negation of `?>`.
 
@@ -1466,6 +1465,7 @@ Examples:
 ```
 10 ?> @{10,20,30}       ;; true
  1 ?> @{10,20,30}       ;; false
+:x ?> @{x=10,y=20}      ;; true
 ```
 
 ## Indexing
@@ -1507,7 +1507,7 @@ print(v[#v+1])      ;; --> nil
 
 ### Peek, Push, Pop
 
-The *ppp operators* (peek, push, pop) manipulate vectors as stacks:
+The *ppp operators* (peek, push, pop) manipulate [vectors](#tables) as stacks:
 
 ```
 Expr : Expr `[´ (`=´|`+´|`-´) `]´
@@ -1522,14 +1522,14 @@ Examples:
 <!-- exs/exp-13-ppp.atm -->
 
 ```
-val stk = #{1,2,3}
+val stk = @{1,2,3}
 print(stk[=])         ;; --> 3
 set stk[=] = 30
-print(stk)            ;; --> #{1, 2, 30}
+print(stk)            ;; --> @{1, 2, 30}
 print(stk[-])         ;; --> 30
-print(stk)            ;; --> #{1, 2}
+print(stk)            ;; --> @{1, 2}
 set stk[+] = 3
-print(stk)            ;; --> #{1, 2, 3}
+print(stk)            ;; --> @{1, 2, 3}
 ```
 
 ## Calls
@@ -1546,8 +1546,7 @@ optional list of expressions as arguments enclosed by parenthesis.
 
 Like in [Lua calls](#lua-call), if there is a single
 [constructor](#types--values) argument, then the parenthesis are optional.
-This is valid for strings, tags, vectors, tables, lambdas, clocks, and native
-literals.
+This is valid for strings, tags, tables, lambdas, clocks, and native literals.
 
 The many call formats are also valid for the statements as follows:
 `await`, `break`, `do`, `emit`, `escape`, `return`, `task`, `tasks`, `throw`,
@@ -1629,12 +1628,12 @@ precedence priority (from higher to lower):
 1. primary:
     - literal:      `nil` `true` `...` `:X` `'x'` `@.x` (etc)
     - identifier:   `x`
-    - constructor:  `#{}` `@{}` `\{}`
+    - constructor:  `@{}` `\{}`
     - command:      `do` `set` `if` `await` (etc)
     - declaration:  `func` `val` (etc)
     - parenthesis:  `()`
 2. suffix:
-    - call:         `f()` `o::m()` `f ""` `f @{}` `f #{}` `f \{}` `f @clk`
+    - call:         `f()` `o::m()` `f ""` `f @{}` `f \{}` `f @clk`
     - index:        `t[]`
     - field:        `t.x`
     - tag:          `:X()` `:X @{}`
@@ -1792,8 +1791,7 @@ The following iterator expression types with predefined behaviors are
 supported:
 
 - `:table`:
-    ranges over vector indexes and values, and than over keys and values of a
-    table
+    ranges over vector indexes and values, and than over key-values of a table
 - `:tasks`:
     ranges over the indexes and tasks of a task pool
 - `:function`:
@@ -2359,7 +2357,6 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | TAG | NUM | STR | CLK | NAT
       | ID | `pub´                                  ;;  identifiers
 
-      | `#{´ Expr* `}´                              ;; vector
       | [TAG] `@{´ Key_Val* `}´                     ;; table
             Key_Val : `[` Expr `]´ `=´ Expr
                     | ID `=´ Expr

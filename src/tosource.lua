@@ -31,8 +31,6 @@ function tosource (e, lbd)
             return '['..tosource(t.k)..']='..tosource(t.v)
         end))
         return '@{' .. es .. '}'
-    elseif e.tag == 'vector' then
-        return '#{' .. tosource_args(e.es) .. '}'
     elseif e.tag == 'es' then
         return '(' .. tosource_args(e.es) .. ')'
     elseif e.tag == 'parens' then

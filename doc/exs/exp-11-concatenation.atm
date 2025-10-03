@@ -1,6 +1,6 @@
 print <-- 'abc' ++ 'def'    ;; abcdef
 xprint <-- @{1,2} ++ @{3,4}  ;; @{1,2,3,4}
-xprint <-- @{x=1} ++ @{y=2}  ;; @{x=1, y=2}
+xprint <-- @{x=10} ++ @{x=1,y=2}  ;; @{x=1, y=2}
 
 func T () { await(false) }
 pin xs = tasks()

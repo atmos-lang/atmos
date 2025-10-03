@@ -156,8 +156,8 @@ end
 -- 4_pre : -a
 -- 3_met : v->f    f<-v
 -- 2_suf : v[0]    v.x    x::m()   f()
---         :X() :X@{} :X#{}
---         f@{} f#{} f"" f``
+--         :X() :X@{}
+--         f@{} f"" f``
 -- 1_prim
 
 local function is_prefix (e)
@@ -173,7 +173,7 @@ local function is_prefix (e)
 end
 
 local function check_call_arg ()
-    return check('@{') or check('#{') or check('\\') or
+    return check('@{') or check('\\') or
            check(nil,'str') or check(nil,'tag') or
            check(nil,'nat') or check(nil,'clk')
 end

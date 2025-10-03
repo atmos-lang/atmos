@@ -23,7 +23,7 @@ set REN = SDL.createRenderer(WIN,-1) --> assert
 set sdl.ren = REN
 set FNT = TTF.open("DejaVuSans.ttf", 10) --> assert
 
-var txts = #{}
+var txts = @{}
 
 val D = 20
 val R = 10
@@ -96,7 +96,7 @@ spawn {
 ;; TODO: await(stream)
 
 func Buffer (src, ctl) {
-    val ret = #{}
+    val ret = @{}
     val v = await(src)
     set ret[+] = v
     watching ctl {
@@ -122,7 +122,7 @@ func Debounce (src, ctl) {
 par {
     loop {
         await Debounce(_or_(SDL.event.MouseButtonDown,SDL.event.MouseButtonUp), @1)
-        set txts = #{}
+        set txts = @{}
     }
 } with {
     every _,pos,n in :sdl.mouse.button.dn {
@@ -142,7 +142,7 @@ par {
 
 val clear =
     S.fr_spawns(Debounce, _or_(SDL.event.MouseButtonDown,SDL.event.MouseButtonUp), @1)
-        ::tap \{ set txts = #{} }
+        ::tap \{ set txts = @{} }
 
 val dn = 
     S.fr_awaits(:sdl.mouse.button.dn)

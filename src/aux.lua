@@ -53,18 +53,6 @@ end
 function xtostring (v)
     if type(v) ~= 'table' then
         return tostring(v)
-    elseif v.tag == 'vector' then
-        local vs = ""
-        local fst = true
-        for i=0, #v-1 do
-            local x = v[i]
-            if not fst then
-                vs = vs .. ', '
-            end
-            vs = vs .. xtostring(x)
-            fst = false
-        end
-        return "#{" .. vs .. "}"
     else
         local fst = true
         local vs = ""
@@ -91,7 +79,7 @@ function xtostring (v)
             fst = false
         end
         --local tag = v.tag and (':'..v.tag..' ') or ''
-        return --[[tag ..]] "{" .. vs .. "}"
+        return --[[tag ..]] "@{" .. vs .. "}"
     end
 end
 
@@ -164,26 +152,27 @@ function atm_is (v1, v2)
 end
 
 function atm_cat (v1, v2)
-    if type(v1) == 'string' then
+    local ok, v = pcall(function()
         return v1 .. v2
-    else
-        local ret = {}
-        for k,x in iter(v1) do
-            if type(k) == 'number' then
-                ret[#ret+1] = x
-            else
-                ret[k] = x
-            end
-        end
-        for k,x in iter(v2) do
-            if type(k) == 'number' then
-                ret[#ret+1] = x
-            else
-                ret[k] = x
-            end
-        end
-        return ret
+    end)
+    if ok then
+        return v
     end
+
+    local ret = {}
+    for k,x in iter(v1) do
+        ret[k] = x
+    end
+    local n = 1
+    for k,x in iter(v2) do
+        if k == n then
+            ret[#ret+1] = x
+            n = n + 1
+        else
+            ret[k] = x
+        end
+    end
+    return ret
 end
 
 function atm_in (v, t)
