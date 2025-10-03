@@ -395,24 +395,23 @@ function parser_1_prim ()
                 end
             else
                 accept_err('=>')
-                local f
                 if check('\\') then
-                    f = parser_lambda()
+                    local t = parser_lambda()
+                    cases[#cases+1] = { cnd, t }
+                    if accept('else') then
+                        local blk = parser_block()
+                        local f = { tag='func', lua=true, pars={}, blk=blk }
+                        cases[#cases+1] = { 'else', f }
+                    end
                 else
                     local e = parser()
-                    f = { tag='func', lua=true, pars={}, blk={tag='block', es={e}} }
-                end
-                cases[#cases+1] = { cnd, f }
-
-                if accept('=>') then
-                    local f
-                    if check('\\') then
-                        f = parser_lambda()
-                    else
+                    local t = { tag='func', lua=true, pars={}, blk={tag='block', es={e}} }
+                    cases[#cases+1] = { cnd, t }
+                    if accept('=>') then
                         local e = parser()
-                        f = { tag='func', lua=true, pars={}, blk={tag='block', es={e}} }
+                        local f = { tag='func', lua=true, pars={}, blk={tag='block', es={e}} }
+                        cases[#cases+1] = { 'else', f }
                     end
-                    cases[#cases+1] = { 'else', f }
                 end
             end
             return { tag='ifs', cases=cases }

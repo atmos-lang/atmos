@@ -747,9 +747,8 @@ There are three variations of lambdas:
 - `\{ <body> }`:
     equivalent to `\(it) { <body> }`
 
-Note that the lambda notation is also used in
-    [conditionals](#conditionals) and [every statements](#every)
-to communicate values across blocks.
+Note that the lambda notation is also used in [conditionals](#conditionals) to
+communicate values across blocks.
 
 Examples:
 
@@ -1539,6 +1538,7 @@ Atmos supports many formats to call functions:
 ```
 Expr : Expr `(´ Expr* `)´
      | Expr Expr ;; single constructor argument
+                 ;; (STR | TAG | `@{´ | `\` | CLK | NAT)
 ```
 
 A call expects an expression of type [func](#prototype-values) and an
@@ -1676,18 +1676,18 @@ An `if` tests a condition expression and executes one of the two possible
 branches:
 
 ```
-If  : `if´ Expr (Block | Lambda) [`else´ (Block | Lambda)]
-    | `if´ Expr `=>´ Expr `=>´ Expr
+If  : `if´ Expr (Block | `=>´ Lambda) [`else´ Block]
+    | `if´ Expr `=>´ Expr [`=>´ Expr]
 ```
-
-The branches can be either [blocks](#blocks) or simple expressions prefixed by
-the arrow symbol `=>`.
-When using blocks, the `else` branch is optional.
-The blocks can also use the [lambda notation](#lambda) to capture the value
-of the condition being tested.
 
 If the condition is truthy, the `if` executes the first branch.
 Otherwise, it executes the `else` branch, which defaults to `nil` if absent.
+
+The branches can be either [blocks](#blocks) or simple expressions prefixed by
+the arrow symbol `=>`.
+The `else` branch is optional.
+The truthy block can use the [lambda notation](#lambda) to capture the value
+of the condition satisfied.
 
 Examples:
 
@@ -1696,7 +1696,7 @@ Examples:
 ```
 val max = if x>y => x => y      ;; max value between `x` and `y`
 
-if f() \{                       ;; f() is assigned to it
+if f() => \{                    ;; f() is assigned to it
     print("f() evaluates to " ++ it)
 } else {
     print("f() evaluates to 'false'")
@@ -1710,8 +1710,8 @@ executing its associated branch:
 
 ```
 Ifs : `ifs´ `{´ {Case} [Else] `}´
-Case :  Expr  (`=>´ Expr | Block | Lambda)
-Else : `else´ (`=>´ Expr | Block | Lambda)
+Case :  Expr  `=>´ (Expr | Block | Lambda)
+Else : `else´ `=>´ (Expr | Block)
 ```
 
 If no condition is met, the `ifs` executes the optional `else` branch, which
@@ -1739,8 +1739,8 @@ satisfied, executing its associated branch:
 
 ```
 Match : `match´ Expr `{´ {Case} [Else] `}´
-Case :  (Lambda | Expr)  (`=>´ Expr | Block | Lambda)
-Else : `else´ (`=>´ Expr | Block)
+Case :  (Lambda | Expr)  `=>´ (Expr | Block | Lambda)
+Else : `else´ `=>´ (Expr | Block | Lambda)
 ```
 
 If no case succeeds, the `match` executes the optional `else` branch, which
@@ -2186,7 +2186,7 @@ An `every` is a [loop](#loop) that makes an iteration whenever an
 [await](#await) condition is satisfied:
 
 ```
-Every : `every´ Expr* (Block | Lambda)
+Every : `every´ [ID+ `in´] Expr* Block
 ```
 
 The block can also use the [lambda notation](#lambda) to capture the value
@@ -2380,17 +2380,17 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | Expr Expr                                   ;; single-constructor call
       | Expr (`<--` | `<-` | `->` | `-->` ) Expr    ;; pipe calls
 
-      | `if´ Expr (Block | Lambda)                  ;; if block
-            [`else´ (Block | Lambda)]
-      | `if´ Expr `=>´ Expr `=>´ Expr               ;; if expr
+      | `if´ Expr (Block | `=>´ Lambda)             ;; if block
+            [`else´ Block]
+      | `if´ Expr `=>´ Expr [`=>´ Expr]             ;; if expr
 
       | `ifs´ `{´ {Case} [Else] `}´                 ;; ifs
-            Case :  Expr  (`=>´ Expr | Block | Lambda)
-            Else : `else´ (`=>´ Expr | Block | Lambda)
+            Case :  Expr  `=>´ (Expr | Block | Lambda)
+            Else : `else´ `=>´ (Expr | Block)
 
       | `match´ Expr `{´ {Case} [Else] `}´          ;; match
-            Case :  (Lambda | Expr)  (`=>´ Expr | Block | Lambda)
-            Else : `else´ (`=>´ Expr | Block)
+            Case :  (Lambda | Expr)  `=>´ (Expr | Block | Lambda)
+            Else : `else´ `=>´ (Expr | Block | Lambda)
 
       | `loop´ Block                                ;; infinite loop
       | `loop´ ID Block                             ;; numeric infinite loop

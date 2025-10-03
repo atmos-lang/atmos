@@ -7,7 +7,7 @@ spawn {
 }
 
 spawn {
-    every :X \{         ;; (`emit :X @{v=10}`)
+    every it in :X {    ;; (`emit :X @{v=10}`)
         print(it.v)     ;; --> 10
     }
 }
