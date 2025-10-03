@@ -7,10 +7,8 @@
     [`v0.2`](https://github.com/atmos-lang/atmos/tree/v0.2_0.2.1)
 ]
 
-<!--
 This is the unstable `main` branch.
 Please, switch to stable [`v0.3`](https://github.com/atmos-lang/atmos/tree/v0.3).
--->
 
 [
     [About](#about)                 |
