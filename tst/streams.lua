@@ -43,7 +43,7 @@ local src = [[
 ]]
 print("Testing...", "func 3")
 local out = atm_test(src)
-assertx(out, "{Beatrice, Caleb}\n")
+assertx(out, "@{Beatrice, Caleb}\n")
 
 local src = [[
     val S = require "atmos.streams"
@@ -62,7 +62,7 @@ local src = [[
 ]]
 print("Testing...", "func 4")
 local out = atm_test(src)
-assertx(out, "{BEATRICE, CALEB}\n")
+assertx(out, "@{BEATRICE, CALEB}\n")
 
 local src = [[
     val S = require "atmos.streams"
@@ -110,7 +110,7 @@ local src = [[
 ]]
 print("Testing...", "func 8")
 local out = atm_test(src)
-assertx(out, "{2, 4, 18}\n{2, 4, 18}\n")
+assertx(out, "@{2, 4, 18}\n@{2, 4, 18}\n")
 
 local src = [[
     val S = require "atmos.streams"
@@ -125,4 +125,4 @@ local src = [[
 ]]
 print("Testing...", "func 9")
 local out = atm_test(src)
-assertx(out, "{2, 5, 8}\n")
+assertx(out, "@{2, 5, 8}\n")

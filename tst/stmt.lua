@@ -11,7 +11,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(xtostring(s), "{es={{tag=acc, tk={lin=1, sep=1, str=x, tag=id}}, {tag=acc, tk={lin=1, sep=1, str=y, tag=id}}}, f={tag=acc, tk={lin=1, sep=1, str=f, tag=id}}, tag=call}")
+    assertx(xtostring(s), "@{es=@{@{tag=acc, tk=@{lin=1, sep=1, str=x, tag=id}}, @{tag=acc, tk=@{lin=1, sep=1, str=y, tag=id}}}, f=@{tag=acc, tk=@{lin=1, sep=1, str=f, tag=id}}, tag=call}")
 
     local src = "func f (v) { val x }"
     print("Testing...", src)
@@ -20,7 +20,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(xtostring(s), "{dsts={{tag=acc, tk={lin=1, sep=1, str=f, tag=id}}}, src={blk={es={{ids={{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=set}")
+    assertx(xtostring(s), "@{dsts=@{@{tag=acc, tk=@{lin=1, sep=1, str=f, tag=id}}}, src=@{blk=@{es=@{@{ids=@{@{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk=@{lin=1, sep=1, str=val, tag=key}}}, tag=block}, dots=false, pars=@{@{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=set}")
 
     local src = [[
         val e = @{}
@@ -69,7 +69,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(xtostring(s), "{dsts={{idx={tag=str, tk={lin=1, sep=1, str=f, tag=id}}, t={tag=acc, tk={lin=1, sep=1, str=M, tag=id}}, tag=index}}, src={blk={es={}, tag=block}, dots=false, pars={{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=set}")
+    assertx(xtostring(s), "@{dsts=@{@{idx=@{tag=str, tk=@{lin=1, sep=1, str=f, tag=id}}, t=@{tag=acc, tk=@{lin=1, sep=1, str=M, tag=id}}, tag=index}}, src=@{blk=@{es=@{}, tag=block}, dots=false, pars=@{@{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=set}")
     assertx(trim(tosource(s)), trim [[
         set M["f"] = func (v) {
         }
@@ -105,7 +105,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
-    assertx(xtostring(s), "{blk={es={}, tag=block}, tag=do}")
+    assertx(xtostring(s), "@{blk=@{es=@{}, tag=block}, tag=do}")
 
     local src = "do { var x }"
     print("Testing...", src)
@@ -353,7 +353,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
-    assert(xtostring(s) == "{ids={{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}")
+    assert(xtostring(s) == "@{ids=@{@{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk=@{lin=1, sep=1, str=val, tag=key}}")
 
     local src = "set y = 10"
     print("Testing...", src)
@@ -362,7 +362,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(xtostring(s), "{dsts={{tag=acc, tk={lin=1, sep=1, str=y, tag=id}}}, src={tag=num, tk={lin=1, sep=1, str=10, tag=num}}, tag=set}")
+    assertx(xtostring(s), "@{dsts=@{@{tag=acc, tk=@{lin=1, sep=1, str=y, tag=id}}}, src=@{tag=num, tk=@{lin=1, sep=1, str=10, tag=num}}, tag=set}")
 
     local src = "var y = 10"
     print("Testing...", src)
@@ -371,7 +371,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(xtostring(s) == "{ids={{lin=1, sep=1, str=y, tag=id}}, set={tag=num, tk={lin=1, sep=1, str=10, tag=num}}, tag=dcl, tk={lin=1, sep=1, str=var, tag=key}}")
+    assert(xtostring(s) == "@{ids=@{@{lin=1, sep=1, str=y, tag=id}}, set=@{tag=num, tk=@{lin=1, sep=1, str=10, tag=num}}, tag=dcl, tk=@{lin=1, sep=1, str=var, tag=key}}")
 
     local src = "val [10]"
     print("Testing...", src)
@@ -483,7 +483,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(xtostring(s), "{cases={{{tag=acc, tk={lin=1, sep=1, str=cnd, tag=id}}, {blk={es={}, tag=block}, lua=true, pars={}, tag=func}}, {else, {blk={es={{ids={{lin=1, sep=1, str=f, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}, lua=true, pars={}, tag=func}}}, tag=ifs}")
+    assertx(xtostring(s), "@{cases=@{@{@{tag=acc, tk=@{lin=1, sep=1, str=cnd, tag=id}}, @{blk=@{es=@{}, tag=block}, lua=true, pars=@{}, tag=func}}, @{else, @{blk=@{es=@{@{ids=@{@{lin=1, sep=1, str=f, tag=id}}, tag=dcl, tk=@{lin=1, sep=1, str=val, tag=key}}}, tag=block}, lua=true, pars=@{}, tag=func}}}, tag=ifs}")
 
     local src = "if true { }"
     print("Testing...", src)
@@ -492,7 +492,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(xtostring(s), "{cases={{{tag=bool, tk={lin=1, sep=1, str=true, tag=key}}, {blk={es={}, tag=block}, lua=true, pars={}, tag=func}}}, tag=ifs}")
+    assertx(xtostring(s), "@{cases=@{@{@{tag=bool, tk=@{lin=1, sep=1, str=true, tag=key}}, @{blk=@{es=@{}, tag=block}, lua=true, pars=@{}, tag=func}}}, tag=ifs}")
 
     local src = "if f() { if (cnd) { val x } else { val y } }"
     print("Testing...", src)
@@ -525,8 +525,8 @@ do
     --assertx(msg, "anon : line 1 : near '<eof>' : expected '('")
     local s = parser()
     assert(check('<eof>'))
-    --assertx(xtostring(s), "{blk={es={{es={}, tag=break}}, tag=block}, tag=loop}")
-    assertx(xtostring(s), "{tag=acc, tk={lin=1, sep=1, str=break, tag=id}}")
+    --assertx(xtostring(s), "@{blk=@{es=@{@{es=@{}, tag=break}}, tag=block}, tag=loop}")
+    assertx(xtostring(s), "@{tag=acc, tk=@{lin=1, sep=1, str=break, tag=id}}")
 
     local src = "loop { break() }"
     print("Testing...", src)
@@ -535,8 +535,8 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    --assertx(xtostring(s), "{blk={es={{es={}, tag=break}}, tag=block}, tag=loop}")
-    assertx(xtostring(s), "{blk={es={{es={}, f={tag=acc, tk={lin=1, sep=1, str=break, tag=id}}, tag=call}}, tag=block}, tag=loop}")
+    --assertx(xtostring(s), "@{blk=@{es=@{@{es=@{}, tag=break}}, tag=block}, tag=loop}")
+    assertx(xtostring(s), "@{blk=@{es=@{@{es=@{}, f=@{tag=acc, tk=@{lin=1, sep=1, str=break, tag=id}}, tag=call}}, tag=block}, tag=loop}")
 
     local src = "loop x in f() {}"
     print("Testing...", src)
@@ -729,7 +729,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(xtostring(s), "{blk={es={}, tag=block}, cnd={tag=tag, tk={lin=1, sep=1, str=:X, tag=tag}}, tag=catch}")
+    assertx(xtostring(s), "@{blk=@{es=@{}, tag=block}, cnd=@{tag=tag, tk=@{lin=1, sep=1, str=:X, tag=tag}}, tag=catch}")
 
     local src = "catch { }"
     print("Testing...", src)
