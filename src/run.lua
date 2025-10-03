@@ -23,65 +23,6 @@ function atm_id ()
 end
 
 -------------------------------------------------------------------------------
-
-local function inext (t, i)
-    i = i + 1
-    if i < #t then
-        return i, t[i]
-    else
-        return nil
-    end
-end
-
-local meta_vector = {
-    __ipairs = function (t)
-        return inext, t, -1
-    end,
-    __index = function (t, i)
-        local vs = rawget(t, 'vs')
-        if i == '=' then
-            return vs[#vs]
-        elseif i == '-' then
-            local v = vs[#vs]
-            vs[#vs] = nil
-            return v
-        else
-            assertn(2, type(i)=='number', "invalid index : expected number")
-            assertn(2, i>=0 and i<#vs, "invalid index : out of bounds")
-            return vs[i+1]
-        end
-    end,
-    __newindex = function (t, i, v)
-        local vs = rawget(t, 'vs')
-        if i == '=' then
-            vs[#vs] = v
-        elseif i == '+' then
-            vs[#vs+1] = v
-        else
-            assertn(2, type(i)=='number', "invalid index : expected number")
-            if v == nil then
-                assertn(2, i>=0 and i==#vs-1, "invalid pop : out of bounds")
-            else
-                assertn(2, i>=0 and i<=#vs, "invalid push : out of bounds")
-            end
-            vs[i+1] = v
-        end
-    end,
-    __len = function (t)
-        return #(rawget(t,'vs'))
-    end,
-}
-
-function atm_vector (vs)
-    local ret = {
-        tag = 'vector',
-        vs  = vs,
-    }
-    setmetatable(ret, meta_vector)
-    return ret
-end
-
--------------------------------------------------------------------------------
 -- CATCH/THROW, LOOP/UNTIL/WHILE/BREAK, FUNC/RETURN, DO/ESCAPE
 -------------------------------------------------------------------------------
 
@@ -168,9 +109,7 @@ end
 
 function iter (t, ...)
     local mt = getmetatable(t)
-    if mt and mt.__ipairs then
-        return mt.__ipairs(t)
-    elseif mt and mt.__pairs then
+    if mt and mt.__pairs then
         return mt.__pairs(t)
     elseif mt and mt.__call then
         return t
