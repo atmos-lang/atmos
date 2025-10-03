@@ -52,7 +52,7 @@ do
             print(@{ } === @{1})
             print(@{1} =!= @{1})
             print(@{1,@{},@{1,2,3}} === @{1,@{},@{1,2,3}})
-            print(@{ni@,@{@{1,1},1}} === @{nil,@{@{1,1},1}})
+            print(@{nil,@{@{1,1},1}} === @{nil,@{@{1,1},1}})
             print(@{1,@{1},1} =!= @{1,@{1},1})
             print(@{[:y]=false} === @{[:x]=true})
             print(@{@{}} === @{@{}})
@@ -60,7 +60,7 @@ do
         ]]
         print("Testing...", "expr ===")
         local out = atm_test(src)
-        assertx(out, "true\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\nfalse\ntrue\nfalse\n")
+        assertx(out, "false\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\nfalse\ntrue\nfalse\n")
 
         local src = [[
             print(@{} ==  @{})
@@ -68,27 +68,27 @@ do
             print(@{} !=  @{})
             print(@{} =!= @{})
         ]]
-        print("Testing...", "expr ===: table")
+        print("Testing...", "expr === :table")
         local out = atm_test(src)
         assertx(out, "false\ntrue\ntrue\nfalse\n")
 
         local src = [[
-            print(#{}  ==  #{})
-            print(#{1} === #{1})
-            print(#{1} !=  #{1})
-            print(#{}  =!= #{})
+            print(@{}  ==  @{})
+            print(@{1} === @{1})
+            print(@{1} !=  @{1})
+            print(@{}  =!= @{})
         ]]
-        print("Testing...", "expr ===: vector")
+        print("Testing...", "expr === :vector")
         local out = atm_test(src)
         assertx(out, "false\ntrue\ntrue\nfalse\n")
 
         local src = [[
-            print(#{#{},@{}} ==  #{#{},@{}})
-            print(#{#{},@{}} !=  #{#{},@{}})
-            print(#{#{1},@{[:y]=false,[:x]=true}} === #{#{1},@{[:x]=true,[:y]=false}})
-            print(#{#{},@{}} =!= #{#{},@{}})
+            print(@{@{},@{}} ==  @{@{},@{}})
+            print(@{@{},@{}} !=  @{@{},@{}})
+            print(@{@{1},@{[:y]=false,[:x]=true}} === @{@{1},@{[:x]=true,[:y]=false}})
+            print(@{@{},@{}} =!= @{@{},@{}})
         ]]
-        print("Testing...", "expr ===: vector")
+        print("Testing...", "expr === :vector")
         local out = atm_test(src)
         assertx(out, "false\ntrue\ntrue\nfalse\n")
     end
@@ -499,25 +499,28 @@ do
         ==> attempt to index a number value
     ]])
 
-    local src = "print((#{1})[#{}])"
+    local src = "print((@{1})[@{}])"
     print("Testing...", src)
     local out = atm_test(src)
+    assertx(out, "nil\n")
+--[=[
     assertx(trim(out), trim [[
         ==> ERROR:
          |  [C]:-1 (call)
          v  [string "anon.atm"]:1 (throw)
         ==> invalid index : expected number
     ]])
+]=]
 
-    local src = "print((#{#{1}})[(#{0})[0]][0])"
+    local src = "print((@{@{1}})[(@{1})[1]][1])"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "1\n")
 
-    local src = "xprint((#{#{1}})[(#{0})[0]])"
+    local src = "xprint((@{@{1}})[(@{1})[1]])"
     print("Testing...", src)
     local out = atm_test(src)
-    assertx(out, "#{1}\n")
+    assertx(out, "{1}\n")
 
     local src = "xprint(@{[:key]=:val})"
     print("Testing...", src)
@@ -543,10 +546,10 @@ do
     assertx(out, "{10, tag=X}\n")
 
     local src = [[
-        val t = #{}
+        val t = @{}
         print(#t)
-        set t[#t] = 10
-        print(t[0])
+        set t[#t+1] = 10
+        print(t[1])
         print(#t)
     ]]
     print("Testing...", "vector 1")
@@ -554,11 +557,11 @@ do
     assertx(out, "0\n10\n1\n")
 
     local src = [[
-        val t = #{}
+        val t = @{}
         print(#t)
-        set t[#t] = 1
+        set t[#t+1] = 1
         print(#t)
-        set t[#t-1] = nil
+        set t[#t] = nil
         print(#t)
     ]]
     print("Testing...", "vector 2")
@@ -566,12 +569,12 @@ do
     assertx(out, "0\n1\n0\n")
 
     local src = [[
-        val t = #{}
+        val t = @{}
         val x = t
         print(#x)
-        set t[#t] = 1
+        set t[#t+1] = 1
         print(#x)
-        set t[#t-1] = nil
+        set t[#t] = nil
         print(#x)
     ]]
     print("Testing...", "vector 3")
@@ -579,61 +582,64 @@ do
     assertx(out, "0\n1\n0\n")
 
     local src = [[
-        val x = #{1,2,3}
-        val t = #{}
-        set t[#t] = 4
-        set t[#t] = 5
-        set t[#t-1] = nil
-        xprint(x ++ t ++ #{5,6,7})
+        val x = @{1,2,3}
+        val t = @{}
+        set t[#t+1] = 4
+        set t[#t+1] = 5
+        set t[#t] = nil
+        xprint(x ++ t ++ @{5,6,7})
     ]]
     print("Testing...", "vector 4")
     local out = atm_test(src)
-    assertx(out, "#{1, 2, 3, 4, 5, 6, 7}\n")
+    assertx(out, "{1, 2, 3, 4, 5, 6, 7}\n")
 
     local src = [[
         xprint(@{x=1} ++ @{y=2} ++ @{z=3})
-        xprint(#{1} ++ #{2} ++ #{3})
+        xprint(@{1} ++ @{2} ++ @{3})
     ]]
     print("Testing...", "expr 2")
     local out = atm_test(src)
-    assertx(out, "{x=1, y=2, z=3}\n#{1, 2, 3}\n")
+    assertx(out, "{x=1, y=2, z=3}\n{1, 2, 3}\n")
 end
 
 -- VECTOR / PPP
 
 do
     local src = [[
-        val t = #{}
-        set t[#t] = 1
-        set t[#t] = 2
-        set t[#t] = 3
-        print(t[1])
+        val t = @{}
+        set t[#t+1] = 1
+        set t[#t+1] = 2
+        set t[#t+1] = 3
+        print(t[2])
         xprint(t)
     ]]
     print("Testing...", "ppp 1")
     local out = atm_test(src)
-    assertx(out, "2\n#{1, 2, 3}\n")
+    assertx(out, "2\n{1, 2, 3}\n")
 
     local src = [[
-        val t = #{}
-        set t[#t-1] = nil
+        val t = @{}
+        set t[#t] = nil
         xprint(t)
     ]]
     print("Testing...", "ppp 2: error pop")
     local out = atm_test(src)
+    assertx(out, "{}\n")
+--[=[
     assertx(trim(out), trim [[
         ==> ERROR:
          |  [C]:-1 (call)
          v  [string "anon.atm"]:2 (throw)
         ==> invalid pop : out of bounds
     ]])
+]=]
 
     local src = [[
-        val t = #{}
+        val t = @{}
         print(#t)
-        set t[#t] = 10
+        set t[#t+1] = 10
         print(#t)
-        set t[#t-1] = nil
+        set t[#t] = nil
         print(#t)
     ]]
     print("Testing...", "ppp 3")
@@ -641,64 +647,70 @@ do
     assertx(out, "0\n1\n0\n")
 
     local src = [[
-        val t = #{}
-        set t[#t] = 10
-        set t[#t-1] = nil
-        set t[#t] = 10
-        set t[#t] = 20
-        set t[0]  = t[0] + 1
+        val t = @{}
+        set t[#t+1] = 10
+        set t[#t] = nil
+        set t[#t+1] = 10
+        set t[#t+1] = 20
         set t[1]  = t[1] + 1
-        set t[2]  = 99
+        set t[2]  = t[2] + 1
+        set t[3]  = 99
         xprint(t)
     ]]
     print("Testing...", "ppp 4")
     local out = atm_test(src)
-    assertx(out, "#{11, 21, 99}\n")
+    assertx(out, "{11, 21, 99}\n")
 
     local src = [[
-        val t = #{}
-        set t[#t] = 10
-        set t[#t-1] = nil
-        set t[#t] = 10
-        set t[#t] = 20
-        print(t[2])
+        val t = @{}
+        set t[#t+1] = 10
+        set t[#t] = nil
+        set t[#t+1] = 10
+        set t[#t+1] = 20
+        print(t[3])
     ]]
     print("Testing...", "ppp 5: error out of bounds")
     local out = atm_test(src)
+    assertx(out, "nil\n")
+--[=[
     assertx(trim(out), trim [[
         ==> ERROR:
          |  [C]:-1 (call)
          v  [string "anon.atm"]:6 (throw)
         ==> invalid index : out of bounds
     ]])
+]=]
 
     local src = [[
-        val t = #{}
-        set t[#t+1] = 10
+        val t = @{}
+        set t[#t] = 10
         xprint(t)
     ]]
     print("Testing...", "ppp 6: error push")
     local out = atm_test(src)
+    assertx(out, "{0=10}\n")
+--[=[
     assertx(trim(out), trim [[
         ==> ERROR:
          |  [C]:-1 (call)
          v  [string "anon.atm"]:2 (throw)
         ==> invalid push : out of bounds
     ]])
+]=]
 
     local src = [[
-        val stk = #{1,2,3}
+        val stk = @{1,2,3}
         print(stk[=])       ;; --> 3
         set stk[=] = 30
-        xprint(stk)           ;; --> #[1, 2, 30]
+        xprint(stk)         ;; --> #[1, 2, 30]
         print(stk[-])       ;; --> 30
-        xprint(stk)           ;; --> #[1, 2]
+        xprint(stk)         ;; --> #[1, 2]
         set stk[+] = 3
-        xprint(stk)           ;; --> #[1, 2, 3]
+        xprint(stk)         ;; --> #[1, 2, 3]
     ]]
     print("Testing...", "ppp 5")
     local out = atm_test(src)
-    assertx(out, "3\n#{1, 2, 30}\n30\n#{1, 2}\n#{1, 2, 3}\n")
+    assertx(out, "3\n{1, 2, 30}\n30\n{1, 2}\n{1, 2, 3}\n")
 
 --[=[
     local src = [[
