@@ -66,22 +66,30 @@
 
 # DESIGN
 
-Atmos is a programming language reconciles *[Structured Concurrency][sc]* with
-*[Event-Driven Programming][events]*, extending classical structured
-programming with two main functionalities:
+Atmos is a programming language that reconciles *[Structured Concurrency][sc]*,
+*[Event-Driven Programming][events]*, and *[Functional Streams][streams]*,
+extending classical structured programming with three main functionalities:
 
 - Structured Deterministic Concurrency:
     - A `task` primitive with deterministic scheduling provides predictable
       behavior and safe abortion.
+    - Structured primitives compose concurrent tasks with lexical scope (e.g.,
+      `watching`, `every`, `par_or`).
     - A `tasks` container primitive holds attached tasks and control their
       lifecycle.
     - A `pin` declaration attaches a task or tasks to its enclosing lexical
       scope.
-    - Structured primitives compose concurrent tasks with lexical scope (e.g.,
-      `watching`, `every`, `par_or`).
 - Event Signaling Mechanisms:
     - An `await` primitive suspends a task and wait for events.
-    - An `emit` primitive broadcasts events and awake awaiting tasks.
+    - An `emit` primitive signals events and awake awaiting tasks.
+- Functional Streams (à la [ReactiveX][rx]):
+    - *(experimental)*
+    - Functional combinators for lazy (infinite) lists.
+    - Interoperability with tasks & events:
+        tasks and events as streams, and
+        streams as events.
+    - Safe finalization of stateful (task-based) streams.
+
 <!--
 - Lexical Memory Management *(experimental)*:
     - A lexical policy to manage dynamic allocation automatically.
@@ -89,7 +97,7 @@ programming with two main functionalities:
     - A reference-counter collector for deterministic reclamation.
 -->
 
-Atmos is inspired by [synchronous programming languages][sync] like [Ceu][ceu]
+Atmos is inspired by [synchronous programming languages][sync] like [Céu][ceu]
 and [Esterel][esterel].
 
 Follows an extended list of functionalities in Atmos:
@@ -111,7 +119,7 @@ Atmos is in **experimental stage**.
 
 In the rest of this section, we introduce key aspects of Atmos:
 *Structured Deterministic Concurrency*, *Event Signaling Mechanisms*,
-*Hierarchical Tags*, and *Integration with Lua*.
+*Functional Streams*, *Hierarchical Tags*, and *Integration with Lua*.
 
 [sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
 [events]:       https://en.wikipedia.org/wiki/Event-driven_programming
@@ -244,6 +252,10 @@ The last event aborts the `watching` composition and prints `done`, before
 terminating the main body.
 
 ### Bidimensional Stack Traces
+
+`TODO`
+
+## Functional Streams
 
 `TODO`
 
@@ -2189,8 +2201,8 @@ An `every` is a [loop](#loop) that makes an iteration whenever an
 Every : `every´ [ID+ `in´] Expr* Block
 ```
 
-The block can also use the [lambda notation](#lambda) to capture the value
-of the occurring event.
+The optional `in` clause captures the values of the occurring event into the
+given identifiers, which are local to the loop.
 
 Examples:
 
@@ -2203,7 +2215,7 @@ every @1 {
 ```
 
 ```
-every :X \{         ;; <-- (`emit :X @{v=10}`)
+every it in :X {    ;; <-- (`emit :X @{v=10}`)
     print(it.v)     ;; --> 10
 }
 ```
@@ -2413,7 +2425,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `toggle´ Expr `(´ Expr `)´                  ;; toggle task
       | `toggle´ TAG Block                          ;; toggle block
 
-      | `every´ Expr* (Block | Lambda)              ;; every event loop
+      | `every´ [ID+ `in´] Expr* Block              ;; every event loop
       | `watching´ Expr* Block                      ;; watching event block
 
       | `par´     Block { `with´ Block }            ;; parallels

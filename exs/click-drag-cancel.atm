@@ -53,9 +53,9 @@ loop {
             await(SDL.event.MouseButtonUp)
             set text = "!!! DRAGGED !!!"
         } with {
-            every SDL.event.MouseMotion \{
-                set rect.x = orig.x + (it.x - click.x)
-                set rect.y = orig.y + (it.y - click.y)
+            every e in SDL.event.MouseMotion {
+                set rect.x = orig.x + (e.x - click.x)
+                set rect.y = orig.y + (e.y - click.y)
             }
         }
     } with {
