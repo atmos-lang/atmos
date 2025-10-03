@@ -126,7 +126,17 @@ function iter (t, ...)
         end
         return fi, to, fr
     elseif type(t) == 'table' then
-        return next, t, nil
+        -- TODO: xnext
+        return coroutine.wrap(function()
+            for i=1, #t do
+                coroutine.yield(i, t[i])
+            end
+            for k,v in pairs(t) do
+                if type(k)~='number' or k<=0 or k>#t then
+                    coroutine.yield(k,v)
+                end
+            end
+        end)
     else
         error("TODO - iter(t)")
     end

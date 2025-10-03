@@ -167,6 +167,7 @@ function atm_cat (v1, v2)
     if type(v1) == 'string' then
         return v1 .. v2
     else
+        local ret = {}
         for k,x in iter(v1) do
             if type(k) == 'number' then
                 ret[#ret+1] = x
