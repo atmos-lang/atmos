@@ -164,36 +164,20 @@ function atm_is (v1, v2)
 end
 
 function atm_cat (v1, v2)
-    local t1 = type(v1)
-    local t2 = type(v2)
-    local m1 = getmetatable(v1)
-    local m2 = getmetatable(v2)
-    if t1 == 'string' then
+    if type(v1) == 'string' then
         return v1 .. v2
-    elseif m1 and m2 and m1.__ipairs and m2.__ipairs then
-        local ret = atm_vector{}
-        for _, x in m1.__ipairs(v1) do
-            ret[#ret] = x
-        end
-        for _, x in m2.__ipairs(v2) do
-            ret[#ret] = x
-        end
-        return ret
     else
-        local ret = {}
-        for _,x in ipairs(v1) do
-            ret[#ret+1] = x
-        end
-        for _,x in ipairs(v2) do
-            ret[#ret+1] = x
-        end
-        for k,x in pairs(v1) do
-            if type(k) ~= 'number' then
+        for k,x in iter(v1) do
+            if type(k) == 'number' then
+                ret[#ret+1] = x
+            else
                 ret[k] = x
             end
         end
-        for k,x in pairs(v2) do
-            if type(k) ~= 'number' then
+        for k,x in iter(v2) do
+            if type(k) == 'number' then
+                ret[#ret+1] = x
+            else
                 ret[k] = x
             end
         end
@@ -202,17 +186,9 @@ function atm_cat (v1, v2)
 end
 
 function atm_in (v, t)
-    if type(t) == 'table' then
-        for _,y in pairs(t) do
-            if y == v then
-                return true
-            end
-        end
-    else
-        for x,y in iter(t) do
-            if x==v or y==v then
-                return true
-            end
+    for x,y in iter(t) do
+        if (x==v and type(x)~='number') or (y == v) then
+            return true
         end
     end
     return false
