@@ -876,3 +876,33 @@ do
         })
     ]])
 end
+
+do
+    local src = "every in :X,10 {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'in' : expected expression")
+end
+
+do
+    local src = "every x in"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '<eof>' : expected expression")
+end
+
+do
+    local src = "every 10 in"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '10' : expected identifier")
+end

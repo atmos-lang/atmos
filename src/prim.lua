@@ -537,7 +537,9 @@ function parser_1_prim ()
             if accept('in') then
                 ids = awt
                 for i,v in ipairs(ids) do
-                    assert(v.tag == 'acc')
+                    if v.tag ~= 'acc' then
+                        err(v.tk, "expected identifier")
+                    end
                     ids[i] = v.tk
                 end
                 awt = parser_list(',', '{', parser)
