@@ -70,10 +70,7 @@ function coder (e)
         local es = join(", ", map(e.es, function (t)
             return '['..coder(t.k)..'] = '..coder(t.v)
         end))
-        return '{' .. es .. '}'
-    elseif e.tag == 'vector' then
-        local es = coder_args(e.es)
-        return "atm_vector{ " .. es .. "}"
+        return "atm_table{ " .. es .. "}"
     elseif e.tag == 'uno' then
         return '('..(OPS.lua[e.op.str] or e.op.str)..' '..coder(e.e)..')'
     elseif e.tag == 'bin' then

@@ -766,19 +766,19 @@ do
     local src = [[
         val f = func (_,v) {
             (func (x) {
-                set x[0] = v[0]
-                xprint(x[0])
-            }) (#{0})
+                set x[1] = v[1]
+                xprint(x[1])
+            }) (@{1})
         }
         var T = func () {
             f(await(true))
         }
         spawn T()
-        emit (:t,#{#{1}})
+        emit (:t,@{@{2}})
     ]]
     print("Testing...", "emit scope 7")
     local out = atm_test(src)
-    assertx(out, "#{1}\n")
+    assertx(out, "{2}\n")
 
     local src = [[
         val f = func (_,v) {
@@ -990,17 +990,17 @@ do
     local src = [[
         spawn (func () {
             val _,evt = await(true)
-            val x = evt[0]
+            val x = evt[1]
             xprint(x)
         }) ()
         do {
-            val e = #{#{10}}
+            val e = @{@{10}}
             emit(:t,e)
         }
     ]]
     print("Testing...", "alien 5")
     local out = atm_test(src)
-    assertx(out, "#{10}\n")
+    assertx(out, "{10}\n")
 
     local src = [=[
         var f = func (_,v) {  ;; *** v is no longer fleeting ***

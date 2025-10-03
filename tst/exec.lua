@@ -1185,16 +1185,16 @@ do
     ]]
     print("Testing...", "loop 5")
     local out = atm_test(src)
-    assertx(out, "3\t3\n1\t1\n2\t2\n")
+    assertx(out, "1\t1\n2\t2\n3\t3\n")
 
     local src = [[
-        loop i,v in #{1,2,3} {
+        loop i,v in @{1,2,3} {
             print(i,v)
         }
     ]]
     print("Testing...", "loop 6")
     local out = atm_test(src)
-    assertx(out, "0\t1\n1\t2\n2\t3\n")
+    assertx(out, "1\t1\n2\t2\n3\t3\n")
 
     local src = [[
         loop k,v in @{x=1,y=2} {
@@ -2393,9 +2393,7 @@ do
     assertx(out, "false\ntrue\ntrue\nfalse\n")
 
     local src = [[
-        print(#{} ?? :table)
-        print(#{} ?? :vector)
-        print(@{} ?? :vector)
+        print(@{} ?? :table)
         print(@1 ?? :clock)
         print(task\{} ?? :task)
         pin xs = tasks()
@@ -2403,17 +2401,16 @@ do
     ]]
     print("Testing...", "is 3")
     local out = atm_test(src)
-    assertx(out, "true\ntrue\nfalse\ntrue\ntrue\ntrue\n")
+    assertx(out, "true\ntrue\ntrue\ntrue\n")
 
     local src = [[
-        print(#{} ?? #{})
-        print(#{} ?? @{})
-        print(#{1,2,3} ?? #{1,2,3})
+        print(@{} ?? @{})
+        print(@{1,2,3} ?? @{1,2,3})
         print(\{} !? \{})
     ]]
     print("Testing...", "is 4")
     local out = atm_test(src)
-    assertx(out, "true\nfalse\ntrue\ntrue\n")
+    assertx(out, "true\ntrue\ntrue\n")
 
     local src = [[
         val t = @{1,2,3}
