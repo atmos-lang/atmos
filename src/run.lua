@@ -130,7 +130,7 @@ end
 
 local function fi (N, i)
     i = i + 1
-    if N and i>=N then
+    if i>N then
         return nil
     end
     return i
@@ -143,7 +143,7 @@ function iter (t, ...)
     elseif mt and mt.__call then
         return t
     elseif t == nil then
-        return fi, nil, -1
+        return fi, math.maxinteger-1, 0
     elseif type(t) == 'function' then
         return t
     elseif type(t) == 'number' then
@@ -151,7 +151,7 @@ function iter (t, ...)
         if ... then
             fr, to = t-1, ...
         else
-            fr, to = -1, t
+            fr, to = 0, t
         end
         return fi, to, fr
     elseif type(t) == 'table' then

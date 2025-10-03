@@ -96,7 +96,7 @@ Follows an extended list of functionalities in Atmos:
 
 - Dynamic typing
 - Statements as expressions
-- Dynamic collections (tables and vectors)
+- Dynamic collections (tables)
 - Deferred statements for finalization
 - Exception handling (throw & catch)
 - Seamless integration with Lua
@@ -596,7 +596,7 @@ Atmos supports and mimics the semantics of the standard [Lua types](lua-types):
     `function`, `userdata`, `thread`, and `table`.
 
 In addition, Atmos also supports the types as follows:
-    `clock`, `vector`, `task`, and `tasks`.
+    `clock`, `task`, and `tasks`.
 Although these types are internally represented as Lua tables, they receive
 special treatment from the language.
 
@@ -605,7 +605,7 @@ Atmos differentiates between *value* and *reference* types:
 - Value types are built from the [basic literals](#literals):
     `nil`, `boolean`, `number`, `string`, and `clock`.
 - Reference types are built from constructors:
-    `function`, `userdata`, `thread`, `table`, `vector`, `task`, and `tasks`.
+    `function`, `userdata`, `thread`, `table`, `task`, and `tasks`.
 
 [lua-types]: https://www.lua.org/manual/5.4/manual.html#2.1
 
@@ -645,6 +645,11 @@ formats:
 - `id=e` maps string `id` to `e` (same as `["id"]=e`)
 - `e` maps numeric index `i` to `e` (same as `[i]=e`), where `i` starts at `1`
   and increments after each assignment
+
+A table is also a vector if it contains numeric indexes starting from `1` with
+no [holes](lua-sequences).
+
+[lua-sequences]: https://www.lua.org/manual/5.4/manual.html#3.4.7
 
 Examples:
 
@@ -878,7 +883,6 @@ A pool must be first assigned to a `pin` [declaration](#local-variables) and
 becomes attached to the enclosing block.
 Therefore, when the block terminates or aborts, all tasks living in the pool
 also aborts automatically.
-
 
 Examples:
 
@@ -1389,7 +1393,7 @@ The operator `#` ("length") evaluates the number of elements in the given
 collection.
 
 Atmos preserves the semantics of the [Lua length operator](lua-length), and
-adds support for the [types](#types--values) `vector` and `tasks`.
+adds support for the [tasks type](#tasks).
 
 [lua-length]: https://www.lua.org/manual/5.4/manual.html#3.4.7
 
@@ -1415,9 +1419,10 @@ Follows the expected result of `a ++ b` for the supported types:
 
 - `string`: string with the characters of `a` followed by the characters of `b`
             (same as `a .. b` in Lua)
-- `vector`: vector with the values of `a` followed by the values of `b`
-- `table`:  table with the key-values of `a` and `b`, favoring `b` in case of
-            duplicate keys
+- `table` or :
+    for numeric keys, table with values of `a` followed by the values of `b`;
+    for non-numeric keys, table with the key-values of `a` and `b`,
+    favoring `b` in case of duplicate keys
 - otherwise: vector with values of `iter(a)` and `iter(b)`
 
 For the last case, each value is extracted from an iteration of `iter`, taking
@@ -1465,20 +1470,17 @@ Examples:
 
 ## Indexing
 
-Atmos uses brackets (`[` and `]`) or a dot (`.`) to index [tables](#table) and
-[vectors](#vector):
+Atmos uses brackets (`[` and `]`) or a dot (`.`) to index [tables](#table):
 
 ```
 Expr : Expr `[´ Expr `]´
      | Expr `.´ ID
 ```
 
-The dot notation only applies to tables and is a syntactic sugar to index
-string keys: `t.x` expands to `t["x"]`.
+The dot notation is a syntactic sugar to index string keys: `t.x` expands to
+`t["x"]`.
 
 Atmos mimics the semantics of [Lua indexing](lua-indexing) for tables.
-For vectors, the index must be in the range `[0,#[` for reading, and `[0,#]`
-for writing, where `#` is its length.
 
 Examples:
 
@@ -1490,13 +1492,15 @@ print(t['x'])       ;; --> 1
 print(t[:x])        ;; --> 1
 print(t.x)          ;; --> 1
 print(t.y)          ;; --> nil
+```
 
-val v = #{ 1 }
-set v[0] = 10       ;; #{ 10 }
-set v[#v] = 20      ;; #{ 10, 20 }
-print(v[0])         ;; --> 10
-print(v[#v-1])      ;; --> 20
-print(v[#v])        ;; ERR: out of bounds
+```
+val v = @{ 1 }
+set v[1] = 10       ;; @{ 10 }
+set v[#v+1] = 20    ;; @{ 10, 20 }
+print(v[1])         ;; --> 10
+print(v[#v])        ;; --> 20
+print(v[#v+1])      ;; --> nil
 ```
 
 [lua-indexing]: https://www.lua.org/manual/5.4/manual.html#3.2
@@ -1787,18 +1791,27 @@ Atmos supports three loop variations:
 The following iterator expression types with predefined behaviors are
 supported:
 
-- `:vector`: ranges over the indexes and values of a vector
-- `:table`: ranges over the keys and values of a table
-- `:tasks`: ranges over the indexes and tasks of a task pool
-- `:function`: ranges over calls to the given function, until it returns `nil`
-- `(:number,:number)`: ranges from the first number up to, but not including,
-    the second number
-- `:number`: equivalent to `(0,x)` where `x` is the given number
+- `:table`:
+    ranges over vector indexes and values, and than over keys and values of a
+    table
+- `:tasks`:
+    ranges over the indexes and tasks of a task pool
+- `:function`:
+    ranges over calls to the given function, until it returns `nil`
+- `(:number,:number)`:
+    ranges from the first number up to the second number inclusive
+- `:number`:
+    equivalent to `(1,x)` where `x` is the given number
+- `:nil`:
+    equivalent to `(1,math.maxinteger)`
+- `__call`:
+    the value contains a `__call` metamethod; behaves like `:function`
+- `__pairs`:
+    the value contains a `__pairs` metamethod;
+    ranges over calls to it, until it returns `nil`
 
 A loop evaluates to `nil` as a whole, unless a [break](#breaks) condition
 occurs.
-
-`TODO: __ipairs, __pairs, __call metamethods`
 
 Examples:
 
@@ -1813,20 +1826,20 @@ loop {
 
 ```
 loop i {
-    print(i)        ;; --> 0, 1, 2, ...
+    print(i)        ;; --> 1, 2, ...
 }
 ```
 
 ```
 val x = loop i in (1,3) {
-    print(i)        ;; --> 1, 2
+    print(i)        ;; --> 1, 2, 3
 }
-print(x)            ;; --> false
+print(x)            ;; --> nil
 ```
 
 ```
-loop i,v in #{10,20,30} {
-    print(i,v)      ;; --> (0,10), (1,20), (2,30)
+loop i,v in @{10,20,30} {
+    print(i,v)      ;; --> (1,10), (2,20), (3,30)
 }
 ```
 
