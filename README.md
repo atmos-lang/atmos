@@ -41,6 +41,7 @@ extending classical structured programming with three main functionalities:
     - An `await` primitive suspends a task and wait for events.
     - An `emit` primitive signals events and awake awaiting tasks.
 - Functional Streams (à la [ReactiveX][rx]):
+    - *(experimental)*
     - Functional combinators for lazy (infinite) lists.
     - Interoperability with tasks & events:
         tasks and events as streams, and

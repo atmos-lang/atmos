@@ -7,13 +7,15 @@ v0.3 (oct/25)
     - `test` block
     - `do()` innocuous expression
     - operators:
-        - deep comparison (`===` and `=!=`)
+        - deep equality (`===` and `=!=`)
         - membership (`?>` and `!>`)
     - calls:
         - `f \{}` and `f @clk`
 - Modifications:
     - `if x \{...}` to `if x => \{...}`
     - `every e \{...}` to `every v in e {...}`
+    - `loop ... in N`: from `1` to `N` (inclusive)
+    - operations across multiple lines
 - Removals:
     - vectors (`#{...}`)
 - Bug fixes:
