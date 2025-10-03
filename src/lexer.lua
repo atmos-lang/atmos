@@ -98,19 +98,6 @@ local function _lexer_ (str)
                 end
             end
 
-        -- #, #{
-        elseif c == '#' then
-            local c2 = read()
-            if c2 == '{' then
-                coroutine.yield { tag='sym', str=c..'{', lin=LIN,sep=SEP }
-            elseif contains(OPS.cs, c2) then
-                local op = read_while(c..c2, function (c) return contains(OPS.cs,c) end)
-                err({str=op,lin=LIN,sep=SEP}, "invalid operator")
-            else
-                unread()
-                coroutine.yield { tag='op', str='#', lin=LIN,sep=SEP }
-            end
-
         -- @{, @clk
         elseif c == '@' then
             local c2 = read()

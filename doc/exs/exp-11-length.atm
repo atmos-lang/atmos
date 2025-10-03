@@ -1,4 +1,4 @@
-print <-- #(#{1,2,3})     ;; --> 3
+print <-- #(@{1,2,3})     ;; --> 3
 
 func T () { await(false) }
 pin ts = tasks()

@@ -25,8 +25,6 @@
         - `;; *` `;;; * ;;;`
 * TYPES & VALUES
     * Clock
-    * Vector
-        - `#{ * }`
     * Table
         - `@{ * }` `:X @{ * }`
     * Function
@@ -336,8 +334,7 @@ worth mentioning:
 - Table constructor:
     - Lua: `{ ... }` (no `@` prefix)
     - Atmos: `@{ ... }` (`@` prefix)
-        - The reason is to avoid ambiguity with vectors and blocks:
-            - `{...}` is a table or a vector?
+        - The reason is to avoid ambiguity with blocks:
             - `if f { ... }` is `if f{...} ...` or `if (f) { ... }`?
 - Operators:
     - Lua: `~=` `and` `or` `not` `..`
@@ -457,7 +454,6 @@ The following symbols are designated in Atmos:
     {   }           ;; block/operators delimeters
     (   )           ;; expression delimeters
     [   ]           ;; index delimeters
-    #{              ;; vector constructor delimeter
     @{              ;; dictionary constructor delimeter
     \               ;; lambda declaration
     =               ;; assignment separator
@@ -628,48 +624,10 @@ print(clk.s)            ;; --> 40
 print(clk ?? :clock)    ;; --> true
 ```
 
-## Vector
-
-The `vector` reference type represents tables with numerical indexes starting
-at `0`.
-
-A vector constructor `#{ * }` receives a list of expressions and assigns each
-expression to incrementing indexes:
-
-```
-Vector : `#{´ Expr* `}´
-```
-
-The [length](#operations) `#` of a vector `v` can only be modified as a stack,
-i.e, only pushes and pops are allowed:
-
-- push: `set v[#v] = x`
-- pop:  `set v[#v-1] = nil`
-
-Therefore, an insertion must be exactly at index `#v`, while removal must be
-exactly at index `#v-1`.
-
-Note that internally, a vector is represented as a table with a custom
-[Lua metatable][lua-metatables].
-
-[lua-metatables]: https://www.lua.org/manual/5.4/manual.html#2.4
-
-Examples:
-
-<!-- exs/val-02-vector.atm -->
-
-```
-val vs = #{1, 2, 3}     ;; a vector of numbers (similar to @{ [0]=1, [1]=2, [2]=3 })
-print(vs[1])            ;; --> 2
-print(vs ?? :vector)    ;; --> true
-set vs[#vs] = 4         ;; #{1, 2, 3}
-set vs[2] = nil         ;; ERR: out of bounds
-```
-
 ## Table
 
-The `table` reference type represents [Lua tables](lua-types) with indexes of any
-type.
+The `table` reference type represents [Lua tables](lua-types) with indexes of
+any type.
 
 A table constructor `@{ * }` receives a list `*` of key-value assignments:
 
@@ -701,6 +659,15 @@ val t = @{      ;; all 3 formats:
 }
 print(t ?? :table)          ;; --> true
 print(t.idx, t["v"], t[2])  ;; --> 10, x, 30
+```
+
+<!-- exs/val-02-vector.atm -->
+
+```
+val vs = @{1, 2, 3}     ;; a vector of numbers
+print(vs[2])            ;; --> 2
+print(vs ?? :table)     ;; --> true
+set vs[#vs+1] = 4       ;; @{1, 2, 3, 4}
 ```
 
 [lua-table]: https://www.lua.org/manual/5.4/manual.html#3.4.9
@@ -1299,8 +1266,8 @@ Examples:
 var x
 set x = 20              ;; OK
 
-val y = #{10}
-set y[0] = 20           ;; OK
+val y = @{10}
+set y[1] = 20           ;; OK
 set y = 0               ;; ERROR: cannot reassign `y`
 
 set `z` = 10            ;; OK
@@ -1328,6 +1295,8 @@ Expr : OP Expr          ;; unary operation
 
 <!--
 For binary operations, the first operand and operator must be at the same line.
+x                   ;; ERR: `x`,`+` not at same line
+ + y
 -->
 
 Atmos supports and mimics the semantics of standard
@@ -1351,9 +1320,7 @@ Examples:
 ```
 -(1 + 10)           ;; --> -11
 !(true && false)    ;; --> true
-#(#{1,2,3})         ;; --> 3
-x                   ;; ERR: `x`,`+` not at same line
- + y
+#(@{1,2,3})         ;; --> 3
 ```
 
 [lua-operations]: https://www.lua.org/manual/5.4/manual.html#3.4
@@ -1383,11 +1350,11 @@ Examples:
 <!-- exs/exp-09-deep-equality.atm -->
 
 ```
-#{1,2,3} === #{1,2,3}       ;; --> true
-#{} =!= @{}                 ;; --> true (different metatables)
-@{v=#{}} =!= @{v=#{}}       ;; --> false
-@{[#{}]=1} === @{[#{}]=1}   ;; --> false (keys are not `==`)
-\{} === \{}                 ;; --> false (functions are not `==`)
+@{1,2,3} === @{1,2,3}       ;; --> true
+\{} =!= @{}                 ;; --> true (different types)
+@{v=@{}} =!= @{v=@{}}       ;; --> false
+@{[@{}]=1} === @{[@{}]=1}   ;; --> false (keys are not `==`)
+\{} === \{}                 ;; --> false (func refs are not `==`)
 ```
 
 ### Equivalence
@@ -1431,7 +1398,7 @@ Examples:
 <!-- exs/exp-11-length.atm -->
 
 ```
-#(#{1,2,3})     ;; --> 3
+#(@{1,2,3})     ;; --> 3
 
 pin ts = tasks()
 spawn [ts] T(...)
@@ -1462,7 +1429,7 @@ Examples:
 
 ```
 'abc' ++ 'def'      ;; abcdef
-#{1,2} ++ #{3,4}    ;; #{1,2,3,4}
+@{1,2} ++ @{3,4}    ;; @{1,2,3,4}
 @{x=1} ++ @{y=2}    ;; @{x=1, y=2}
 ```
 
@@ -1472,8 +1439,8 @@ pin xs = tasks()
 pin ys = tasks()
 val x = spawn [xs] T()
 val y = spawn [ys] T()
-val ts = xs ++ ys           ;; #{x, y}
-print(#ts, y?>ts, 10?>ts)   ;; 2, true, false
+val ts = xs ++ ys           ;; @{x, y}
+print(#ts, x?>ts, y?>ts, 10?>ts)   ;; 2, true, false
 ```
 
 ### Membership
@@ -1482,8 +1449,7 @@ The operators `?>` and `!>` ("in" and "not in") check the membership of the
 left operand in the right operand.
 If any of the following conditions are met, then `a ?> b` is true:
 
-- `b` is a [vector](#vector) and `a` is equal to any of its values
-- `b` is a [table](#table) and `a` is equal to any of its keys or values
+- `b` is a [table](#table) and `a` is equal to any of its values
 - `a` is equal to any of the results of `iter(b)`
 
 The operator `!>` is the negation of `?>`.
@@ -1493,10 +1459,8 @@ Examples:
 <!-- exs/exp-10-membership.atm -->
 
 ```
-10 ?> #{10,20,30}       ;; true
- 1 ?> #{10,20,30}       ;; false
 10 ?> @{10,20,30}       ;; true
- 1 ?> @{10,20,30}       ;; true
+ 1 ?> @{10,20,30}       ;; false
 ```
 
 ## Indexing

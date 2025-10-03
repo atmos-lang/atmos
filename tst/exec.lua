@@ -31,7 +31,7 @@ do
         local out = atm_test(src)
         assertx(out, "true\n")
 
-        local src = "print(#{1,2,3} === #{1,2,3})"
+        local src = "print(@{1,2,3} === @{1,2,3})"
         print("Testing...", src)
         local out = atm_test(src)
         assertx(out, "true\n")
@@ -47,16 +47,16 @@ do
         assertx(out, "false\n")
 
         local src = [[
-            print(#{ } =!= @{ })
-            print(#{1} === #{1})
-            print(#{ } === #{1})
-            print(#{1} =!= #{1})
-            print(#{1,#{},#{1,2,3}} === #{1,#{},#{1,2,3}})
-            print(@{nil,#{@{1,1},1}} === @{nil,#{@{1,1},1}})
-            print(#{1,#{1},1} =!= #{1,#{1},1})
+            print(@{ } =!= @{ })
+            print(@{1} === @{1})
+            print(@{ } === @{1})
+            print(@{1} =!= @{1})
+            print(@{1,@{},@{1,2,3}} === @{1,@{},@{1,2,3}})
+            print(@{ni@,@{@{1,1},1}} === @{nil,@{@{1,1},1}})
+            print(@{1,@{1},1} =!= @{1,@{1},1})
             print(@{[:y]=false} === @{[:x]=true})
-            print(#{@{}} === #{@{}})
-            print(@{[#{}]=true} === @{[#{}]=true})  ;; table keys (=== false)
+            print(@{@{}} === @{@{}})
+            print(@{[@{}]=true} === @{[@{}]=true})  ;; table keys (=== false)
         ]]
         print("Testing...", "expr ===")
         local out = atm_test(src)

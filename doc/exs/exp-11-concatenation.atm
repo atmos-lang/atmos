@@ -1,6 +1,6 @@
 print <-- 'abc' ++ 'def'    ;; abcdef
-print <-- #{1,2} ++ #{3,4}  ;; #{1,2,3,4}
-print <-- @{x=1} ++ @{y=2}  ;; @{x=1, y=2}
+xprint <-- @{1,2} ++ @{3,4}  ;; @{1,2,3,4}
+xprint <-- @{x=1} ++ @{y=2}  ;; @{x=1, y=2}
 
 func T () { await(false) }
 pin xs = tasks()
@@ -8,5 +8,5 @@ pin ys = tasks()
 val x = spawn [xs] T()
 val y = spawn [ys] T()
 val ts = xs ++ ys
-print <-- ts                ;; #{x,y}
-print(#ts, x?>ts, y?>ts, 10?>ts)
+print <-- ts                ;; @{x,y}
+print(#ts, x?>ts, y?>ts, 10?>ts)    ;; 2, true, true, false

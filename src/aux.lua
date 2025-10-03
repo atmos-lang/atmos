@@ -181,11 +181,21 @@ function atm_cat (v1, v2)
         return ret
     else
         local ret = {}
+        for _,x in ipairs(v1) do
+            ret[#ret+1] = x
+        end
+        for _,x in ipairs(v2) do
+            ret[#ret+1] = x
+        end
         for k,x in pairs(v1) do
-            ret[k] = x
+            if type(k) ~= 'number' then
+                ret[k] = x
+            end
         end
         for k,x in pairs(v2) do
-            ret[k] = x
+            if type(k) ~= 'number' then
+                ret[k] = x
+            end
         end
         return ret
     end
@@ -193,20 +203,16 @@ end
 
 function atm_in (v, t)
     if type(t) == 'table' then
-        if t.tag == 'vector' then
-            for i=0, #t-1 do
-                if t[i] == v then
-                    return true
-                end
+        for _,y in pairs(t) do
+            if y == v then
+                return true
             end
-            return false
-        elseif t[v] ~= nil then
-            return true
         end
-    end
-    for x,y in iter(t) do
-        if x==v or y==v then
-            return true
+    else
+        for x,y in iter(t) do
+            if x==v or y==v then
+                return true
+            end
         end
     end
     return false

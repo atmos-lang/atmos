@@ -24,19 +24,7 @@ end
 
 -------------------------------------------------------------------------------
 
-local function inext (t, i)
-    i = i + 1
-    if i < #t then
-        return i, t[i]
-    else
-        return nil
-    end
-end
-
 local meta_vector = {
-    __ipairs = function (t)
-        return inext, t, -1
-    end,
     __index = function (t, i)
         local vs = rawget(t, 'vs')
         if i == '=' then
