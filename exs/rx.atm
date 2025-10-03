@@ -1,21 +1,23 @@
 require "atmos.env.clock"
 
-val S = require "atmos.lang.streams"
+val S = require "atmos.streams"
 
 print "---"
 
 S.from(@.100)
     ::zip(S.from @{1,2,3})
-    ::map(\(_,v){ v })
-    ::to_print()
+    ::map(\{ it[2] })
+    ::tap(print)
+    ::to()      ;; 1 / 2 / 3
 
 print "---"
 
 val n = S.from(@{'1', '1', 'foo', '2', '3', '5', 'bar', '8', '13'})
     ::filter(tonumber)
     ::map(tonumber)
-    ::to_sum()
-print(n)
+    ::sum()
+    ::to()
+print(n)        ;; 33
 
 print "---"
 
