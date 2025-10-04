@@ -1,0 +1,86 @@
+-- Test safe navigation operator (?.)
+
+-- Basic tests
+assert((nil)?.x == nil)
+assert(({x = nil})?.x == nil)
+assert(({x = {y = 5}}).x?.y == 5)
+assert(({x = {y = 5}}).x?.z == nil)
+assert(({x = 5})?.x == 5)
+
+-- Test with non-table values
+local n = 42
+assert(n?.x == nil)
+local s = "hello"
+assert(s?.x == nil)
+
+-- Test with function calls
+local function get_table()
+    return {x = {y = 10}}
+end
+assert(get_table()?.x?.y == 10)
+assert(get_table()?.z?.y == nil)
+
+-- Test with table constructors
+assert(({x = {y = {z = 20}}})?.x?.y?.z == 20)
+assert(({x = {y = {z = 20}}})?.a?.b?.c == nil)
+
+-- Test with table literals
+assert(({x = 5})?.x == 5)
+assert(({x = 5})?.y == nil)
+
+-- Test with nested safe navigation
+local t = {a = {b = {c = {d = 42}}}}
+assert(t?.a?.b?.c?.d == 42)
+assert(t?.a?.b?.x?.y == nil)
+
+-- Test with array access
+local arr = {10, 20, 30}
+assert(arr?.[2] == 20)
+assert(arr?.[5] == nil)
+
+-- Test with method calls
+local obj = {
+    value = 100,
+    getValue = function(self) return self.value end
+}
+assert(obj?.getValue() == 100)
+
+-- Test with nil object and method call
+local nilObj = nil
+assert(nilObj?.getValue() == nil)
+
+-- Test with multiple levels of nil
+local deepNil = {a = nil}
+assert(deepNil?.a?.b?.c == nil)
+
+-- Test with boolean values
+local bool = true
+assert(bool?.x == nil)
+
+-- Test with number values
+local num = 3.14
+assert(num?.x == nil)
+
+-- Test with string values
+local str = "test"
+assert(str?.x == nil)
+
+-- Test with function values
+local func = function() return 42 end
+assert(func?.x == nil)
+
+-- Test with table that has __index metamethod
+local mt = {
+    __index = function(t, k)
+        if k == "magic" then
+            return 42
+        end
+        return nil
+    end
+}
+local t2 = {}
+setmetatable(t2, mt)
+assert(t2?.magic == 42)
+assert(t2?.nonexistent == nil)
+
+print("All safe navigation operator tests passed!")
