@@ -1,5 +1,37 @@
 require "atmos.lang.exec"
 
+print '--- BEHAVIOR ---'
+
+do
+    local src = "val x* = 10"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local _,msg = pcall(parser_main)
+    assertx(msg, "anon : line 1 : near 'val' : invalid stream variable : expected pin declaration")
+
+    local src = "pin x* = 10"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), trim [[
+        {
+            var x
+            spawn(true, {
+                10::tap({
+                    set x = it
+                })::to()
+            })
+        }
+    ]])
+end
+
+print '--- STREAMS ---'
+
 local src = [[
     val S = require "atmos.streams"
     val my_counter = S.fr_counter()

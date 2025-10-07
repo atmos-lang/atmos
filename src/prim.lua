@@ -297,6 +297,14 @@ function parser_1_prim ()
     elseif accept('val') or accept('var') or accept('pin') then
         local tk = TK0
         local ids = parser_ids('=')
+
+        local beh = (#ids == 1) and accept('*')
+        if beh then
+            if tk.str ~= 'pin' then
+                err(tk, "invalid stream variable : expected pin declaration")
+            end
+        end
+
         local set
         if accept('=') then
             if check('spawn') then
@@ -321,7 +329,46 @@ function parser_1_prim ()
                 set = parser()
             end
         end
-        return { tag='dcl', tk=tk, ids=ids, set=set }
+
+        if beh then
+            return {
+                tag = 'block',
+                es = {
+                    { tag='dcl', tk={tag='var',str="var"}, ids=ids },
+                    spawn(tk.lin, {
+                        tag = 'block',
+                        es = {
+                            { tag='call',
+                                f = { tag='met',
+                                    met = { tag='id', str="to" },
+                                    o = { tag='call',
+                                        f = { tag='met', o=set, met={tag='id',str="tap"} },
+                                        es = {
+                                            { tag='func',
+                                                pars = {},
+                                                blk = { tag='block',
+                                                    es = {
+                                                        { tag='set',
+                                                            dsts = {
+                                                                { tag='acc',tk=ids[1] },
+                                                            },
+                                                            src = { tag='acc',tk={tag='id',str="it"} },
+                                                        },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                                es = {},
+                            },
+                        },
+                    }),
+                },
+            }
+        else
+            return { tag='dcl', tk=tk, ids=ids, set=set }
+        end
 
     -- set x = 10
     elseif accept('set') then
