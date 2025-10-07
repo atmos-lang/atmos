@@ -6,6 +6,6 @@ pin x* = S.zip (S.from(@1), S.from(1))
     ::map \{it[2]}
     ;;::to()      ;; 1 / 2 / 3
 
-every @1 {
+every :x {
     print(:x, x)
 }

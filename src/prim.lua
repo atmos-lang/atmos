@@ -336,7 +336,7 @@ function parser_1_prim ()
                 --
                 var x
                 spawn {
-                    S.from(@1)::tap \{ set x=it }::to()
+                    S.from(@1)::tap \{ set x=it }::emitter('x')::to()
                 }
             ]]
             return {
@@ -350,21 +350,29 @@ function parser_1_prim ()
                                 f = { tag='met',
                                     met = { tag='id', str="to" },
                                     o = { tag='call',
-                                        f = { tag='met', o=set, met={tag='id',str="tap"} },
-                                        es = {
-                                            { tag='func',
-                                                pars = { {tag='id',str="it"} },
-                                                blk = { tag='block',
-                                                    es = {
-                                                        { tag='set',
-                                                            dsts = {
-                                                                { tag='acc',tk=ids[1] },
+                                        f = { tag='met',
+                                            met = { tag='id', str="emitter" },
+                                            o = { tag='call',
+                                                f = { tag='met', o=set, met={tag='id',str="tap"} },
+                                                es = {
+                                                    { tag='func',
+                                                        pars = { {tag='id',str="it"} },
+                                                        blk = { tag='block',
+                                                            es = {
+                                                                { tag='set',
+                                                                    dsts = {
+                                                                        { tag='acc',tk=ids[1] },
+                                                                    },
+                                                                    src = { tag='acc',tk={tag='id',str="it"} },
+                                                                },
                                                             },
-                                                            src = { tag='acc',tk={tag='id',str="it"} },
                                                         },
                                                     },
                                                 },
                                             },
+                                        },
+                                        es = {
+                                            { tag='str',tk=ids[1] },
                                         },
                                     },
                                 },
