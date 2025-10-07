@@ -157,6 +157,8 @@ function coder (e)
         else
             return "(function () " .. coder(e.blk) .. " end)()"
         end
+    elseif e.tag == 'stmts' then
+        return coder_stmts(e.es, true)
     elseif e.tag == 'block' then
         return coder_stmts(e.es)
     elseif e.tag == 'defer' then

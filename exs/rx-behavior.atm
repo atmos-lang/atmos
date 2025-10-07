@@ -4,12 +4,8 @@ val S = require "atmos.streams"
 
 pin x* = S.zip (S.from(@1), S.from(1))
     ::map \{it[2]}
-    ::tap(print)
-    ::to()      ;; 1 / 2 / 3
+    ;;::to()      ;; 1 / 2 / 3
 
-pin x* = S.from(@1)
-
-var x
-spawn {
-    S.from(@1)::tap \{ set x=it }::to()
+every @1 {
+    print(:x, x)
 }

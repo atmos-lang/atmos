@@ -331,8 +331,16 @@ function parser_1_prim ()
         end
 
         if beh then
+            --[[
+                pin x* = S.from(@1)
+                --
+                var x
+                spawn {
+                    S.from(@1)::tap \{ set x=it }::to()
+                }
+            ]]
             return {
-                tag = 'block',
+                tag = 'stmts',
                 es = {
                     { tag='dcl', tk={tag='var',str="var"}, ids=ids },
                     spawn(tk.lin, {
@@ -345,7 +353,7 @@ function parser_1_prim ()
                                         f = { tag='met', o=set, met={tag='id',str="tap"} },
                                         es = {
                                             { tag='func',
-                                                pars = {},
+                                                pars = { {tag='id',str="it"} },
                                                 blk = { tag='block',
                                                     es = {
                                                         { tag='set',

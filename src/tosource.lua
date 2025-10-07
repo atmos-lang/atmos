@@ -71,6 +71,8 @@ function tosource (e, lbd)
         return e.tk.str .. " " .. ids .. set
     elseif e.tag == 'set' then
         return "set " .. tosource_args(e.dsts) .. " = " .. tosource(e.src)
+    elseif e.tag == 'stmts' then
+        return tosource_stmts(e)
     elseif e.tag == 'block' then
         return tosource_block(e)
     elseif e.tag == 'do' then
