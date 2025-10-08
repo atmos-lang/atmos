@@ -330,7 +330,9 @@ function parser_1_prim ()
             end
         end
 
-        if beh then
+        if not beh then
+            return { tag='dcl', tk=tk, ids=ids, set=set }
+        else
             --[[
                 pin x* = S.from(@1)
                 --
@@ -338,52 +340,84 @@ function parser_1_prim ()
                 spawn {
                     S.from(@1)::tap \{ set x=it }::emitter('x')::to()
                 }
+                --
+                val _x = tasks()
+                val x = @{}
+                atm_behavior(_x, x, S.from(@1))
             ]]
-            return {
-                tag = 'stmts',
-                es = {
-                    { tag='dcl', tk={tag='var',str="var"}, ids=ids },
-                    spawn(tk.lin, {
-                        tag = 'block',
-                        es = {
-                            { tag='call',
-                                f = { tag='met',
-                                    met = { tag='id', str="to" },
-                                    o = { tag='call',
-                                        f = { tag='met',
-                                            met = { tag='id', str="emitter" },
-                                            o = { tag='call',
-                                                f = { tag='met', o=set, met={tag='id',str="tap"} },
-                                                es = {
-                                                    { tag='func',
-                                                        pars = { {tag='id',str="it"} },
-                                                        blk = { tag='block',
-                                                            es = {
-                                                                { tag='set',
-                                                                    dsts = {
-                                                                        { tag='acc',tk=ids[1] },
+            local id = ids[1]
+            if set.tag == 'table' then
+                return {
+                    tag = 'stmts',
+                    es = {
+                        { tag='dcl',
+                            tk  = { tag='val', str="val" },
+                            ids = { {tag='id', str="_"..id.str} },
+                            set = { tag='call',
+                                f  = { tag='acc', tk={tag='id',str="tasks"} },
+                                es = {},
+                            },
+                        },
+                        { tag='dcl',
+                            tk  = { tag='val', str="val" },
+                            ids = { id },
+                            set = { tag='table', es={} },
+                        },
+                        { tag='call',
+                            f  = { tag='acc', tk={tag='id',str="atm_behavior"} },
+                            es = {
+                                { tag='acc', tk={tag='id',str="_"..id.str} },
+                                { tag='acc', tk={tag='id',str=id.str} },
+                                set, -- S.from(@1)
+                            },
+                        },
+                    },
+                }
+            else
+                return {
+                    tag = 'stmts',
+                    es = {
+                        { tag='dcl', tk={tag='var',str="var"}, ids={id} },
+                        spawn(tk.lin, {
+                            tag = 'block',
+                            es = {
+                                { tag='call',
+                                    f = { tag='met',
+                                        met = { tag='id', str="to" },
+                                        o = { tag='call',
+                                            f = { tag='met',
+                                                met = { tag='id', str="emitter" },
+                                                o = { tag='call',
+                                                    f = { tag='met', o=set, met={tag='id',str="tap"} },
+                                                    es = {
+                                                        { tag='func',
+                                                            pars = { {tag='id',str="it"} },
+                                                            blk = { tag='block',
+                                                                es = {
+                                                                    { tag='set',
+                                                                        dsts = {
+                                                                            { tag='acc',tk=ids[1] },
+                                                                        },
+                                                                        src = { tag='acc',tk={tag='id',str="it"} },
                                                                     },
-                                                                    src = { tag='acc',tk={tag='id',str="it"} },
                                                                 },
                                                             },
                                                         },
                                                     },
                                                 },
                                             },
-                                        },
-                                        es = {
-                                            { tag='str',tk=ids[1] },
+                                            es = {
+                                                { tag='str',tk=id },
+                                            },
                                         },
                                     },
+                                    es = {},
                                 },
-                                es = {},
                             },
-                        },
-                    }),
-                },
-            }
-        else
-            return { tag='dcl', tk=tk, ids=ids, set=set }
+                        }),
+                    },
+                }
+            end
         end
 
     -- set x = 10

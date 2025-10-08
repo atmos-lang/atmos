@@ -27,6 +27,19 @@ do
         })
     ]])
 
+    local src = "pin x* = @{}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        val _x = tasks()
+        val x = @{}
+        atm_behavior(_x, x, @{})
+    ]])
+
     print("Testing...", "beh 1")
     local src = [[
         val S = require "atmos.streams"
@@ -54,6 +67,28 @@ do
     local out = atm_test(src)
     assertx(out, "1\n2\n3\n")
 
+    print("Testing...", "beh 3")
+    local src = [[
+        val S = require "atmos.streams"
+        pin x* = @{
+            S.zip (S.from(@1), S.from(1))
+                ::map \{it[2]}
+            S.zip (S.fr_await('X'), S.from(1))
+                ::map \{it[2]}
+        }
+        spawn {
+            every a,b in :x {
+                print(a, b)
+            }
+        }
+        emit @1
+        emit :X
+        emit @1
+        emit @1
+        emit :X
+    ]]
+    local out = atm_test(src)
+    assertx(out, "1\n2\n3\n")
 end
 
 print '--- STREAMS ---'
