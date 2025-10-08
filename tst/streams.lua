@@ -18,16 +18,42 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), trim [[
-        {
-            var x
-            spawn(true, {
-                10::tap({
-                    set x = it
-                })::to()
-            })
-        }
+    assertx(trim(tosource(s)), trim [[
+        var x
+        spawn(true, {
+            10::tap(\(it){
+                set x = it
+            })::emitter("x")::to()
+        })
     ]])
+
+    print("Testing...", "beh 1")
+    local src = [[
+        val S = require "atmos.streams"
+        pin x* = S.from(1,10)
+        print(x)
+    ]]
+    local out = atm_test(src)
+    assertx(out, "10\n")
+
+    print("Testing...", "beh 2")
+    local src = [[
+        val S = require "atmos.streams"
+        pin x* = S.zip (S.from(@1), S.from(1))
+            ::map \{it[2]}
+            ;;::to()      ;; 1 / 2 / 3
+        spawn {
+            every :x {
+                print(x)
+            }
+        }
+        emit @1
+        emit @1
+        emit @1
+    ]]
+    local out = atm_test(src)
+    assertx(out, "1\n2\n3\n")
+
 end
 
 print '--- STREAMS ---'

@@ -1,9 +1,9 @@
-function tosource_stmts (es)
-    return join('\n', map(es,tosource)) ..'\n'
+function tosource_stmts (e)
+    return join('\n', map(e.es,tosource)) ..'\n'
 end
 
 function tosource_block (e)
-    return '{\n' .. join('\n', map(e.es,tosource)) .. '\n}'
+    return '{\n' .. tosource_stmts(e) .. '}'
 end
 
 function tosource_args (es)
