@@ -351,7 +351,7 @@ function parser_1_prim ()
                     tag = 'stmts',
                     es = {
                         { tag='dcl',
-                            tk  = { tag='val', str="val" },
+                            tk  = { tag='pin', str="pin" },
                             ids = { {tag='id', str="_"..id.str} },
                             set = { tag='call',
                                 f  = { tag='acc', tk={tag='id',str="tasks"} },
@@ -366,6 +366,7 @@ function parser_1_prim ()
                         { tag='call',
                             f  = { tag='acc', tk={tag='id',str="atm_behavior"} },
                             es = {
+                                { tag='str', tk={tag='str',str=id.str} },
                                 { tag='acc', tk={tag='id',str="_"..id.str} },
                                 { tag='acc', tk={tag='id',str=id.str} },
                                 set, -- S.from(@1)

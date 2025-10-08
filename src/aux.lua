@@ -174,6 +174,21 @@ function atm_in (v, t)
     return false
 end
 
+local function T (id, tab, k, s)
+    s
+    :tap(function(v)
+        tab[k] = v
+    end)
+    :emitter(2, id..'.'..k)
+    :to()
+end
+
+function atm_behavior (id, tsks, tab, ss)
+    for k,s in pairs(ss) do
+        spawn_in(tsks, T, id, tab, k, s)
+    end
+end
+
 function map (t, f)
     local ret = {}
     for i,v in ipairs(t) do

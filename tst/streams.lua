@@ -35,9 +35,9 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        val _x = tasks()
+        pin _x = tasks()
         val x = @{}
-        atm_behavior(_x, x, @{})
+        atm_behavior("x", _x, x, @{})
     ]])
 
     print("Testing...", "beh 1")
@@ -72,9 +72,9 @@ do
         val S = require "atmos.streams"
         pin x* = @{
             S.zip (S.from(@1), S.from(1))
-                ::map \{it[2]}
+                ::map \{it[2]},
             S.zip (S.fr_await('X'), S.from(1))
-                ::map \{it[2]}
+                ::map \{it[2]},
         }
         spawn {
             every a,b in :x {
@@ -88,7 +88,7 @@ do
         emit :X
     ]]
     local out = atm_test(src)
-    assertx(out, "1\n2\n3\n")
+    assertx(out, "x.1\t1\nx.2\t1\nx.1\t2\nx.1\t3\nx.2\t2\n")
 end
 
 print '--- STREAMS ---'
