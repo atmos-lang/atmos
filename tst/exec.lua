@@ -400,6 +400,18 @@ do
     print("Testing...", "defer 5")
     local out = atm_test(src)
     assertx(out, "2\n")
+
+    local src = [[
+        spawn {
+            defer {
+                error :ok
+            }
+            await(false)
+        }
+    ]]
+    print("Testing...", "defer 5")
+    local out = atm_test(src)
+    assertx(out, "2\n")
 end
 
 -- DCL / VAL / VAR / SET
