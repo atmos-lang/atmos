@@ -409,9 +409,14 @@ do
             await(false)
         }
     ]]
-    print("Testing...", "defer 5")
+    print("Testing...", "defer 6")
     local out = atm_test(src)
-    assertx(out, "2\n")
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (call)
+         v  /usr/local/share/lua/5.4/atmos/run.lua:49 (throw)
+        ==> [string "anon.atm"]:3: ok
+    ]])
 end
 
 -- DCL / VAL / VAR / SET
@@ -2195,11 +2200,24 @@ do
             await(@10.100)
             print(:y)
         }
+        emit(:clock, 10*1000)
+        print(:x)
+        emit(:clock, 100)
+    ]]
+    print("Testing...", "await 2: clock")
+    local out = atm_test(src)
+    assertx(out, "x\ny\n")
+
+    local src = [[
+        spawn {
+            await(@10.100)
+            print(:y)
+        }
         emit(clock@{s=10})
         print(:x)
         emit(clock@{ms=100})
     ]]
-    print("Testing...", "await 2: clock")
+    print("Testing...", "await 3: clock")
     local out = atm_test(src)
     assertx(out, "x\ny\n")
 
@@ -2217,7 +2235,7 @@ do
         emit(@.2)
         print(:4)
     ]]
-    print("Testing...", "await 3: clock")
+    print("Testing...", "await 4: clock")
     local out = atm_test(src)
     assertx(out, "1\n2\n3\nok\n4\n")
 end
