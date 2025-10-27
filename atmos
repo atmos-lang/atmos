@@ -1,6 +1,6 @@
 #!/usr/bin/env lua5.4
 
-local VERSION = "v0.2"
+local VERSION = "v0.3"
 
 atmos = require "atmos"
 require "atmos.lang.exec"
@@ -15,19 +15,18 @@ For more information, please visit our website:
 
     https://github.com/atmos-lang/atmos/
 ]]
+cmd:flag("-v --version", "Show version.")
+    :action(function()
+        print("atmos " .. VERSION)
+        os.exit(0)
+    end)
 cmd:argument("input", "Input program.")
 cmd:argument("args", "Program arguments."):args('*')
 --cmd:option("-o --output", "Output file.", "a.out")
 --cmd:option("-I --include", "Include locations."):count("*")
 cmd:flag("-t --test", "Enable test blocks.")
-cmd:flag("-v --version", "Show version.")
 cmd = cmd:parse()
 
 atmos.test = cmd.test
-
-if cmd.version then
-    print("atmos " .. VERSION)
-    os.exit(0)
-end
 
 atmos.call(assert(atm_loadfile(cmd.input)), table.unpack(cmd.args))
