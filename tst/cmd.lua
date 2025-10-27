@@ -10,6 +10,10 @@ do
     print("Testing...", "args-01.atm")
     local v = io.popen("atmos cmd/args-01.atm 1 2 3"):read('*a')
     assertx(v, "1\t2\t3\n")
+
+    print("Testing...", "comm-01.atm")
+    local v = io.popen("atmos cmd/comm-01.atm"):read('*a')
+    assertx(v, "")
 end
 
 -- TEST
