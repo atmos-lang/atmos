@@ -5,14 +5,6 @@ set sdl = require "atmos.env.sdl"
 
 val point_vs_rect = sdl.point_vs_rect
 
-SDL.init() --> assert
-TTF.init() --> assert
-
-defer {
-    TTF.quit()
-    SDL.quit()
-}
-
 set WIN = SDL.createWindow @{
 	title  = "Atmos-SDL: Click, Drag, Cancel",
 	width  = 256,

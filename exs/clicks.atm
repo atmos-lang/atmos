@@ -4,14 +4,6 @@ require "atmos"
 set sdl = require "atmos.env.sdl"
 val S = require "atmos.streams"
 
-SDL.init() --> assert
-TTF.init() --> assert
-
-defer {
-    TTF.quit()
-    SDL.quit()
-}
-
 set WIN = SDL.createWindow @{
 	title  = "Atmos-SDL: Clicks",
 	width  = 256,
