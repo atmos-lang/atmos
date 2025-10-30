@@ -18,12 +18,12 @@ The `spawn` primitive starts a task from a function prototype:
 func T (...) {
     ...
 }
-pin t1 = spawn T(...)   -- starts `t1`
-pin t2 = spawn T(...)   -- starts `t2`
-...                     -- t1 & t2 started and are now waiting
+pin t1 = spawn T(...)   ;; starts `t1`
+pin t2 = spawn T(...)   ;; starts `t2`
+...                     ;; t1 & t2 started and are now waiting
 ```
 
-The [`pin`][manual-out.md#declarations-and-assignments] declarations, which we
+The [`pin`](manual-out.md#declarations-and-assignments) declarations, which we
 detail further, attach the tasks into the current scope.
 
 Tasks are based on Lua coroutines, meaning that they rely on cooperative
@@ -45,11 +45,11 @@ The `emit` primitive broadcasts an event, awaking all tasks awaiting it:
 spawn T(1)
 spawn T(2)
 emit :X
-    -- "task 1 awakes on X"
-    -- "task 2 awakes on X"
+    ;; "task 1 awakes on X"
+    ;; "task 2 awakes on X"
 ```
 
-In the example, `:X` is a [tag][manual-out.md#hierarchical-tags], which here is
+In the example, `:X` is a [tag](manual-out.md#hierarchical-tags), which here is
 equivalent to string `"X"`.
 
 Although explicit suspension points are still required, note that Atmos
@@ -67,9 +67,9 @@ The environment is loaded through `require` and depends on an outer `call`
 primitive to handle events:
 
 ```
-require "x"         -- environment "x" with events X.A, X.B, ...
+require "x"         ;; environment "x" with events X.A, X.B, ...
 
-await :X.A          -- awakes when "x" emits "X.A"
+await :X.A          ;; awakes when "x" emits "X.A"
 ```
 
 The environment internally executes a continuous loop that polls external
@@ -82,15 +82,17 @@ to count 5 seconds:
 
 ```
 require "atmos.env.clock"
-call(function ()
-    print("Counts 5 seconds:")
-    for i=1,5 do
-        await(clock{s=1})
-        print("1 second...")
-    end
-    print("5 seconds elapsed.")
-end)
+
+print "Counts 5 seconds:"
+loop _ in 5 {
+    await @1
+    print "1 second..."
+}
+print "5 seconds elapsed."
 ```
+
+Note that `@1` is a [clock value](manual-out.md#clock) in the format
+`@HH:MM:SS.sss`, allowing Atmos to await time.
 
 # 3. Lexical Structure
 
@@ -109,39 +111,40 @@ The reactive scheduler of Atmos is deterministic and cooperative:
     When a task spawns or awakes, it takes full control of the application and
     executes until it awaits or terminates.
 
-Consider the code that spawns two tasks concurrently and await the same event
-`X` as follows:
+Consider the code that spawns two anonymous tasks concurrently and await the
+same event `:X` as follows:
 
 <table>
 <tr><td>
 <pre>
+print "-=-=- 3.1 -=-=-"
 print "1"
-spawn(function ()
+spawn {         ;; concurrent anonymous task #1
     print "a1"
-    await 'X'
+    await :X
     print "a2"
-end)
+}
 print "2"
-spawn(function ()
+spawn {         ;; concurrent anonymous task #2
     print "b1"
-    await 'X'
+    await :X
     print "b2"
-end)
+}
 print "3"
-emit 'X'
+emit :X
 print "4"
 </pre>
 </td><td>
 <pre>
--- Output:
--- 1
--- a1
--- 2
--- b1
--- 3
--- a2
--- b2
--- 4
+;; Output:
+;; 1
+;; a1
+;; 2
+;; b1
+;; 3
+;; a2
+;; b2
+;; 4
 </pre>
 </td></tr>
 </table>
@@ -153,7 +156,7 @@ In the example, the scheduling behaves as follows:
   control back to the main application.
 - The main application prints `2` and spawns the second task.
 - The second task starts, prints `b1`, and suspends.
-- The main application prints `3`, and broadcasts `X`.
+- The main application prints `3`, and broadcasts `:X`.
 - The first task awakes, prints `a2`, and suspends.
 - The second task awakes, prints `b2`, and suspends.
 - The main application prints `4`.
@@ -168,15 +171,15 @@ In the next example, the outer task terminates and aborts the inner task before
 it has the chance to awake:
 
 ```
-spawn(function ()
-    spawn(function ()
-        await 'Y'   -- never awakes after 'X' occurs
+spawn {
+    spawn {
+        await :Y    ;; never awakes after :X occurs
         print "never prints"
-    end)
-    await 'X'       -- awakes and aborts the whole task hierarchy
-end)
-emit 'X'
-emit 'Y'
+    }
+    await :X        ;; awakes and aborts the whole task hierarchy
+}
+emit :X
+emit :Y
 ```
 
 ### 3.2.1. Deferred Statements
@@ -190,9 +193,9 @@ spawn(function ()
         local _ <close> = defer(function ()
             print "nested task aborted"
         end)
-        await(false) -- never awakes
+        await(false) ;; never awakes
     end)
-    -- will abort nested task
+    ;; will abort nested task
 end)
 ```
 
@@ -208,10 +211,10 @@ blocks:
 ```
 do
     local _ <close> = spawn(function ()
-        <...>   -- aborted with the enclosing `do`
+        <...>   ;; aborted with the enclosing `do`
     end)
     local _ <close> = defer(function ()
-        <...>   -- aborted with the enclosing `do`
+        <...>   ;; aborted with the enclosing `do`
     end)
     <...>
 end
@@ -238,7 +241,7 @@ Atmos provides many compound statements built on top of tasks:
 
 ```
 every(clock{s=1}, function ()
-    print "1 second elapses"    -- prints every second
+    print "1 second elapses"    ;; prints every second
 end)
 ```
 
@@ -248,7 +251,7 @@ end)
 ```
 watching(clock{s=1}, function ()
     await 'X'
-    print "X happens before 1s" -- prints unless 1 second elapses
+    print "X happens before 1s" ;; prints unless 1 second elapses
 end)
 ```
 
@@ -279,15 +282,15 @@ The next example creates a stream that awaits occurrences of event `X`:
 ```
 local S = require "atmos.streams"
 spawn(function ()
-    S.fr_await('X')                                 -- X1, X2, ...
-        :filter(function(x) return x.v%2 == 1 end)  -- X1, X3, ...
-        :map(function(x) return x.v end)            -- 1, 3, ...
+    S.fr_await('X')                                 ;; X1, X2, ...
+        :filter(function(x) return x.v%2 == 1 end)  ;; X1, X3, ...
+        :map(function(x) return x.v end)            ;; 1, 3, ...
         :tap(print)
         :to()
 end)
 for i=1, 10 do
     await(clock{s=1})
-    emit { tag='X', v=i }   -- `X` events carrying `v=1`
+    emit { tag='X', v=i }   ;; `X` events carrying `v=1`
 end
 ```
 
@@ -320,18 +323,18 @@ function T ()
     await('Y')
 end
 spawn(function ()
-    S.fr_await(T)                           -- XY, XY, ...
-        :zip(S.from(1))                     -- {XY,1}, {XY,2} , ...
-        :map(function (t) return t[2] end)  -- 1, 2, ...
-        :take(2)                            -- 1, 2
+    S.fr_await(T)                           ;; XY, XY, ...
+        :zip(S.from(1))                     ;; {XY,1}, {XY,2} , ...
+        :map(function (t) return t[2] end)  ;; 1, 2, ...
+        :take(2)                            ;; 1, 2
         :tap(print)
         :to()
 end)
 emit('X')
 emit('X')
-emit('Y')   -- 1
+emit('Y')   ;; 1
 emit('X')
-emit('Y')   -- 2
+emit('Y')   ;; 2
 emit('Y')
 ```
 
@@ -359,7 +362,7 @@ function T ()
     task().v = 10
 end
 local t = spawn(T)
-print(t.v)  -- 10
+print(t.v)  ;; 10
 ```
 
 ## 6.2. Task Pools
@@ -414,9 +417,9 @@ local t = spawn (function ()
     print "awakes from X"
 end)
 toggle(t, false)
-emit 'X'    -- ignored
+emit 'X'    ;; ignored
 toggle(t, true)
-emit 'X'    -- awakes
+emit 'X'    ;; awakes
 ```
 
 The `toggle` statement awaits the given body to terminate, while also observing
@@ -430,9 +433,9 @@ toggle('X', function ()
         print "1s elapses"
     end)
 end)
-emit('X', false)    -- body above toggles off
+emit('X', false)    ;; body above toggles off
 <...>
-emit('X', true)     -- body above toggles on
+emit('X', true)     ;; body above toggles on
 <...>
 ```
 
@@ -461,7 +464,7 @@ end)
 
 emit 'X'
 
--- "false, Y"
+;; "false, Y"
 ```
 
 In the example, we spawn a parent task that catches errors of type `Y`.

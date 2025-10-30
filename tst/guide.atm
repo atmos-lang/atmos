@@ -40,56 +40,59 @@ do {
     emit :X.A
 }
 
+;; 2.2
 ;;;
-    -- 2.2
-    do
-        print "-=-=- 2.2 -=-=-"
-        print("Counts 5 seconds:")
-        for i=1,5 do
-            await(clock{ms=100})
-            print("1 second...")
-        end
-        print("5 seconds elapsed.")
-    end
+do {
+    print "-=-=- 2.2 -=-=-"
+    print "Counts 5 seconds:"
+    loop _ in 5 {
+        await @1
+        print "1 second..."
+    }
+    print "5 seconds elapsed."
+}
+;;;
 
-    -- 3. Lexical Structure
+;; 3. Lexical Structure
 
-    -- 3.1
-    do
-        print "-=-=- 3.1 -=-=-"
-        print "1"
-        spawn(function ()
-            print "a1"
-            await 'X'
-            print "a2"
-        end)
-        print "2"
-        spawn(function ()
-            print "b1"
-            await 'X'
-            print "b2"
-        end)
-        print "3"
-        emit 'X'
-        print "4"
-    end
+;; 3.1
+do {
+    print "-=-=- 3.1 -=-=-"
+    print "1"
+    spawn {
+        print "a1"
+        await :X
+        print "a2"
+    }
+    print "2"
+    spawn {
+        print "b1"
+        await :X
+        print "b2"
+    }
+    print "3"
+    emit :X
+    print "4"
+}
 
-    -- 3.2
-    do
-        print "-=-=- 3.2 -=-=-"
-        local _ <close> = spawn(function ()
-            spawn(function ()
-                await 'Y'   -- never awakes after 'X' occurs
-                print "never prints"
-            end)
-            await 'X'       -- awakes and aborts the whole task hierarchy
-            print "awakes from X"
-        end)
-        emit 'X'
-        emit 'Y'
-    end
+;; 3.2
+do {
+    print "-=-=- 3.2 -=-=-"
+    spawn {
+        spawn {
+            await :Y    ;; never awakes after :X occurs
+            print "never prints"
+        }
+        await :X        ;; awakes and aborts the whole task hierarchy
+        print "awakes from X"
+    }
+    emit :X
+    emit :Y
+}
 
-    -- 3.3
+;;;
+
+    ;; 3.3
     do
         print "-=-=- 3.3 -=-=-"
         spawn(function ()
@@ -97,13 +100,13 @@ do {
                 local _ <close> = defer(function ()
                     print "nested task aborted"
                 end)
-                await(false) -- never awakes
+                await(false) ;; never awakes
             end)
-            -- will abort nested task
+            ;; will abort nested task
         end)
     end
 
-    -- 3.4
+    ;; 3.4
     do
         print "-=-=- 3.4 -=-=-"
         print '1'
@@ -119,34 +122,34 @@ do {
             end)
         end
         print '2'
-        -- 1, y, x, 2
+        ;; 1, y, x, 2
     end
 
-    -- 4. Compound Statements
+    ;; 4. Compound Statements
 
-    -- 4.1
+    ;; 4.1
     do
         print "-=-=- 4.1 -=-=-"
         watching(clock{s=1}, function()
             every(clock{ms=100}, function ()
-                print "100 ms elapses"    -- prints this message every second
+                print "100 ms elapses"    ;; prints this message every second
             end)
         end)
     end
 
-    -- 4.2
+    ;; 4.2
     do
         print "-=-=- 4.2 -=-=-"
         spawn(function()
             watching(clock{s=1}, function ()
                 await 'X'
-                print "X happens before 1s" -- prints this message unless 1 second elapses
+                print "X happens before 1s" ;; prints this message unless 1 second elapses
             end)
         end)
         emit 'X'
     end
 
-    -- 4.3
+    ;; 4.3
     do
         print "-=-=- 4.3 -=-=-"
         spawn(function()
@@ -164,9 +167,9 @@ do {
         emit 'Y'
     end
 
-    -- 5. Functional Streams
+    ;; 5. Functional Streams
 
-    -- 5.1
+    ;; 5.1
     do
         print "-=-=- 5.1 -=-=-"
         local _ <close> = spawn(function ()
@@ -182,7 +185,7 @@ do {
         end
     end
 
-    -- 5.2
+    ;; 5.2
     do
         print "-=-=- 5.2 -=-=-"
         function T ()
@@ -190,34 +193,34 @@ do {
             await('Y')
         end
         local _ <close> = spawn(function ()
-            S.fr_await(T)                           -- XY, XY, ...
-                :zip(S.from(1))                     -- {XY,1}, {XY,2} , ...
-                :map(function (t) return t[2] end)  -- 1, 2, ...
-                :take(2)                            -- 1, 2
+            S.fr_await(T)                           ;; XY, XY, ...
+                :zip(S.from(1))                     ;; {XY,1}, {XY,2} , ...
+                :map(function (t) return t[2] end)  ;; 1, 2, ...
+                :take(2)                            ;; 1, 2
                 :tap(print)
                 :to()
         end)
         emit('X')
         emit('X')
-        emit('Y')   -- 1
+        emit('Y')   ;; 1
         emit('X')
-        emit('Y')   -- 2
+        emit('Y')   ;; 2
         emit('Y')
     end
 
-    -- 6. More about Tasks
+    ;; 6. More about Tasks
 
-    -- 6.1
+    ;; 6.1
     do
         print "-=-=- 6.1 -=-=-"
         function T ()
             task().v = 10
         end
         local t = spawn(T)
-        print(t.v)  -- 10
+        print(t.v)  ;; 10
     end
 
-    -- 6.2
+    ;; 6.2
     do
         print "-=-=- 6.2 -=-=-"
         function T (id, ms)
@@ -238,7 +241,7 @@ do {
         end
     end
 
-    -- 6.3
+    ;; 6.3
     do
         print "-=-=- 6.3 -=-=-"
         local t = spawn (function ()
@@ -246,12 +249,12 @@ do {
             print "awakes from X"
         end)
         toggle(t, false)
-        emit 'X'    -- ignored
+        emit 'X'    ;; ignored
         toggle(t, true)
-        emit 'X'    -- awakes
+        emit 'X'    ;; awakes
     end
 
-    -- 6.4
+    ;; 6.4
     do
         print "-=-=- 6.4 -=-=-"
         spawn(function()
@@ -262,10 +265,10 @@ do {
             end)
         end)
         print 'off'
-        emit('X', false)    -- body above toggles off
+        emit('X', false)    ;; body above toggles off
         await(clock{s=1})
         print 'on'
-        emit('X', true)     -- body above toggles on
+        emit('X', true)     ;; body above toggles on
         await(clock{s=1})
     end
 ;;;
