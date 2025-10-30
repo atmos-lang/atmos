@@ -1,0 +1,271 @@
+require "atmos.env.clock"
+val S = require "atmos.streams"
+
+;; 1. Tasks & Events
+
+;; 1.1
+do {
+    print "-=-=- 1.1 -=-=-"
+    func T () {
+        await(false)
+    }
+    pin t1 = spawn T()     ;; starts `t1`
+    pin t2 = spawn T()     ;; starts `t2`
+    print(t1, t2)          ;; t1 & t2 started and are now suspended
+}
+
+;; 1.2
+do {
+    print "-=-=- 1.2 -=-=-"
+    func T (i) {
+        await :X
+        print("task " ++ i ++ " awakes from X")
+    }
+    spawn T(1)
+    spawn T(2)
+    emit :X
+        ;; "task 1 awakes from X"
+        ;; "task 2 awakes from X"
+}
+
+;; 2. External Environments
+
+;; 2.1
+do {
+    print "-=-=- 2.1 -=-=-"
+    spawn {
+        await :X.A      ;; awakes when "x" emits :X.A
+        print("terminates after X.A")
+    }
+    emit :X.A
+}
+
+;;;
+    -- 2.2
+    do
+        print "-=-=- 2.2 -=-=-"
+        print("Counts 5 seconds:")
+        for i=1,5 do
+            await(clock{ms=100})
+            print("1 second...")
+        end
+        print("5 seconds elapsed.")
+    end
+
+    -- 3. Lexical Structure
+
+    -- 3.1
+    do
+        print "-=-=- 3.1 -=-=-"
+        print "1"
+        spawn(function ()
+            print "a1"
+            await 'X'
+            print "a2"
+        end)
+        print "2"
+        spawn(function ()
+            print "b1"
+            await 'X'
+            print "b2"
+        end)
+        print "3"
+        emit 'X'
+        print "4"
+    end
+
+    -- 3.2
+    do
+        print "-=-=- 3.2 -=-=-"
+        local _ <close> = spawn(function ()
+            spawn(function ()
+                await 'Y'   -- never awakes after 'X' occurs
+                print "never prints"
+            end)
+            await 'X'       -- awakes and aborts the whole task hierarchy
+            print "awakes from X"
+        end)
+        emit 'X'
+        emit 'Y'
+    end
+
+    -- 3.3
+    do
+        print "-=-=- 3.3 -=-=-"
+        spawn(function ()
+            spawn(function ()
+                local _ <close> = defer(function ()
+                    print "nested task aborted"
+                end)
+                await(false) -- never awakes
+            end)
+            -- will abort nested task
+        end)
+    end
+
+    -- 3.4
+    do
+        print "-=-=- 3.4 -=-=-"
+        print '1'
+        do
+            local _ <close> = spawn(function ()
+                local _ <close> = defer(function ()
+                    print 'x'
+                end)
+                await(false)
+            end)
+            local _ <close> = defer(function ()
+                print 'y'
+            end)
+        end
+        print '2'
+        -- 1, y, x, 2
+    end
+
+    -- 4. Compound Statements
+
+    -- 4.1
+    do
+        print "-=-=- 4.1 -=-=-"
+        watching(clock{s=1}, function()
+            every(clock{ms=100}, function ()
+                print "100 ms elapses"    -- prints this message every second
+            end)
+        end)
+    end
+
+    -- 4.2
+    do
+        print "-=-=- 4.2 -=-=-"
+        spawn(function()
+            watching(clock{s=1}, function ()
+                await 'X'
+                print "X happens before 1s" -- prints this message unless 1 second elapses
+            end)
+        end)
+        emit 'X'
+    end
+
+    -- 4.3
+    do
+        print "-=-=- 4.3 -=-=-"
+        spawn(function()
+            par_and(function ()
+                await 'X'
+            end, function ()
+                await 'Y'
+            end, function ()
+                await 'Z'
+            end)
+            print "X, Y, and Z occurred"
+        end)
+        emit 'X'
+        emit 'Z'
+        emit 'Y'
+    end
+
+    -- 5. Functional Streams
+
+    -- 5.1
+    do
+        print "-=-=- 5.1 -=-=-"
+        local _ <close> = spawn(function ()
+            S.fr_await('X')
+                :filter(function(x) return x.v%2 == 1 end)
+                :map(function(x) return x.v end)
+                :tap(print)
+                :to()
+        end)
+        for i=1, 10 do
+            await(clock{ms=1})
+            emit { tag='X', v=i }
+        end
+    end
+
+    -- 5.2
+    do
+        print "-=-=- 5.2 -=-=-"
+        function T ()
+            await('X')
+            await('Y')
+        end
+        local _ <close> = spawn(function ()
+            S.fr_await(T)                           -- XY, XY, ...
+                :zip(S.from(1))                     -- {XY,1}, {XY,2} , ...
+                :map(function (t) return t[2] end)  -- 1, 2, ...
+                :take(2)                            -- 1, 2
+                :tap(print)
+                :to()
+        end)
+        emit('X')
+        emit('X')
+        emit('Y')   -- 1
+        emit('X')
+        emit('Y')   -- 2
+        emit('Y')
+    end
+
+    -- 6. More about Tasks
+
+    -- 6.1
+    do
+        print "-=-=- 6.1 -=-=-"
+        function T ()
+            task().v = 10
+        end
+        local t = spawn(T)
+        print(t.v)  -- 10
+    end
+
+    -- 6.2
+    do
+        print "-=-=- 6.2 -=-=-"
+        function T (id, ms)
+            task().id = id
+            print('start', id, ms)
+            await(clock{ms=ms})
+            print('stop', id, ms)
+        end
+        do
+            local ts <close> = tasks()
+            for i=1, 10 do
+                spawn_in(ts, T, i, math.random(500,1500))
+            end
+            await(clock{s=1})
+            for _,t in pairs(ts) do
+                print(t.id)
+            end
+        end
+    end
+
+    -- 6.3
+    do
+        print "-=-=- 6.3 -=-=-"
+        local t = spawn (function ()
+            await 'X'
+            print "awakes from X"
+        end)
+        toggle(t, false)
+        emit 'X'    -- ignored
+        toggle(t, true)
+        emit 'X'    -- awakes
+    end
+
+    -- 6.4
+    do
+        print "-=-=- 6.4 -=-=-"
+        spawn(function()
+            toggle('X', function ()
+                every(clock{ms=100}, function ()
+                    print "100ms elapses"
+                end)
+            end)
+        end)
+        print 'off'
+        emit('X', false)    -- body above toggles off
+        await(clock{s=1})
+        print 'on'
+        emit('X', true)     -- body above toggles on
+        await(clock{s=1})
+    end
+;;;
