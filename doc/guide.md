@@ -232,19 +232,19 @@ Atmos provides many compound statements built on top of tasks:
   beginning of each iteration:
 
 ```
-every(clock{s=1}, function ()
+every @1 {
     print "1 second elapses"    ;; prints every second
-end)
+}
 ```
 
 - The `watching` statement awaits the given body to terminate, or aborts if its
   first argument occurs:
 
 ```
-watching(clock{s=1}, function ()
-    await 'X'
+watching @1 {
+    await :X
     print "X happens before 1s" ;; prints unless 1 second elapses
-end)
+}
 ```
 
 - The `par`, `par_and`, `par_or` statements spawn multiple bodies and rejoin
@@ -252,13 +252,13 @@ end)
   rejoins after all terminate, `par_or` rejoins after any terminates:
 
 ```
-par_and(function ()
-    await 'X'
-end, function ()
-    await 'Y'
-end, function ()
-    await 'Z'
-end)
+par_and {
+    await :X
+} with {
+    await :Y
+} with {
+    await :Z
+}
 print "X, Y, and Z occurred"
 ```
 

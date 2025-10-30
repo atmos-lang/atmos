@@ -123,49 +123,49 @@ do {
     ;; 1, y, x, 2
 }
 
+;; 4. Compound Statements
+
+;; 4.1
+do {
+    print "-=-=- 4.1 -=-=-"
+    watching @1 {
+        every @.100 {
+            print "100 ms elapses"    ;; prints this message every second
+        }
+    }
+}
+
+;; 4.2
+do {
+    print "-=-=- 4.2 -=-=-"
+    spawn {
+        watching @1 {
+            await :X
+            print "X happens before 1s" ;; prints unless 1 second elapses
+        }
+    }
+    emit :X
+}
+
+;; 4.3
+do {
+    print "-=-=- 4.3 -=-=-"
+    spawn {
+        par_and {
+            await :X
+        } with {
+            await :Y
+        } with {
+            await :Z
+        }
+        print "X, Y, and Z occurred"
+    }
+    emit 'X'
+    emit 'Z'
+    emit 'Y'
+}
+
 ;;;
-
-    ;; 4. Compound Statements
-
-    ;; 4.1
-    do
-        print "-=-=- 4.1 -=-=-"
-        watching(clock{s=1}, function()
-            every(clock{ms=100}, function ()
-                print "100 ms elapses"    ;; prints this message every second
-            end)
-        end)
-    end
-
-    ;; 4.2
-    do
-        print "-=-=- 4.2 -=-=-"
-        spawn(function()
-            watching(clock{s=1}, function ()
-                await 'X'
-                print "X happens before 1s" ;; prints this message unless 1 second elapses
-            end)
-        end)
-        emit 'X'
-    end
-
-    ;; 4.3
-    do
-        print "-=-=- 4.3 -=-=-"
-        spawn(function()
-            par_and(function ()
-                await 'X'
-            end, function ()
-                await 'Y'
-            end, function ()
-                await 'Z'
-            end)
-            print "X, Y, and Z occurred"
-        end)
-        emit 'X'
-        emit 'Z'
-        emit 'Y'
-    end
 
     ;; 5. Functional Streams
 
