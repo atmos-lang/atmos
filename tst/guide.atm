@@ -165,25 +165,26 @@ do {
     emit 'Y'
 }
 
+;; 5. Functional Streams
+
+;; 5.1
+do {
+    print "-=-=- 5.1 -=-=-"
+    spawn {
+        S.fr_await(:X)
+            ::tap(xprint)
+            ::filter \{ (it.v%2) == 1 }
+            ::map \{ it.v }
+            ::tap(print)
+            ::to()
+    }
+    loop i in 10 {
+        await @.1
+        emit :X @{v=i}
+    }
+}
+
 ;;;
-
-    ;; 5. Functional Streams
-
-    ;; 5.1
-    do
-        print "-=-=- 5.1 -=-=-"
-        local _ <close> = spawn(function ()
-            S.fr_await('X')
-                :filter(function(x) return x.v%2 == 1 end)
-                :map(function(x) return x.v end)
-                :tap(print)
-                :to()
-        end)
-        for i=1, 10 do
-            await(clock{ms=1})
-            emit { tag='X', v=i }
-        end
-    end
 
     ;; 5.2
     do
