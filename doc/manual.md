@@ -6,6 +6,7 @@
     * Hierarchical Tags
     * Integration with Lua
 * EXECUTION
+    * Environments
 * LEXICON
     * Keywords
     * Symbols
