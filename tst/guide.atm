@@ -90,40 +90,40 @@ do {
     emit :Y
 }
 
+;; 3.3
+do {
+    print "-=-=- 3.3 -=-=-"
+    spawn {
+        spawn {
+            defer {
+                print "nested task aborted"
+            }
+            await(false) ;; never awakes
+        }
+        ;; will abort nested task
+    }
+}
+
+;; 3.4
+do {
+    print "-=-=- 3.4 -=-=-"
+    print '1'
+    do {
+        spawn {
+            defer {
+                print 'x'
+            }
+            await(false)
+        }
+        defer {
+            print 'y'
+        }
+    }
+    print '2'
+    ;; 1, y, x, 2
+}
+
 ;;;
-
-    ;; 3.3
-    do
-        print "-=-=- 3.3 -=-=-"
-        spawn(function ()
-            spawn(function ()
-                local _ <close> = defer(function ()
-                    print "nested task aborted"
-                end)
-                await(false) ;; never awakes
-            end)
-            ;; will abort nested task
-        end)
-    end
-
-    ;; 3.4
-    do
-        print "-=-=- 3.4 -=-=-"
-        print '1'
-        do
-            local _ <close> = spawn(function ()
-                local _ <close> = defer(function ()
-                    print 'x'
-                end)
-                await(false)
-            end)
-            local _ <close> = defer(function ()
-                print 'y'
-            end)
-        end
-        print '2'
-        ;; 1, y, x, 2
-    end
 
     ;; 4. Compound Statements
 

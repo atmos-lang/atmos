@@ -188,36 +188,33 @@ A task can register deferred statements to execute when they terminate or abort
 within its hierarchy:
 
 ```
-spawn(function ()
-    spawn(function ()
-        local _ <close> = defer(function ()
+spawn {
+    spawn {
+        defer {
             print "nested task aborted"
-        end)
+        }
         await(false) ;; never awakes
-    end)
+    }
     ;; will abort nested task
-end)
+}
 ```
 
 The nested spawned task never awakes, but executes its `defer` clause when
 its enclosing hierarchy terminates.
 
-Since Atmos is a pure-Lua library, note that the annotation `local _ <close> =`
-is necessary when bounding a `defer` to a lexical scope.
-
 Tasks and deferred statements can also be attached to the scope of explicit
 blocks:
 
 ```
-do
-    local _ <close> = spawn(function ()
+do {
+    spawn {
         <...>   ;; aborted with the enclosing `do`
-    end)
-    local _ <close> = defer(function ()
+    }
+    defer {
         <...>   ;; aborted with the enclosing `do`
-    end)
+    }
     <...>
-end
+}
 ```
 
 In the example, we attach a `spawn` and a `defer` to an explicit block.
@@ -226,11 +223,6 @@ the deferred statement.
 The aborted task may also have pending defers, which also execute immediately.
 The defers execute in the reverse order in which they appear in the source
 code.
-
-Note that the annotation `local _ <close> =` is also required to attach a task
-to an explicit block.
-We can omit this annotation only when we want to attach the `spawn` to its
-enclosing task.
 
 # 4. Compound Statements
 
