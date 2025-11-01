@@ -23,12 +23,14 @@ pin t2 = spawn T(...)   ;; starts `t2`
 ...                     ;; t1 & t2 started and are now waiting
 ```
 
-The [`pin`](manual-out.md#declarations-and-assignments) declarations, which we
-detail further, attach the tasks into the current scope.
+The [`pin`](manual-out.md#declarations-and-assignments) declaration, which we
+detail further, limits the task lifetime within the current scope.
 
+<!--
 Tasks are based on Lua coroutines, meaning that they rely on cooperative
 scheduling with explicit suspension points.
 The key difference is that tasks can react to each other through events.
+-->
 
 The `await` primitive suspends a task until a matching event occurs:
 
@@ -49,11 +51,9 @@ emit :X
     ;; "task 2 awakes on X"
 ```
 
-In the example, `:X` is a [tag](manual-out.md#hierarchical-tags), which here is
-equivalent to string `"X"`.
+`:X` is a [tag](manual-out.md#hierarchical-tags) that identifies the event.
 
-Although explicit suspension points are still required, note that Atmos
-provides *reactive scheduling* for tasks based on `await` and `emit`
+Atmos provides *reactive scheduling* for tasks based on `await` and `emit`
 primitives.
 
 # 2. External Environments
