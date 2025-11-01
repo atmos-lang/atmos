@@ -41,6 +41,9 @@ func T (i) {
 }
 ```
 
+In the example, `:X` is a [tag](manual-out.md#hierarchical-tags) that
+identifies the event.
+
 The `emit` primitive broadcasts an event, awaking all tasks awaiting it:
 
 ```
@@ -51,10 +54,8 @@ emit :X
     ;; "task 2 awakes on X"
 ```
 
-`:X` is a [tag](manual-out.md#hierarchical-tags) that identifies the event.
-
-Atmos provides *reactive scheduling* for tasks based on `await` and `emit`
-primitives.
+Therefore, based on the `await` and `emit` primitives, Atmos supports
+*reactive scheduling* for tasks.
 
 # 2. External Environments
 
@@ -63,8 +64,8 @@ real world into an Atmos application.
 These events can be timers, key presses, network packets, or other kinds of
 inputs, depending on the environment.
 
-The environment is loaded through `require` and depends on an outer `call`
-primitive to handle events:
+The environment is loaded through `require`, making the application ready to
+handle events:
 
 ```
 require "x"         ;; environment "x" with events X.A, X.B, ...
@@ -91,13 +92,13 @@ loop _ in 5 {
 print "5 seconds elapsed."
 ```
 
-Note that `@1` is a [clock value](manual-out.md#clock) in the format
+In the example, `@1` is a [clock value](manual-out.md#clock) in the format
 `@HH:MM:SS.sss`, allowing Atmos to await time.
 
 # 3. Lexical Structure
 
 In Atmos, the lexical organization of tasks determines their lifetimes and also
-how they are scheduled, which helps to reason about programs more statically
+how they are scheduled, which helps to reason about programs more statically,
 based on the source code.
 
 ## 3.1. Lexical Scheduling
@@ -111,21 +112,20 @@ The reactive scheduler of Atmos is deterministic and cooperative:
     When a task spawns or awakes, it takes full control of the application and
     executes until it awaits or terminates.
 
-Consider the code that spawns two anonymous tasks concurrently and await the
-same event `:X` as follows:
+Consider the following code, which spawns two anonymous tasks concurrently and
+await the same event `:X`:
 
 <table>
 <tr><td>
 <pre>
-print "-=-=- 3.1 -=-=-"
 print "1"
-spawn {         ;; concurrent anonymous task #1
+spawn {         ;; task #1
     print "a1"
     await :X
     print "a2"
 }
 print "2"
-spawn {         ;; concurrent anonymous task #2
+spawn {         ;; task #2
     print "b1"
     await :X
     print "b2"
