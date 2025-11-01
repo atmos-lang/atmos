@@ -197,8 +197,7 @@ spawn {
         }
         await(false) ;; never awakes
     }
-    ;; will abort nested task
-}
+} ;; aborts the nested task and executes the defer clause
 ```
 
 The nested spawned task never awakes, but executes its `defer` clause when
@@ -216,12 +215,12 @@ do {
         <...>   ;; aborted with the enclosing `do`
     }
     <...>
-}
+} ;; executes defer clauses in the block and in nested tasks
 ```
 
 In the example, we attach a `spawn` and a `defer` to an explicit block.
-When the block goes out of scope, it automatically aborts the task and executes
-the deferred statement.
+When the block goes out of scope, it automatically aborts the task and also
+executes the deferred statement.
 The aborted task may also have pending defers, which also execute immediately.
 The defers execute in the reverse order in which they appear in the source
 code.
