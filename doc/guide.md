@@ -182,6 +182,8 @@ emit :X
 emit :Y
 ```
 
+`TODO: pin (not for anon/compounds)`
+
 ### 3.2.1. Deferred Statements
 
 A task can register deferred statements to execute when they terminate or abort
@@ -349,16 +351,17 @@ The example only takes the first two numbers, prints them, and terminates.
 
 ## 6.1. Public Data
 
-A task is a Lua table, and can hold public data fields as usual.
-It is also possible to self refer to the running task with a call to `task()`:
+The special variable `pub` holds public data inside tasks:
 
 ```
-function T ()
-    task().v = 10
-end
-local t = spawn(T)
-print(t.v)  ;; 10
+func T () {
+    set pub = 10
+}
+pin t = spawn T()
+print(t.pub) ;; 10
 ```
+
+In the example, `t.pub` acesses the public data of task `t`.
 
 ## 6.2. Task Pools
 
@@ -368,38 +371,39 @@ When the pool goes out of scope, all attached tasks are aborted.
 When a task terminates, it is automatically removed from the pool.
 
 ```
-function T (id, ms)
-    task().id = id
-    print('start', id, ms)
-    await(clock{ms=ms})
-    print('stop', id, ms)
-end
+func T (id, ms) {
+    set pub = id
+    print(:start, id, ms)
+    await @ms
+    print(:stop, id, ms)
+}
 
-do
-    local ts <close> = tasks()
-    for i=1, 10 do
-        spawn_in(ts, T, i, math.random(500,1500))
-    end
-    await(clock{s=1})
-end
+do {
+    pin ts = tasks()
+    loop i in 10 {
+        spawn [ts] T(i, math.random(500,1500))
+    }
+    await @1
+}
 ```
 
 In the example, we first create a pool `ts`.
-Then we use `spawn_in` to spawn and attach 10 tasks into the pool.
+Then we use `spawn [ts]` to spawn and attach 10 tasks into the pool.
 Each task sleeps between `500ms` and `1500ms` before terminating.
 After `1s`, the `ts` block goes out of scope, aborting all tasks that did not
 complete.
 
-Task pools provide a `pairs` iterator to traverse currently attached tasks:
+It is possible to iterate over a task pool to traverse its currently attached
+tasks:
 
 ```
-for _,t in pairs(ts) do
-    print(t.id)
-end
+loop _,t in ts {
+    print(t.pub)
+}
 ```
 
-If we include this loop after the `await(clock{s=1})` in the previous example,
-it will print the task ids that did not awake.
+If we include this loop after the `await @1` in the previous example, it will
+print the task ids that did not awake.
 
 ## 6.3. Task Toggling
 
@@ -407,14 +411,14 @@ A task can be toggled off (and back to on) to remain alive but unresponsive
 (and back to responsive) to upcoming events:
 
 ```
-local t = spawn (function ()
-    await 'X'
+pin t = spawn (\{
+    await :X
     print "awakes from X"
-end)
-toggle(t, false)
-emit 'X'    ;; ignored
-toggle(t, true)
-emit 'X'    ;; awakes
+}) ()
+toggle t(false)
+emit :X     ;; ignored
+toggle t(true)
+emit :X     ;; awakes
 ```
 
 The `toggle` statement awaits the given body to terminate, while also observing
@@ -423,51 +427,55 @@ When receiving `false`, the body toggles off.
 When receiving `true`, the body toggles on.
 
 ```
-toggle('X', function ()
-    every(clock{s=1}, function ()
-        print "1s elapses"
-    end)
-end)
-emit('X', false)    ;; body above toggles off
-<...>
-emit('X', true)     ;; body above toggles on
-<...>
+spawn {
+    toggle :X {
+        every @.100 {
+            print "100ms elapses"
+        }
+    }
+}
+print 'off'
+emit(:X, false)    ;; body above toggles off
+await @1
+print 'on'
+emit(:X, true)     ;; body above toggles on
+await @1
 ```
 
 # 7. Errors
 
 Atmos provides `throw` and `catch` primitives to handle errors, which take in
-consideration task hierarchy, i.e., a parent task catches errors from child
+consideration the task hierarchy, i.e., a parent task catches errors from child
 tasks.
 
 ```
-function T ()
-    spawn (function ()
-        await 'X'
-        throw 'Y'
-    end)
+func T () {
+    spawn {
+        await :X
+        throw :Y
+    }
     await(false)
-end
+}
 
-spawn(function ()
-    local ok, err = catch('Y', function ()
-        spawn(T)
+spawn {
+    val ok, err = catch :Y {
+        spawn T()
         await(false)
-    end)
+    }
     print(ok, err)
-end)
+}
 
-emit 'X'
+emit :X
 
 ;; "false, Y"
 ```
 
-In the example, we spawn a parent task that catches errors of type `Y`.
+In the example, we spawn a parent task that catches errors of type `:Y`.
 Then we spawn a named task `T`, which spawns an anonymous task, which awaits
-`X` to finally throw `Y`.
-Outside the task hierarchy, we `emit X`, which only awakes the nested task.
+`:X` to finally throw `:Y`.
+Outside the task hierarchy, we `emit :X`, which only awakes the nested task.
 Nevertheless, the error propagates up in the task hierarchy until it is caught
-by the top-level task, returning `false` and the error `Y`.
+by the top-level task, returning `false` and the error `:Y`.
 
 ## 7.1. Bidimensional Stack Traces
 
@@ -486,17 +494,17 @@ targeting the task with `id=2`.
 Only this task awakes and generates an uncaught error:
 
 ```
-function T (id)
-    await('X', id)
-    throw 'error'
-end
+funct T (id) {
+    await(:X, id)
+    throw :error
+}
 
-local ts <close> = tasks()
-spawn_in(ts, T, 1)
-spawn_in(ts, T, 2)
-spawn_in(ts, T, 3)
+pin ts = tasks()
+spawn [ts] T(1)
+spawn [ts] T(2)
+spawn [ts] T(3)
 
-emit('X', 2)
+emit(:X, 2)
 ```
 
 The stack trace identifies that the task lives in `ts` in line 6 and spawns in
