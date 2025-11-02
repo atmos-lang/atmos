@@ -350,22 +350,20 @@ The example only takes the first two numbers, prints them, and terminates.
 
 ## 6.1. Public Data
 
-The special variable `pub` holds public data inside tasks:
+Each task has a special variable `pub` to expose public data to the outside:
 
 ```
 func T () {
-    set pub = 10
+    set pub = 10    ;; exposes `pub` to the outside
 }
 pin t = spawn T()
-print(t.pub) ;; 10
+print(t.pub)        ;; reads `pub` of `t` (10)
 ```
-
-In the example, `t.pub` acesses the public data of task `t`.
 
 ## 6.2. Task Pools
 
-A task pool, created with `tasks` primitive, allows that multiple tasks share a
-parent container in the hierarchy.
+A task pool, created with the `tasks` primitive, allows that multiple tasks
+share a parent container in the hierarchy.
 When the pool goes out of scope, all attached tasks are aborted.
 When a task terminates, it is automatically removed from the pool.
 
@@ -420,8 +418,10 @@ toggle t(true)
 emit :X     ;; awakes
 ```
 
-The `toggle` statement awaits the given body to terminate, while also observing
-its first argument as a boolean event:
+`TODO: explain (toggle operation)`
+
+In addition, Atmos provides a `toggle` statement, which awaits the given body
+to terminate, while also observing its first argument as a boolean event:
 When receiving `false`, the body toggles off.
 When receiving `true`, the body toggles on.
 
