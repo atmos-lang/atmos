@@ -107,10 +107,7 @@ Atmos depends on [lua-atmos][lua-atmos].
 
 # Documentation
 
-<!--
-- [Guide](TODO)
--->
-
+- [Guide](doc/guide.md)
 - [Manual](doc/manual-out.md)
 
 # Environments

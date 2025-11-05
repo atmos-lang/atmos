@@ -4,15 +4,13 @@ require "atmos"
 set sdl = require "atmos.env.sdl"
 val S = require "atmos.streams"
 
-set WIN = SDL.createWindow @{
+val _,REN = sdl.window @{
 	title  = "Atmos-SDL: Clicks",
 	width  = 256,
 	height = 256,
     flags  = @{ SDL.flags.OpenGL },
-} --> assert
+}
 
-set REN = SDL.createRenderer(WIN,-1) --> assert
-set sdl.ren = REN
 set FNT = TTF.open("DejaVuSans.ttf", 10) --> assert
 
 var txts = @{}
@@ -58,7 +56,7 @@ spawn {
     ;;      - imediato apos dn se estado up
     ;;;
     loop {
-        val dn = await <- SDL.event.MouseButtonDown
+        val _,dn = await(SDL.event.MouseButtonDown)
         var n = 1
         watching SDL.event.MouseMotion {
             loop {
@@ -69,14 +67,15 @@ spawn {
                 set n = n + 1
             }
         }
-        emit(:sdl.mouse.button.dn, dn, n)
+        set dn.n = n
+        emit :sdl.mouse.button.dn(dn)
         par_and {
             var state, x, y = SDL.getMouseState()
             if state[SDL.mouseMask.Left] {
-                val pos = await <- SDL.event.MouseButtonUp
+                val _,pos = await(SDL.event.MouseButtonUp)
                 set x,y = (pos.x, pos.y)
             }
-            emit(:sdl.mouse.button.up, @{x=x,y=y})
+            emit :sdl.mouse.button.up @{x=x,y=y}
         } with {
             await @.250
         }
@@ -138,15 +137,14 @@ val clear =
 
 val dn = 
     S.fr_await(:sdl.mouse.button.dn)
-        ::tap \(_,pos,n) {
-            print(_,pos,n)
-            set txts[+] = "dn (" ++ pos.x++','++pos.y ++"): " ++ n
+        ::tap \{
+            set txts[+] = "dn (" ++ it.x++','++it.y ++"): " ++ it.n
         }
 
 val up =
     S.fr_await(:sdl.mouse.button.up)
-        ::tap \(_,pos,n) {
-            set txts[+] = "up (" ++ pos.x++','++pos.y ++")"
+        ::tap \{
+            set txts[+] = "up (" ++ it.x++','++it.y ++")"
         }
 
 S.from@{clear,dn,up}::xpar()::to()

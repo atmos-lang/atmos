@@ -23,12 +23,14 @@ pin t2 = spawn T(...)   ;; starts `t2`
 ...                     ;; t1 & t2 started and are now waiting
 ```
 
-The [`pin`](manual-out.md#declarations-and-assignments) declarations, which we
-detail further, attach the tasks into the current scope.
+The [`pin`](manual-out.md#declarations-and-assignments) declaration, which we
+detail further, limits the task lifetime within the current scope.
 
+<!--
 Tasks are based on Lua coroutines, meaning that they rely on cooperative
 scheduling with explicit suspension points.
 The key difference is that tasks can react to each other through events.
+-->
 
 The `await` primitive suspends a task until a matching event occurs:
 
@@ -38,6 +40,9 @@ func T (i) {
     print("task " ++ i ++ " awakes on X")
 }
 ```
+
+In the example, `:X` is a [tag](manual-out.md#hierarchical-tags) that
+identifies the event.
 
 The `emit` primitive broadcasts an event, awaking all tasks awaiting it:
 
@@ -49,12 +54,14 @@ emit :X
     ;; "task 2 awakes on X"
 ```
 
-In the example, `:X` is a [tag](manual-out.md#hierarchical-tags), which here is
-equivalent to string `"X"`.
+Therefore, based on the `await` and `emit` primitives, Atmos supports
+*reactive scheduling* for tasks.
 
+<!--
 Although explicit suspension points are still required, note that Atmos
 provides *reactive scheduling* for tasks based on `await` and `emit`
 primitives.
+-->
 
 # 2. External Environments
 
@@ -63,8 +70,8 @@ real world into an Atmos application.
 These events can be timers, key presses, network packets, or other kinds of
 inputs, depending on the environment.
 
-The environment is loaded through `require` and depends on an outer `call`
-primitive to handle events:
+The environment is loaded through `require`, making the application ready to
+handle events:
 
 ```
 require "x"         ;; environment "x" with events X.A, X.B, ...
@@ -91,13 +98,13 @@ loop _ in 5 {
 print "5 seconds elapsed."
 ```
 
-Note that `@1` is a [clock value](manual-out.md#clock) in the format
+In the example, `@1` is a [clock value](manual-out.md#clock) in the format
 `@HH:MM:SS.sss`, allowing Atmos to await time.
 
 # 3. Lexical Structure
 
 In Atmos, the lexical organization of tasks determines their lifetimes and also
-how they are scheduled, which helps to reason about programs more statically
+how they are scheduled, which helps to reason about programs more statically,
 based on the source code.
 
 ## 3.1. Lexical Scheduling
@@ -111,21 +118,20 @@ The reactive scheduler of Atmos is deterministic and cooperative:
     When a task spawns or awakes, it takes full control of the application and
     executes until it awaits or terminates.
 
-Consider the code that spawns two anonymous tasks concurrently and await the
-same event `:X` as follows:
+Consider the following code, which spawns two anonymous tasks concurrently and
+await the same event `:X`:
 
 <table>
 <tr><td>
 <pre>
-print "-=-=- 3.1 -=-=-"
 print "1"
-spawn {         ;; concurrent anonymous task #1
+spawn {         ;; task #1
     print "a1"
     await :X
     print "a2"
 }
 print "2"
-spawn {         ;; concurrent anonymous task #2
+spawn {         ;; task #2
     print "b1"
     await :X
     print "b2"
@@ -182,6 +188,8 @@ emit :X
 emit :Y
 ```
 
+`TODO: pin (not for anon/compounds)`
+
 ### 3.2.1. Deferred Statements
 
 A task can register deferred statements to execute when they terminate or abort
@@ -195,8 +203,7 @@ spawn {
         }
         await(false) ;; never awakes
     }
-    ;; will abort nested task
-}
+} ;; aborts the nested task and executes the defer clause
 ```
 
 The nested spawned task never awakes, but executes its `defer` clause when
@@ -214,12 +221,12 @@ do {
         <...>   ;; aborted with the enclosing `do`
     }
     <...>
-}
+} ;; executes defer clauses in the block and in nested tasks
 ```
 
 In the example, we attach a `spawn` and a `defer` to an explicit block.
-When the block goes out of scope, it automatically aborts the task and executes
-the deferred statement.
+When the block goes out of scope, it automatically aborts the task and also
+executes the deferred statement.
 The aborted task may also have pending defers, which also execute immediately.
 The defers execute in the reverse order in which they appear in the source
 code.
@@ -272,11 +279,11 @@ and events.
 The next example creates a stream that awaits occurrences of event `:X`:
 
 ```
-local S = require "atmos.streams"
+val S = require "atmos.streams"
 spawn {
     S.fr_await(:X)
         ::tap(xprint)
-        ::filter \{ (it.v%2) == 1 }
+        ::filter \{ (it.v % 2) == 1 }
         ::map \{ it.v }
         ::tap(print)
         ::to()
@@ -292,6 +299,8 @@ The example spawns a dedicated task for the stream pipeline with source
 `:X` carrying field `v=i` on every second.
 The pipeline filters only odd occurrences of `v`, then maps to these values,
 and prints them.
+The syntax `\{ ... }` creates an anonymous function with a single parameter
+`it`.
 The call to sink `to()` activates the stream and starts to pull values from
 the source, making the task to await.
 The loop takes 10 seconds to emit `1,2,...,10`, whereas the stream takes 10
@@ -302,33 +311,33 @@ follows:
 
 ```
 loop {
-    print(map(filter(await(:X)))
+    print(map(filter(await(:X))))
 }
 ```
 
 Atmos also provides stateful streams by supporting tasks as stream sources.
-The next example creates a task stream that packs awaits to `X` and `Y` in
+The next example creates a task stream that packs awaits to `:X` and `:Y` in
 sequence:
 
 ```
-function T ()
-    await('X')
-    await('Y')
-end
-spawn(function ()
-    S.fr_await(T)                           ;; XY, XY, ...
-        :zip(S.from(1))                     ;; {XY,1}, {XY,2} , ...
-        :map(function (t) return t[2] end)  ;; 1, 2, ...
-        :take(2)                            ;; 1, 2
-        :tap(print)
-        :to()
-end)
-emit('X')
-emit('X')
-emit('Y')   ;; 1
-emit('X')
-emit('Y')   ;; 2
-emit('Y')
+func T () {
+    await :X
+    await :Y
+}
+spawn {
+    S.fr_await(T)           ;; XY, XY, ...
+        ::zip(S.from(1))    ;; {XY,1}, {XY,2} , ...
+        ::map \{ it[2] }    ;; 1, 2, ...
+        ::take(2)           ;; 1, 2
+        ::tap(print)
+        ::to()
+}
+emit :X
+emit :X
+emit :Y     ;; 1
+emit :X
+emit :Y     ;; 2
+emit :Y
 ```
 
 In the example, `S.fr_await(T)` is a stream of complete executions of task `T`.
@@ -347,57 +356,57 @@ The example only takes the first two numbers, prints them, and terminates.
 
 ## 6.1. Public Data
 
-A task is a Lua table, and can hold public data fields as usual.
-It is also possible to self refer to the running task with a call to `task()`:
+Each task has a special variable `pub` to expose public data to the outside:
 
 ```
-function T ()
-    task().v = 10
-end
-local t = spawn(T)
-print(t.v)  ;; 10
+func T () {
+    set pub = 10    ;; exposes `pub` to the outside
+}
+pin t = spawn T()
+print(t.pub)        ;; reads `pub` of `t` (10)
 ```
 
 ## 6.2. Task Pools
 
-A task pool, created with `tasks` primitive, allows that multiple tasks share a
-parent container in the hierarchy.
+A task pool, created with the `tasks` primitive, allows that multiple tasks
+share a parent container in the hierarchy.
 When the pool goes out of scope, all attached tasks are aborted.
 When a task terminates, it is automatically removed from the pool.
 
 ```
-function T (id, ms)
-    task().id = id
-    print('start', id, ms)
-    await(clock{ms=ms})
-    print('stop', id, ms)
-end
+func T (id, ms) {
+    set pub = id
+    print(:start, id, ms)
+    await @ms
+    print(:stop, id, ms)
+}
 
-do
-    local ts <close> = tasks()
-    for i=1, 10 do
-        spawn_in(ts, T, i, math.random(500,1500))
-    end
-    await(clock{s=1})
-end
+do {
+    pin ts = tasks()
+    loop i in 10 {
+        spawn [ts] T(i, math.random(500,1500))
+    }
+    await @1
+}
 ```
 
 In the example, we first create a pool `ts`.
-Then we use `spawn_in` to spawn and attach 10 tasks into the pool.
+Then we use `spawn [ts]` to spawn and attach 10 tasks into the pool.
 Each task sleeps between `500ms` and `1500ms` before terminating.
 After `1s`, the `ts` block goes out of scope, aborting all tasks that did not
 complete.
 
-Task pools provide a `pairs` iterator to traverse currently attached tasks:
+It is possible to iterate over a task pool to traverse its currently attached
+tasks:
 
 ```
-for _,t in pairs(ts) do
-    print(t.id)
-end
+loop _,t in ts {
+    print(t.pub)
+}
 ```
 
-If we include this loop after the `await(clock{s=1})` in the previous example,
-it will print the task ids that did not awake.
+If we include this loop after the `await @1` in the previous example, it will
+print the task ids that did not awake.
 
 ## 6.3. Task Toggling
 
@@ -405,67 +414,73 @@ A task can be toggled off (and back to on) to remain alive but unresponsive
 (and back to responsive) to upcoming events:
 
 ```
-local t = spawn (function ()
-    await 'X'
+pin t = spawn (\{
+    await :X
     print "awakes from X"
-end)
-toggle(t, false)
-emit 'X'    ;; ignored
-toggle(t, true)
-emit 'X'    ;; awakes
+}) ()
+toggle t(false)
+emit :X     ;; ignored
+toggle t(true)
+emit :X     ;; awakes
 ```
 
-The `toggle` statement awaits the given body to terminate, while also observing
-its first argument as a boolean event:
+`TODO: explain (toggle operation)`
+
+In addition, Atmos provides a `toggle` statement, which awaits the given body
+to terminate, while also observing its first argument as a boolean event:
 When receiving `false`, the body toggles off.
 When receiving `true`, the body toggles on.
 
 ```
-toggle('X', function ()
-    every(clock{s=1}, function ()
-        print "1s elapses"
-    end)
-end)
-emit('X', false)    ;; body above toggles off
-<...>
-emit('X', true)     ;; body above toggles on
-<...>
+spawn {
+    toggle :X {
+        every @.100 {
+            print "100ms elapses"
+        }
+    }
+}
+print 'off'
+emit(:X, false)    ;; body above toggles off
+await @1
+print 'on'
+emit(:X, true)     ;; body above toggles on
+await @1
 ```
 
 # 7. Errors
 
 Atmos provides `throw` and `catch` primitives to handle errors, which take in
-consideration task hierarchy, i.e., a parent task catches errors from child
+consideration the task hierarchy, i.e., a parent task catches errors from child
 tasks.
 
 ```
-function T ()
-    spawn (function ()
-        await 'X'
-        throw 'Y'
-    end)
+func T () {
+    spawn {
+        await :X
+        throw :Y
+    }
     await(false)
-end
+}
 
-spawn(function ()
-    local ok, err = catch('Y', function ()
-        spawn(T)
+spawn {
+    val ok, err = catch :Y {
+        spawn T()
         await(false)
-    end)
+    }
     print(ok, err)
-end)
+}
 
-emit 'X'
+emit :X
 
 ;; "false, Y"
 ```
 
-In the example, we spawn a parent task that catches errors of type `Y`.
+In the example, we spawn a parent task that catches errors of type `:Y`.
 Then we spawn a named task `T`, which spawns an anonymous task, which awaits
-`X` to finally throw `Y`.
-Outside the task hierarchy, we `emit X`, which only awakes the nested task.
+`:X` to finally throw `:Y`.
+Outside the task hierarchy, we `emit :X`, which only awakes the nested task.
 Nevertheless, the error propagates up in the task hierarchy until it is caught
-by the top-level task, returning `false` and the error `Y`.
+by the top-level task, returning `false` and the error `:Y`.
 
 ## 7.1. Bidimensional Stack Traces
 
@@ -484,17 +499,17 @@ targeting the task with `id=2`.
 Only this task awakes and generates an uncaught error:
 
 ```
-function T (id)
-    await('X', id)
-    throw 'error'
-end
+funct T (id) {
+    await(:X, id)
+    throw :error
+}
 
-local ts <close> = tasks()
-spawn_in(ts, T, 1)
-spawn_in(ts, T, 2)
-spawn_in(ts, T, 3)
+pin ts = tasks()
+spawn [ts] T(1)
+spawn [ts] T(2)
+spawn [ts] T(3)
 
-emit('X', 2)
+emit(:X, 2)
 ```
 
 The stack trace identifies that the task lives in `ts` in line 6 and spawns in
