@@ -269,26 +269,27 @@ be combined a pipeline for real-time processing.
 Atmos extends the [f-streams][f-streams] library to interoperate with tasks
 and events.
 
-The next example creates a stream that awaits occurrences of event `X`:
+The next example creates a stream that awaits occurrences of event `:X`:
 
 ```
 local S = require "atmos.streams"
-spawn(function ()
-    S.fr_await('X')                                 ;; X1, X2, ...
-        :filter(function(x) return x.v%2 == 1 end)  ;; X1, X3, ...
-        :map(function(x) return x.v end)            ;; 1, 3, ...
-        :tap(print)
-        :to()
-end)
-for i=1, 10 do
-    await(clock{s=1})
-    emit { tag='X', v=i }   ;; `X` events carrying `v=1`
-end
+spawn {
+    S.fr_await(:X)
+        ::tap(xprint)
+        ::filter \{ (it.v%2) == 1 }
+        ::map \{ it.v }
+        ::tap(print)
+        ::to()
+}
+loop i in 10 {
+    await @.1
+    emit :X @{v=i}
+}
 ```
 
 The example spawns a dedicated task for the stream pipeline with source
-`S.fr_await('X')`, which runs concurrently with a loop that generates events
-`X` carrying field `v=i` on every second.
+`S.fr_await(:X)`, which runs concurrently with a loop that generates events
+`:X` carrying field `v=i` on every second.
 The pipeline filters only odd occurrences of `v`, then maps to these values,
 and prints them.
 The call to sink `to()` activates the stream and starts to pull values from
@@ -296,16 +297,16 @@ the source, making the task to await.
 The loop takes 10 seconds to emit `1,2,...,10`, whereas the stream takes 10
 seconds to print `1,3,...,9`.
 
-The full stream pipeline of the example is analogous to the awaiting loop as
+The full stream pipeline of the example is analogous to an awaiting loop as
 follows:
 
 ```
-while true do
-    print(map(filter(await('X')))
-end
+loop {
+    print(map(filter(await(:X)))
+}
 ```
 
-Atmos provides stateful streams by supporting tasks as stream sources.
+Atmos also provides stateful streams by supporting tasks as stream sources.
 The next example creates a task stream that packs awaits to `X` and `Y` in
 sequence:
 
