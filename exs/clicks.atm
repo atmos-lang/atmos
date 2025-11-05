@@ -67,8 +67,7 @@ spawn {
                 set n = n + 1
             }
         }
-        set dn.n = n
-        emit :sdl.mouse.button.dn(dn)
+        emit :sdl.mouse.button.dn @{ n=n, x=dn.x, y=dn.y }
         par_and {
             var state, x, y = SDL.getMouseState()
             if state[SDL.mouseMask.Left] {
