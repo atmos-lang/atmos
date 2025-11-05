@@ -5,15 +5,12 @@ set sdl = require "atmos.env.sdl"
 
 val point_vs_rect = sdl.point_vs_rect
 
-set WIN = SDL.createWindow @{
+val _,REN = sdl.window @{
 	title  = "Atmos-SDL: Click, Drag, Cancel",
 	width  = 256,
 	height = 256,
     flags  = @{ SDL.flags.OpenGL },
-} --> assert
-
-set REN = SDL.createRenderer(WIN,-1) --> assert
-set sdl.ren = REN
+}
 set FNT = TTF.open("DejaVuSans.ttf", 20) --> assert
 
 var text = " "
