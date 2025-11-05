@@ -56,7 +56,7 @@ spawn {
     ;;      - imediato apos dn se estado up
     ;;;
     loop {
-        val dn = await <- SDL.event.MouseButtonDown
+        val _,dn = await(SDL.event.MouseButtonDown)
         var n = 1
         watching SDL.event.MouseMotion {
             loop {
@@ -67,14 +67,15 @@ spawn {
                 set n = n + 1
             }
         }
-        emit(:sdl.mouse.button.dn, dn, n)
+        set dn.n = n
+        emit :sdl.mouse.button.dn(dn)
         par_and {
             var state, x, y = SDL.getMouseState()
             if state[SDL.mouseMask.Left] {
-                val pos = await <- SDL.event.MouseButtonUp
+                val _,pos = await(SDL.event.MouseButtonUp)
                 set x,y = (pos.x, pos.y)
             }
-            emit(:sdl.mouse.button.up, @{x=x,y=y})
+            emit :sdl.mouse.button.up @{x=x,y=y}
         } with {
             await @.250
         }
@@ -137,7 +138,7 @@ val clear =
 val dn = 
     S.fr_await(:sdl.mouse.button.dn)
         ::tap \{
-            set txts[+] = "dn (" ++ it.x++','++it.y ++"): " ++ n
+            set txts[+] = "dn (" ++ it.x++','++it.y ++"): " ++ it.n
         }
 
 val up =
