@@ -134,6 +134,11 @@ The standard distribution of Atmos provides the following environments:
 [atmos-sdl]:    https://github.com/lua-atmos/atmos/tree/main/atmos/env/sdl/
 [atmos-iup]:    https://github.com/lua-atmos/atmos/tree/main/atmos/env/iup/
 
+[luasocket]:    https://lunarmodules.github.io/luasocket/
+[luasdl]:       https://github.com/Tangent128/luasdl2/
+[iup]:          https://www.tecgraf.puc-rio.br/iup/
+[iup-lua]:      https://www.tecgraf.puc-rio.br/iup/en/basic/index.html
+
 # Resources
 
 - [A toy problem][toy]: Drag, Click, or Cancel
