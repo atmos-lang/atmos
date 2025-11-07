@@ -57,6 +57,12 @@ emit :X
 Therefore, based on the `await` and `emit` primitives, Atmos supports
 *reactive scheduling* for tasks.
 
+<!--
+Although explicit suspension points are still required, note that Atmos
+provides *reactive scheduling* for tasks based on `await` and `emit`
+primitives.
+-->
+
 # 2. External Environments
 
 An environment is the external component that bridges input events from the
@@ -270,7 +276,7 @@ be combined a pipeline for real-time processing.
 Atmos extends the [f-streams][f-streams] library to interoperate with tasks
 and events.
 
-The next example creates a stream that awaits occurrences of event `X`:
+The next example creates a stream that awaits occurrences of event `:X`:
 
 ```
 val S = require "atmos.streams"
