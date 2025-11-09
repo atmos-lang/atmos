@@ -53,7 +53,14 @@ function xtostring (v)
                 t[#t+1] = { k, x }
             --end
         end
-        table.sort(t, function (x, y) return (tostring(x[1]) < tostring(y[1])) end)
+        table.sort(t, function (x, y)
+            local n1, n2 = tonumber(x[1]), tonumber(y[1])
+            if n1 and n2 then
+                return (n1 < n2)
+            else
+                return (tostring(x[1]) < tostring(y[1]))
+            end
+        end)
         local i = 1
         for _,kx in ipairs(t) do
             local k,x = table.unpack(kx)
