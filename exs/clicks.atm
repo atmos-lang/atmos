@@ -5,7 +5,6 @@ require "atmos.env.pico"
 val S = require "atmos.streams"
 val SDL = require "SDL"
 
-set pico.zet = pico[:set]
 pico.zet.title "pico-Atmos: Clicks"
 pico.zet.size.window(256, 256)
 

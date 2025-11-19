@@ -3,7 +3,6 @@ val x = require "atmos.x"
 require "atmos.env.pico"
 val pico = require "pico"
 
-set pico.zet = pico[:set]
 pico.zet.title "pico-Atmos: Click, Drag, Cancel"
 pico.zet.size.window(256, 256)
 pico.zet.font(nil, 20)
