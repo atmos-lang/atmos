@@ -1,54 +1,45 @@
-val SDL = require "SDL"
-val TTF = require "SDL.ttf"
 require "atmos"
-set sdl = require "atmos.env.sdl"
+val x = require "atmos.x"
+require "atmos.env.pico"
+val pico = require "pico"
 
-val point_vs_rect = sdl.point_vs_rect
+pico[:set].title "Atmos-SDL: Click, Drag, Cancel"
+pico[:set].size.window(256, 256)
+pico[:set].font(nil, 20)
 
-val _,REN = sdl.window @{
-	title  = "Atmos-SDL: Click, Drag, Cancel",
-	width  = 256,
-	height = 256,
-    flags  = @{ SDL.flags.OpenGL },
-}
-set FNT = TTF.open("DejaVuSans.ttf", 20) --> assert
-
-var text = " "
-var rect = @{x=(256/2)-20,y=(256/2)-20, w=40,h=40}
+var text = ""
+var rect = @{x=256/2,y=256/2, w=40,h=40}
 
 spawn {
-    every :sdl.draw {
-        REN::setDrawColor(0x000000)
-        REN::clear()
-        REN::setDrawColor(0xFFFFFF)
-        REN::fillRect(rect)
-        sdl.write(FNT, text, @{x=256/2, y=200})
-        REN::present()
+    val pt = @{x=256/2, y=220}
+    every :draw {
+        pico.output.draw.rect(rect)
+        pico.output.draw.text(pt, text)
     }
 }
 
 loop {
-    val click = await(SDL.event.MouseButtonDown, \{point_vs_rect(it, rect)})
-    val orig = @{x=rect.x, y=rect.y, w=rect.w, h=rect.h}
+    val click = await(:mouse.button.dn, \{pico.vs.pos_rect(it, rect)})
+    val orig = x.copy(rect)
     set text = "... clicking ..."
     par_or {
-        await(SDL.event.KeyDown, :Escape)
+        await(:key.dn, :Escape)
         set rect = orig
         set text = "!!! CANCELLED !!!"
     } with {
         par_or {
-            await(SDL.event.MouseMotion)
+            await :mouse.motion
             set text = "... dragging ..."
-            await(SDL.event.MouseButtonUp)
+            await :mouse.button.up
             set text = "!!! DRAGGED !!!"
         } with {
-            every e in SDL.event.MouseMotion {
+            every e in :mouse.motion {
                 set rect.x = orig.x + (e.x - click.x)
                 set rect.y = orig.y + (e.y - click.y)
             }
         }
     } with {
-        await(SDL.event.MouseButtonUp)
+        await :mouse.button.up
         set text = "!!! CLICKED !!!"
     }
 }

@@ -1,40 +1,30 @@
-val SDL = require "SDL"
-val TTF = require "SDL.ttf"
 require "atmos"
-set sdl = require "atmos.env.sdl"
+val pico = require "pico"
+require "atmos.env.pico"
 val S = require "atmos.streams"
+val SDL = require "SDL"
 
-val _,REN = sdl.window @{
-	title  = "Atmos-SDL: Clicks",
-	width  = 256,
-	height = 256,
-    flags  = @{ SDL.flags.OpenGL },
-}
-
-set FNT = TTF.open("DejaVuSans.ttf", 10) --> assert
+pico[:set].title "Atmos-SDL: Clicks"
+pico[:set].size.window(256, 256)
 
 var txts = @{}
 
-val D = 20
-val R = 10
-var rect = @{x=(256/2)-R,y=(256/2)-R, w=D,h=D}
+var rect = @{x=256/2,y=256/2, w=20,h=20}
 
 spawn {
     par {
-        every :sdl.draw {
-            REN::setDrawColor(0x000000)
-            REN::clear()
-            REN::setDrawColor(0xFFFFFF)
-            REN::fillRect(rect)
-            loop i,t in txts {
-                sdl.write(FNT, t, @{x=256-70, y=20+(i*15)})
+        every :draw {
+            pico.output.draw.rect(rect)
+            val pt = pico.pos(90,20)
+            loop _,t in txts {
+                pico.output.draw.text(pt, t)
+                set pt.y = pt.y + 15
             }
-            REN::present()
         }
     } with {
-        every m in SDL.event.MouseMotion {
-            set rect.x = m.x - R
-            set rect.y = m.y - R
+        every m in :mouse.motion {
+            set rect.x = m.x
+            set rect.y = m.y
         }
     }
 }
@@ -56,25 +46,25 @@ spawn {
     ;;      - imediato apos dn se estado up
     ;;;
     loop {
-        val _,dn = await(SDL.event.MouseButtonDown)
+        val _,dn = await :mouse.button.dn
         var n = 1
-        watching SDL.event.MouseMotion {
+        watching :mouse.motion {
             loop {
-                watching SDL.event.MouseButtonDown {
+                watching :mouse.button.dn {
                     await @.250
                     break()
                 }
                 set n = n + 1
             }
         }
-        emit :sdl.mouse.button.dn @{ n=n, x=dn.x, y=dn.y }
+        emit :mouse.button.dn @{ n=n, x=dn.x, y=dn.y }
         par_and {
             var state, x, y = SDL.getMouseState()
             if state[SDL.mouseMask.Left] {
                 val _,pos = await(SDL.event.MouseButtonUp)
                 set x,y = (pos.x, pos.y)
             }
-            emit :sdl.mouse.button.up @{x=x,y=y}
+            emit :mouse.button.up @{x=x,y=y}
         } with {
             await @.250
         }
@@ -135,13 +125,13 @@ val clear =
         ::tap \{ set txts = @{} }
 
 val dn = 
-    S.fr_await(:sdl.mouse.button.dn)
+    S.fr_await(:mouse.button.dn)
         ::tap \{
             set txts[+] = "dn (" ++ it.x++','++it.y ++"): " ++ it.n
         }
 
 val up =
-    S.fr_await(:sdl.mouse.button.up)
+    S.fr_await(:mouse.button.up)
         ::tap \{
             set txts[+] = "up (" ++ it.x++','++it.y ++")"
         }
