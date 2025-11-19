@@ -3,9 +3,10 @@ val x = require "atmos.x"
 require "atmos.env.pico"
 val pico = require "pico"
 
-pico[:set].title "Atmos-SDL: Click, Drag, Cancel"
-pico[:set].size.window(256, 256)
-pico[:set].font(nil, 20)
+set pico.zet = pico[:set]
+pico.zet.title "pico-Atmos: Click, Drag, Cancel"
+pico.zet.size.window(256, 256)
+pico.zet.font(nil, 20)
 
 var text = ""
 var rect = @{x=256/2,y=256/2, w=40,h=40}

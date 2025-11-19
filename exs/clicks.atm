@@ -1,11 +1,13 @@
 require "atmos"
+val x = require "atmos.x"
 val pico = require "pico"
 require "atmos.env.pico"
 val S = require "atmos.streams"
 val SDL = require "SDL"
 
-pico[:set].title "Atmos-SDL: Clicks"
-pico[:set].size.window(256, 256)
+set pico.zet = pico[:set]
+pico.zet.title "pico-Atmos: Clicks"
+pico.zet.size.window(256, 256)
 
 var txts = @{}
 
@@ -15,7 +17,7 @@ spawn {
     par {
         every :draw {
             pico.output.draw.rect(rect)
-            val pt = pico.pos(90,20)
+            val pt = pico.pos(80,10)
             loop _,t in txts {
                 pico.output.draw.text(pt, t)
                 set pt.y = pt.y + 15
@@ -57,14 +59,14 @@ spawn {
                 set n = n + 1
             }
         }
-        emit :mouse.button.dn @{ n=n, x=dn.x, y=dn.y }
+        emit :x.mouse.button.dn @{ n=n, x=dn.x, y=dn.y }
         par_and {
             var state, x, y = SDL.getMouseState()
             if state[SDL.mouseMask.Left] {
-                val _,pos = await(SDL.event.MouseButtonUp)
+                val _,pos = await :mouse.button.up
                 set x,y = (pos.x, pos.y)
             }
-            emit :mouse.button.up @{x=x,y=y}
+            emit :x.mouse.button.up @{x=x,y=y}
         } with {
             await @.250
         }
@@ -121,17 +123,17 @@ par {
 ;;;
 
 val clear =
-    S.fr_await(Debounce, _or_(SDL.event.MouseButtonDown,SDL.event.MouseButtonUp), @1)
+    S.fr_await(Debounce, _or_(:mouse.button.dn,:mouse.button.up), @1)
         ::tap \{ set txts = @{} }
 
 val dn = 
-    S.fr_await(:mouse.button.dn)
+    S.fr_await(:x.mouse.button.dn)
         ::tap \{
             set txts[+] = "dn (" ++ it.x++','++it.y ++"): " ++ it.n
         }
 
 val up =
-    S.fr_await(:mouse.button.up)
+    S.fr_await(:x.mouse.button.up)
         ::tap \{
             set txts[+] = "up (" ++ it.x++','++it.y ++")"
         }
