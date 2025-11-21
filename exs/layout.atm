@@ -1,3 +1,7 @@
+val pico = require "pico"
+
+val M = @{}
+
 val unit = func (lay) {
     val L, C = (#lay, #lay[1])
     val ret = @{}
@@ -35,35 +39,21 @@ val mult = func (lay, ref, rs) {
     ret
 }
 
-val tags = func (ids, ms) {
-    assert(#ms == #ids)
-    val ret = @{}
-    loop i,r in ms {
-        set ret[ids[i]] = r
-    }
-    ret
-}
-
-func layout (ids, lay, ref) {
-    set ref = assert(ref)
+func M.layout (lay, ref) {
     val us = unit(lay)
     val ms = mult(lay, ref, us)
-    if ids => tags(ids, ms) => ms
+    ms
 }
 
-;;;
-task Grid (rs) {
-    spawn {
-        every :Pico.Draw {
-            pico.set.style(:Style.Stroke)
-            loop r in rs {
-                pico.output.draw.rect(r)
-            }
+func M.Grid (rs) {
+    every :draw {
+        pico.zet.style(:stroke)
+        pico.zet.anchor.draw(:left, :top)
+        loop _,r in rs {
+            pico.output.draw.rect(r)
         }
     }
-    await(|false)
 }
-;;;
 
 test {
     do {
@@ -83,20 +73,10 @@ test {
             @{x=1,y=0,w=1,h=1},
         })
 
-        val ts = tags(@{:l, :r}, m1)
-        assert(ts.l === @{x=0,y=0,w=1,h=1})
-        assert(ts.r === @{x=1,y=0,w=1,h=1})
-
-        val m2 = layout(@{:l,:r}, lay, @{x=0,y=0,w=2,h=1})
-        assert(m2 === @{
-            l = @{x=0,y=0,w=1,h=1},
-            r = @{x=1,y=0,w=1,h=1},
-        })
-
-        val m3 = layout(@{:l,:r}, lay, @{x=100,y=200,w=10,h=10})
+        val m3 = M.layout(lay, @{x=100,y=200,w=10,h=10})
         assert(m3 === @{
-            l = @{x=100,y=200,w=5,h=10},
-            r = @{x=105,y=200,w=5,h=10},
+            @{x=100,y=200,w=5,h=10},
+            @{x=105,y=200,w=5,h=10},
         })
     }
 
@@ -108,7 +88,7 @@ test {
             @{3,3,4},
             @{5,6,4},
         }
-        val rs = layout(nil, lay, @{x=0,y=0,w=30,h=40})
+        val rs = M.layout(lay, @{x=0,y=0,w=30,h=40})
         assert(rs === @{
             @{x=00,y=00,w=20,h=20},
             @{x=20,y=00,w=10,h=20},
@@ -127,7 +107,7 @@ test {
             @{3,3,4},
             @{5,6,7},
         }
-        val rs = layout(nil, lay, @{x=0,y=0,w=30,h=40})
+        val rs = M.layout(lay, @{x=0,y=0,w=30,h=40})
         assert(rs === @{
             @{x=00,y=00,w=20,h=20},
             @{x=20,y=00,w=10,h=20},
@@ -138,4 +118,21 @@ test {
             @{x=20,y=30,w=10,h=10},
         })
     }
+
+    do {
+        print "Grid 1..."
+        require "atmos.env.pico"
+        pico.zet.size.window(@{x=500,y=500}, @{x=100,y=100})
+        val lay = @{
+            @{1,1,2},
+            @{1,1,2},
+            @{3,3,4},
+            @{5,6,7},
+        }
+        val rs = M.layout(lay, @{x=0,y=0,w=100,h=100})
+        spawn M.Grid(rs)
+        await(:key.dn, :Escape)
+    }
 }
+
+M
