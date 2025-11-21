@@ -45,11 +45,12 @@ func M.layout (lay, ref) {
     ms
 }
 
-func M.Grid (rs) {
+func M.Grid (rs, clr) {
     every :draw {
         pico.zet.style(:stroke)
         pico.zet.anchor.draw(:left, :top)
         loop _,r in rs {
+            pico.zet.color.draw(clr)
             pico.output.draw.rect(r)
         }
     }
@@ -130,8 +131,18 @@ test {
             @{5,6,7},
         }
         val rs = M.layout(lay, @{x=0,y=0,w=100,h=100})
-        spawn M.Grid(rs)
-        await(:key.dn, :Escape)
+        spawn M.Grid(rs, pico.color.white)
+        spawn {
+            every :draw {
+                loop i in 7 {
+                    val pt = pico.pos(@{x=50,y=50}, rs[i], @{x=:left,y=:top})
+;;require'atmos.x'.print(pt)
+                    pico.zet.color.draw(pico.color.red)
+                    pico.output.draw.pixel(pt)
+                }
+            }
+        }
+        await(:key.dn, :Return)
     }
 }
 
