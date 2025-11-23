@@ -1,7 +1,9 @@
-require "atmos.env.clock"
+val env = require "atmos.env.clock"
 
+print(env.now)
 watching @5 {
     every @.500 {
         print("Hello World!")
     }
 }
+print(env.now)

@@ -1,3 +1,13 @@
+v0.4 (oct/25)
+-------------
+
+- Additions:
+    - stream variables `val x*` (experimental)
+- Modifications:
+    - examples use `pico` environment
+- Documentation:
+    - doc/guide.md
+
 v0.3 (oct/25)
 -------------
 

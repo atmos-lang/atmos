@@ -5,6 +5,11 @@ cd tst/
 lua5.4 all.lua
 ```
 
+- Version
+    - .rockspec
+    - README.md
+    - bin/atmos
+
 - Examples:
 
 ```
@@ -13,13 +18,17 @@ atmos *.atm
 ```
 
 - Projects
+    - `iup-7guis/`
+        - `atmos 03-flight.atm`
+        - `lua5.4 server.lua` + `atmos 01-counter-net.atm`
+    - `pico-birds/`
+        - `atmos birds-11.atm`
+    - `pico-rocks/`
+        - `atmos main.atm`
     - `sdl-birds/`
         - `atmos birds-11.atm`
     - `sdl-rocks/`
         - `atmos main.atm`
-    - `iup-7guis/`
-        - `atmos 03-flight.atm`
-        - `lua5.4 server.lua` + `atmos 01-counter-net.atm`
 
 ```
 git branch              # should be in `main`

@@ -3,12 +3,15 @@
 ***Structured Event-Driven Concurrency***
 
 [
+    [`v0.4`](https://github.com/atmos-lang/atmos/tree/v0.4)      |
     [`v0.3`](https://github.com/atmos-lang/atmos/tree/v0.3)      |
     [`v0.2`](https://github.com/atmos-lang/atmos/tree/v0.2_0.2.1)
 ]
 
+<!--
 This is the unstable `main` branch.
-Please, switch to stable [`v0.3`](https://github.com/atmos-lang/atmos/tree/v0.3).
+Please, switch to stable [`v0.4`](https://github.com/atmos-lang/atmos/tree/v0.4).
+-->
 
 [
     [About](#about)                 |
@@ -124,6 +127,9 @@ The standard distribution of Atmos provides the following environments:
 - [`atmos.env.sdl`][atmos-sdl]
     An environment that relies on [lua-sdl2][luasdl] to provide window, mouse,
     key, and timer events.
+- [`atmos.env.pico`][atmos-pico]
+    An environment that relies on [pico-sdl-lua][pico-sdl-lua] as a simpler
+    alternative do SDL.
 - [`atmos.env.iup`][atmos-iup]
     An environment that relies on [IUP][iup] ([iup-lua][iup-lua]) to provide
     graphical user interfaces (GUIs).
@@ -131,6 +137,7 @@ The standard distribution of Atmos provides the following environments:
 [atmos-clock]:  https://github.com/lua-atmos/atmos/tree/main/atmos/env/clock/
 [atmos-socket]: https://github.com/lua-atmos/atmos/tree/main/atmos/env/socket/
 [atmos-sdl]:    https://github.com/lua-atmos/atmos/tree/main/atmos/env/sdl/
+[atmos-pico]:   https://github.com/lua-atmos/atmos/tree/main/atmos/env/pico/
 [atmos-iup]:    https://github.com/lua-atmos/atmos/tree/main/atmos/env/iup/
 
 [luasocket]:    https://lunarmodules.github.io/luasocket/

@@ -1,6 +1,6 @@
 #!/usr/bin/env lua5.4
 
-local VERSION = "v0.3"
+local VERSION = "v0.4"
 
 atmos = require "atmos"
 require "atmos.lang.exec"
