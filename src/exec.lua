@@ -19,6 +19,7 @@ function atm_test (src, tst)
         return err
     end
     atmos = require "atmos"
+    X = require "atmos.x"
     require "atmos.lang.run"
     local ok, err = pcall(atmos.call,f)
     print = PRINT

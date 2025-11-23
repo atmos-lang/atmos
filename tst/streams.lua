@@ -1,3 +1,4 @@
+local X = require "atmos.x"
 require "atmos.lang.exec"
 
 print '--- BEHAVIOR ---'
@@ -132,7 +133,7 @@ local src = [[
         ::filter(\{it::find("[Bb]")})
         ::table()
         ::to()
-    xprint(names_with_b)
+    X.print(names_with_b)
 ]]
 print("Testing...", "func 3")
 local out = atm_test(src)
@@ -151,7 +152,7 @@ local src = [[
         ::map(string.upper)
         ::table()
         ::to()
-    xprint(names_with_b)
+    X.print(names_with_b)
 ]]
 print("Testing...", "func 4")
 local out = atm_test(src)
@@ -197,9 +198,9 @@ local src = [[
     val numbers = @{2, 1, 3, 4, 7, 11, 18, 29}
 
     val is_even = \{(it % 2) == 0}
-    xprint <-- S.from(numbers)::filter(is_even)::table()::to()
+    X.print <-- S.from(numbers)::filter(is_even)::table()::to()
 
-    xprint <-- S.from(numbers)::filter(\{(it % 2) == 0})::table()::to()
+    X.print <-- S.from(numbers)::filter(\{(it % 2) == 0})::table()::to()
 ]]
 print("Testing...", "func 8")
 local out = atm_test(src)
@@ -214,7 +215,7 @@ local src = [[
     }
     ;; map will iterate through each row, and the lambda
     ;; indexes each to retrieve the first element
-    xprint <-- S.from(matrix)::map(\{it[2]})::table()::to()
+    X.print <-- S.from(matrix)::map(\{it[2]})::table()::to()
 ]]
 print("Testing...", "func 9")
 local out = atm_test(src)
