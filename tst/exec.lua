@@ -13,6 +13,13 @@ do
     assertx(out, "xxx\n2\n20\n")
 
     local src = [[
+        print((4/3) + (4//3))
+    ]]
+    print("Testing...", "expr 1")
+    local out = atm_test(src)
+    assertx(out, "2.3333333333333\n")
+
+    local src = [[
         print('a' ++ 'b' ++ 'c')
     ]]
     print("Testing...", "expr 2")

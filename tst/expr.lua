@@ -418,6 +418,15 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "(2 * (a - 1))")
 
+    local src = "2 / (a // 1)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "(2 / (a // 1))")
+
     local src = "2 == -1"
     print("Testing...", src)
     init()
