@@ -3261,6 +3261,21 @@ do
     print("Testing...", "tasks 24: ++")
     local out = atm_test(src)
     assertx(out, "2\ttrue\ttrue\tfalse\n")
+
+    local src = [[
+        pin ts = tasks()
+        func T () { print :ok }
+        spawn {
+            watching :X {
+                await :Y
+                spawn [ts] T()
+            }
+        }
+        emit :Y
+    ]]
+    print("Testing...", "tasks 25: former bug - tail call")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
 end
 
 print '--- EVERY ---'
