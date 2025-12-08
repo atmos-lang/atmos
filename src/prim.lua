@@ -296,6 +296,17 @@ function parser_1_prim ()
     -- var x = 10
     elseif accept('val') or accept('var') or accept('pin') then
         local tk = TK0
+
+        if accept('func') then
+            local id = accept_err(nil, 'id')
+            accept_err('(')
+            local dots, pars = parser_dots_pars()
+            accept_err(')')
+            local blk = parser_block()
+            local f = { tag='func', dots=dots, pars=pars, blk=blk }
+            return { tag='dcl', tk=tk, ids={id}, set=f }
+        end
+
         local ids = parser_ids('=')
 
         local beh = (#ids == 1) and accept('*')

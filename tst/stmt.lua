@@ -87,6 +87,27 @@ do
         set M["o"]["f"] = func (self, v) {
         }
     ]])
+
+    local src = "val func f () { }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(X.tostring(s), "@{ids=@{@{lin=1, sep=1, str=f, tag=id}}, set=@{blk=@{es=@{}, tag=block}, dots=false, pars=@{}, tag=func}, tag=dcl, tk=@{lin=1, sep=1, str=val, tag=key}}")
+
+    local src = "val func f (v) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        val f = func (v) {
+        }
+    ]])
 end
 
 -- BLOCK / DO / ESCAPE / DEFER / SEQ / ; / MAIN

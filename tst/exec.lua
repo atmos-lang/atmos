@@ -960,6 +960,27 @@ do
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "ok\n")
+
+    local src = [[
+        do {
+            val func x (v) {
+                print(v)
+            }
+            x(:ok)
+        }
+        x(:no)
+    ]]
+    print("Testing...", "func 9 : err : val func")
+    local out = atm_test(src)
+    --assertx(out, "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
+    assertx(trim(out), trim [[
+        ok
+        ==> ERROR:
+        |  [C]:-1 (call)
+        v  [string "anon.atm"]:7 (throw)
+        ==> attempt to call a nil value (global 'x')
+    ]])
+
 end
 
 print "--- IF-ELSE / IFS / MATCH ---"
