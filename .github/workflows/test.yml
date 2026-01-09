@@ -19,6 +19,8 @@ jobs:
       with:
         repository: lua-atmos/atmos
         path: atmos-runtime
+    - name: Link lang source
+      run: ln -s ../../src atmos-runtime/atmos/lang
     - name: Install Lua
       run: |
         sudo apt-get update
