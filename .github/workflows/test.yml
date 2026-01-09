@@ -1,0 +1,27 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        repository: lua-atmos/f-streams
+        path: f-streams
+    - uses: actions/checkout@v4
+      with:
+        repository: lua-atmos/atmos
+        path: atmos-runtime
+    - name: Install Lua
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lua5.4
+    - name: Run tests
+      run: cd tst && LUA_PATH="../f-streams/?/init.lua;../atmos-runtime/?.lua;../atmos-runtime/?/init.lua;;" lua5.4 all.lua

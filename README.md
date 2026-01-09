@@ -1,5 +1,10 @@
 # The Programming Language Atmos
 
+[![Tests][badge]][test]
+
+[badge]: https://github.com/atmos-lang/atmos/actions/workflows/test.yml/badge.svg
+[test]:  https://github.com/atmos-lang/atmos/actions/workflows/test.yml
+
 ***Structured Event-Driven Concurrency***
 
 [
