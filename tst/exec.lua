@@ -335,7 +335,7 @@ do
         }
         print(x)
     ]]
-    print("Testing...", "test 1")
+    print("Testing...", "test 2")
     local out = atm_test(src)
     assertx(out, "10\n")
 
@@ -418,11 +418,11 @@ do
     ]]
     print("Testing...", "defer 6")
     local out = atm_test(src)
-    assertx(trim(out), trim [[
+    assertfx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
-         v  ../../../lua-atmos/atmos/atmos/run.lua:49 (throw)
-        ==> [string "anon.atm"]:3: ok
+         |  %[C%]:%-1 %(call%)
+         v  .*../../lua%-atmos/atmos/atmos/run.lua:49 %(throw%)
+        ==> %[string "anon.atm"%]:3: ok
     ]])
 end
 

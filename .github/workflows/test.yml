@@ -18,12 +18,12 @@ jobs:
     - uses: actions/checkout@v4
       with:
         repository: lua-atmos/atmos
-        path: atmos-runtime
+        path: lua-atmos
     - name: Link lang source
-      run: ln -s ../../src atmos-runtime/atmos/lang
+      run: ln -s ../../src lua-atmos/atmos/lang
     - name: Install Lua
       run: |
         sudo apt-get update
         sudo apt-get install -y lua5.4
     - name: Run tests
-      run: cd tst && LUA_PATH="../f-streams/?/init.lua;../atmos-runtime/?.lua;../atmos-runtime/?/init.lua;;" lua5.4 all.lua
+      run: cd tst && LUA_PATH="../f-streams/?/init.lua;../lua-atmos/?.lua;../lua-atmos/?/init.lua;;" lua5.4 all.lua
