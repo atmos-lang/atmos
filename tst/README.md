@@ -17,4 +17,5 @@ lua-atmos
 
 ```bash
 LUA_PATH="../../../lua-atmos/f-streams/?/init.lua;../../../lua-atmos/atmos/?.lua;../../../lua-atmos/atmos/?/init.lua;;" lua5.4 all.lua
+lua5.4 cmd.lua  # requires atmos installed
 ```
