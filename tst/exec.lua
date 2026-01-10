@@ -421,7 +421,7 @@ do
     assertx(trim(out), trim [[
         ==> ERROR:
          |  [C]:-1 (call)
-         v  /usr/local/share/lua/5.4/atmos/run.lua:49 (throw)
+         v  ../../../lua-atmos/atmos/atmos/run.lua:49 (throw)
         ==> [string "anon.atm"]:3: ok
     ]])
 end

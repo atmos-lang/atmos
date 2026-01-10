@@ -3201,17 +3201,17 @@ do
         spawn [ts] T(2)
         loop _,t in ts {
             print(:t, t.pub)
-            emit(:2)        ;; opens hole for 99 below
-            val ok = spawn [ts] T(99)     ;; must not fill hole b/c ts in the stack
-            print(ok)
+            emit(:2)                    ;; opens hole for 99 below
+            val ok = spawn [ts] T(99)   ;; (no) must not fill hole b/c ts in the stack
+            print(ok != nil)
         }
         loop _,t in ts {
             print(:t, t.pub)
         }
     ]]
-    print("Testing...", "tasks 21")
+    print("Testing...", "tasks 21 (now ok)")
     local out = atm_test(src)
-    assertx(out, "t\t1\nnil\nt\t2\nnil\nt\t1\n")
+    assertx(out, "t\t1\ntrue\nt\t2\nfalse\nt\t1\nt\t99\n")
 
     local src = [[
         func T () {
