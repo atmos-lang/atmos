@@ -421,7 +421,7 @@ do
     assertfx(trim(out), trim [[
         ==> ERROR:
          |  %[C%]:%-1 %(call%)
-         v  .*../../lua%-atmos/atmos/atmos/run.lua:49 %(throw%)
+         v  .*/atmos/run.lua:49 %(throw%)
         ==> %[string "anon.atm"%]:3: ok
     ]])
 end
