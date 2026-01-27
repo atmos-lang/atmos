@@ -3,6 +3,7 @@
 * DESIGN
     * Structured Deterministic Concurrency
     * Event Signaling Mechanisms
+    * Functional Streams
     * Hierarchical Tags
     * Integration with Lua
 * EXECUTION
@@ -59,8 +60,8 @@
         - `spawn` `await` `emit` `toggle`
         - `every` `watching` `par` `par_and` `par_or`
 * STANDARD LIBRARIES
-    - Lua Standard Libraries
-    - `TODO`
+    * Lua Standard Libraries
+    * Atmos Standard Libraries
 * SYNTAX
 
 <!-- CONTENTS -->
@@ -2341,6 +2342,10 @@ All libraries are extracted as is from the [Lua manual](lua-libraries):
 08. Input and Output Facilities
 09. Operating System Facilities
 10. The Debug Library
+
+## Atmos Standard Libraries
+
+`TODO`
 
 # SYNTAX
 
