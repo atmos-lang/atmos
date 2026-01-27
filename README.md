@@ -133,8 +133,8 @@ The standard distribution of Atmos provides the following environments:
     An environment that relies on [lua-sdl2][luasdl] to provide window, mouse,
     key, and timer events.
 - [`atmos.env.pico`][atmos-pico]
-    An environment that relies on [pico-sdl-lua][pico-sdl-lua] as a simpler
-    alternative do SDL.
+    An environment that relies on [pico-sdl][pico-sdl] as a simpler alternative
+    to SDL.
 - [`atmos.env.iup`][atmos-iup]
     An environment that relies on [IUP][iup] ([iup-lua][iup-lua]) to provide
     graphical user interfaces (GUIs).
@@ -149,6 +149,7 @@ The standard distribution of Atmos provides the following environments:
 [luasdl]:       https://github.com/Tangent128/luasdl2/
 [iup]:          https://www.tecgraf.puc-rio.br/iup/
 [iup-lua]:      https://www.tecgraf.puc-rio.br/iup/en/basic/index.html
+[pico-sdl]:     https://github.com/fsantanna/pico-sdl/
 
 # Resources
 
