@@ -55,7 +55,7 @@
     - <a href="#loop">5.7.</a> Loop
         - `loop` `break` `until` `while`
     - <a href="#exceptions">5.8.</a> Exceptions
-        - `error` `catch`
+        - `throw` `catch`
     - <a href="#task-operations">5.9.</a> Task Operations
         - `spawn` `await` `emit` `toggle`
         - `every` `watching` `par` `par_and` `par_or`
@@ -127,6 +127,8 @@ In the rest of this section, we introduce key aspects of Atmos:
 
 [sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
 [events]:       https://en.wikipedia.org/wiki/Event-driven_programming
+[streams]:      https://en.wikipedia.org/wiki/Stream_(abstract_data_type)
+[rx]:           https://en.wikipedia.org/wiki/ReactiveX
 [sync]:         https://fsantanna.github.io/sc.html
 [ceu]:          http://www.ceu-lang.org/
 [esterel]:      https://en.wikipedia.org/wiki/Esterel
@@ -147,7 +149,7 @@ When a [block](#blocks) of code terminates or goes out of scope, all of its
 In addition, all of its [pinned tasks](#local-variables) are aborted and
 properly finalized by [deferred statements](#defer).
 
-Tasks in Atmos are built on top of [Lua coroutines](#lua-coroutines), which
+Tasks in Atmos are built on top of [Lua coroutines][lua-coroutines], which
 adhere to a predictable "run-to-completion" semantics:
 Unlike OS threads, tasks execute uninterruptedly up to explicit [await](#await)
 operations.
@@ -175,12 +177,12 @@ par_or {
 }
 ```
 
-The [par_or](parallel-blocks) is a structured mechanism that combines tasks
-in nested blocks and rejoins as a whole when one of them terminates,
-automatically aborting the others.
+The [par_or](#parallels) is a structured mechanism that combines tasks in
+nested blocks and rejoins as a whole when one of them terminates, automatically
+aborting the others.
 
-The [every](every-block) loop in the second task iterates exactly 9 times
-before the first task awakes and terminates the composition.
+The [every](#every) loop in the second task iterates exactly 9 times before the
+first task awakes and terminates the composition.
 For this reason, the second task is aborted before it has the opportunity to
 awake for the 10th time, but its `defer` statement still executes and outputs
 `"I counted 9"`.
@@ -762,7 +764,7 @@ print(p ?? :Pos)        ;; --> true
 
 ## 4.3. Function
 
-The `function` reference type represents [Lua functions](lua-function).
+The `function` reference type represents [Lua functions][lua-function].
 
 The basic constructor creates an anonymous function with a list of parameters
 and an execution block:
@@ -1397,7 +1399,7 @@ x                   ;; ERR: `x`,`+` not at same line
 -->
 
 Atmos supports and mimics the semantics of standard
-[Lua operators](lua-operators):
+[Lua operators][lua-operators]:
     (`==` `!=`),
     (`>` `<` `>=` `<=`),
     (`+` `-` `*` `/` `%`),
@@ -1420,7 +1422,7 @@ Examples:
 #(@{1,2,3})         ;; --> 3
 ```
 
-[lua-operations]: https://www.lua.org/manual/5.4/manual.html#3.4
+[lua-operators]: https://www.lua.org/manual/5.4/manual.html#3.4
 
 <a name="deep-equality"/>
 
@@ -1691,7 +1693,7 @@ The pipe operators `->` and `-->` pass the argument in the left  to the
 function in the right.
 
 Single pipe operators `<-` and `->` have higher
-[precedence](@precedence-and-associativity) than double pipe operators
+[precedence](#precedence-and-associativity) than double pipe operators
 `<--` and `-->`.
 
 If the receiving function is already a call, then the pipe operator inserts
@@ -2168,7 +2170,7 @@ spawn {
     print(:t2, 'started')   ;; t2, started
 }
 
-pin t = spawn {}            ;; ERR: cannot assign```
+pin t = spawn {}            ;; ERR: cannot assign
 ```
 
 <a name="await"/>
@@ -2189,8 +2191,8 @@ The first format accepts any of the following expressions:
 - `c: clock` | matches a [clock](#clock) event (`c` decreases until expires)
 - `t: task` | matches a terminating task `t`
 - `ts: tasks` | matches any terminating task in `ts`
-- `f: function` | `f` receives the occuring event, matches if `f` returns `true`
-- `v | matches if `e ?? v`, where `e` is the `emit` argument
+- `f: function` | `f` receives the occurring event, matches if `f` returns `true`
+- `v` | matches if `e ?? v`, where `e` is the `emit` argument
 - `...` | each of the arguments must match each of the `emit` arguments
 
 The `await` evaluates to the matching `emit` payloads.
