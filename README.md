@@ -96,7 +96,7 @@ The program body is a task in Atmos that behaves as follows:
 # Install & Run
 
 ```
-sudo luarocks install atmos-lang 0.5 --lua-version=5.4
+sudo luarocks --lua-version=5.4 install atmos-lang 0.5
 atmos <lua-path>/atmos/lang/exs/hello.lua
 ```
 
