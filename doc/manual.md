@@ -77,12 +77,12 @@ extending classical structured programming with three main functionalities:
       behavior and safe abortion.
     - Structured primitives compose concurrent tasks with lexical scope (e.g.,
       `watching`, `every`, `par_or`).
-    - A `tasks` container primitive holds attached tasks and control their
+    - A `tasks` container primitive holds attached tasks and controls their
       lifecycle.
     - A `pin` declaration attaches a task or tasks to its enclosing lexical
       scope.
 - Event Signaling Mechanisms:
-    - An `await` primitive suspends a task and wait for events.
+    - An `await` primitive suspends a task and waits for events.
     - An `emit` primitive signals events and awake awaiting tasks.
 - Functional Streams (à la [ReactiveX][rx]):
     - *(experimental)*
@@ -1092,7 +1092,7 @@ do {
 ### Test
 
 A `test` block behaves like a normal block, but is only included in the program
-when [executing](#executions) it with the flag `--test`:
+when [executing](#execution) it with the flag `--test`:
 
 ```
 Test : `test´ Block
@@ -1275,7 +1275,7 @@ Set : `set´ Expr* `=´ Expr
 The only valid locations are
     [mutable `var` variables](#declarations),
     [indexes](#indexing), and
-    [native expressions](#native-expressions).
+    [native expressions](#TODO).
 
 Examples:
 
@@ -1350,16 +1350,16 @@ The operators `===` and `=!=` ("deep equal" and "not deep equal") check if
 their operands have or not structural equality.
 Therefore, tables are not only compared by reference, but also by their stored
 values.
-The check if `a === b` is true, the following tests are made in order:
+To check if `a === b` is true, the following tests are made in order:
 
-1. if `a == b`, then `a === b` is `true` (e.g., `'x' === 'x')
-2. if `type(a) != type(b)`, then `a === b` is `false` (e.g, `10 === 'x'`)
+1. if `a == b`, then `a === b` is `true` (e.g., `'x' === 'x'`)
+2. if `type(a) != type(b)`, then `a === b` is `false` (e.g., `10 === 'x'`)
 3. if `a` and `b` are not tables, then `a === b` is `false` (e.g., functions `f === g`)
 4. if all key-value pairs `ka=va` in `a` are equal to all `kb=vb` in `b` (and vice-versa), then `a === b` is `true`
     - the keys are compared with `==`
-    - the values are compares with `===`
+    - the values are compared with `===`
 
-Note that the [Lua metatables](#lua-metatables) of the values being compared
+Note that the [Lua metatables][lua-metatables] of the values being compared
 must also be equal.
 
 The operator `=!=` is the negation of `===`.
@@ -1376,6 +1376,8 @@ Examples:
 \{} === \{}                 ;; --> false (func refs are not `==`)
 ```
 
+[lua-metatables]: https://www.lua.org/manual/5.4/manual.html#2.4
+
 ### Equivalence
 
 The operators `??` and `!?` ("is" and "is not") check the equivalence between
@@ -1383,8 +1385,8 @@ their operands.
 If any of the following conditions are met, then `a ?? b` is true:
 
 - `a === b` (e.g., `'x' ?? 'x'`)
-- `type(a) === b` (e.g, `10 ?? :number`)
-- `a.tag === b` (e.g, `:X @{} ?? :X`)
+- `type(a) === b` (e.g., `10 ?? :number`)
+- `a.tag === b` (e.g., `:X @{} ?? :X`)
 - `b` is "dot" prefix of `a` (e.g., `'x.y.z' ?? 'x.y'`)
 
 Note that the comparisons use [deep equality](#deep-equality).
@@ -1447,9 +1449,9 @@ Examples:
 <!-- exs/exp-11-concatenation.atm -->
 
 ```
-'abc' ++ 'def'          ;; abcdef
-@{1,2} ++ @{3,4}        ;; @{1,2,3,4}
-@{x=10} ++ @{x=1,y=2}   ;; @{x=1, y=2}
+'abc' ++ 'def'              ;; abcdef
+@{1,2} ++ @{3,4}            ;; @{1,2,3,4}
+@{x=10} ++ @{x=1,y=2}       ;; @{x=1, y=2}
 ```
 
 ```
@@ -1459,7 +1461,7 @@ pin ys = tasks()
 val x = spawn [xs] T()
 val y = spawn [ys] T()
 val ts = xs ++ ys           ;; @{x, y}
-print(#ts, x?>ts, y?>ts, 10?>ts)   ;; 2, true, false
+print(#ts, x?>ts, y?>ts)    ;; 2, true, false
 ```
 
 ### Membership
@@ -1522,7 +1524,7 @@ print(v[#v+1])      ;; --> nil
 
 ### Peek, Push, Pop
 
-The *ppp operators* (peek, push, pop) manipulate [vectors](#tables) as stacks:
+The *ppp operators* (peek, push, pop) manipulate [vectors](#table) as stacks:
 
 ```
 Expr : Expr `[´ (`=´|`+´|`-´) `]´
@@ -1557,8 +1559,8 @@ Expr : Expr `(´ Expr* `)´
                  ;; (STR | TAG | `@{´ | `\` | CLK | NAT)
 ```
 
-A call expects an expression of type [func](#prototype-values) and an
-optional list of expressions as arguments enclosed by parenthesis.
+A call expects an expression of type [func](#function) and an optional list of
+expressions as arguments enclosed by parenthesis.
 
 Like in [Lua calls](#lua-call), if there is a single
 [constructor](#types--values) argument, then the parenthesis are optional.
@@ -2026,7 +2028,7 @@ Spawn : `spawn` [`[´ Expr `]´] Expr `(´ Expr* `)`
       | `spawn` Block
 ```
 
-- The format `spawn [ts] T(...)` receives an optional [pool](#task-pool) to
+- The format `spawn [ts] T(...)` receives an optional [pool](#tasks) to
   hold the task, a task or function, and a list of arguments to pass to the
   body about to start.
   The operation returns a reference to spawned task.
@@ -2248,7 +2250,7 @@ watching @1 {
 
 ### Parallels
 
-A parallel statement spawns multiple [transparent tasks](#transparent-tasks):
+A parallel statement spawns multiple [transparent tasks](#transparent-task):
 
 ```
 Par : `par´     Block { `with´ Block }
