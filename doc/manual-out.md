@@ -85,7 +85,7 @@ extending classical structured programming with three main functionalities:
       scope.
 - Event Signaling Mechanisms:
     - An `await` primitive suspends a task and waits for events.
-    - An `emit` primitive signals events and awake awaiting tasks.
+    - An `emit` primitive signals events and awakes awaiting tasks.
 - Functional Streams (à la [ReactiveX][rx]):
     - *(experimental)*
     - Functional combinators for lazy (infinite) lists.
@@ -1283,7 +1283,7 @@ For local declarations, it is possible to assign anonymous
 -->
 
 There are three variations of declarations, which are based on
-[Lua functions](lua-functions):
+[Lua functions][lua-function]:
 
 - `func f (<pars>) { <body> }`:
     equivalent to `set f = func (<pars>) { <body> }`
