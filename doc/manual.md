@@ -581,6 +581,8 @@ false               ;; boolean literal
 `x:f {"lua"}`       ;; native literal
 ```
 
+`TODO: multi-line strings trim`
+
 [lua-lexical]: https://www.lua.org/manual/5.4/manual.html#3.1
 
 ## Comments

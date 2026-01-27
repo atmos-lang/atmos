@@ -26,6 +26,17 @@ do
     local out = atm_test(src)
     assertx(out, "abc\n")
 
+    local src = [[
+        val s = """
+            Hello
+            World
+        """
+        print(s)
+    ]]
+    print("Testing...", "multiline string")
+    local out = atm_test(src)
+    assertx(out, "Hello\nWorld\n")
+
     local src = "print(!false)"
     print("Testing...", src)
     local out = atm_test(src)

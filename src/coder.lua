@@ -58,6 +58,8 @@ function coder (e)
         else
             return L(e.tk) .. tosource(e)
         end
+    elseif e.tag == 'str' then
+        return L(e.tk) .. "trim(" .. string.format("%q", e.tk.str) .. ")"
     elseif e.tag == 'nat' then
         return L(e.tk) .. e.tk.str
     elseif e.tag == 'clk' then
