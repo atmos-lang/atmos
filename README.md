@@ -8,13 +8,14 @@
 ***Structured Event-Driven Concurrency***
 
 [
+    [`v0.5`](https://github.com/atmos-lang/atmos/tree/v0.5)      |
     [`v0.4`](https://github.com/atmos-lang/atmos/tree/v0.4)      |
     [`v0.3`](https://github.com/atmos-lang/atmos/tree/v0.3)      |
     [`v0.2`](https://github.com/atmos-lang/atmos/tree/v0.2_0.2.1)
 ]
 
 This is the unstable `main` branch.
-Please, switch to stable [`v0.4`](https://github.com/atmos-lang/atmos/tree/v0.4).
+Please, switch to stable [`v0.5`](https://github.com/atmos-lang/atmos/tree/v0.4).
 <!--
 -->
 
