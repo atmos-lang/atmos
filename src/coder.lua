@@ -4,7 +4,10 @@ local function L (tk)
     local ls = ''
     if tk and tk.lin then
         if tk.lin < _l_ then
-            return ls           -- TODO: workaround for where (tasks.lua,every-where)
+            return ls
+                -- TODO: workaround
+                    -- where (tasks.lua, "every-where")
+                    -- (exec.lua, "func 2c")
         end
         assert(tk.lin >= _l_)
         while tk.lin > _l_ do

@@ -815,7 +815,7 @@ do
         }
         print(f(10)(20))
     ]]
-    print("Testing...", "func 2")
+    print("Testing...", "func 2c")
     local out = atm_test(src)
     assert(out == "30\n")
 
