@@ -998,45 +998,45 @@ print "--- OPERATOR AS FUNCTION ---"
 
 do
     -- binary: \+
-    local src = "print(\\+(10, 20))"
+    local src = "print((\\+)(10, 20))"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "30\n")
 
     -- binary: \*
-    local src = "print(\\*(3, 7))"
+    local src = "print((\\*)(3, 7))"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "21\n")
 
     -- binary: \-
-    local src = "print(\\-(10, 3))"
+    local src = "print((\\-)(10, 3))"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "7\n")
 
     -- binary: \===
     local src = [[
-        print(\===(@{1,2}, @{1,2}))
+        print((\===)(@{1,2}, @{1,2}))
     ]]
     print("Testing...", "\\===")
     local out = atm_test(src)
     assertx(out, "true\n")
 
     -- binary: \++
-    local src = [[ print(\++('a', 'b')) ]]
+    local src = [[ print((\++)('a', 'b')) ]]
     print("Testing...", "\\++")
     local out = atm_test(src)
     assertx(out, "ab\n")
 
     -- unary: \!
-    local src = "print(\\!(true))"
+    local src = "print((\\!)(true))"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "false\n")
 
     -- unary: \#
-    local src = "print(\\#(@{1,2,3}))"
+    local src = "print((\\#)(@{1,2,3}))"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "3\n")
