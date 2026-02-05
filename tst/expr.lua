@@ -479,6 +479,35 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(tosource(e), "((x === y) && (x =!= y))")
+
+    local src = "2 ** 3"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "(2 ** 3)")
+
+    local src = "2 ** 3 + 1"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assert(not ok and msg ==
+        "anon : line 1 : near '+' : " ..
+        "operation error : " ..
+        "use parentheses to disambiguate")
+
+    local src = "2 ** 3 ** 2"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "((2 ** 3) ** 2)")
 end
 
 print '--- IF / IFS ---'

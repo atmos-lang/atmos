@@ -42,6 +42,24 @@ do
     local out = atm_test(src)
     assertx(out, "true\n")
 
+    -- **
+    do
+        local src = "print(2 ** 3)"
+        print("Testing...", src)
+        local out = atm_test(src)
+        assertx(out, "8\n")
+
+        local src = "print(9 ** (1/2))"
+        print("Testing...", src)
+        local out = atm_test(src)
+        assertx(out, "3.0\n")
+
+        local src = "print((2 ** 3) ** 2)"
+        print("Testing...", src)
+        local out = atm_test(src)
+        assertx(out, "64\n")
+    end
+
     -- === / =!=
     do
         local src = "print(0xA === 10)"
