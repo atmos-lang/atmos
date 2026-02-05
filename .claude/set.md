@@ -9,11 +9,11 @@ allowing operators to be passed as arguments to higher-order functions.
 ## Examples
 
 ```
-f(\+, 10, 20)       ;; equivalent to f(func (a, b) { a + b }, 10, 20)
+f(\+, 10, 20)        ;; pass operator as argument
 val add = \+         ;; add(3, 5) ==> 8
-\*(2, 3)             ;; ==> 6
-\!(true)             ;; ==> false
-\#(@{1,2,3})         ;; ==> 3
+(\*)(2, 3)           ;; ==> 6 (parens required for direct call)
+(\!)(true)           ;; ==> false
+(\#)(@{1,2,3})       ;; ==> 3
 ```
 
 ## Semantics
@@ -24,6 +24,9 @@ val add = \+         ;; add(3, 5) ==> 8
   `func (a) { op a }`
 - When an operator is both unary and binary (e.g., `-`),
   binary takes precedence.
+- Like all lambdas in Atmos, `\op` must be wrapped in parentheses
+  for direct call: `(\+)(1, 2)`. Passing as argument works without
+  parens: `f(\+, 1, 2)`.
 
 ## Supported Operators
 
@@ -64,7 +67,7 @@ produce the correct AST (using `tosource`).
 ### File: `tst/exec.lua`
 
 **Change:** Add execution tests verifying that operator functions work
-correctly at runtime (e.g., `\+(10, 20)` prints `30`).
+correctly at runtime (e.g., `(\+)(10, 20)` prints `30`).
 
 ## Status
 
