@@ -69,6 +69,6 @@ correctly at runtime (e.g., `\+(10, 20)` prints `30`).
 ## Status
 
 - [x] Plan created
-- [ ] Implement parser change in `src/parser.lua`
-- [ ] Add parser tests in `tst/expr.lua`
-- [ ] Add execution tests in `tst/exec.lua`
+- [x] Implement parser change in `src/parser.lua`
+- [x] Add parser tests in `tst/expr.lua`
+- [x] Add execution tests in `tst/exec.lua`

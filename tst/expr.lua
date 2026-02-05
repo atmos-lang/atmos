@@ -802,6 +802,68 @@ do
             (x, ...)
         }
     ]])
+
+    -- operator as function: binary
+    local src = "\\+"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(trim(tosource(e)), trim [[
+        func (a, b) {
+            (a + b)
+        }
+    ]])
+
+    local src = "\\==="
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(trim(tosource(e)), trim [[
+        func (a, b) {
+            (a === b)
+        }
+    ]])
+
+    local src = "\\++"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(trim(tosource(e)), trim [[
+        func (a, b) {
+            (a ++ b)
+        }
+    ]])
+
+    -- operator as function: unary
+    local src = "\\#"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(trim(tosource(e)), trim [[
+        func (a) {
+            (#a)
+        }
+    ]])
+
+    local src = "\\!"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(trim(tosource(e)), trim [[
+        func (a) {
+            (!a)
+        }
+    ]])
 end
 
 print '--- CALL / METHOD / PIPE ---'

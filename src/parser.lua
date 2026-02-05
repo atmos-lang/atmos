@@ -120,6 +120,59 @@ end
 
 function parser_lambda ()
     accept_err('\\')
+
+    -- operator as function: \+ \- \* etc.
+    if check(nil, 'op') then
+        local op = accept_err(nil, 'op')
+        if contains(OPS.bins, op.str) then
+            local a = { tag='id', str='a' }
+            local b = { tag='id', str='b' }
+            return {
+                tag  = 'func',
+                dots = false,
+                pars = { a, b },
+                blk  = {
+                    tag = 'block',
+                    es  = {
+                        {
+                            tag = 'bin',
+                            op  = op,
+                            e1  = {
+                                tag='acc', tk=a
+                            },
+                            e2  = {
+                                tag='acc', tk=b
+                            },
+                        }
+                    }
+                }
+            }
+        elseif contains(OPS.unos, op.str) then
+            local a = { tag='id', str='a' }
+            return {
+                tag  = 'func',
+                dots = false,
+                pars = { a },
+                blk  = {
+                    tag = 'block',
+                    es  = {
+                        {
+                            tag = 'uno',
+                            op  = op,
+                            e   = {
+                                tag='acc', tk=a
+                            },
+                        }
+                    }
+                }
+            }
+        else
+            err(op,
+                "operator cannot be used"
+                .. " as function")
+        end
+    end
+
     local dots = false
     local pars = {
         { tag='id', str="it" },
