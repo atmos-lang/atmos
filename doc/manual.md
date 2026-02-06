@@ -14,7 +14,7 @@
     * Operators
         - `==` `!=` `===` `=!=` `??` `!?`
         - `>` `<` `>=` `<=`
-        - `+` `-` `*` `/` `%`
+        - `+` `-` `*` `/` `%` `**`
         - `!` `||` `&&`
         - `#` `++` `?>` `!>`
     * Identifiers
@@ -353,8 +353,8 @@ worth mentioning:
         - The reason is to avoid ambiguity with blocks:
             - `if f { ... }` is `if f{...} ...` or `if (f) { ... }`?
 - Operators:
-    - Lua: `~=` `and` `or` `not` `..`
-    - Atmos: `!=`, `&&`, `||`, `!`, `++`
+    - Lua: `~=`, `and`, `or`, `not`, `..`, `^`
+    - Atmos: `!=`, `&&`, `||`, `!`, `++`, `**`
         - The reason is to avoid identifiers as operators and to use familiar
           and consistent alternatives.
 
@@ -491,7 +491,7 @@ The following operators are supported in Atmos:
 ```
     ==   !=   ===  =!=  ??   !?     ;; comparison
     >    <    >=   <=               ;; relational
-    +    -    *    /    %           ;; arithmetic
+    +    -    *    /    %    **     ;; arithmetic
     !    ||   &&                    ;; logical
     #                               ;; length
     ++                              ;; concatenation
@@ -1300,7 +1300,7 @@ Atmos provides the [operators](#operators) as follows:
 
 - comparison: `==` `!=` `===` `=!=` `??` `!?`
 - relational: `>` `<` `>=` `<=`
-- arithmetic: `+` `-` `*` `/` `%`
+- arithmetic: `+` `-` `*` `/` `%` `**`
 - logical: `!` `||` `&&`
 - length: `#`
 - concatenation: `++`
@@ -1324,7 +1324,7 @@ Atmos supports and mimics the semantics of standard
 [Lua operators][lua-operators]:
     (`==` `!=`),
     (`>` `<` `>=` `<=`),
-    (`+` `-` `*` `/` `%`),
+    (`+` `-` `*` `/` `%` `**`),
     (`!` `||` `&&`),
     (`#`), and
     (`++`).

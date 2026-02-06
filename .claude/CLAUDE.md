@@ -69,3 +69,8 @@ Atmos Source → [lexer] → [parser] → [coder] → Lua Source → [lua-atmos 
 - 80-column lines
 - Comments before blocks, not inline
 - Function prefixes: `parser_*`, `coder_*`, `lexer_*`, `atm_*`, `tosource_*`
+
+# Manual
+
+- changes to `doc/manual.md`
+    - (never to `doc/manual-out.md`, which is auto generated)
