@@ -47,7 +47,7 @@ do
         local src = "print(2 ** 3)"
         print("Testing...", src)
         local out = atm_test(src)
-        assertx(out, "8\n")
+        assertx(out, "8.0\n")
 
         local src = "print(9 ** (1/2))"
         print("Testing...", src)
@@ -57,7 +57,7 @@ do
         local src = "print((2 ** 3) ** 2)"
         print("Testing...", src)
         local out = atm_test(src)
-        assertx(out, "64\n")
+        assertx(out, "64.0\n")
     end
 
     -- === / =!=

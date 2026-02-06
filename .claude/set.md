@@ -8,7 +8,7 @@ Add the `**` binary operator for exponentiation to the Atmos language.
 The operator maps directly to Lua's `^` operator.
 
 Examples from the issue:
-- `2 ** 3` evaluates to `8`
+- `2 ** 3` evaluates to `8.0` (Lua's `^` always returns float)
 - `9 ** (1/2)` evaluates to `3.0`
 
 ## Design Decisions
@@ -40,9 +40,9 @@ Examples from the issue:
   (left-associative)
 
 ### 3. `tst/exec.lua` — End-to-end execution tests
-- [x] Add test: `2 ** 3` outputs `8`
+- [x] Add test: `2 ** 3` outputs `8.0`
 - [x] Add test: `9 ** (1/2)` outputs `3.0`
-- [x] Add test: `(2 ** 3) ** 2` outputs `64`
+- [x] Add test: `(2 ** 3) ** 2` outputs `64.0`
 
 ### 4. `doc/manual-out.md` — Documentation
 - [x] Add `**` to the operator table of contents (line 17)
