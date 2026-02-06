@@ -120,19 +120,72 @@ end
 
 function parser_lambda ()
     accept_err('\\')
-    local dots = false
-    local pars = {
-        { tag='id', str="it" },
-    }
-    if accept('(') then
-        dots, pars = parser_dots_pars()
-        accept_err(')')
-    elseif accept(nil,'id') then
-        pars = { TK0 }
+
+    -- normal lambda: \(){}
+    if not check(nil, 'op') then
+        local dots = false
+        local pars = {
+            { tag='id', str="it" },
+        }
+        if accept('(') then
+            dots, pars = parser_dots_pars()
+            accept_err(')')
+        elseif accept(nil,'id') then
+            pars = { TK0 }
+        end
+        check_err('{')
+        local blk = parser_block()
+        return { tag='func', dots=dots, pars=pars, blk=blk }
+
+    -- lambda operator: \- \++
+    else
+        local op = accept_err(nil, 'op')
+        if contains(OPS.bins, op.str) then
+            local a = { tag='id', str='a' }
+            local b = { tag='id', str='b' }
+            return {
+                tag  = 'func',
+                dots = false,
+                pars = { a, b },
+                blk  = {
+                    tag = 'block',
+                    es  = {
+                        {
+                            tag = 'bin',
+                            op  = op,
+                            e1  = {
+                                tag='acc', tk=a
+                            },
+                            e2  = {
+                                tag='acc', tk=b
+                            },
+                        }
+                    }
+                }
+            }
+        elseif contains(OPS.unos, op.str) then
+            local a = { tag='id', str='a' }
+            return {
+                tag  = 'func',
+                dots = false,
+                pars = { a },
+                blk  = {
+                    tag = 'block',
+                    es  = {
+                        {
+                            tag = 'uno',
+                            op  = op,
+                            e   = {
+                                tag='acc', tk=a
+                            },
+                        }
+                    }
+                }
+            }
+        else
+            err(op, "lambda error : invalid operator")
+        end
     end
-    check_err('{')
-    local blk = parser_block()
-    return { tag='func', dots=dots, pars=pars, blk=blk }
 end
 
 function parser_block ()

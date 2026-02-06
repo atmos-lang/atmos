@@ -353,8 +353,8 @@ worth mentioning:
         - The reason is to avoid ambiguity with blocks:
             - `if f { ... }` is `if f{...} ...` or `if (f) { ... }`?
 - Operators:
-    - Lua: `~=`, `and`, `or`, `not`, `..`, `^`
-    - Atmos: `!=`, `&&`, `||`, `!`, `++`, `**`
+    - Lua: `~=` `and` `or` `not` `..` `^`
+    - Atmos: `!=` `&&` `||` `!` `++` `**`
         - The reason is to avoid identifiers as operators and to use familiar
           and consistent alternatives.
 
