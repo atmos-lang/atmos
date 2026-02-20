@@ -1722,7 +1722,7 @@ do
                 defer {
                     print(:defer)
                 }
-                nil
+                ;;nil
             }
         ) ()
     ]]

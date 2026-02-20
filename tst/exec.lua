@@ -401,7 +401,7 @@ do
         do {
             defer { print(3) }
             defer { print(4) }
-            nil ;; TODO
+            ;;nil
         }
         defer { print(5) }
         print(6)
@@ -409,7 +409,7 @@ do
     print("Testing...", "defer 3")
     local out = atm_test(src)
     assertx(out, "1\n4\n3\n6\n5\n2\n")
-    warn(false, "TODO: defer as last stmt")
+    --warn(false, "TODO: defer as last stmt")
 
     local src = [[
         do {
@@ -1123,7 +1123,7 @@ do
     local src = "print(ifs { false=>0 ; true=>nil ; else=>99 })"
     print("Testing...", src)
     local out = atm_test(src)
-    assertx(out, "nil\n") -- TODO: true=>nil
+    assertx(out, "nil\n")
 
     local src = [[
         ifs {
@@ -1607,7 +1607,7 @@ do
 
     local src = [[
         throw :Z
-        nil
+        ;;nil
     ]]
     print("Testing...", "catch XX")
     local out = atm_test(src)
@@ -2497,7 +2497,7 @@ do
             set pub = v
             toggle :Show {
                 print(pub)
-                every :Draw {
+                every _,evt in :Draw {
                     print(evt)
                 }
             }
@@ -2513,8 +2513,7 @@ do
     ]]
     print("Testing...", "toggle 8")
     local out = atm_test(src)
-    --assertx(out, "0\n1\n2\n")
-    warn(false, "TODO: every payload")
+    assertx(out, "0\n1\n2\n")
 
     local src = [[
         spawn {
@@ -2754,6 +2753,7 @@ do
     ]]
     print("Testing...", "error 2")
     local out = atm_test(src)
+    --assertx(out, "TODO\n")
     warn(false, "TODO: check spawn up")
 end
 
