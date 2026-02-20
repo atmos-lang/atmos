@@ -28,13 +28,17 @@ lua-atmos runtime.
 - [x] Removed debug `print('xxx', cur)` from installed aux.lua
 - [x] All tests passing
 
-## Edits
+- [x] Replaced `is_stmt` function-name list with `_no_tco_`
+      `<close>` trick in `coder_stmts` — broader TCO protection
+- [x] Removed trailing `nil` workarounds in tests
+- [x] Committed (4 commits: call→loop, escape is_stmt,
+      plan, _no_tco_ trick)
+
+## Edits (final)
 - `src/exec.lua:24` — `atmos.call` → `atmos.loop`
-- `src/coder.lua:25` — added `escape` to `is_stmt`
-- `tst/exec.lua:1554` — added "catch 8b : err : escape" test
+- `src/coder.lua:21-35` — `is_stmt` simplified + `_no_tco_`
+- `tst/exec.lua` — catch 8b test, nil→;;nil, TODO cleanups
+- `tst/tasks.lua` — nil→;;nil
 
 ## Pending
-- [ ] Remove old escape TCO test at end of `tst/exec.lua`
-      (superseded by "catch 8b")
-- [ ] Discuss `_no_tco_ <close>` as alternative to `is_stmt`
-- [ ] Commit and push when ready
+- [ ] Push and PR when ready
