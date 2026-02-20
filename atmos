@@ -29,4 +29,4 @@ cmd = cmd:parse()
 
 atmos.test = cmd.test
 
-atmos.call(assert(atm_loadfile(cmd.input)), table.unpack(cmd.args))
+atmos.loop(assert(atm_loadfile(cmd.input)), table.unpack(cmd.args))
