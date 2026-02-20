@@ -21,7 +21,7 @@ function atm_test (src, tst)
     atmos = require "atmos"
     X = require "atmos.x"
     require "atmos.lang.run"
-    local ok, err = pcall(atmos.call,f)
+    local ok, err = pcall(atmos.loop,f)
     print = PRINT
     if ok then
         return out
