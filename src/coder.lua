@@ -18,14 +18,8 @@ local function L (tk)
     return ls
 end
 
-local function is_stmt (e)
-    return e.tag=='dcl' or e.tag=='set' or e.tag=='defer' or (
-        e.tag=='call' and e.f.tag=='acc' and (
-            -- prevents tail call b/c of error messasges
-            e.f.tk.str=='throw' or e.f.tk.str=='spawn_in' or
-            e.f.tk.str=='emit' or e.f.tk.str=='emit_in'
-        )
-    )
+local function is_stmt (e)  -- cannot generate lua expressions (local, '=')
+    return e.tag=='dcl' or e.tag=='set' or e.tag=='defer'
 end
 
 function coder_stmts (es, noret)
@@ -33,7 +27,9 @@ function coder_stmts (es, noret)
         if noret or i<#es or is_stmt(e) then
             return "; " .. coder(e)
         else
-            return "; return " .. coder(e)
+            -- TCO breaks atmos stack trace
+            return "; local _no_tco_ <close> = nil" -- prevents TCO
+                .. "; return " .. coder(e)
         end
     end
     return join('', map(es,f))

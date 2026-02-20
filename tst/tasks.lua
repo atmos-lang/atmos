@@ -167,7 +167,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw)
         ==> invalid spawn : expected task prototype
     ]])
@@ -410,7 +410,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:3 (throw)
         ==> invalid assignment : expected pinned value
     ]])
@@ -1366,7 +1366,7 @@ do
     --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
     assertx(trim(out), trim [[
         ==> ERROR:
-        |  [C]:-1 (call)
+        |  [C]:-1 (loop)
         v  [string "anon.atm"]:2 (throw)
         ==> invalid assignment : expected pinned value
     ]])
@@ -1379,7 +1379,7 @@ do
     --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
     assertx(trim(out), trim [[
         ==> ERROR:
-        |  [C]:-1 (call)
+        |  [C]:-1 (loop)
         v  [string "anon.atm"]:1 (throw)
         ==> invalid assignment : expected pinned value
     ]])
@@ -1392,7 +1392,7 @@ do
     --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
     assertx(trim(out), trim [[
         ==> ERROR:
-        |  [C]:-1 (call)
+        |  [C]:-1 (loop)
         v  [string "anon.atm"]:1 (throw)
         ==> invalid assignment : expected pinned value
     ]])
@@ -1406,7 +1406,7 @@ do
     --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:2 (throw)
         ==> invalid assignment : expected unpinned value
     ]])
@@ -1722,7 +1722,7 @@ do
                 defer {
                     print(:defer)
                 }
-                nil
+                ;;nil
             }
         ) ()
     ]]
@@ -3159,7 +3159,7 @@ do
     --assertx(out, "anon.atm : line 1 : invalid tasks limit : expected number")
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw)
         ==> invalid tasks limit : expected number
     ]])

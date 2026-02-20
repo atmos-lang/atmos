@@ -229,7 +229,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:5 (throw)
         ==> attempt to perform arithmetic on a nil value (global 'b')
     ]])
@@ -401,7 +401,7 @@ do
         do {
             defer { print(3) }
             defer { print(4) }
-            nil ;; TODO
+            ;;nil
         }
         defer { print(5) }
         print(6)
@@ -409,7 +409,7 @@ do
     print("Testing...", "defer 3")
     local out = atm_test(src)
     assertx(out, "1\n4\n3\n6\n5\n2\n")
-    warn(false, "TODO: defer as last stmt")
+    --warn(false, "TODO: defer as last stmt")
 
     local src = [[
         do {
@@ -425,7 +425,7 @@ do
     assertx(trim(out), trim [[
         10
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:5 (throw) <- [C]:-1 (task)
         ==> X
     ]])
@@ -449,7 +449,7 @@ do
     local out = atm_test(src)
     assertfx(trim(out), trim [[
         ==> ERROR:
-         |  %[C%]:%-1 %(call%)
+         |  %[C%]:%-1 %(loop%)
          v  .*/atmos/run.lua:49 %(throw%)
         ==> %[string "anon.atm"%]:3: ok
     ]])
@@ -547,7 +547,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw)
         ==> attempt to index a number value
     ]])
@@ -559,7 +559,7 @@ do
 --[=[
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw)
         ==> invalid index : expected number
     ]])
@@ -681,7 +681,7 @@ do
 --[=[
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:2 (throw)
         ==> invalid pop : out of bounds
     ]])
@@ -728,7 +728,7 @@ do
 --[=[
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:6 (throw)
         ==> invalid index : out of bounds
     ]])
@@ -745,7 +745,7 @@ do
 --[=[
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:2 (throw)
         ==> invalid push : out of bounds
     ]])
@@ -1005,7 +1005,7 @@ do
     assertx(trim(out), trim [[
         ok
         ==> ERROR:
-        |  [C]:-1 (call)
+        |  [C]:-1 (loop)
         v  [string "anon.atm"]:7 (throw)
         ==> attempt to call a nil value (global 'x')
     ]])
@@ -1123,7 +1123,7 @@ do
     local src = "print(ifs { false=>0 ; true=>nil ; else=>99 })"
     print("Testing...", src)
     local out = atm_test(src)
-    assertx(out, "nil\n") -- TODO: true=>nil
+    assertx(out, "nil\n")
 
     local src = [[
         ifs {
@@ -1547,9 +1547,23 @@ do
     --assertx(out, "anon.atm : line 2 : no visible label 'Y' for <goto>\n")
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:2 (throw) <- [C]:-1 (task)
         ==> Y
+    ]])
+
+    local src = [[
+        do :X {
+            escape(:Y)
+        }
+    ]]
+    print("Testing...", "catch 8b : err : escape")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (loop)
+         v  [string "anon.atm"]:2 (throw) <- [C]:-1 (task)
+        ==> atm-do, Y
     ]])
 
     local src = [[
@@ -1574,7 +1588,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:5 (throw)
         ==> attempt to perform arithmetic on a nil value (global 'b')
     ]])
@@ -1593,13 +1607,13 @@ do
 
     local src = [[
         throw :Z
-        nil
+        ;;nil
     ]]
     print("Testing...", "catch XX")
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw) <- [C]:-1 (task)
         ==> Z
     ]])
@@ -1618,7 +1632,7 @@ do
     --assertx(out, "uncaught throw : {10, tag=Z}")
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:3 (throw) <- [C]:-1 (task)
         ==> Z
     ]])
@@ -1637,7 +1651,7 @@ do
     --assertx(out, "uncaught throw : {10, tag=Y}")
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:3 (throw) <- [C]:-1 (task)
         ==> Y
     ]])
@@ -1703,7 +1717,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw)
         ==> invalid emit : invalid target
     ]])
@@ -1801,7 +1815,7 @@ do
     --assertx(out, "end\n")
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:7 (throw)
         ==> variable 'a' got a non-closable value
     ]])
@@ -1836,7 +1850,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw)
         ==> invalid emit : invalid target
     ]])
@@ -1994,7 +2008,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:3 (throw) <- [string "anon.atm"]:2 (task) <- [C]:-1 (task)
         ==> x
     ]])
@@ -2306,7 +2320,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:3 (throw)
         ==> attempt to perform arithmetic on a nil value (global 'x')
     ]])
@@ -2364,7 +2378,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw)
         ==> invalid toggle : expected task
     ]])
@@ -2377,7 +2391,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:2 (throw)
         ==> invalid toggle : expected bool argument
     ]])
@@ -2483,7 +2497,7 @@ do
             set pub = v
             toggle :Show {
                 print(pub)
-                every :Draw {
+                every _,evt in :Draw {
                     print(evt)
                 }
             }
@@ -2499,8 +2513,7 @@ do
     ]]
     print("Testing...", "toggle 8")
     local out = atm_test(src)
-    --assertx(out, "0\n1\n2\n")
-    warn(false, "TODO: every payload")
+    assertx(out, "0\n1\n2\n")
 
     local src = [[
         spawn {
@@ -2583,7 +2596,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw)
         ==> attempt to call a number value
     ]])
@@ -2706,7 +2719,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:3 (throw)
         ==> attempt to perform arithmetic on a nil value
     ]])
@@ -2716,7 +2729,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw)
         ==> hello
     ]])
@@ -2730,7 +2743,7 @@ do
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:2 (throw)
         ==> attempt to index a nil value (global 't')
     ]])
@@ -2740,6 +2753,7 @@ do
     ]]
     print("Testing...", "error 2")
     local out = atm_test(src)
+    --assertx(out, "TODO\n")
     warn(false, "TODO: check spawn up")
 end
 
@@ -2765,8 +2779,35 @@ do
     assertx(trim(out), trim [[
         Y
         ==> ERROR:
-         |  [C]:-1 (call)
+         |  [C]:-1 (loop)
          v  [string "anon.atm"]:2 (throw)
         ==> attempt to perform arithmetic on a boolean value
     ]])
+end
+
+print "--- ESCAPE TCO ---"
+
+do
+    local src = [[
+        spawn {
+            par_or {
+                await (false)
+            } with {
+                do :X {
+                    par_or {
+                        await (false)
+                    } with {
+                        await :A
+                        escape :X
+                    }
+                }
+                print :1
+            }
+            print :2
+        }
+        emit :A
+    ]]
+    print("Testing...", "escape TCO")
+    local out = atm_test(src)
+    assertx(out, "1\n2\n")
 end
