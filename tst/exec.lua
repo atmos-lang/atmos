@@ -1553,6 +1553,20 @@ do
     ]])
 
     local src = [[
+        do :X {
+            escape(:Y)
+        }
+    ]]
+    print("Testing...", "catch 8b : err : escape")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (loop)
+         v  [string "anon.atm"]:2 (throw) <- [C]:-1 (task)
+        ==> atm-do, Y
+    ]])
+
+    local src = [[
         val a = 1
         catch :X {
             val b = 2
@@ -2769,4 +2783,31 @@ do
          v  [string "anon.atm"]:2 (throw)
         ==> attempt to perform arithmetic on a boolean value
     ]])
+end
+
+print "--- ESCAPE TCO ---"
+
+do
+    local src = [[
+        spawn {
+            par_or {
+                await (false)
+            } with {
+                do :X {
+                    par_or {
+                        await (false)
+                    } with {
+                        await :A
+                        escape :X
+                    }
+                }
+                print :1
+            }
+            print :2
+        }
+        emit :A
+    ]]
+    print("Testing...", "escape TCO")
+    local out = atm_test(src)
+    assertx(out, "1\n2\n")
 end

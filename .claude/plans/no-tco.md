@@ -16,24 +16,25 @@ lua-atmos runtime.
       from breaking the `for` loop on first iteration
 - [x] Fixed `atmos.call` → `atmos.loop` in `src/exec.lua:24`
       (`atmos.call` was removed from lua-atmos runtime)
-- [x] Investigated `par_or 6` failure (`dbg` nil in
-      `run.lua:211`) — initially theorized escape TCO bug,
-      but theory was **disproved** by tests (`escape` always
-      throws, so `return` before it is innocuous). Issue was
-      resolved upstream in lua-atmos.
-- [x] Added escape test to `tst/exec.lua` (passes — confirms
-      escape works correctly with current runtime)
+- [x] Investigated `par_or 6` failure — resolved upstream
+- [x] Confirmed escape TCO bug: without `escape` in `is_stmt`,
+      `return escape(...)` tail-call erases frame →
+      `debug.getinfo(2)` returns `[C]:-1` instead of source line
+- [x] Added `escape` to `is_stmt` in `src/coder.lua:25`
+- [x] Added "catch 8b : err : escape" test in `tst/exec.lua`
+      (after "catch 8") — verifies escape error shows correct
+      source location
+- [x] Fixed broken symlink `lua/atmos` → `.atmos/main/`
+- [x] Removed debug `print('xxx', cur)` from installed aux.lua
 - [x] All tests passing
 
 ## Edits
 - `src/exec.lua:24` — `atmos.call` → `atmos.loop`
-- `tst/exec.lua` — added escape test at end of file
+- `src/coder.lua:25` — added `escape` to `is_stmt`
+- `tst/exec.lua:1554` — added "catch 8b : err : escape" test
 
 ## Pending
-- [ ] Decide: keep or remove the escape test in `tst/exec.lua`
-      (it passes but was created to investigate a wrong theory)
-- [ ] Fix broken symlink `lua/atmos` → `.atmos/fixes/`
-      (only `.atmos/main/` exists)
-- [ ] Remove debug `print('xxx', cur)` from
-      `lua/atmos/atmos/lang/aux.lua:16` (installed version)
+- [ ] Remove old escape TCO test at end of `tst/exec.lua`
+      (superseded by "catch 8b")
+- [ ] Discuss `_no_tco_ <close>` as alternative to `is_stmt`
 - [ ] Commit and push when ready
