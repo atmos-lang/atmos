@@ -3,7 +3,6 @@ Assumes this directory structure:
 ```
 atmos-lang/
 └── atmos/
-    ├── lua@        <-- should link to lua-atmos/
     ├── src/        <-- should be linked from lua-atmos/atmos/atmos/lang
     └── tst/        <-- we are here
 lua-atmos/
@@ -17,5 +16,5 @@ lua-atmos/
 ```
 
 ```bash
-LUA_PATH="../lua/f-streams/?/init.lua;../lua/atmos/?.lua;../lua/atmos/?/init.lua;;" lua5.4 all.lua
+LUA_PATH="../../../lua-atmos/f-streams/?/init.lua;../../../lua-atmos/atmos/?.lua;../../../lua-atmos/atmos/?/init.lua;;" lua5.4 all.lua
 ```
