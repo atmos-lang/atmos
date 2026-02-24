@@ -24,6 +24,8 @@ jobs:
     - name: Install Lua
       run: |
         sudo apt-get update
-        sudo apt-get install -y lua5.4
+        sudo apt-get install -y lua5.4 liblua5.4-dev luarocks
+    - name: Install LuaLanes
+      run: sudo luarocks --lua-version=5.4 install lanes
     - name: Run tests
       run: cd tst && LUA_PATH="../f-streams/?/init.lua;../lua-atmos/?.lua;../lua-atmos/?/init.lua;;" lua5.4 all.lua
