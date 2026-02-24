@@ -59,6 +59,8 @@
     * Task Operations
         - `spawn` `await` `emit` `toggle`
         - `every` `watching` `par` `par_and` `par_or`
+    * Asynchronous Execution
+        - `async` `thread`
 * STANDARD LIBRARIES
     * Lua Standard Libraries
     * Atmos Standard Libraries
@@ -2310,6 +2312,56 @@ val x,y = par_and {
 print(x, y)     ;; --> X, Y
 ```
 
+## Asynchronous Execution
+
+### Async
+
+`TODO: not implemented`
+
+### Thread
+
+`TODO: review: no lanes, lower the tone`
+
+A `thread` offloads a block to a real OS thread, allowing
+CPU-intensive work to run in parallel with the atmos scheduler:
+
+```
+Thread : `thread` Block
+```
+
+The block is wrapped in a plain Lua function and dispatched via
+LuaLanes.
+The calling task suspends until the thread completes, and the
+thread's return value becomes the value of the `thread`
+expression.
+
+Upvalues from the enclosing scope are captured by the thread
+body, but only serializable values (numbers, strings, booleans,
+tables of serializable values) can cross the thread boundary.
+Functions, userdata, and coroutines cannot be shared.
+
+Examples:
+
+```
+val result = thread {
+    ;; heavy computation in a real OS thread
+    val sum = 0
+    loop i in 1000000 {
+        set sum = sum + i
+    }
+    sum
+}
+print(result)
+```
+
+```
+var data = @{1, 2, 3}
+thread {
+    ;; process data in background
+    print(#data)
+}
+```
+
 # STANDARD LIBRARIES
 
 In addition to the [standard Lua libraries](lua-libraries), Atmos also provides
@@ -2443,6 +2495,8 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `par´     Block { `with´ Block }            ;; parallels
       | `par_and´ Block { `with´ Block }
       | `par_or´  Block { `with´ Block }
+
+      | `thread´ Block                              ;; OS thread
 
 ID    : [A-Za-z_][A-Za-z0-9_]*      ;; variable identifier
 TAG   : :[A-Za-z0-9_\.]+            ;; tag

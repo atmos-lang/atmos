@@ -699,6 +699,20 @@ function parser_1_prim ()
         else
             error "bug found"
         end
+
+    elseif accept('thread') then
+        local blk = parser_block()
+        return {
+            tag = 'call',
+            f = {
+                tag = 'acc',
+                tk  = { tag='id', str='thread', lin=TK0.lin },
+            },
+            es = {
+                { tag='func', lua=true, pars={}, blk=blk },
+            },
+        }
+
     else
         err(TK1, "expected expression")
     end
