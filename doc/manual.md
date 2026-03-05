@@ -1566,7 +1566,7 @@ Expr : Expr `(´ Expr* `)´
 A call expects an expression of type [func](#function) and an optional list of
 expressions as arguments enclosed by parenthesis.
 
-Like in [Lua calls](#lua-call), if there is a single
+Like in [Lua calls][lua-call], if there is a single
 [constructor](#types--values) argument, then the parenthesis are optional.
 This is valid for strings, tags, tables, lambdas, clocks, and native literals.
 
