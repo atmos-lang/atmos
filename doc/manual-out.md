@@ -573,7 +573,7 @@ NAT  : `.*`                 ;; native expression
 ```
 
 The literals for `nil`, `boolean` and `number` follow the same
-[lexical conventions of Lua](lua-lexical).
+[lexical conventions of Lua][lua-lexical].
 
 The literal `nil` is the single value of the `nil` type.
 
@@ -647,7 +647,7 @@ Examples:
 
 # 4. TYPES & VALUES
 
-Atmos supports and mimics the semantics of the standard [Lua types](lua-types):
+Atmos supports and mimics the semantics of the standard [Lua types][lua-types]:
     `nil`, `boolean`, `number`, `string`,
     `function`, `userdata`, `thread`, and `table`.
 
@@ -686,7 +686,7 @@ print(clk ?? :clock)    ;; --> true
 
 ## 4.2. Table
 
-The `table` reference type represents [Lua tables](lua-types) with indexes of
+The `table` reference type represents [Lua tables][lua-types] with indexes of
 any type.
 
 A table constructor `@{ * }` receives a list `*` of key-value assignments:
@@ -698,7 +698,7 @@ Key_Val : `[` Expr `]´ `=´ Expr
         | Expr
 ```
 
-Like [table constructors in Lua](lua-table), it accepts assignments in three
+Like [table constructors in Lua][lua-table], it accepts assignments in three
 formats:
 
 - `[e1]=e2` maps `e1` to `e2`
@@ -707,7 +707,7 @@ formats:
   and increments after each assignment
 
 A table is also a vector if it contains numeric indexes starting from `1` with
-no [holes](lua-sequences).
+no [holes][lua-sequences].
 
 [lua-sequences]: https://www.lua.org/manual/5.4/manual.html#3.4.7
 
@@ -1187,7 +1187,7 @@ test {
 
 ## 5.2. Declarations and Assignments
 
-Atmos mimics the semantics of Lua [global](lua-globals) and [local](lua-locals)
+Atmos mimics the semantics of Lua [global][lua-globals] and [local][lua-locals]
 variables.
 
 [lua-globals]: https://www.lua.org/manual/5.4/manual.html#2.2
@@ -1499,7 +1499,7 @@ task(\{}) ?? :task  ;; --> true
 The operator `#` ("length") evaluates the number of elements in the given
 collection.
 
-Atmos preserves the semantics of the [Lua length operator](lua-length), and
+Atmos preserves the semantics of the [Lua length operator][lua-length], and
 adds support for the [tasks type](#tasks).
 
 [lua-length]: https://www.lua.org/manual/5.4/manual.html#3.4.7
@@ -1524,7 +1524,7 @@ print(#ts)      ;; --> 2
 The operator `++` ("concat") concatenates its operands into a new value.
 
 For strings, numbers, and values with the `__concat` metamethod, `a ++ b`
-behaves the same as [`a .. b`](lua-concat) in Lua.
+behaves the same as [`a .. b`][lua-concat] in Lua.
 
 <!-- `__` -->
 
@@ -1593,7 +1593,7 @@ Expr : Expr `[´ Expr `]´
 The dot notation is a syntactic sugar to index string keys: `t.x` expands to
 `t["x"]`.
 
-Atmos mimics the semantics of [Lua indexing](lua-indexing) for tables.
+Atmos mimics the semantics of [Lua indexing][lua-indexing] for tables.
 
 Examples:
 
@@ -1662,7 +1662,7 @@ Expr : Expr `(´ Expr* `)´
 A call expects an expression of type [func](#function) and an optional list of
 expressions as arguments enclosed by parenthesis.
 
-Like in [Lua calls](#lua-call), if there is a single
+Like in [Lua calls][lua-call], if there is a single
 [constructor](#types--values) argument, then the parenthesis are optional.
 This is valid for strings, tags, tables, lambdas, clocks, and native literals.
 
@@ -2504,7 +2504,7 @@ thread {
 
 # 6. STANDARD LIBRARIES
 
-In addition to the [standard Lua libraries](lua-libraries), Atmos also provides
+In addition to the [standard Lua libraries][lua-libraries], Atmos also provides
 the following modules:
 
 `TODO: between, to*, remove/insert (vector)`
@@ -2520,11 +2520,11 @@ the following modules:
 
 ## 6.1. Lua Standard Libraries
 
-All libraries are extracted as is from the [Lua manual](lua-libraries):
+All libraries are extracted as is from the [Lua manual][lua-libraries]:
 
-<a name="1-basic-functionshttpswwwluaorgmanual54manualhtml61"/>
+<a name="basic-functionshttpswwwluaorgmanual54manualhtml61"/>
 
-### 6.1.1. 1. [Basic Functions](https://www.lua.org/manual/5.4/manual.html#6.1)
+### 6.1.1. [Basic Functions](https://www.lua.org/manual/5.4/manual.html#6.1)
 
 Core functions for fundamental operations.
 
@@ -2553,9 +2553,9 @@ Core functions for fundamental operations.
 - [`warn(msg1, ...)`](https://www.lua.org/manual/5.4/manual.html#pdf-warn) - issues a warning
 - [`xpcall(f, msgh [, arg1, ...])`](https://www.lua.org/manual/5.4/manual.html#pdf-xpcall) - calls a function with custom error handling
 
-<a name="2-coroutine-manipulationhttpswwwluaorgmanual54manualhtml62"/>
+<a name="coroutine-manipulationhttpswwwluaorgmanual54manualhtml62"/>
 
-### 6.1.2. 2. [Coroutine Manipulation](https://www.lua.org/manual/5.4/manual.html#6.2)
+### 6.1.2. [Coroutine Manipulation](https://www.lua.org/manual/5.4/manual.html#6.2)
 
 Functions for creating and manipulating coroutines.
 
@@ -2568,9 +2568,9 @@ Functions for creating and manipulating coroutines.
 - [`coroutine.wrap(f)`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.wrap) - wraps a function to create a coroutine
 - [`coroutine.yield(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.yield) - suspends execution of the coroutine
 
-<a name="3-moduleshttpswwwluaorgmanual54manualhtml63"/>
+<a name="moduleshttpswwwluaorgmanual54manualhtml63"/>
 
-### 6.1.3. 3. [Modules](https://www.lua.org/manual/5.4/manual.html#6.3)
+### 6.1.3. [Modules](https://www.lua.org/manual/5.4/manual.html#6.3)
 
 Functions for managing Lua modules and packages.
 
@@ -2583,9 +2583,9 @@ Functions for managing Lua modules and packages.
 - [`package.searchers`](https://www.lua.org/manual/5.4/manual.html#pdf-package.searchers) - table of module searcher functions
 - [`package.searchpath(name, path)`](https://www.lua.org/manual/5.4/manual.html#pdf-package.searchpath) - searches for a module
 
-<a name="4-string-manipulationhttpswwwluaorgmanual54manualhtml64"/>
+<a name="string-manipulationhttpswwwluaorgmanual54manualhtml64"/>
 
-### 6.1.4. 4. [String Manipulation](https://www.lua.org/manual/5.4/manual.html#6.4)
+### 6.1.4. [String Manipulation](https://www.lua.org/manual/5.4/manual.html#6.4)
 
 Functions for working with strings, including pattern matching and formatting.
 
@@ -2607,9 +2607,9 @@ Functions for working with strings, including pattern matching and formatting.
 - [`string.unpack(fmt, s [, pos])`](https://www.lua.org/manual/5.4/manual.html#pdf-string.unpack) - unpacks values from a binary string
 - [`string.upper(s)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.upper) - converts a string to uppercase
 
-<a name="5-utf8-supporthttpswwwluaorgmanual54manualhtml65"/>
+<a name="utf8-supporthttpswwwluaorgmanual54manualhtml65"/>
 
-### 6.1.5. 5. [UTF-8 Support](https://www.lua.org/manual/5.4/manual.html#6.5)
+### 6.1.5. [UTF-8 Support](https://www.lua.org/manual/5.4/manual.html#6.5)
 
 Functions for handling UTF-8 encoded strings.
 
@@ -2620,9 +2620,9 @@ Functions for handling UTF-8 encoded strings.
 - [`utf8.len(s [, i [, j]])`](https://www.lua.org/manual/5.4/manual.html#pdf-utf8.len) - returns the number of UTF-8 characters
 - [`utf8.offset(s, n [, i])`](https://www.lua.org/manual/5.4/manual.html#pdf-utf8.offset) - returns byte offset of the n-th character
 
-<a name="6-table-manipulationhttpswwwluaorgmanual54manualhtml66"/>
+<a name="table-manipulationhttpswwwluaorgmanual54manualhtml66"/>
 
-### 6.1.6. 6. [Table Manipulation](https://www.lua.org/manual/5.4/manual.html#6.6)
+### 6.1.6. [Table Manipulation](https://www.lua.org/manual/5.4/manual.html#6.6)
 
 Functions for working with tables as arrays and sequences.
 
@@ -2634,9 +2634,9 @@ Functions for working with tables as arrays and sequences.
 - [`table.sort(list [, comp])`](https://www.lua.org/manual/5.4/manual.html#pdf-table.sort) - sorts a table in place
 - [`table.unpack(list [, i [, j]])`](https://www.lua.org/manual/5.4/manual.html#pdf-table.unpack) - unpacks a table into values
 
-<a name="7-mathematical-functionshttpswwwluaorgmanual54manualhtml67"/>
+<a name="mathematical-functionshttpswwwluaorgmanual54manualhtml67"/>
 
-### 6.1.7. 7. [Mathematical Functions](https://www.lua.org/manual/5.4/manual.html#6.7)
+### 6.1.7. [Mathematical Functions](https://www.lua.org/manual/5.4/manual.html#6.7)
 
 Trigonometric, exponential, logarithmic, and other mathematical operations.
 
@@ -2667,9 +2667,9 @@ Trigonometric, exponential, logarithmic, and other mathematical operations.
 - [`math.type(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.type) - returns the type of a number
 - [`math.ult(m, n)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.ult) - unsigned integer less-than comparison
 
-<a name="8-input-and-output-facilitieshttpswwwluaorgmanual54manualhtml68"/>
+<a name="input-and-output-facilitieshttpswwwluaorgmanual54manualhtml68"/>
 
-### 6.1.8. 8. [Input and Output Facilities](https://www.lua.org/manual/5.4/manual.html#6.8)
+### 6.1.8. [Input and Output Facilities](https://www.lua.org/manual/5.4/manual.html#6.8)
 
 Functions for file and stream I/O operations.
 
@@ -2688,9 +2688,9 @@ Functions for file and stream I/O operations.
 - [`io.type(obj)`](https://www.lua.org/manual/5.4/manual.html#pdf-io.type) - returns the type of a file object
 - [`io.write(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-io.write) - writes to the default output file
 
-<a name="9-operating-system-facilitieshttpswwwluaorgmanual54manualhtml69"/>
+<a name="operating-system-facilitieshttpswwwluaorgmanual54manualhtml69"/>
 
-### 6.1.9. 9. [Operating System Facilities](https://www.lua.org/manual/5.4/manual.html#6.9)
+### 6.1.9. [Operating System Facilities](https://www.lua.org/manual/5.4/manual.html#6.9)
 
 Functions for interacting with the operating system.
 
@@ -2706,9 +2706,9 @@ Functions for interacting with the operating system.
 - [`os.time([table])`](https://www.lua.org/manual/5.4/manual.html#pdf-os.time) - returns the current time in seconds
 - [`os.tmpname()`](https://www.lua.org/manual/5.4/manual.html#pdf-os.tmpname) - returns a temporary filename
 
-<a name="10-the-debug-libraryhttpswwwluaorgmanual54manualhtml610"/>
+<a name="the-debug-libraryhttpswwwluaorgmanual54manualhtml610"/>
 
-### 6.1.10. 10. [The Debug Library](https://www.lua.org/manual/5.4/manual.html#6.10)
+### 6.1.10. [The Debug Library](https://www.lua.org/manual/5.4/manual.html#6.10)
 
 Functions for debugging and introspection.
 
