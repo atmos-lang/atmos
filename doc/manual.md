@@ -541,7 +541,7 @@ NAT  : `.*`                 ;; native expression
 ```
 
 The literals for `nil`, `boolean` and `number` follow the same
-[lexical conventions of Lua](lua-lexical).
+[lexical conventions of Lua][lua-lexical].
 
 The literal `nil` is the single value of the `nil` type.
 
@@ -611,7 +611,7 @@ Examples:
 
 # TYPES & VALUES
 
-Atmos supports and mimics the semantics of the standard [Lua types](lua-types):
+Atmos supports and mimics the semantics of the standard [Lua types][lua-types]:
     `nil`, `boolean`, `number`, `string`,
     `function`, `userdata`, `thread`, and `table`.
 
@@ -646,7 +646,7 @@ print(clk ?? :clock)    ;; --> true
 
 ## Table
 
-The `table` reference type represents [Lua tables](lua-types) with indexes of
+The `table` reference type represents [Lua tables][lua-types] with indexes of
 any type.
 
 A table constructor `@{ * }` receives a list `*` of key-value assignments:
@@ -658,7 +658,7 @@ Key_Val : `[` Expr `]´ `=´ Expr
         | Expr
 ```
 
-Like [table constructors in Lua](lua-table), it accepts assignments in three
+Like [table constructors in Lua][lua-table], it accepts assignments in three
 formats:
 
 - `[e1]=e2` maps `e1` to `e2`
@@ -667,7 +667,7 @@ formats:
   and increments after each assignment
 
 A table is also a vector if it contains numeric indexes starting from `1` with
-no [holes](lua-sequences).
+no [holes][lua-sequences].
 
 [lua-sequences]: https://www.lua.org/manual/5.4/manual.html#3.4.7
 
@@ -1119,7 +1119,7 @@ test {
 
 ## Declarations and Assignments
 
-Atmos mimics the semantics of Lua [global](lua-globals) and [local](lua-locals)
+Atmos mimics the semantics of Lua [global][lua-globals] and [local][lua-locals]
 variables.
 
 [lua-globals]: https://www.lua.org/manual/5.4/manual.html#2.2
@@ -1413,7 +1413,7 @@ task(\{}) ?? :task  ;; --> true
 The operator `#` ("length") evaluates the number of elements in the given
 collection.
 
-Atmos preserves the semantics of the [Lua length operator](lua-length), and
+Atmos preserves the semantics of the [Lua length operator][lua-length], and
 adds support for the [tasks type](#tasks).
 
 [lua-length]: https://www.lua.org/manual/5.4/manual.html#3.4.7
@@ -1436,7 +1436,7 @@ print(#ts)      ;; --> 2
 The operator `++` ("concat") concatenates its operands into a new value.
 
 For strings, numbers, and values with the `__concat` metamethod, `a ++ b`
-behaves the same as [`a .. b`](lua-concat) in Lua.
+behaves the same as [`a .. b`][lua-concat] in Lua.
 
 <!-- `__` -->
 
@@ -1501,7 +1501,7 @@ Expr : Expr `[´ Expr `]´
 The dot notation is a syntactic sugar to index string keys: `t.x` expands to
 `t["x"]`.
 
-Atmos mimics the semantics of [Lua indexing](lua-indexing) for tables.
+Atmos mimics the semantics of [Lua indexing][lua-indexing] for tables.
 
 Examples:
 
