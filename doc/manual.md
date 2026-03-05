@@ -2364,7 +2364,7 @@ thread {
 
 # STANDARD LIBRARIES
 
-In addition to the [standard Lua libraries](lua-libraries), Atmos also provides
+In addition to the [standard Lua libraries][lua-libraries], Atmos also provides
 the following modules:
 
 `TODO: between, to*, remove/insert (vector)`
