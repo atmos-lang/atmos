@@ -2378,9 +2378,9 @@ the following modules:
 
 ## Lua Standard Libraries
 
-All libraries are extracted as is from the [Lua manual](lua-libraries):
+All libraries are extracted as is from the [Lua manual][lua-libraries]:
 
-### 1. [Basic Functions](https://www.lua.org/manual/5.4/manual.html#6.1)
+### [Basic Functions](https://www.lua.org/manual/5.4/manual.html#6.1)
 
 Core functions for fundamental operations.
 
@@ -2409,7 +2409,7 @@ Core functions for fundamental operations.
 - [`warn(msg1, ...)`](https://www.lua.org/manual/5.4/manual.html#pdf-warn) - issues a warning
 - [`xpcall(f, msgh [, arg1, ...])`](https://www.lua.org/manual/5.4/manual.html#pdf-xpcall) - calls a function with custom error handling
 
-### 2. [Coroutine Manipulation](https://www.lua.org/manual/5.4/manual.html#6.2)
+### [Coroutine Manipulation](https://www.lua.org/manual/5.4/manual.html#6.2)
 
 Functions for creating and manipulating coroutines.
 
@@ -2422,7 +2422,7 @@ Functions for creating and manipulating coroutines.
 - [`coroutine.wrap(f)`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.wrap) - wraps a function to create a coroutine
 - [`coroutine.yield(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.yield) - suspends execution of the coroutine
 
-### 3. [Modules](https://www.lua.org/manual/5.4/manual.html#6.3)
+### [Modules](https://www.lua.org/manual/5.4/manual.html#6.3)
 
 Functions for managing Lua modules and packages.
 
@@ -2435,7 +2435,7 @@ Functions for managing Lua modules and packages.
 - [`package.searchers`](https://www.lua.org/manual/5.4/manual.html#pdf-package.searchers) - table of module searcher functions
 - [`package.searchpath(name, path)`](https://www.lua.org/manual/5.4/manual.html#pdf-package.searchpath) - searches for a module
 
-### 4. [String Manipulation](https://www.lua.org/manual/5.4/manual.html#6.4)
+### [String Manipulation](https://www.lua.org/manual/5.4/manual.html#6.4)
 
 Functions for working with strings, including pattern matching and formatting.
 
@@ -2457,7 +2457,7 @@ Functions for working with strings, including pattern matching and formatting.
 - [`string.unpack(fmt, s [, pos])`](https://www.lua.org/manual/5.4/manual.html#pdf-string.unpack) - unpacks values from a binary string
 - [`string.upper(s)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.upper) - converts a string to uppercase
 
-### 5. [UTF-8 Support](https://www.lua.org/manual/5.4/manual.html#6.5)
+### [UTF-8 Support](https://www.lua.org/manual/5.4/manual.html#6.5)
 
 Functions for handling UTF-8 encoded strings.
 
@@ -2468,7 +2468,7 @@ Functions for handling UTF-8 encoded strings.
 - [`utf8.len(s [, i [, j]])`](https://www.lua.org/manual/5.4/manual.html#pdf-utf8.len) - returns the number of UTF-8 characters
 - [`utf8.offset(s, n [, i])`](https://www.lua.org/manual/5.4/manual.html#pdf-utf8.offset) - returns byte offset of the n-th character
 
-### 6. [Table Manipulation](https://www.lua.org/manual/5.4/manual.html#6.6)
+### [Table Manipulation](https://www.lua.org/manual/5.4/manual.html#6.6)
 
 Functions for working with tables as arrays and sequences.
 
@@ -2480,7 +2480,7 @@ Functions for working with tables as arrays and sequences.
 - [`table.sort(list [, comp])`](https://www.lua.org/manual/5.4/manual.html#pdf-table.sort) - sorts a table in place
 - [`table.unpack(list [, i [, j]])`](https://www.lua.org/manual/5.4/manual.html#pdf-table.unpack) - unpacks a table into values
 
-### 7. [Mathematical Functions](https://www.lua.org/manual/5.4/manual.html#6.7)
+### [Mathematical Functions](https://www.lua.org/manual/5.4/manual.html#6.7)
 
 Trigonometric, exponential, logarithmic, and other mathematical operations.
 
@@ -2511,7 +2511,7 @@ Trigonometric, exponential, logarithmic, and other mathematical operations.
 - [`math.type(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.type) - returns the type of a number
 - [`math.ult(m, n)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.ult) - unsigned integer less-than comparison
 
-### 8. [Input and Output Facilities](https://www.lua.org/manual/5.4/manual.html#6.8)
+### [Input and Output Facilities](https://www.lua.org/manual/5.4/manual.html#6.8)
 
 Functions for file and stream I/O operations.
 
@@ -2530,7 +2530,7 @@ Functions for file and stream I/O operations.
 - [`io.type(obj)`](https://www.lua.org/manual/5.4/manual.html#pdf-io.type) - returns the type of a file object
 - [`io.write(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-io.write) - writes to the default output file
 
-### 9. [Operating System Facilities](https://www.lua.org/manual/5.4/manual.html#6.9)
+### [Operating System Facilities](https://www.lua.org/manual/5.4/manual.html#6.9)
 
 Functions for interacting with the operating system.
 
@@ -2546,7 +2546,7 @@ Functions for interacting with the operating system.
 - [`os.time([table])`](https://www.lua.org/manual/5.4/manual.html#pdf-os.time) - returns the current time in seconds
 - [`os.tmpname()`](https://www.lua.org/manual/5.4/manual.html#pdf-os.tmpname) - returns a temporary filename
 
-### 10. [The Debug Library](https://www.lua.org/manual/5.4/manual.html#6.10)
+### [The Debug Library](https://www.lua.org/manual/5.4/manual.html#6.10)
 
 Functions for debugging and introspection.
 
