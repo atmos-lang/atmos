@@ -499,7 +499,7 @@ targeting the task with `id=2`.
 Only this task awakes and generates an uncaught error:
 
 ```
-funct T (id) {
+func T (id) {
     await(:X, id)
     throw :error
 }
