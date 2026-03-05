@@ -59,6 +59,8 @@
     - <a href="#task-operations">5.9.</a> Task Operations
         - `spawn` `await` `emit` `toggle`
         - `every` `watching` `par` `par_and` `par_or`
+    - <a href="#asynchronous-execution">5.10.</a> Asynchronous Execution
+        - `async` `thread`
 - <a href="#standard-libraries">6.</a> STANDARD LIBRARIES
     - <a href="#lua-standard-libraries">6.1.</a> Lua Standard Libraries
     - <a href="#atmos-standard-libraries">6.2.</a> Atmos Standard Libraries
@@ -369,8 +371,8 @@ worth mentioning:
         - The reason is to avoid ambiguity with blocks:
             - `if f { ... }` is `if f{...} ...` or `if (f) { ... }`?
 - Operators:
-    - Lua: `~=`, `and`, `or`, `not`, `..`, `^`
-    - Atmos: `!=`, `&&`, `||`, `!`, `++`, `**`
+    - Lua: `~=` `and` `or` `not` `..` `^`
+    - Atmos: `!=` `&&` `||` `!` `++` `**`
         - The reason is to avoid identifiers as operators and to use familiar
           and consistent alternatives.
 
@@ -519,7 +521,7 @@ The following operators are supported in Atmos:
 ```
     ==   !=   ===  =!=  ??   !?     ;; comparison
     >    <    >=   <=               ;; relational
-    +    -    *    **   /    %      ;; arithmetic
+    +    -    *    /    %    **     ;; arithmetic
     !    ||   &&                    ;; logical
     #                               ;; length
     ++                              ;; concatenation
@@ -612,6 +614,8 @@ false               ;; boolean literal
 1.25                ;; number literal
 `x:f {"lua"}`       ;; native literal
 ```
+
+`TODO: multi-line strings trim`
 
 [lua-lexical]: https://www.lua.org/manual/5.4/manual.html#3.1
 
@@ -1378,7 +1382,7 @@ Atmos provides the [operators](#operators) as follows:
 
 - comparison: `==` `!=` `===` `=!=` `??` `!?`
 - relational: `>` `<` `>=` `<=`
-- arithmetic: `+` `-` `*` `**` `/` `%`
+- arithmetic: `+` `-` `*` `/` `%` `**`
 - logical: `!` `||` `&&`
 - length: `#`
 - concatenation: `++`
@@ -1402,7 +1406,7 @@ Atmos supports and mimics the semantics of standard
 [Lua operators][lua-operators]:
     (`==` `!=`),
     (`>` `<` `>=` `<=`),
-    (`+` `-` `*` `**` `/` `%`),
+    (`+` `-` `*` `/` `%` `**`),
     (`!` `||` `&&`),
     (`#`), and
     (`++`).
@@ -2440,6 +2444,62 @@ val x,y = par_and {
 print(x, y)     ;; --> X, Y
 ```
 
+<a name="asynchronous-execution"/>
+
+## 5.10. Asynchronous Execution
+
+<a name="async"/>
+
+### 5.10.1. Async
+
+`TODO: not implemented`
+
+<a name="thread"/>
+
+### 5.10.2. Thread
+
+`TODO: review: no lanes, lower the tone`
+
+A `thread` offloads a block to a real OS thread, allowing
+CPU-intensive work to run in parallel with the atmos scheduler:
+
+```
+Thread : `thread` Block
+```
+
+The block is wrapped in a plain Lua function and dispatched via
+LuaLanes.
+The calling task suspends until the thread completes, and the
+thread's return value becomes the value of the `thread`
+expression.
+
+Upvalues from the enclosing scope are captured by the thread
+body, but only serializable values (numbers, strings, booleans,
+tables of serializable values) can cross the thread boundary.
+Functions, userdata, and coroutines cannot be shared.
+
+Examples:
+
+```
+val result = thread {
+    ;; heavy computation in a real OS thread
+    val sum = 0
+    loop i in 1000000 {
+        set sum = sum + i
+    }
+    sum
+}
+print(result)
+```
+
+```
+var data = @{1, 2, 3}
+thread {
+    ;; process data in background
+    print(#data)
+}
+```
+
 <a name="standard-libraries"/>
 
 # 6. STANDARD LIBRARIES
@@ -2462,26 +2522,212 @@ the following modules:
 
 All libraries are extracted as is from the [Lua manual](lua-libraries):
 
-- `TODO`: complete for all below
+<a name="1-basic-functionshttpswwwluaorgmanual54manualhtml61"/>
 
-01. [Basic Functions](https://www.lua.org/manual/5.4/manual.html#6.1):
-    - [`assert`](https://www.lua.org/manual/5.4/manual.html#pdf-assert):
-        raises an error if its argument is false
-    - `collectgarbage` `dofile` `error` `getmetatable` `ipairs` `load`
-    - `loadfile` `next` `pairs` `pcall` `print` `rawequal` `rawget` `rawlen`
-    - `rawset` `require` `select` `setmetatable` `tonumber` `tostring` `type`
-    - `warn` `xpcall`
-02. Coroutine Manipulation
-03. Modules
-04. String Manipulation
-    1. Patterns
-    2. Format Strings for Pack and Unpack
-05. UTF-8 Support
-06. Table Manipulation
-07. Mathematical Functions
-08. Input and Output Facilities
-09. Operating System Facilities
-10. The Debug Library
+### 6.1.1. 1. [Basic Functions](https://www.lua.org/manual/5.4/manual.html#6.1)
+
+Core functions for fundamental operations.
+
+- [`assert(v [, message])`](https://www.lua.org/manual/5.4/manual.html#pdf-assert) - raises an error if its argument is false
+- [`collectgarbage([opt [, arg]])`](https://www.lua.org/manual/5.4/manual.html#pdf-collectgarbage) - controls the automatic garbage collector
+- [`dofile([filename])`](https://www.lua.org/manual/5.4/manual.html#pdf-dofile) - executes a Lua file
+- [`error(message [, level])`](https://www.lua.org/manual/5.4/manual.html#pdf-error) - raises an error with a message
+- [`getmetatable(object)`](https://www.lua.org/manual/5.4/manual.html#pdf-getmetatable) - returns the metatable of an object
+- [`ipairs(t)`](https://www.lua.org/manual/5.4/manual.html#pdf-ipairs) - returns an iterator for integer keys
+- [`load(chunk [, chunkname [, mode [, env]]])`](https://www.lua.org/manual/5.4/manual.html#pdf-load) - loads a chunk of code
+- [`loadfile([filename [, mode [, env]]])`](https://www.lua.org/manual/5.4/manual.html#pdf-loadfile) - loads a file as a chunk
+- [`next(table [, index])`](https://www.lua.org/manual/5.4/manual.html#pdf-next) - returns the next key-value pair
+- [`pairs(t)`](https://www.lua.org/manual/5.4/manual.html#pdf-pairs) - returns an iterator over all key-value pairs
+- [`pcall(f [, arg1, ...])`](https://www.lua.org/manual/5.4/manual.html#pdf-pcall) - calls a function in protected mode
+- [`print(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-print) - prints its arguments
+- [`rawequal(v1, v2)`](https://www.lua.org/manual/5.4/manual.html#pdf-rawequal) - compares two values without metatables
+- [`rawget(table, index)`](https://www.lua.org/manual/5.4/manual.html#pdf-rawget) - gets a value from table without metatables
+- [`rawlen(v)`](https://www.lua.org/manual/5.4/manual.html#pdf-rawlen) - returns the length of a value without metatables
+- [`rawset(table, index, value)`](https://www.lua.org/manual/5.4/manual.html#pdf-rawset) - sets a value in table without metatables
+- [`require(modname)`](https://www.lua.org/manual/5.4/manual.html#pdf-require) - loads a module
+- [`select(index, ...)`](https://www.lua.org/manual/5.4/manual.html#pdf-select) - selects from variadic arguments
+- [`setmetatable(table, metatable)`](https://www.lua.org/manual/5.4/manual.html#pdf-setmetatable) - sets the metatable of a table
+- [`tonumber(e [, base])`](https://www.lua.org/manual/5.4/manual.html#pdf-tonumber) - converts a value to a number
+- [`tostring(v)`](https://www.lua.org/manual/5.4/manual.html#pdf-tostring) - converts a value to a string
+- [`type(v)`](https://www.lua.org/manual/5.4/manual.html#pdf-type) - returns the type of a value
+- [`warn(msg1, ...)`](https://www.lua.org/manual/5.4/manual.html#pdf-warn) - issues a warning
+- [`xpcall(f, msgh [, arg1, ...])`](https://www.lua.org/manual/5.4/manual.html#pdf-xpcall) - calls a function with custom error handling
+
+<a name="2-coroutine-manipulationhttpswwwluaorgmanual54manualhtml62"/>
+
+### 6.1.2. 2. [Coroutine Manipulation](https://www.lua.org/manual/5.4/manual.html#6.2)
+
+Functions for creating and manipulating coroutines.
+
+- [`coroutine.close(co)`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.close) - closes a coroutine
+- [`coroutine.create(f)`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.create) - creates a new coroutine
+- [`coroutine.isyieldable()`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.isyieldable) - checks if the current coroutine can yield
+- [`coroutine.resume(co [, val1, ...])`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.resume) - resumes a coroutine
+- [`coroutine.running()`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.running) - returns the running coroutine
+- [`coroutine.status(co)`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.status) - returns the status of a coroutine
+- [`coroutine.wrap(f)`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.wrap) - wraps a function to create a coroutine
+- [`coroutine.yield(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-coroutine.yield) - suspends execution of the coroutine
+
+<a name="3-moduleshttpswwwluaorgmanual54manualhtml63"/>
+
+### 6.1.3. 3. [Modules](https://www.lua.org/manual/5.4/manual.html#6.3)
+
+Functions for managing Lua modules and packages.
+
+- [`package.config`](https://www.lua.org/manual/5.4/manual.html#pdf-package.config) - package configuration string
+- [`package.cpath`](https://www.lua.org/manual/5.4/manual.html#pdf-package.cpath) - path for native libraries
+- [`package.loaded`](https://www.lua.org/manual/5.4/manual.html#pdf-package.loaded) - table of loaded modules
+- [`package.loadlib(libname, funcname)`](https://www.lua.org/manual/5.4/manual.html#pdf-package.loadlib) - loads a C library function
+- [`package.path`](https://www.lua.org/manual/5.4/manual.html#pdf-package.path) - path for Lua libraries
+- [`package.preload`](https://www.lua.org/manual/5.4/manual.html#pdf-package.preload) - table of module preloaders
+- [`package.searchers`](https://www.lua.org/manual/5.4/manual.html#pdf-package.searchers) - table of module searcher functions
+- [`package.searchpath(name, path)`](https://www.lua.org/manual/5.4/manual.html#pdf-package.searchpath) - searches for a module
+
+<a name="4-string-manipulationhttpswwwluaorgmanual54manualhtml64"/>
+
+### 6.1.4. 4. [String Manipulation](https://www.lua.org/manual/5.4/manual.html#6.4)
+
+Functions for working with strings, including pattern matching and formatting.
+
+- [`string.byte(s [, i [, j]])`](https://www.lua.org/manual/5.4/manual.html#pdf-string.byte) - returns byte values of characters
+- [`string.char(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.char) - creates a string from byte values
+- [`string.dump(function [, strip])`](https://www.lua.org/manual/5.4/manual.html#pdf-string.dump) - serializes a function
+- [`string.find(s, pattern [, init [, plain]])`](https://www.lua.org/manual/5.4/manual.html#pdf-string.find) - finds a pattern in a string
+- [`string.format(formatstring, ...)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.format) - formats a string
+- [`string.gmatch(s, pattern)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.gmatch) - returns an iterator over matches
+- [`string.gsub(s, pattern, repl [, n])`](https://www.lua.org/manual/5.4/manual.html#pdf-string.gsub) - replaces pattern matches
+- [`string.len(s)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.len) - returns the length of a string
+- [`string.lower(s)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.lower) - converts a string to lowercase
+- [`string.match(s, pattern [, init])`](https://www.lua.org/manual/5.4/manual.html#pdf-string.match) - matches a pattern in a string
+- [`string.pack(fmt, ...)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.pack) - packs values into a binary string
+- [`string.packsize(fmt)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.packsize) - returns the size of packed data
+- [`string.rep(s, n [, sep])`](https://www.lua.org/manual/5.4/manual.html#pdf-string.rep) - repeats a string
+- [`string.reverse(s)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.reverse) - reverses a string
+- [`string.sub(s, i [, j])`](https://www.lua.org/manual/5.4/manual.html#pdf-string.sub) - extracts a substring
+- [`string.unpack(fmt, s [, pos])`](https://www.lua.org/manual/5.4/manual.html#pdf-string.unpack) - unpacks values from a binary string
+- [`string.upper(s)`](https://www.lua.org/manual/5.4/manual.html#pdf-string.upper) - converts a string to uppercase
+
+<a name="5-utf8-supporthttpswwwluaorgmanual54manualhtml65"/>
+
+### 6.1.5. 5. [UTF-8 Support](https://www.lua.org/manual/5.4/manual.html#6.5)
+
+Functions for handling UTF-8 encoded strings.
+
+- [`utf8.char(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-utf8.char) - creates a UTF-8 string from codepoints
+- [`utf8.charpattern`](https://www.lua.org/manual/5.4/manual.html#pdf-utf8.charpattern) - pattern to match a single UTF-8 character
+- [`utf8.codes(s)`](https://www.lua.org/manual/5.4/manual.html#pdf-utf8.codes) - returns an iterator over UTF-8 codepoints
+- [`utf8.codepoint(s [, i [, j]])`](https://www.lua.org/manual/5.4/manual.html#pdf-utf8.codepoint) - returns codepoints of characters
+- [`utf8.len(s [, i [, j]])`](https://www.lua.org/manual/5.4/manual.html#pdf-utf8.len) - returns the number of UTF-8 characters
+- [`utf8.offset(s, n [, i])`](https://www.lua.org/manual/5.4/manual.html#pdf-utf8.offset) - returns byte offset of the n-th character
+
+<a name="6-table-manipulationhttpswwwluaorgmanual54manualhtml66"/>
+
+### 6.1.6. 6. [Table Manipulation](https://www.lua.org/manual/5.4/manual.html#6.6)
+
+Functions for working with tables as arrays and sequences.
+
+- [`table.concat(list [, sep [, i [, j]]])`](https://www.lua.org/manual/5.4/manual.html#pdf-table.concat) - concatenates table elements into a string
+- [`table.insert(list, [pos,] value)`](https://www.lua.org/manual/5.4/manual.html#pdf-table.insert) - inserts a value into a table
+- [`table.move(a1, f, e, t [, a2])`](https://www.lua.org/manual/5.4/manual.html#pdf-table.move) - moves elements between tables
+- [`table.pack(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-table.pack) - packs arguments into a table
+- [`table.remove(list [, pos])`](https://www.lua.org/manual/5.4/manual.html#pdf-table.remove) - removes an element from a table
+- [`table.sort(list [, comp])`](https://www.lua.org/manual/5.4/manual.html#pdf-table.sort) - sorts a table in place
+- [`table.unpack(list [, i [, j]])`](https://www.lua.org/manual/5.4/manual.html#pdf-table.unpack) - unpacks a table into values
+
+<a name="7-mathematical-functionshttpswwwluaorgmanual54manualhtml67"/>
+
+### 6.1.7. 7. [Mathematical Functions](https://www.lua.org/manual/5.4/manual.html#6.7)
+
+Trigonometric, exponential, logarithmic, and other mathematical operations.
+
+- [`math.abs(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.abs) - returns the absolute value
+- [`math.acos(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.acos) - returns the arc cosine
+- [`math.asin(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.asin) - returns the arc sine
+- [`math.atan(y [, x])`](https://www.lua.org/manual/5.4/manual.html#pdf-math.atan) - returns the arc tangent
+- [`math.ceil(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.ceil) - rounds up to the nearest integer
+- [`math.cos(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.cos) - returns the cosine
+- [`math.deg(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.deg) - converts radians to degrees
+- [`math.exp(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.exp) - returns e raised to power x
+- [`math.floor(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.floor) - rounds down to the nearest integer
+- [`math.fmod(x, y)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.fmod) - returns the remainder of division
+- [`math.huge`](https://www.lua.org/manual/5.4/manual.html#pdf-math.huge) - the value of infinity
+- [`math.log(x [, base])`](https://www.lua.org/manual/5.4/manual.html#pdf-math.log) - returns the logarithm
+- [`math.max(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.max) - returns the maximum value
+- [`math.maxinteger`](https://www.lua.org/manual/5.4/manual.html#pdf-math.maxinteger) - the maximum integer
+- [`math.min(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.min) - returns the minimum value
+- [`math.mininteger`](https://www.lua.org/manual/5.4/manual.html#pdf-math.mininteger) - the minimum integer
+- [`math.pi`](https://www.lua.org/manual/5.4/manual.html#pdf-math.pi) - the value of pi
+- [`math.rad(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.rad) - converts degrees to radians
+- [`math.random([m [, n]])`](https://www.lua.org/manual/5.4/manual.html#pdf-math.random) - returns a random number
+- [`math.randomseed(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.randomseed) - sets the random seed
+- [`math.sin(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.sin) - returns the sine
+- [`math.sqrt(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.sqrt) - returns the square root
+- [`math.tan(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.tan) - returns the tangent
+- [`math.tointeger(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.tointeger) - converts to integer if possible
+- [`math.type(x)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.type) - returns the type of a number
+- [`math.ult(m, n)`](https://www.lua.org/manual/5.4/manual.html#pdf-math.ult) - unsigned integer less-than comparison
+
+<a name="8-input-and-output-facilitieshttpswwwluaorgmanual54manualhtml68"/>
+
+### 6.1.8. 8. [Input and Output Facilities](https://www.lua.org/manual/5.4/manual.html#6.8)
+
+Functions for file and stream I/O operations.
+
+- [`io.close([file])`](https://www.lua.org/manual/5.4/manual.html#pdf-io.close) - closes a file
+- [`io.flush()`](https://www.lua.org/manual/5.4/manual.html#pdf-io.flush) - flushes the output
+- [`io.input([file])`](https://www.lua.org/manual/5.4/manual.html#pdf-io.input) - sets or gets the input file
+- [`io.lines([filename, ...])`](https://www.lua.org/manual/5.4/manual.html#pdf-io.lines) - returns an iterator over file lines
+- [`io.open(filename, mode)`](https://www.lua.org/manual/5.4/manual.html#pdf-io.open) - opens a file
+- [`io.output([file])`](https://www.lua.org/manual/5.4/manual.html#pdf-io.output) - sets or gets the output file
+- [`io.popen(prog [, mode])`](https://www.lua.org/manual/5.4/manual.html#pdf-io.popen) - opens a process
+- [`io.read(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-io.read) - reads from the default input file
+- [`io.stderr`](https://www.lua.org/manual/5.4/manual.html#pdf-io.stderr) - the standard error file
+- [`io.stdin`](https://www.lua.org/manual/5.4/manual.html#pdf-io.stdin) - the standard input file
+- [`io.stdout`](https://www.lua.org/manual/5.4/manual.html#pdf-io.stdout) - the standard output file
+- [`io.tmpfile()`](https://www.lua.org/manual/5.4/manual.html#pdf-io.tmpfile) - returns a handle for a temporary file
+- [`io.type(obj)`](https://www.lua.org/manual/5.4/manual.html#pdf-io.type) - returns the type of a file object
+- [`io.write(...)`](https://www.lua.org/manual/5.4/manual.html#pdf-io.write) - writes to the default output file
+
+<a name="9-operating-system-facilitieshttpswwwluaorgmanual54manualhtml69"/>
+
+### 6.1.9. 9. [Operating System Facilities](https://www.lua.org/manual/5.4/manual.html#6.9)
+
+Functions for interacting with the operating system.
+
+- [`os.clock()`](https://www.lua.org/manual/5.4/manual.html#pdf-os.clock) - returns CPU time in seconds
+- [`os.date([format [, time]])`](https://www.lua.org/manual/5.4/manual.html#pdf-os.date) - formats a date/time
+- [`os.difftime(t2, t1)`](https://www.lua.org/manual/5.4/manual.html#pdf-os.difftime) - returns the difference between two times
+- [`os.execute([command])`](https://www.lua.org/manual/5.4/manual.html#pdf-os.execute) - executes a system command
+- [`os.exit([code [, close]])`](https://www.lua.org/manual/5.4/manual.html#pdf-os.exit) - terminates the program
+- [`os.getenv(varname)`](https://www.lua.org/manual/5.4/manual.html#pdf-os.getenv) - gets an environment variable
+- [`os.remove(filename)`](https://www.lua.org/manual/5.4/manual.html#pdf-os.remove) - deletes a file
+- [`os.rename(oldname, newname)`](https://www.lua.org/manual/5.4/manual.html#pdf-os.rename) - renames a file
+- [`os.setlocale(locale [, category])`](https://www.lua.org/manual/5.4/manual.html#pdf-os.setlocale) - sets the locale
+- [`os.time([table])`](https://www.lua.org/manual/5.4/manual.html#pdf-os.time) - returns the current time in seconds
+- [`os.tmpname()`](https://www.lua.org/manual/5.4/manual.html#pdf-os.tmpname) - returns a temporary filename
+
+<a name="10-the-debug-libraryhttpswwwluaorgmanual54manualhtml610"/>
+
+### 6.1.10. 10. [The Debug Library](https://www.lua.org/manual/5.4/manual.html#6.10)
+
+Functions for debugging and introspection.
+
+- [`debug.debug()`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.debug) - enters an interactive debugger
+- [`debug.gethook([thread])`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.gethook) - returns hook function and mask
+- [`debug.getinfo([thread,] f [, what])`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.getinfo) - returns information about a function
+- [`debug.getlocal([thread,] f, local)`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.getlocal) - gets a local variable
+- [`debug.getmetatable(v)`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.getmetatable) - gets the metatable bypassing `__metatable`
+- [`debug.getregistry()`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.getregistry) - returns the registry table
+- [`debug.getupvalue(f, up)`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.getupvalue) - gets an upvalue of a function
+- [`debug.getuservalue(u [, n])`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.getuservalue) - gets the user value of a userdata
+- [`debug.sethook([thread,] hook [, mask [, count]])`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.sethook) - sets a debug hook
+- [`debug.setlocal([thread,] level, local, value)`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.setlocal) - sets a local variable
+- [`debug.setmetatable(v, table)`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.setmetatable) - sets the metatable
+- [`debug.setupvalue(f, up, v)`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.setupvalue) - sets an upvalue
+- [`debug.setuservalue(udata, value [, n])`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.setuservalue) - sets the user value of a userdata
+- [`debug.traceback([thread] [, message [, level]])`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.traceback) - returns a stack traceback
+- [`debug.upvalueid(f, up)`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.upvalueid) - gets the unique ID of an upvalue
+- [`debug.upvaluejoin(f1, up1, f2, up2)`](https://www.lua.org/manual/5.4/manual.html#pdf-debug.upvaluejoin) - joins two upvalues
 
 <a name="atmos-standard-libraries"/>
 
@@ -2581,6 +2827,8 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `par´     Block { `with´ Block }            ;; parallels
       | `par_and´ Block { `with´ Block }
       | `par_or´  Block { `with´ Block }
+
+      | `thread´ Block                              ;; OS thread
 
 ID    : [A-Za-z_][A-Za-z0-9_]*      ;; variable identifier
 TAG   : :[A-Za-z0-9_\.]+            ;; tag

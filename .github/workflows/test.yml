@@ -29,3 +29,16 @@ jobs:
       run: sudo luarocks --lua-version=5.4 install lanes
     - name: Run tests
       run: cd tst && LUA_PATH="../f-streams/?/init.lua;../lua-atmos/?.lua;../lua-atmos/?/init.lua;;" lua5.4 all.lua
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Lua
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lua5.4
+    - name: Check manual-out.md is up to date
+      run: |
+        lua5.4 doc/manual.lua doc/manual.md > /tmp/manual-out.md
+        diff doc/manual-out.md /tmp/manual-out.md
