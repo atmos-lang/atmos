@@ -1,8 +1,8 @@
 package = "atmos-lang"
-version = "0.5-1"
+version = "0.6-1"
 source = {
    url = "git+https://github.com/atmos-lang/atmos",
-   branch = "v0.5",
+   branch = "v0.6",
 }
 description = {
    summary = [[
@@ -36,7 +36,7 @@ description = {
    license = "MIT",
 }
 dependencies = {
-   "lua ~> 5.4", "atmos ~> 0.5",
+   "lua ~> 5.4", "atmos ~> 0.6",
 }
 build = {
    type = "builtin",
