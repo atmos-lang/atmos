@@ -15,7 +15,7 @@ Depends on lua-atmos v0.6 (already released).
 cd tst && lua5.4 all.lua
 ```
 
-### 2. Create rockspec `atmos-lang-0.6-1.rockspec`
+### 2. Create rockspec `atmos-lang-0.6-1.rockspec` (done)
 
 - Copy from `atmos-lang-0.5-1.rockspec`
 - Change `version` to `"0.6-1"`

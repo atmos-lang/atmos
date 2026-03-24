@@ -1,20 +1,18 @@
-require "atmos"
-val x = require "atmos.x"
 require "atmos.env.pico"
+val x = require "atmos.x"
 val pico = require "pico"
 
-pico.zet.title "pico-Atmos: Click, Drag, Cancel"
-pico.zet.size.window(256, 256)
-pico.zet.font(nil, 20)
+pico.zet.window @{ title="pico-Atmos: Click, Drag, Cancel" }
+pico.zet.dim @{'!', w=256, h=256}
 
-var text = ""
-var rect = @{x=256/2,y=256/2, w=40,h=40}
+var text = "x"  ;; TODO: empty string
+var rect = @{ '%', x=0.5, y=0.5, w=0.15, h=0.15 }
 
 spawn {
-    val pt = @{x=256/2, y=220}
+    val pt = @{ '!', x=0.5, y=0.8, h=0.1 }
     every :draw {
         pico.output.draw.rect(rect)
-        pico.output.draw.text(pt, text)
+        pico.output.draw.text(text, pt)
     }
 }
 

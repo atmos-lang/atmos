@@ -3,22 +3,21 @@ val x = require "atmos.x"
 val pico = require "pico"
 require "atmos.env.pico"
 val S = require "atmos.streams"
-val SDL = require "SDL"
 
-pico.zet.title "pico-Atmos: Clicks"
-pico.zet.size.window(256, 256)
+pico.zet.window @{ title="pico-Atmos: Clicks" }
+pico.zet.dim @{'!', w=256, h=256}
 
 var txts = @{}
 
-var rect = @{x=256/2,y=256/2, w=20,h=20}
+var rect = @{'!', x=256/2,y=256/2, w=20,h=20}
 
 spawn {
     par {
         every :draw {
             pico.output.draw.rect(rect)
-            val pt = pico.pos(80,10)
+            val pt = @{'!', x=80, y=10}
             loop _,t in txts {
-                pico.output.draw.text(pt, t)
+                pico.output.draw.text(t, pt)
                 set pt.y = pt.y + 15
             }
         }
@@ -60,12 +59,13 @@ spawn {
         }
         emit :x.mouse.button.dn @{ n=n, x=dn.x, y=dn.y }
         par_and {
-            var state, x, y = SDL.getMouseState()
-            if state[SDL.mouseMask.Left] {
-                val _,pos = await :mouse.button.up
-                set x,y = (pos.x, pos.y)
+            val pos = @{'!', x=0, y=0}
+            val pressed = pico.get.mouse(pos, 1)
+            if pressed {
+                val _,up = await :mouse.button.up
+                set pos.x,pos.y = (up.x, up.y)
             }
-            emit :x.mouse.button.up @{x=x,y=y}
+            emit :x.mouse.button.up @{x=pos.x,y=pos.y}
         } with {
             await @.250
         }
