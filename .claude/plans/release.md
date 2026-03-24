@@ -36,13 +36,17 @@ sudo luarocks make atmos-lang-0.6-1.rockspec --lua-version=5.4
 - [ ] `exs/rx.atm`
 - [ ] `exs/rx-behavior.atm`
 
-### 4. Update `README.md`
+### 4. Update VERSION in `atmos` executable
+
+- [ ] Change version string to `0.6`
+
+### 5. Update `README.md`
 
 - Add `v0.6` to version list
 - Update stable link from `v0.5` to `v0.6`
 - Update `Install & Run` section: `install atmos-lang 0.6`
 
-### 5. Update `HISTORY.md`
+### 6. Update `HISTORY.md`
 
 ```
 v0.6 (mar/26)
@@ -52,7 +56,7 @@ v0.6 (mar/26)
     - `thread` primitive
 ```
 
-### 6. Commit, push main, create release branch
+### 7. Commit, push main, create release branch
 
 - [ ] Single commit: `release: v0.6`
 - [ ] Push main, check GitHub Actions for green CI
@@ -61,13 +65,13 @@ v0.6 (mar/26)
 - [ ] Commit and push `v0.6`
 - [ ] Return to main
 
-### 7. Publish rockspec to LuaRocks
+### 8. Publish rockspec to LuaRocks
 
 ```bash
 luarocks upload atmos-lang-0.6-1.rockspec
 ```
 
-### 8. Verify LuaRocks install + test examples again (remote)
+### 9. Verify LuaRocks install + test examples again (remote)
 
 ```bash
 sudo luarocks --lua-version=5.4 remove atmos-lang
@@ -76,7 +80,7 @@ sudo luarocks --lua-version=5.4 install atmos-lang 0.6
 
 Re-run the same example checklist from step 3.
 
-### 9. Announce (manual)
+### 10. Announce (manual)
 
 - Twitter / BlueSky
 - Mailing list
