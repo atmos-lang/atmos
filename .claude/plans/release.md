@@ -11,7 +11,9 @@ Note: env-iup has pending tests (`iup-net.lua`) in lua-atmos.
 
 ## Steps
 
-### 1. Run tests (done)
+### 1. Run tests
+
+- [x] Automatic tests:
 
 ```bash
 cd tst && lua5.4 all.lua
@@ -19,12 +21,12 @@ cd tst && lua5.4 all.lua
 
 ### 2. Create rockspec `atmos-lang-0.6-1.rockspec`
 
-- Copy from `atmos-lang-0.5-1.rockspec`
-- Change `version` to `"0.6-1"`
-- Change `branch` to `"v0.6"`
-- Change dependency from `atmos ~> 0.5` to `atmos ~> 0.6`
-- Keep rockspec description in sync with README "About" section
-- Move old rockspec to `old/`
+- [x] Copy from `atmos-lang-0.5-1.rockspec`
+- [x] Change `version` to `"0.6-1"`
+- [x] Change `branch` to `"v0.6"`
+- [x] Change dependency from `atmos ~> 0.5` to `atmos ~> 0.6`
+- [x] Keep rockspec description in sync with README "About" section
+- [x] Move old rockspec to `old/`
 - Install locally (Phase 1):
 
 ```bash
@@ -33,17 +35,24 @@ sudo luarocks make atmos-lang-0.6-1.rockspec --lua-version=5.4
 
 ### 3. Test examples (Phase 1 — local install)
 
-- [ ] `exs/hello.atm`
-- [ ] `exs/clicks.atm`
-- [ ] `exs/click-drag-cancel.atm`
-- [ ] `exs/rx.atm`
-- [ ] `exs/rx-behavior.atm`
+- [x] `exs/hello.atm`
+- [x] `exs/clicks.atm`
+- [x] `exs/click-drag-cancel.atm`
+- [x] `exs/rx.atm`
+- [x] `exs/rx-behavior.atm`
 
-### 4. Update `README.md`
+- Manual tests:
+    - [x] README.md
+    - [ ] doc/guide.md
 
-- Add `v0.6` to version list
-- Update stable link from `v0.5` to `v0.6`
-- Update `Install & Run` section: `install atmos-lang 0.6`
+### 4. Update `README.md` (done)
+
+- [x] Add `v0.6` to version list
+- [x] Fix stable link (was `v0.4`) to `v0.6`
+- [x] Update `Install & Run` section: `install atmos-lang 0.6`
+- [x] Restructure About: 2 main + "also complements" (streams & threads)
+- [x] Update Environments: separate repos, add env-js
+- [x] Add `[Environments]` to nav bar
 
 ### 5. Update `HISTORY.md`
 
