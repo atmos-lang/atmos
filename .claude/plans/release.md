@@ -84,12 +84,12 @@ v0.6 (mar/26)
 
 ### 6. Commit, push main, create release branch
 
-- [ ] Single commit: `release: v0.6`
-- [ ] Push main, check GitHub Actions for green CI
-- [ ] Create branch `v0.6`
-- [ ] Update README links: `main` -> `v0.6`
-- [ ] Commit and push `v0.6`
-- [ ] Return to main
+- [x] Single commit: `release: v0.6`
+- [x] Push main, check GitHub Actions for green CI
+- [x] Create branch `v0.6`
+- [x] Update README links: `main` -> `v0.6`
+- [x] Commit and push `v0.6`
+- [x] Return to main
 
 ### 7. Publish rockspec to LuaRocks
 
