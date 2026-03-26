@@ -14,7 +14,7 @@ spawn {
     par {
         every :draw {
             pico.output.draw.rect(rect)
-            var pt = @{'!', x=80, y=10, h=15}
+            val pt = @{'!', x=80, y=10}
             loop _,t in txts {
                 pico.output.draw.text(t, pt)
                 set pt.y = pt.y + 15
@@ -58,7 +58,7 @@ spawn {
         }
         emit :x.mouse.button.dn @{ n=n, x=dn.x, y=dn.y }
         par_and {
-            var pos = pico.get.mouse()
+            val pos = pico.get.mouse()
             if pos.left {
                 val _,up = await :mouse.button.up
                 set pos.x, pos.y = (up.x, up.y)
