@@ -8,21 +8,20 @@
 ***Structured Event-Driven Concurrency***
 
 [
+    [`v0.6`](https://github.com/atmos-lang/atmos/tree/v0.6)      |
     [`v0.5`](https://github.com/atmos-lang/atmos/tree/v0.5)      |
     [`v0.4`](https://github.com/atmos-lang/atmos/tree/v0.4)      |
     [`v0.3`](https://github.com/atmos-lang/atmos/tree/v0.3)      |
     [`v0.2`](https://github.com/atmos-lang/atmos/tree/v0.2_0.2.1)
 ]
 
-This is the unstable `main` branch.
-Please, switch to stable [`v0.5`](https://github.com/atmos-lang/atmos/tree/v0.4).
-<!--
--->
+Stable branch is [`v0.6`](https://github.com/atmos-lang/atmos/tree/v0.6).
 
 [
     [About](#about)                 |
     [Hello World!](#hello-world)    |
     [Install & Run](#install--run)  |
+    [Environments](#environments)   |
     [Documentation](#documentation) |
     [Resources](#resources)
 ]
@@ -31,9 +30,9 @@ Please, switch to stable [`v0.5`](https://github.com/atmos-lang/atmos/tree/v0.4)
 
 # About
 
-Atmos is a programming language that reconciles *[Structured Concurrency][sc]*,
-*[Event-Driven Programming][events]*, and *[Functional Streams][streams]*,
-extending classical structured programming with three main functionalities:
+Atmos is a programming language that reconciles *[Structured
+Concurrency][sc]* and *[Event-Driven Programming][events]*, extending classical
+structured programming with two main functionalities:
 
 - Structured Deterministic Concurrency:
     - A `task` primitive with deterministic scheduling provides predictable
@@ -47,13 +46,17 @@ extending classical structured programming with three main functionalities:
 - Event Signaling Mechanisms:
     - An `await` primitive suspends a task and wait for events.
     - An `emit` primitive signals events and awake awaiting tasks.
-- Functional Streams (à la [ReactiveX][rx]):
-    - *(experimental)*
-    - Functional combinators for lazy (infinite) lists.
-    - Interoperability with tasks & events:
-        tasks and events as streams, and
-        streams as events.
-    - Safe finalization of stateful (task-based) streams.
+
+Atmos also complements its core synchronous concurrency model with
+    *[Functional Streams][streams]* (à la [ReactiveX][rx]) and
+    [Multithreading Parallelism][threads] (via [LuaLanes][lanes]):
+
+- Functional Streams:
+    - Interoperability with tasks & events.
+    - Safe finalization of stateful streams.
+- Asynchronous Parallelism:
+    - A `thread` primitive offloads computations to isolated OS threads.
+    - Safe abortion and finalization for threads.
 
 Atmos is inspired by [synchronous programming languages][sync] like [Céu][ceu]
 and [Esterel][esterel].
@@ -63,8 +66,12 @@ concurrency runtime.
 
 [sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
 [events]:       https://en.wikipedia.org/wiki/Event-driven_programming
+
 [streams]:      https://en.wikipedia.org/wiki/Stream_(abstract_data_type)
 [rx]:           https://en.wikipedia.org/wiki/ReactiveX
+[threads]:      https://en.wikipedia.org/wiki/Thread_(computing)
+[lanes]:        https://lualanes.github.io/lanes/
+
 [sync]:         https://fsantanna.github.io/sc.html
 [ceu]:          http://www.ceu-lang.org/
 [esterel]:      https://en.wikipedia.org/wiki/Esterel
@@ -97,7 +104,7 @@ The program body is a task in Atmos that behaves as follows:
 # Install & Run
 
 ```
-sudo luarocks --lua-version=5.4 install atmos-lang 0.5
+sudo luarocks --lua-version=5.4 install atmos-lang 0.6
 atmos <lua-path>/atmos/lang/exs/hello.lua
 ```
 
@@ -123,34 +130,35 @@ Atmos depends on [lua-atmos][lua-atmos].
 An environment is an external component that bridges input events from the real
 world into an Atmos application.
 
-The standard distribution of Atmos provides the following environments:
+The standard distribution of Atmos provides a simple `clock` environment to
+experiment with time.
 
-- [`atmos.env.clock`][atmos-clock]
+All other environments are available as separate packages:
+
+- [`atmos.env.clock`](https://github.com/lua-atmos/atmos/tree/main/atmos/env/clock/):
     A simple pure-Lua environment that uses `os.clock` to issue timer events.
-- [`atmos.env.socket`][atmos-socket]
+- [`atmos.env.socket`](https://github.com/lua-atmos/env-socket):
     An environment that relies on [luasocket][luasocket] to provide network
     communication.
-- [`atmos.env.sdl`][atmos-sdl]
+- [`atmos.env.sdl`](https://github.com/lua-atmos/env-sdl):
     An environment that relies on [lua-sdl2][luasdl] to provide window, mouse,
     key, and timer events.
-- [`atmos.env.pico`][atmos-pico]
-    An environment that relies on [pico-sdl][pico-sdl] as a simpler alternative
-    to SDL.
-- [`atmos.env.iup`][atmos-iup]
+- [`atmos.env.pico`](https://github.com/lua-atmos/env-pico):
+    An environment that relies on [pico-lua][pico-lua] as a simpler
+    alternative to SDL.
+- [`atmos.env.iup`](https://github.com/lua-atmos/env-iup):
     An environment that relies on [IUP][iup] ([iup-lua][iup-lua]) to provide
     graphical user interfaces (GUIs).
-
-[atmos-clock]:  https://github.com/lua-atmos/atmos/tree/main/atmos/env/clock/
-[atmos-socket]: https://github.com/lua-atmos/atmos/tree/main/atmos/env/socket/
-[atmos-sdl]:    https://github.com/lua-atmos/atmos/tree/main/atmos/env/sdl/
-[atmos-pico]:   https://github.com/lua-atmos/atmos/tree/main/atmos/env/pico/
-[atmos-iup]:    https://github.com/lua-atmos/atmos/tree/main/atmos/env/iup/
+- [`atmos.env.js`](https://github.com/lua-atmos/env-js/):
+    An environment for running Atmos in the browser via
+    [wasmoon][wasmoon] (Lua 5.4 compiled to WebAssembly).
 
 [luasocket]:    https://lunarmodules.github.io/luasocket/
 [luasdl]:       https://github.com/Tangent128/luasdl2/
+[pico-lua]:     https://github.com/fsantanna/pico-sdl/tree/main/lua
 [iup]:          https://www.tecgraf.puc-rio.br/iup/
 [iup-lua]:      https://www.tecgraf.puc-rio.br/iup/en/basic/index.html
-[pico-sdl]:     https://github.com/fsantanna/pico-sdl/
+[wasmoon]:      https://github.com/ceifa/wasmoon
 
 # Resources
 

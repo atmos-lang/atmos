@@ -1,3 +1,11 @@
+v0.6 (mar/26)
+-------------
+
+- Additions:
+    - `thread` block (CPU parallelism via LuaLanes)
+    - lambda syntax `\+` for operators
+    - exponentiation operation `**`
+
 v0.5 (jan/26)
 -------------
 
