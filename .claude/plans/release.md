@@ -45,6 +45,22 @@ sudo luarocks make atmos-lang-0.6-1.rockspec --lua-version=5.4
     - [x] README.md
     - [ ] doc/guide.md
 
+### 3.1 Adapt pico-* to pico-lua v0.3 (done)
+
+- [x] `exs/clicks.atm` — pico v0.3 API
+- [x] `exs/click-drag-cancel.atm` — pico v0.3 API
+- [x] `exs/x.atm` — pico v0.3 API
+- [x] `pico-birds/birds-01..11.atm` — `zet.window`/`zet.dim`
+- [x] `pico-birds/README.md` — install v0.6, checkout v0.6
+- [x] `pico-rocks/main.atm` — `zet.window`/`zet.dim`
+- [x] `pico-rocks/ts.atm` — `layer.images`/`draw.layer`, `get.view().dim`
+- [x] `pico-rocks/README.md` — install v0.6, checkout v0.6
+
+### 3.2 Test pico-* (Phase 1)
+
+- [x] `pico-birds/birds-11.atm`
+- [x] `pico-rocks/main.atm`
+
 ### 4. Update `README.md` (done)
 
 - [x] Add `v0.6` to version list
