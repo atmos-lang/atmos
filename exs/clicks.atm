@@ -14,7 +14,7 @@ spawn {
     par {
         every :draw {
             pico.output.draw.rect(rect)
-            val pt = @{'!', x=80, y=10}
+            val pt = @{'!', x=80, y=10, h=15}
             loop _,t in txts {
                 pico.output.draw.text(t, pt)
                 set pt.y = pt.y + 15
