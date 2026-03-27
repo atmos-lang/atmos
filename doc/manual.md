@@ -2021,9 +2021,37 @@ throw :X
 
 ## Task Operations
 
-<!--
-- [abort](#TODO): `TODO`
--->
+The [task](#task) and [pool of tasks](#tasks) primitives support a number of
+operations.
+
+### Abort
+
+An `abort` receives a [task](#task) or a [tasks](#tasks) value, and immediately
+aborts it:
+
+```
+Abort : `abort´ `(´ Expr `)´
+```
+
+All nested tasks are also aborted.
+All nested [deferred](#defer) statements execute.
+
+Examples:
+
+<!-- exs/exp-24-abort.atm -->
+
+```
+val T = func () {
+    defer {
+        print("aborted")
+    }
+    await(false)
+}
+do {
+    pin t = spawn T()
+    abort(t)            ;; --> aborted
+}
+```
 
 ### Spawn
 
@@ -2598,6 +2626,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
 
       | `task´ `(´ Expr `)´                         ;; task
       | `task´ `(´ [Expr] `)´                       ;; tasks pool
+      | `abort´ `(´ Expr `)´                        ;; abortion
 
       | OP Expr                                     ;; pre ops
       | Expr OP Expr                                ;; bin ops

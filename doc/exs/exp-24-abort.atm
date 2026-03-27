@@ -1,0 +1,10 @@
+val T = func () {
+    defer {
+        print("aborted")
+    }
+    await(false)
+}
+do {
+    pin t = spawn T()
+    abort(t)            ;; --> aborted
+}
