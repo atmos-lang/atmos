@@ -103,7 +103,7 @@ do
     assert(check('<eof>'))
     assertx(X.tostring(e2), "@{tag=tag, tk=@{lin=2, sep=2, str=:1._, tag=tag}}")
 
-    local src = "'xxx'\n'''1\n2\n'''"
+    local src = "'xxx'\n'''1\n2\n'''\n' s '"
     print("Testing...", "string 1")
     init()
     lexer_init("anon", src)
@@ -112,6 +112,8 @@ do
     assertx(X.tostring(e1), "@{tag=str, tk=@{lin=1, sep=1, str=xxx, tag=str}}")
     local e2 = parser()
     assertx(X.tostring(e2), "@{tag=str, tk=@{lin=2, sep=2, str=1\n2\n, tag=str}}")
+    local e3 = parser()
+    assertx(X.tostring(e3), "@{tag=str, tk=@{lin=5, sep=5, str= s , tag=str}}")
 
     local src = "```f()```"
     print("Testing...", "native 1")

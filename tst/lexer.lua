@@ -160,7 +160,7 @@ do
     local ok, msg = pcall(LEX)
     assert(not ok and msg=="anon : line 1 : near '0b12' : invalid number")
 
-    local src = "'xx' \"zzz\" '' '\\n\\z10' \"\\d\" '\n"
+    local src = "'xx' \"zzz\" '' '\\n\\z10' \"\\d\" ' s ' '\n"
     print("Testing...", "string 1")
     init()
     lexer_init("anon", src)
@@ -169,6 +169,7 @@ do
     assert(X.tostring(LEX()) == "@{lin=1, sep=1, str=, tag=str}")
     assert(X.tostring(LEX()) == "@{lin=1, sep=1, str=\\n\\z10, tag=str}")
     assert(X.tostring(LEX()) == "@{lin=1, sep=1, str=\\d, tag=str}")
+    assert(X.tostring(LEX()) == "@{lin=1, sep=1, str= s , tag=str}")
     local ok, msg = pcall(LEX)
     assert(not ok and msg=="anon : line 1 : near ''' : unterminated string")
 

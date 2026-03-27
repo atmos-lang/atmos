@@ -8,7 +8,7 @@ do
         print(:2)
         print(nil || 20)
     ]]
-    print("Testing...", "expr 1")
+    print("Testing...", "expr 0")
     local out = atm_test(src)
     assertx(out, "xxx\n2\n20\n")
 
@@ -27,7 +27,21 @@ do
     assertx(out, "abc\n")
 
     local src = [[
-        val s = """
+        print(" b ")
+    ]]
+    print("Testing...", "expr 3")
+    local out = atm_test(src)
+    assertx(out, " b \n")
+
+    local src = [[
+        print('a' ++ " b " ++ 'c')
+    ]]
+    print("Testing...", "expr 4")
+    local out = atm_test(src)
+    assertx(out, "a b c\n")
+
+    local src = [[
+        val s = trim """
             Hello
             World
         """
