@@ -2320,46 +2320,32 @@ print(x, y)     ;; --> X, Y
 
 ### Thread
 
-`TODO: review: no lanes, lower the tone`
-
-A `thread` offloads a block to a real OS thread, allowing
-CPU-intensive work to run in parallel with the atmos scheduler:
+A `thread` executes a block in a real OS thread, allowing CPU-intensive
+computations to run in parallel with the Atmos scheduler:
 
 ```
 Thread : `thread` Block
 ```
 
-The block is wrapped in a plain Lua function and dispatched via
-LuaLanes.
-The calling task suspends until the thread completes, and the
-thread's return value becomes the value of the `thread`
-expression.
+The calling task suspends until the thread completes.
+A thread has access to serialized copies of values in the enclosing scope.
+The whole thread evaluates to the final value of the block.
 
-Upvalues from the enclosing scope are captured by the thread
-body, but only serializable values (numbers, strings, booleans,
-tables of serializable values) can cross the thread boundary.
-Functions, userdata, and coroutines cannot be shared.
+Threads are isolated and cannot use Atmos standard primitives like `await`,
+`emit`, or `spawn`.
 
 Examples:
 
 ```
-val result = thread {
-    ;; heavy computation in a real OS thread
-    val sum = 0
+val v = thread {
+    ;; non-awaiting heavy computation
+    var sum = 0
     loop i in 1000000 {
         set sum = sum + i
     }
     sum
 }
-print(result)
-```
-
-```
-var data = @{1, 2, 3}
-thread {
-    ;; process data in background
-    print(#data)
-}
+print(v)
 ```
 
 # STANDARD LIBRARIES
