@@ -51,18 +51,20 @@ end
 
 -- EXEC
 
---[=[
 do
     local src = [[
         spawn {
-            thread { await 'OK' }
+            thread { await :OK }
         }
+        `os.execute("sleep 0.1")`
+        emit()
     ]]
     print("Testing...", "thread exec 00")
     local out = atm_test(src)
-    assertx(out, "42\n")
+    assertfx(out, trim [[
+        ==> invalid await : expected enclosing task
+    ]])
 end
-]=]
 
 do
     local src = [[
