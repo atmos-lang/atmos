@@ -4,9 +4,11 @@
 2. [External Environments](#2-external-environments)
 3. [Lexical Structure](#3-lexical-structure)
 4. [Compound Statements](#4-compound-statements)
-5. [Functional Streams](#5-functional-streams)
-6. [More about Tasks](#6-more-about-tasks)
-7. [Errors](#7-errors)
+5. [More about Tasks](#5-more-about-tasks)
+6. [Errors](#6-errors)
+7. [Complementary Concurrency Models](#7-complementary-concurrency-models)
+    - [Functional Streams](#71-functional-streams)
+    - [Asynchronous Parallelism](#72-asynchronous-parallelism)
 
 # 1. Tasks & Events
 
@@ -269,92 +271,9 @@ par_and {
 print "X, Y, and Z occurred"
 ```
 
-# 5. Functional Streams
+# 5. More about Tasks
 
-Functional data streams represent incoming values over continuous time, and can
-be combined a pipeline for real-time processing.
-Atmos extends the [f-streams][f-streams] library to interoperate with tasks
-and events.
-
-The next example creates a stream that awaits occurrences of event `:X`:
-
-```
-val S = require "atmos.streams"
-spawn {
-    S.fr_await(:X)
-        ::tap(xprint)
-        ::filter \{ (it.v % 2) == 1 }
-        ::map \{ it.v }
-        ::tap(print)
-        ::to()
-}
-loop i in 10 {
-    await @.1
-    emit :X @{v=i}
-}
-```
-
-The example spawns a dedicated task for the stream pipeline with source
-`S.fr_await(:X)`, which runs concurrently with a loop that generates events
-`:X` carrying field `v=i` on every second.
-The pipeline filters only odd occurrences of `v`, then maps to these values,
-and prints them.
-The syntax `\{ ... }` creates an anonymous function with a single parameter
-`it`.
-The call to sink `to()` activates the stream and starts to pull values from
-the source, making the task to await.
-The loop takes 10 seconds to emit `1,2,...,10`, whereas the stream takes 10
-seconds to print `1,3,...,9`.
-
-The full stream pipeline of the example is analogous to an awaiting loop as
-follows:
-
-```
-loop {
-    print(map(filter(await(:X))))
-}
-```
-
-Atmos also provides stateful streams by supporting tasks as stream sources.
-The next example creates a task stream that packs awaits to `:X` and `:Y` in
-sequence:
-
-```
-func T () {
-    await :X
-    await :Y
-}
-spawn {
-    S.fr_await(T)           ;; XY, XY, ...
-        ::zip(S.from(1))    ;; {XY,1}, {XY,2} , ...
-        ::map \{ it[2] }    ;; 1, 2, ...
-        ::take(2)           ;; 1, 2
-        ::tap(print)
-        ::to()
-}
-emit :X
-emit :X
-emit :Y     ;; 1
-emit :X
-emit :Y     ;; 2
-emit :Y
-```
-
-In the example, `S.fr_await(T)` is a stream of complete executions of task `T`.
-Therefore, each item is generated only after `X` and `Y` occur in sequence.
-The pipeline is zipped with an increasing sequence of numbers, and then mapped
-to only generate the numbers.
-The example only takes the first two numbers, prints them, and terminates.
-
-[f-streams]: https://github.com/lua-atmos/f-streams/tree/v0.2
-
-`TODO: better task example (deb?)`
-
-`TODO: safe finalization of stateful (task-based) streams`
-
-# 6. More about Tasks
-
-## 6.1. Public Data
+## 5.1. Public Data
 
 Each task has a special variable `pub` to expose public data to the outside:
 
@@ -366,7 +285,7 @@ pin t = spawn T()
 print(t.pub)        ;; reads `pub` of `t` (10)
 ```
 
-## 6.2. Task Pools
+## 5.2. Task Pools
 
 A task pool, created with the `tasks` primitive, allows that multiple tasks
 share a parent container in the hierarchy.
@@ -408,7 +327,7 @@ loop _,t in ts {
 If we include this loop after the `await @1` in the previous example, it will
 print the task ids that did not awake.
 
-## 6.3. Task Toggling
+## 5.3. Task Toggling
 
 A task can be toggled off (and back to on) to remain alive but unresponsive
 (and back to responsive) to upcoming events:
@@ -447,7 +366,7 @@ emit(:X, true)     ;; body above toggles on
 await @1
 ```
 
-# 7. Errors
+# 6. Errors
 
 Atmos provides `throw` and `catch` primitives to handle errors, which take in
 consideration the task hierarchy, i.e., a parent task catches errors from child
@@ -482,7 +401,7 @@ Outside the task hierarchy, we `emit :X`, which only awakes the nested task.
 Nevertheless, the error propagates up in the task hierarchy until it is caught
 by the top-level task, returning `false` and the error `:Y`.
 
-## 7.1. Bidimensional Stack Traces
+## 6.1. Bidimensional Stack Traces
 
 An error trace may cross multiple tasks from a series of emits and awaits,
 e.g.: an `emit` in one task awakes an `await` in another task, which may `emit`
@@ -521,3 +440,146 @@ line 8, before throwing the error in line 3:
  v  x.lua:3 (throw) <- x.lua:8 (task) <- x.lua:6 (tasks)
 ==> error
 ```
+
+# 7. Complementary Concurrency Models
+
+Atmos complements its core synchronous concurrency model with two
+additional mechanisms:
+    functional streams for reactive data processing, and
+    asynchronous parallelism for CPU-bound computations.
+
+## 7.1. Functional Streams
+
+Functional data streams represent incoming values over continuous time, and can
+be combined a pipeline for real-time processing.
+Atmos extends the [f-streams][f-streams] library to interoperate with tasks
+and events.
+
+The next example creates a stream that awaits occurrences of event `:V`:
+
+```
+val S = require "atmos.streams"
+val X = require "atmos.x"
+spawn {
+    S.fr_await(:V)
+        ::tap(X.print)
+        ::filter \{ (it.v % 2) == 1 }
+        ::map \{ it.v }
+        ::tap(print)
+        ::to()
+}
+loop i in 10 {
+    await @.1
+    emit :V @{v=i}
+}
+```
+
+The example spawns a dedicated task for the stream pipeline with source
+`S.fr_await(:V)`, which runs concurrently with a loop that generates events
+`:V` carrying field `v=i` on every second.
+The pipeline filters only odd occurrences of `v`, then maps to these values,
+and prints them.
+The syntax `\{ ... }` creates an anonymous function with a single parameter
+`it`.
+The call to sink `to()` activates the stream and starts to pull values from
+the source, making the task to await.
+The loop takes 10 seconds to emit `1,2,...,10`, whereas the stream takes 10
+seconds to print `1,3,...,9`.
+
+The full stream pipeline of the example is analogous to an awaiting loop as
+follows:
+
+```
+loop {
+    print(map(filter(await(:V))))
+}
+```
+
+Atmos also provides stateful streams by supporting tasks as stream sources.
+The next example creates a task stream that packs awaits to `:X` and `:Y` in
+sequence:
+
+```
+func T () {
+    await :X
+    await :Y
+}
+spawn {
+    S.fr_await(T)           ;; XY, XY, ...
+        ::zip(S.from(1))    ;; {XY,1}, {XY,2} , ...
+        ::map \{ it[2] }    ;; 1, 2, ...
+        ::take(2)           ;; 1, 2
+        ::tap(print)
+        ::to()
+}
+emit :X
+emit :X
+emit :Y     ;; 1
+emit :X
+emit :Y     ;; 2
+emit :Y
+```
+
+In the example, `S.fr_await(T)` is a stream of complete executions of task `T`.
+Therefore, each item is generated only after `X` and `Y` occur in sequence.
+The pipeline is zipped with an increasing sequence of numbers, and then mapped
+to only generate the numbers.
+The example only takes the first two numbers, prints them, and terminates.
+
+[f-streams]: https://github.com/lua-atmos/f-streams/tree/v0.2
+
+`TODO: better task example (deb?)`
+
+`TODO: safe finalization of stateful (task-based) streams`
+
+## 7.2. Asynchronous Parallelism
+
+The `thread` primitive offloads a computation to an isolated OS thread,
+allowing CPU-bound work without blocking the Atmos cooperative scheduler.
+
+The next example spawns two threads to calculate heavy `cpu` sums:
+
+```
+require "atmos.env.clock"
+
+math.randomseed()
+
+val func cpu (max) {
+    var sum = 0
+    loop i in max {
+        set sum = sum + i
+    }
+    sum
+}
+
+val t = watching @20 {
+    par_or {
+        val v = thread {
+            cpu(math.random(10000000000))
+        }
+        @{worker="A", value=v}
+    } with {
+        val v = thread {
+            cpu(math.random(10000000000))
+        }
+        @{worker="B", value=v}
+    }
+}
+
+if t == :clock {
+    print("Computation timeout...")
+} else {
+    print(t.worker ++ " yields " ++ t.value)
+}
+```
+
+A `thread` suspends the calling task until it terminates.
+In the meantime, the other tasks can react to events normally.
+
+In the example, the program terminates when either thread completes with the
+result, aborting the other thread.
+Also, if none of the threads complete, they are automatically aborted by the
+enclosing timeout `watching`.
+
+Threads are isolated: they may receive copies of upvalues, but cannot use
+Atmos standard primitives like `await`, `emit`, or `spawn`.
