@@ -22,10 +22,8 @@ function atm_test (src, tst)
     atmos = require "atmos"
     X = require "atmos.x"
     require "atmos.lang.run"
-    atmos.thread = {
-        "atmos",
-        "atmos.lang.run",
-    }
+    atmos.thread_modules[#atmos.thread_modules+1] = "atmos"
+    atmos.thread_modules[#atmos.thread_modules+1] = "atmos.lang.run"
 
     local ok, err = pcall(atmos.loop,f)
     print = PRINT
