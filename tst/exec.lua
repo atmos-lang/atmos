@@ -2596,6 +2596,14 @@ do
     print("Testing...", "in 1")
     local out = atm_test(src)
     assertx(out, "true\nfalse\nfalse\ntrue\n")
+
+    local src = [[
+        print(@{tag=@{}} ?? :number)
+    ]]
+    print("Testing...", "is 5")
+    local out = atm_test(src)
+    assertx(out, "false\n")
+
 end
 
 print '--- CALL / METHOD / PIPE ---'
