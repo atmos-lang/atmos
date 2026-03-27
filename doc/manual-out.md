@@ -3,9 +3,9 @@
 - <a href="#design">1.</a> DESIGN
     - <a href="#structured-deterministic-concurrency">1.1.</a> Structured Deterministic Concurrency
     - <a href="#event-signaling-mechanisms">1.2.</a> Event Signaling Mechanisms
-    - <a href="#functional-streams">1.3.</a> Functional Streams
-    - <a href="#hierarchical-tags">1.4.</a> Hierarchical Tags
-    - <a href="#integration-with-lua">1.5.</a> Integration with Lua
+    - <a href="#hierarchical-tags">1.3.</a> Hierarchical Tags
+    - <a href="#integration-with-lua">1.4.</a> Integration with Lua
+    - <a href="#complementary-concurrency-models">1.5.</a> Complementary Concurrency Models
 - <a href="#execution">2.</a> EXECUTION
     - <a href="#environments">2.1.</a> Environments
 - <a href="#lexicon">3.</a> LEXICON
@@ -72,9 +72,9 @@
 
 # 1. DESIGN
 
-Atmos is a programming language that reconciles *[Structured Concurrency][sc]*,
-*[Event-Driven Programming][events]*, and *[Functional Streams][streams]*,
-extending classical structured programming with three main functionalities:
+Atmos is a programming language that reconciles *[Structured Concurrency][sc]*
+and *[Event-Driven Programming][events]*, extending classical structured
+programming with two main functionalities:
 
 - Structured Deterministic Concurrency:
     - A `task` primitive with deterministic scheduling provides predictable
@@ -88,13 +88,17 @@ extending classical structured programming with three main functionalities:
 - Event Signaling Mechanisms:
     - An `await` primitive suspends a task and waits for events.
     - An `emit` primitive signals events and awakes awaiting tasks.
-- Functional Streams (à la [ReactiveX][rx]):
-    - *(experimental)*
-    - Functional combinators for lazy (infinite) lists.
-    - Interoperability with tasks & events:
-        tasks and events as streams, and
-        streams as events.
-    - Safe finalization of stateful (task-based) streams.
+
+Atmos also complements its core synchronous concurrency model with
+    *[Functional Streams][streams]* (à la [ReactiveX][rx]) and
+    [Multithreading Parallelism][threads] (via [LuaLanes][lanes]):
+
+- Functional Streams:
+    - Interoperability with tasks & events.
+    - Safe finalization of stateful streams.
+- Asynchronous Parallelism:
+    - A `thread` primitive offloads computations to isolated OS threads.
+    - Safe abortion and finalization for threads.
 
 <!--
 - Lexical Memory Management *(experimental)*:
@@ -125,7 +129,9 @@ Atmos is in **experimental stage**.
 
 In the rest of this section, we introduce key aspects of Atmos:
 *Structured Deterministic Concurrency*, *Event Signaling Mechanisms*,
-*Functional Streams*, *Hierarchical Tags*, and *Integration with Lua*.
+*Hierarchical Tags*, *Integration with Lua*, and
+*Complementary Concurrency Models* (*Functional Streams* and
+*Asynchronous Parallelism*).
 
 [sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
 [events]:       https://en.wikipedia.org/wiki/Event-driven_programming
@@ -135,6 +141,8 @@ In the rest of this section, we introduce key aspects of Atmos:
 [ceu]:          http://www.ceu-lang.org/
 [esterel]:      https://en.wikipedia.org/wiki/Esterel
 [lua]:          https://www.lua.org/
+[threads]:      https://en.wikipedia.org/wiki/Thread_(computing)
+[lanes]:        https://lualanes.github.io/lanes/
 [lua-atmos]:    https://github.com/lua-atmos/atmos/
 [syms]:         https://en.wikipedia.org/wiki/Symbol_(programming)
 
@@ -269,15 +277,9 @@ terminating the main body.
 
 `TODO`
 
-<a name="functional-streams"/>
-
-## 1.3. Functional Streams
-
-`TODO`
-
 <a name="hierarchical-tags"/>
 
-## 1.4. Hierarchical Tags
+## 1.3. Hierarchical Tags
 
 Tags represent unique human-readable values, and are similar to Lua strings or
 [*symbols* or *atoms*][syms] in other programming languages.
@@ -329,7 +331,7 @@ print(t ?? :T)              ;; --> true
 
 <a name="integration-with-lua"/>
 
-## 1.5. Integration with Lua
+## 1.4. Integration with Lua
 
 `TODO`
 
@@ -339,7 +341,7 @@ print(t ?? :T)              ;; --> true
 
 <a name="lua-vs-atmos-subtleties"/>
 
-### 1.5.1. Lua vs Atmos Subtleties
+### 1.4.1. Lua vs Atmos Subtleties
 
 While most differences between Lua and Atmos are clear, some subtleties are
 worth mentioning:
@@ -376,18 +378,23 @@ worth mentioning:
         - The reason is to avoid identifiers as operators and to use familiar
           and consistent alternatives.
 
-<!--
-The compiler of Atmos converts an input program into an output in C, which is
-further compiled to a final executable file.
-For this reason, Atmos has source-level compatibility with C, allowing it to
-embed native expressions in programs.
+<a name="complementary-concurrency-models"/>
 
-- gcc
-- :pre
-- $x.Tag
-- tag,char,boolean,number C types
-- C errors
--->
+## 1.5. Complementary Concurrency Models
+
+`TODO`
+
+<a name="functional-streams"/>
+
+### 1.5.1. Functional Streams
+
+`TODO`
+
+<a name="asynchronous-parallelism"/>
+
+### 1.5.2. Asynchronous Parallelism
+
+`TODO`
 
 <a name="execution"/>
 
@@ -2136,13 +2143,43 @@ throw :X
 
 ## 5.9. Task Operations
 
-<!--
-- [abort](#TODO): `TODO`
--->
+The [task](#task) and [pool of tasks](#tasks) primitives support a number of
+operations.
+
+<a name="abort"/>
+
+### 5.9.1. Abort
+
+An `abort` receives a [task](#task) or a [tasks](#tasks) value, and immediately
+aborts it:
+
+```
+Abort : `abort´ `(´ Expr `)´
+```
+
+All nested tasks are also aborted.
+All nested [deferred](#defer) statements execute.
+
+Examples:
+
+<!-- exs/exp-24-abort.atm -->
+
+```
+val T = func () {
+    defer {
+        print("aborted")
+    }
+    await(false)
+}
+do {
+    pin t = spawn T()
+    abort(t)            ;; --> aborted
+}
+```
 
 <a name="spawn"/>
 
-### 5.9.1. Spawn
+### 5.9.2. Spawn
 
 A `spawn` receives a [task](#task), [function](#function), or [block](#blocks)
 and starts it as a task:
@@ -2181,7 +2218,7 @@ pin t = spawn {}            ;; ERR: cannot assign
 
 <a name="await"/>
 
-### 5.9.2. Await
+### 5.9.3. Await
 
 An `await` suspends a [task](#task) until a matching [emit](#emit) occurs:
 
@@ -2236,7 +2273,7 @@ print(v)                ;; --> 20
 
 <a name="emit"/>
 
-### 5.9.3. Emit
+### 5.9.4. Emit
 
 An `emit` broadcasts an event that can awake [awaiting](#await) tasks:
 
@@ -2271,7 +2308,7 @@ func T () {
 
 <a name="toggle"/>
 
-### 5.9.4. Toggle
+### 5.9.5. Toggle
 
 A `toggle` configures a task to either consider or disregard further
 [emit](#emit) operations:
@@ -2330,7 +2367,7 @@ emit(:E, 3)
 
 <a name="every"/>
 
-### 5.9.5. Every
+### 5.9.6. Every
 
 An `every` is a [loop](#loop) that makes an iteration whenever an
 [await](#await) condition is satisfied:
@@ -2360,7 +2397,7 @@ every it in :X {    ;; <-- (`emit :X @{v=10}`)
 
 <a name="watching"/>
 
-#### 5.9.5.1. Watching
+#### 5.9.6.1. Watching
 
 A `watching` spawns and awaits a block as a
 [transparent task](#transparent-task) until an [await](#await) condition is
@@ -2384,7 +2421,7 @@ watching @1 {
 
 <a name="parallels"/>
 
-### 5.9.6. Parallels
+### 5.9.7. Parallels
 
 A parallel statement spawns multiple [transparent tasks](#transparent-task):
 
@@ -2458,46 +2495,32 @@ print(x, y)     ;; --> X, Y
 
 ### 5.10.2. Thread
 
-`TODO: review: no lanes, lower the tone`
-
-A `thread` offloads a block to a real OS thread, allowing
-CPU-intensive work to run in parallel with the atmos scheduler:
+A `thread` executes a block in a real OS thread, allowing CPU-intensive
+computations to run in parallel with the Atmos scheduler:
 
 ```
 Thread : `thread` Block
 ```
 
-The block is wrapped in a plain Lua function and dispatched via
-LuaLanes.
-The calling task suspends until the thread completes, and the
-thread's return value becomes the value of the `thread`
-expression.
+The calling task suspends until the thread completes.
+A thread has access to serialized copies of values in the enclosing scope.
+The whole thread evaluates to the final value of the block.
 
-Upvalues from the enclosing scope are captured by the thread
-body, but only serializable values (numbers, strings, booleans,
-tables of serializable values) can cross the thread boundary.
-Functions, userdata, and coroutines cannot be shared.
+Threads are isolated and cannot use Atmos standard primitives like `await`,
+`emit`, or `spawn`.
 
 Examples:
 
 ```
-val result = thread {
-    ;; heavy computation in a real OS thread
-    val sum = 0
+val v = thread {
+    ;; non-awaiting heavy computation
+    var sum = 0
     loop i in 1000000 {
         set sum = sum + i
     }
     sum
 }
-print(result)
-```
-
-```
-var data = @{1, 2, 3}
-thread {
-    ;; process data in background
-    print(#data)
-}
+print(v)
 ```
 
 <a name="standard-libraries"/>
@@ -2775,6 +2798,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
 
       | `task´ `(´ Expr `)´                         ;; task
       | `task´ `(´ [Expr] `)´                       ;; tasks pool
+      | `abort´ `(´ Expr `)´                        ;; abortion
 
       | OP Expr                                     ;; pre ops
       | Expr OP Expr                                ;; bin ops
