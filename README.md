@@ -21,8 +21,8 @@ Stable branch is [`v0.6`](https://github.com/atmos-lang/atmos/tree/v0.6).
     [About](#about)                 |
     [Hello World!](#hello-world)    |
     [Install & Run](#install--run)  |
-    [Environments](#environments)   |
     [Documentation](#documentation) |
+    [Environments](#environments)   |
     [Resources](#resources)
 ]
 

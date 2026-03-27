@@ -43,7 +43,7 @@ sudo luarocks make atmos-lang-0.6-1.rockspec --lua-version=5.4
 
 - Manual tests:
     - [x] README.md
-    - [ ] doc/guide.md
+    - [x] doc/guide.md — restructured to match lua-atmos, added section 7.2 (threads)
 
 ### 3.1 Adapt pico-* to pico-lua v0.3 (done)
 
