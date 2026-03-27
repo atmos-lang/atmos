@@ -18,13 +18,13 @@ description = {
           behavior and safe abortion.
         - Structured primitives compose concurrent tasks with lexical scope (e.g.,
           `watching`, `every`, `par_or`).
-        - A `tasks` container primitive holds attached tasks and control their
+        - A `tasks` container primitive holds attached tasks and controls their
           lifecycle.
         - A `pin` declaration attaches a task or tasks to its enclosing lexical
           scope.
     - Event Signaling Mechanisms:
-        - An `await` primitive suspends a task and wait for events.
-        - An `emit` primitive signals events and awake awaiting tasks.
+        - An `await` primitive suspends a task and waits for events.
+        - An `emit` primitive signals events and awakes awaiting tasks.
 
     Atmos is inspired by synchronous programming languages like Céu
     and Esterel.

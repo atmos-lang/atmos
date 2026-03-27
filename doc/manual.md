@@ -3,9 +3,9 @@
 * DESIGN
     * Structured Deterministic Concurrency
     * Event Signaling Mechanisms
-    * Functional Streams
     * Hierarchical Tags
     * Integration with Lua
+    * Complementary Concurrency Models
 * EXECUTION
     * Environments
 * LEXICON
@@ -70,9 +70,9 @@
 
 # DESIGN
 
-Atmos is a programming language that reconciles *[Structured Concurrency][sc]*,
-*[Event-Driven Programming][events]*, and *[Functional Streams][streams]*,
-extending classical structured programming with three main functionalities:
+Atmos is a programming language that reconciles *[Structured Concurrency][sc]*
+and *[Event-Driven Programming][events]*, extending classical structured
+programming with two main functionalities:
 
 - Structured Deterministic Concurrency:
     - A `task` primitive with deterministic scheduling provides predictable
@@ -86,13 +86,17 @@ extending classical structured programming with three main functionalities:
 - Event Signaling Mechanisms:
     - An `await` primitive suspends a task and waits for events.
     - An `emit` primitive signals events and awakes awaiting tasks.
-- Functional Streams (à la [ReactiveX][rx]):
-    - *(experimental)*
-    - Functional combinators for lazy (infinite) lists.
-    - Interoperability with tasks & events:
-        tasks and events as streams, and
-        streams as events.
-    - Safe finalization of stateful (task-based) streams.
+
+Atmos also complements its core synchronous concurrency model with
+    *[Functional Streams][streams]* (à la [ReactiveX][rx]) and
+    [Multithreading Parallelism][threads] (via [LuaLanes][lanes]):
+
+- Functional Streams:
+    - Interoperability with tasks & events.
+    - Safe finalization of stateful streams.
+- Asynchronous Parallelism:
+    - A `thread` primitive offloads computations to isolated OS threads.
+    - Safe abortion and finalization for threads.
 
 <!--
 - Lexical Memory Management *(experimental)*:
@@ -123,7 +127,9 @@ Atmos is in **experimental stage**.
 
 In the rest of this section, we introduce key aspects of Atmos:
 *Structured Deterministic Concurrency*, *Event Signaling Mechanisms*,
-*Functional Streams*, *Hierarchical Tags*, and *Integration with Lua*.
+*Hierarchical Tags*, *Integration with Lua*, and
+*Complementary Concurrency Models* (*Functional Streams* and
+*Asynchronous Parallelism*).
 
 [sc]:           https://en.wikipedia.org/wiki/Structured_concurrency
 [events]:       https://en.wikipedia.org/wiki/Event-driven_programming
@@ -133,6 +139,8 @@ In the rest of this section, we introduce key aspects of Atmos:
 [ceu]:          http://www.ceu-lang.org/
 [esterel]:      https://en.wikipedia.org/wiki/Esterel
 [lua]:          https://www.lua.org/
+[threads]:      https://en.wikipedia.org/wiki/Thread_(computing)
+[lanes]:        https://lualanes.github.io/lanes/
 [lua-atmos]:    https://github.com/lua-atmos/atmos/
 [syms]:         https://en.wikipedia.org/wiki/Symbol_(programming)
 
@@ -261,10 +269,6 @@ terminating the main body.
 
 `TODO`
 
-## Functional Streams
-
-`TODO`
-
 ## Hierarchical Tags
 
 Tags represent unique human-readable values, and are similar to Lua strings or
@@ -360,18 +364,17 @@ worth mentioning:
         - The reason is to avoid identifiers as operators and to use familiar
           and consistent alternatives.
 
-<!--
-The compiler of Atmos converts an input program into an output in C, which is
-further compiled to a final executable file.
-For this reason, Atmos has source-level compatibility with C, allowing it to
-embed native expressions in programs.
+## Complementary Concurrency Models
 
-- gcc
-- :pre
-- $x.Tag
-- tag,char,boolean,number C types
-- C errors
--->
+`TODO`
+
+### Functional Streams
+
+`TODO`
+
+### Asynchronous Parallelism
+
+`TODO`
 
 # EXECUTION
 

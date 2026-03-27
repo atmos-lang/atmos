@@ -30,22 +30,22 @@ Stable branch is [`v0.6`](https://github.com/atmos-lang/atmos/tree/v0.6).
 
 # About
 
-Atmos is a programming language that reconciles *[Structured
-Concurrency][sc]* and *[Event-Driven Programming][events]*, extending classical
-structured programming with two main functionalities:
+Atmos is a programming language that reconciles *[Structured Concurrency][sc]*
+and *[Event-Driven Programming][events]*, extending classical structured
+programming with two main functionalities:
 
 - Structured Deterministic Concurrency:
     - A `task` primitive with deterministic scheduling provides predictable
       behavior and safe abortion.
     - Structured primitives compose concurrent tasks with lexical scope (e.g.,
       `watching`, `every`, `par_or`).
-    - A `tasks` container primitive holds attached tasks and control their
+    - A `tasks` container primitive holds attached tasks and controls their
       lifecycle.
     - A `pin` declaration attaches a task or tasks to its enclosing lexical
       scope.
 - Event Signaling Mechanisms:
-    - An `await` primitive suspends a task and wait for events.
-    - An `emit` primitive signals events and awake awaiting tasks.
+    - An `await` primitive suspends a task and waits for events.
+    - An `emit` primitive signals events and awakes awaiting tasks.
 
 Atmos also complements its core synchronous concurrency model with
     *[Functional Streams][streams]* (à la [ReactiveX][rx]) and
