@@ -28,5 +28,9 @@ cmd:flag("-t --test", "Enable test blocks.")
 cmd = cmd:parse()
 
 atmos.test = cmd.test
+atmos.thread = {
+    "atmos",
+    "atmos.lang.run",
+}
 
 atmos.loop(assert(atm_loadfile(cmd.input)), table.unpack(cmd.args))

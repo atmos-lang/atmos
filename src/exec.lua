@@ -18,9 +18,15 @@ function atm_test (src, tst)
         print = PRINT
         return err
     end
+
     atmos = require "atmos"
     X = require "atmos.x"
     require "atmos.lang.run"
+    atmos.thread = {
+        "atmos",
+        "atmos.lang.run",
+    }
+
     local ok, err = pcall(atmos.loop,f)
     print = PRINT
     if ok then

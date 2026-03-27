@@ -51,6 +51,19 @@ end
 
 -- EXEC
 
+--[=[
+do
+    local src = [[
+        spawn {
+            thread { await 'OK' }
+        }
+    ]]
+    print("Testing...", "thread exec 00")
+    local out = atm_test(src)
+    assertx(out, "42\n")
+end
+]=]
+
 do
     local src = [[
         spawn {
@@ -60,7 +73,71 @@ do
         `os.execute("sleep 0.1")`
         emit()
     ]]
-    print("Testing...", "thread exec")
+    print("Testing...", "thread exec 01")
     local out = atm_test(src)
     assertx(out, "42\n")
+end
+
+do
+    local src = [[
+        spawn {
+            val v = thread {
+                ;; non-awaiting heavy computation
+                var sum = 0
+                loop i in 100 {
+                    set sum = sum + i
+                }
+                sum
+            }
+            print(v)
+        }
+        `os.execute("sleep 0.1")`
+        emit()
+    ]]
+    print("Testing...", "thread exec 02")
+    local out = atm_test(src)
+    assertx(out, "5050\n")
+end
+
+do
+    local src = [[
+        math.randomseed()
+
+        val func cpu (max) {
+            var sum = 0
+            loop i in max {
+                set sum = sum + i
+            }
+            sum
+        }
+
+        spawn {
+            val t = watching @20 {
+                par_or {
+                    val v = thread {
+                        loop {
+                            cpu(math.random(10000000))
+                        }
+                    }
+                    @{worker="A", value=v}
+                } with {
+                    val v = thread {
+                        cpu(100)
+                    }
+                    @{worker="B", value=v}
+                }
+            }
+
+            if t == :clock {
+                print("Computation timeout...")
+            } else {
+                print(t.worker ++ " yields " ++ t.value)
+            }
+        }
+        `os.execute("sleep 0.1")`
+        emit()
+    ]]
+    print("Testing...", "thread exec 03")
+    local out = atm_test(src)
+    assertx(out, "B yields 5050\n")
 end
