@@ -232,7 +232,8 @@ local function check_call_arg ()
 end
 
 function parser_2_suf (pre)
-    local no = check('emit') or check('spawn') or check('toggle') or check('thread')
+    local no = check('emit') or check('spawn') or
+               check('toggle') or check('thread')
     local e = pre or parser_1_prim()
 
     local ok = (not no) and is_prefix(e) and

@@ -1385,3 +1385,35 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "toggle(f)")
 end
+
+print '--- ABORT ---'
+
+do
+    local src = "abort(t)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "abort(t)")
+
+    local src = "abort x"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(not check('<eof>'))
+    local e = parser()
+    assert(check('<eof>'))
+
+    local src = "abort"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "abort")
+end

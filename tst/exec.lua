@@ -2044,6 +2044,16 @@ do
     print("Testing...", "task abort loop")
     local out = atm_test(src)
     assertx(out, "in\nout\n")
+
+    local src = "abort(1) ; nil"
+    print("Testing...", "abort 1: err")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (loop)
+         v  [string "anon.atm"]:1 (throw)
+        ==> invalid abort : expected task
+    ]])
 end
 
 print '--- TASKS ---'

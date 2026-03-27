@@ -1717,6 +1717,69 @@ print '--- ABORTION ---'
 
 do
     local src = [[
+        var T = func () {
+            defer {
+                print(:defer)
+            }
+            await(false)
+            print(:no)
+        }
+        spawn {
+            pin t = spawn T()
+            abort(t)
+            emit(true)
+        }
+    ]]
+    print("Testing...", "abort 3: explicit from outside")
+    local out = atm_test(src)
+    assertx(out, "defer\n")
+end
+
+do
+    local src = [[
+        spawn {
+            print(:before)
+            defer {
+                print(:defer)
+            }
+            abort(`task()`)
+            print(:no)
+        }
+    ]]
+    print("Testing...", "abort 4: explicit self-abort")
+    local out = atm_test(src)
+    assertx(out, "before\ndefer\n")
+end
+
+do
+    local src = [[
+        spawn {
+            pin ts = tasks()
+            spawn [ts] (func () {
+                defer {
+                    print(:1)
+                }
+                await(true)
+                print(:no1)
+            }) ()
+            spawn [ts] (func () {
+                defer {
+                    print(:2)
+                }
+                await(true)
+                print(:no2)
+            }) ()
+            abort(ts)
+            emit(true)
+        }
+    ]]
+    print("Testing...", "abort 5: explicit tasks container")
+    local out = atm_test(src)
+    assertx(out, "1\n2\n")
+end
+
+do
+    local src = [[
         spawn (
             func () {
                 defer {
