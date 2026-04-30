@@ -20,29 +20,31 @@ require "atmos.env.clock"
 ;; Atmos scheduler keeps reacting to events (timeouts, abort).
 val func ask (model, prompt) {
     thread {
-        `(function ()
-            local http  = require "socket.http"
-            local ltn12 = require "ltn12"
-            local body  = string.format(
-                '{"model":"%s","prompt":"%s","stream":false}',
-                model, prompt:gsub('"', '\\"')
-            )
-            local resp = {}
-            local _, code = http.request {
-                url     = "http://localhost:11434/api/generate",
-                method  = "POST",
-                headers = {
-                    ["Content-Type"]   = "application/json",
-                    ["Content-Length"] = tostring(#body),
-                },
-                source = ltn12.source.string(body),
-                sink   = ltn12.sink.table(resp),
-            }
-            local raw = table.concat(resp)
-            return (raw:match('"response"%s*:%s*"(.-)"') or raw)
-                :gsub('\\n', '\n')
-                :gsub('\\"', '"')
-        end)()`
+        val http  = `require "socket.http"`
+        val ltn12 = `require "ltn12"`
+
+        ;; Escape `"` in the prompt and build the JSON body by hand.
+        val esc = prompt::gsub('"', '\\"')
+        val req = '{"model":"' ++ model
+            ++ '","prompt":"' ++ esc
+            ++ '","stream":false}'
+
+        val resp = @{}
+        http.request(@{
+            url     = "http://localhost:11434/api/generate",
+            method  = "POST",
+            headers = @{
+                ["Content-Type"]   = "application/json",
+                ["Content-Length"] = tostring(#req),
+            },
+            source = ltn12.source.string(req),
+            sink   = ltn12.sink.table(resp),
+        })
+
+        ;; Pull the "response" field out of the JSON reply.
+        val raw = `table.concat`(resp)
+        val ans = raw::match('"response"%s*:%s*"(.-)"') || raw
+        ans::gsub('\\n', '\n')::gsub('\\"', '"')
     }
 }
 
