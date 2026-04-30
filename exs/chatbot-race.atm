@@ -1,0 +1,65 @@
+;; Parallel chatbot race against a local llama (Ollama) server.
+;;
+;; Two sessions ask the same prompt to two different models in parallel.
+;; Each call is a blocking HTTP request, so it runs inside a `thread`
+;; to avoid stalling the Atmos scheduler.
+;; `par_or` lets the first thread that completes win and aborts the
+;; loser. The whole race is wrapped in a `loop` to restart it.
+;;
+;; Requires:
+;;   - luarocks install luasocket
+;;   - a running Ollama server with the listed models pulled, e.g.:
+;;       ollama pull llama3.2:1b
+;;       ollama pull llama3.2:3b
+
+require "atmos"
+require "atmos.env.clock"
+
+;; Send `prompt` to `model` and return its answer.
+;; Runs the blocking HTTP call inside an OS thread so the
+;; Atmos scheduler keeps reacting to events (timeouts, abort).
+val func ask (model, prompt) {
+    thread {
+        `(function ()
+            local http  = require "socket.http"
+            local ltn12 = require "ltn12"
+            local body  = string.format(
+                '{"model":"%s","prompt":"%s","stream":false}',
+                model, prompt:gsub('"', '\\"')
+            )
+            local resp = {}
+            local _, code = http.request {
+                url     = "http://localhost:11434/api/generate",
+                method  = "POST",
+                headers = {
+                    ["Content-Type"]   = "application/json",
+                    ["Content-Length"] = tostring(#body),
+                },
+                source = ltn12.source.string(body),
+                sink   = ltn12.sink.table(resp),
+            }
+            local raw = table.concat(resp)
+            return (raw:match('"response"%s*:%s*"(.-)"') or raw)
+                :gsub('\\n', '\n')
+                :gsub('\\"', '"')
+        end)()`
+    }
+}
+
+val PROMPT = "In one short sentence, what is the capital of France?"
+
+loop i {
+    print("=== race " ++ i ++ " ===")
+    val winner = par_or {
+        val a = ask("llama3.2:1b", PROMPT)
+        @{model="llama3.2:1b", answer=a}
+    } with {
+        val b = ask("llama3.2:3b", PROMPT)
+        @{model="llama3.2:3b", answer=b}
+    }
+    print("winner: " ++ winner.model)
+    print(winner.answer)
+
+    ;; Pace the restart loop so we don't hammer the server.
+    await @1
+}
