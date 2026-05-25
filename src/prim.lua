@@ -11,6 +11,39 @@ local function spawn (lin, blk)
     }
 end
 
+-- Rewrites &&/||/! inside await-pattern positions (await/watching/every
+-- arguments) into the lua-atmos table format {'or'|'and'|'not', ...}.
+-- Descends through parens and through nested &&/|| trees; stops at any
+-- other node (calls, lambdas, literals, tags) preserving Lua semantics
+-- elsewhere.
+local function await_ast_logical (e)
+    local function f (name, args)
+        local es = {
+            {
+                k = { tag='num', tk={tag='num', str='1'} },
+                v = { tag='str', tk={tag='str', str=name} },
+            },
+        }
+        for i, a in ipairs(args) do
+            es[#es+1] = {
+                k = { tag='num', tk={tag='num', str=tostring(i+1)} },
+                v = await_ast_logical(a),
+            }
+        end
+        return { tag='table', es=es }
+    end
+    if e.tag == 'parens' then
+        return await_ast_logical(e.e)
+    elseif (e.tag == 'bin') and (e.op.str=='&&' or e.op.str=='||') then
+        local name = (e.op.str=='&&') and 'and' or 'or'
+        return f(name, { e.e1, e.e2 })
+    elseif (e.tag == 'uno') and (e.op.str == '!') then
+        return f('not', { e.e })
+    else
+        return e
+    end
+end
+
 function parser_spawn ()
     accept_err('spawn')
     if check('{') then
@@ -184,6 +217,9 @@ function parser_1_prim ()
                 local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
                 if call.tag ~= 'call' then
                     err(tk, "expected call syntax")
+                end
+                if call.es[1] then
+                    call.es[1] = await_ast_logical(call.es[1])
                 end
                 return parser_7_out(call)
             end
@@ -653,6 +689,9 @@ function parser_1_prim ()
                 end
                 awt = parser_list(',', '{', parser)
             end
+            if awt[1] then
+                awt[1] = await_ast_logical(awt[1])
+            end
             local blk = parser_block()
             local cb = { tag='func', lua=true, pars=ids, blk=blk }
             return {
@@ -683,6 +722,9 @@ function parser_1_prim ()
         -- watching
         elseif accept('watching') then
             local awt = parser_list(',', '{', parser)
+            if awt[1] then
+                awt[1] = await_ast_logical(awt[1])
+            end
             local blk = parser_block()
             return {
                 tag = 'call',
