@@ -3421,6 +3421,35 @@ do
     print("Testing...", "every table")
     local out = atm_test(src)
     assertx(out, "10\n")
+
+    local src = [[
+        spawn {
+            every true {
+                break()
+            }
+            print(:ok)
+        }
+        emit(:ok)
+    ]]
+    print("Testing...", "every-break")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        spawn {
+            watching :Z {
+                every :X {
+                    break()
+                }
+                print(:inner)
+            }
+            print(:outer)
+        }
+        emit(:X)
+    ]]
+    print("Testing...", "every-break in watching")
+    local out = atm_test(src)
+    assertx(out, "inner\nouter\n")
 end
 
 print '--- PAR / PAR_AND / PAR_OR / WATCHING ---'
