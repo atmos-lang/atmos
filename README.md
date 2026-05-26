@@ -103,13 +103,23 @@ The program body is a task in Atmos that behaves as follows:
 
 # Install & Run
 
+## Luarocks
+
 ```
 sudo luarocks --lua-version=5.4 install atmos-lang 0.6
-atmos <lua-path>/atmos/lang/exs/hello.lua
+atmos <lua-path>/atmos/lang/exs/hello.atm
 ```
 
-You may also clone the repository and copy part of the source tree, as follows,
-into your `lua-atmos` path (e.g., `/usr/local/share/lua/5.4/atmos/`):
+## Development
+
+From `luarocks.org`:
+
+```
+sudo luarocks --lua-version=5.4 install --dev atmos-lang
+```
+
+You may also copy part of the source tree into your `lua-atmos` path (e.g.,
+`/usr/local/share/lua/5.4/atmos/`), as follows:
 
 ```
 TODO
