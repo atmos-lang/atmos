@@ -93,4 +93,58 @@ do
     print("Testing...", "op_every 1")
     local out = atm_test(src)
     assertx(out, "tick\ntick\ntick\n")
+
+    local src = [[
+        spawn {
+            await(:X || @.5)
+            print(:ok)
+        }
+        emit(@.5)
+    ]]
+    print("Testing...", "op_clock_or 1")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        spawn {
+            val a = 10
+            await(:X, a || 20)
+            print(:ok)
+        }
+        emit(:X, 10)
+    ]]
+    print("Testing...", "op_payload_or 1")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        spawn { await(:X || :Y && :Z) }
+    ]]
+    print("Testing...", "op_mixed_err 1")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 1 : near '&&' : operation error : use parentheses to disambiguate")
+
+    local src = [[
+        spawn {
+            par_or { await(:X || :Y) } with { await(:Z) }
+            print(:ok)
+        }
+        emit(:Y)
+    ]]
+    print("Testing...", "op_par_or 1")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
+
+    local src = [[
+        spawn {
+            await((!:X) || :Y)
+            print(:2)
+        }
+        emit(:X)
+        print :1
+        emit(:Y)
+    ]]
+    print("Testing...", "op_nested_not 1")
+    local out = atm_test(src)
+    assertx(out, "1\n2\n")
 end
