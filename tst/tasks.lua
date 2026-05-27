@@ -3614,19 +3614,19 @@ do
 
     local src = [[
         spawn {
-            val x = par_and {
+            val x,y = par_and {
                 await(true)
                 10
             } with {
                 20
             }
             emit(:10)
-            X.print(x)
+            X.print(x,y)
         }
     ]]
     print("Testing...", "par_and 3: return")
     local out = atm_test(src)
-    assertx(out, "@{10, 20}\n")
+    assertx(out, "10\t20\n")
 
     local src = [[
         spawn {
