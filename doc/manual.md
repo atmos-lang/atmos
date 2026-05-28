@@ -2107,9 +2107,10 @@ The first format accepts any of the following expressions:
 - `t: task` | matches a terminating task `t`
 - `ts: tasks` | matches any terminating task in `ts`
 - `c: clock` | matches a [clock](#clock) event (`c` decreases until expires)
-- `a || b` | matches if `a` or `b` matches
-- `a && b` | matches if both `a` and `b` match (in any order)
-- `!a` | matches if `a` does not match (per-event)
+- `logical` | composition of sub-patterns
+    - `!a`:     matches any event that does not match `a`
+    - `a && b`: matches if both `a` and `b` match (in any order)
+    - `a || b`: matches if `a` or `b` matches
 - `f: function` | `f` receives the occurring event, matches if `f` returns `true`
 - `v` | matches if `e ?? v`, where `e` is the `emit` argument
 
