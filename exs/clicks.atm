@@ -120,7 +120,7 @@ par {
 ;;;
 
 val clear =
-    S.fr_await(Debounce, _or_(:mouse.button.dn,:mouse.button.up), @1)
+    S.fr_await(Debounce, @{'or',:mouse.button.dn,:mouse.button.up}, @1)
         ::tap \{ set txts = @{} }
 
 val dn = 
