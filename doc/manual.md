@@ -2099,22 +2099,26 @@ Await : `await´ `(´ Expr* `)´
       | `await´ ID `(´ Expr* `)´
 ```
 
-The first format accepts any of the following expressions:
+An `await` evaluates to the matching `emit` arguments.
 
-- `true` | matches any emit
-- `false` | never matches an emit
-- `e, ...` | `e` matches the event; remaining args match `emit` payloads
-- `t: task` | matches a terminating task `t`
-- `ts: tasks` | matches any terminating task in `ts`
-- `c: clock` | matches a [clock](#clock) event (`c` decreases until expires)
-- `logical` | composition of sub-patterns
-    - `!a`:     matches any event that does not match `a`
-    - `a && b`: matches if both `a` and `b` match (in any order)
-    - `a || b`: matches if `a` or `b` matches
-- `f: function` | `f` receives the occurring event, matches if `f` returns `true`
-- `v` | matches if `e ?? v`, where `e` is the `emit` argument
+For the first format, a task awakes if an `emit(e,...)` matches the await
+expression patterns as follows:
 
-The `await` evaluates to the matching `emit` payloads.
+- `true`        | matches any emit
+- `false`       | never matches an emit
+- `x, ...`      | if `x ?? e` and if `...` match the emit payloads
+- `t: task`     | if `t==e`, replacing result to task return
+- `ts: tasks`   | if any `ts[i]==e`, replacing result with task return
+- `c: clock`    | if [clock](#clock) `c` expires
+- `f: function` | if `f(e,...)` is truthy, replacing the results
+- `logical`     | composition of sub-patterns
+    - `{ 'not', x }`:  matches any event that does not match `x`
+    - `{ 'and', ...}`: if all `...` match (in any order)
+    - `{ 'or', ...}`:  if any `...` matches
+- `x: meta`     | custom `v=__atmos(x,e,...)` metamethod
+    - `v = nil`:    use standard handler
+    - `v = false`:  no match
+    - `v = ...`:    matches, replacing the results
 
 The second format `await T(...)` [spawns](#spawn) and awaits the given task to
 terminate.
