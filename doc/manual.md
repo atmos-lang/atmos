@@ -2103,15 +2103,15 @@ The first format accepts any of the following expressions:
 
 - `true` | matches any emit
 - `false` | never matches an emit
-- `c: clock` | matches a [clock](#clock) event (`c` decreases until expires)
+- `e, ...` | `e` matches the event; remaining args match `emit` payloads
 - `t: task` | matches a terminating task `t`
 - `ts: tasks` | matches any terminating task in `ts`
+- `c: clock` | matches a [clock](#clock) event (`c` decreases until expires)
 - `a || b` | matches if `a` or `b` matches
 - `a && b` | matches if both `a` and `b` match (in any order)
 - `!a` | matches if `a` does not match (per-event)
 - `f: function` | `f` receives the occurring event, matches if `f` returns `true`
 - `v` | matches if `e ?? v`, where `e` is the `emit` argument
-- `...` | each of the arguments must match each of the `emit` arguments
 
 The `await` evaluates to the matching `emit` payloads.
 
