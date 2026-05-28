@@ -2231,12 +2231,16 @@ The first format accepts any of the following expressions:
 
 - `true` | matches any emit
 - `false` | never matches an emit
-- `c: clock` | matches a [clock](#clock) event (`c` decreases until expires)
+- `e, ...` | `e` matches the event; remaining args match `emit` payloads
 - `t: task` | matches a terminating task `t`
 - `ts: tasks` | matches any terminating task in `ts`
+- `c: clock` | matches a [clock](#clock) event (`c` decreases until expires)
+- `logical` | composition of sub-patterns
+    - `!a`:     matches any event that does not match `a`
+    - `a && b`: matches if both `a` and `b` match (in any order)
+    - `a || b`: matches if `a` or `b` matches
 - `f: function` | `f` receives the occurring event, matches if `f` returns `true`
 - `v` | matches if `e ?? v`, where `e` is the `emit` argument
-- `...` | each of the arguments must match each of the `emit` arguments
 
 The `await` evaluates to the matching `emit` payloads.
 
@@ -2253,6 +2257,8 @@ await(false)            ;; never awakes
 await(:key, :escape)    ;; awakes on :key == :escape
 await @1:10:30          ;; awakes after 1h 10min 30s
 await(\{it>10})         ;; awakes if event > 10
+await(:X && :Y)         ;; awakes after both :X and :Y occur in any order
+await(!:X)              ;; awakes on any non-:X event
 ```
 
 ```
