@@ -2235,10 +2235,14 @@ expression patterns as follows:
 - `true`        | matches any emit
 - `false`       | never matches an emit
 - `x, ...`      | if `x ?? e` and if `...` match the emit payloads
-- `t: task`     | if `t==e`, replacing result to task return
-- `ts: tasks`   | if any `ts[i]==e`, replacing result with task return
 - `c: clock`    | if [clock](#clock) `c` expires
-- `f: function` | if `f(e,...)` is truthy, replacing the results
+- `f: function` | if `f(e,...)` is truthy, returning its results
+- `t: task`     | matches when `t` terminates; returns `v,t`, where `v` is the
+                  task return value
+- `ts: tasks, [**'any'**|'all']`
+                | matches when any or all tasks in `ts` terminate
+    - `any`: returns `v,t,ts` (`t`: terminated task, `v`: its return value)
+    - `all`: returns `ts`
 - `logical`     | composition of sub-patterns
     - `{ 'not', x }`:  matches any event that does not match `x`
     - `{ 'and', ...}`: if all `...` match (in any order)
@@ -2279,6 +2283,14 @@ func T (v) {
 }
 val v = await T(10)
 print(v)                ;; --> 20
+```
+
+```
+pin ts = tasks()
+spawn [ts] T()
+spawn [ts] T()
+val r, t = await(ts)    ;; awaits any task (default :any)
+await(ts, :all)         ;; awaits all tasks (pool drains)
 ```
 
 <a name="emit"/>
