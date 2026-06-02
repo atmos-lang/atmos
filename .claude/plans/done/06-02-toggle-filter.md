@@ -20,7 +20,7 @@ Pending (must do):
       (`luarocks make --local`); CLI was loading the OLD rock without the
       filter, gating everything.
 - [x] Run `cd tst && lua5.4 all.lua` — passing.
-- [ ] Re-gen `doc/manual-out.md` from `manual.md` (never edit it directly).
+- [x] Re-gen `doc/manual-out.md` from `manual.md`.
 
 Pending (optional):
 
