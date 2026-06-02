@@ -2552,6 +2552,50 @@ do
     print("Testing...", "toggle 9")
     local out = atm_test(src)
     assertx(out, "10\nok\n")
+
+    -- filter: toggled off, still reacts to events matching `with`
+    local src = [[
+        val T = func () {
+            spawn (func () {
+                every :Draw { print(:draw) }
+            }) ()
+            every :Tick { print(:tick) }
+        }
+        pin t = spawn T()
+        emit(:Draw)                 ;; on  -> draw
+        emit(:Tick)                 ;; on  -> tick
+        toggle t (false) with :Draw ;; off, but :Draw passes
+        emit(:Draw)                 ;; passes filter -> draw
+        emit(:Tick)                 ;; gated -> frozen
+        toggle t (true)
+        emit(:Tick)                 ;; on  -> tick
+    ]]
+    print("Testing...", "toggle filter")
+    local out = atm_test(src)
+    assertx(out, "draw\ntick\ndraw\ntick\n")
+
+    -- filter: block form, toggled off via :Show but still draws
+    local src = [[
+        spawn {
+            toggle :Show with :Draw {
+                par {
+                    every :Draw { print(:draw) }
+                } with {
+                    every :Tick { print(:tick) }
+                }
+            }
+        }
+        emit(:Draw)             ;; on  -> draw
+        emit(:Tick)             ;; on  -> tick
+        emit(:Show, false)      ;; toggle off, filter :Draw
+        emit(:Draw)             ;; passes filter -> draw
+        emit(:Tick)             ;; gated -> frozen
+        emit(:Show, true)       ;; toggle on
+        emit(:Tick)             ;; on  -> tick
+    ]]
+    print("Testing...", "toggle filter block")
+    local out = atm_test(src)
+    assertx(out, "draw\ntick\ndraw\ntick\n")
 end
 
 print '--- IS / IN ---'

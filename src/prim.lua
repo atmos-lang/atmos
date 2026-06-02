@@ -240,11 +240,16 @@ function parser_1_prim ()
         elseif accept('toggle') then
             local tag = accept(nil, 'tag')
             if tag then
+                -- optional filter pattern terminated by the block
+                local filter = {}
+                if accept('with') then
+                    filter = parser_list(',', '{', parser)
+                end
                 local blk = parser_block()
                 return {
                     tag = 'call',
                     f = { tag='acc', tk={tag='id',str='toggle'} },
-                    es = {
+                    es = concat({
                         { tag='tag', tk=tag },
                         {
                             tag = 'func',
@@ -252,7 +257,7 @@ function parser_1_prim ()
                             pars = {},
                             blk = blk,
                         },
-                    },
+                    }, filter),
                 }
             else
                 local tk = TK0
@@ -262,7 +267,12 @@ function parser_1_prim ()
                     err(tk, "expected call syntax")
                 end
                 table.insert(call.es, 1, call.f)
-                return parser_7_out({ tag='call', f=cmd, es=call.es })
+                -- optional trailing filter pattern (stops at first non-comma)
+                local filter = {}
+                if accept('with') then
+                    filter = parser_list(',', function () return false end, parser)
+                end
+                return parser_7_out({ tag='call', f=cmd, es=concat(call.es,filter) })
             end
         else
             error "bug found"

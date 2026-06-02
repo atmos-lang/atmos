@@ -1,5 +1,39 @@
 # Toggle Filter — atmos language (`with` syntax)
 
+## Status
+
+Done:
+
+- [x] `src/prim.lua` block form: optional `with` list before block, appended.
+- [x] `src/prim.lua` task form: optional trailing `with` list, appended.
+- [x] `src/coder.lua`: no change (toggle is a generic `call`).
+- [x] `doc/manual.md`: grammar + `with` semantics + example.
+- [x] `tst/expr.lua`: codegen cases (task single/multi, block, regression).
+      Block form renders `toggle(:X, { }, :Draw)` (func has `lua=true`).
+- [x] `tst/exec.lua`: end-to-end `toggle filter` (task) + `toggle filter
+      block` (block, via `par`).
+- [x] `doc/exs/exp-28-toggle.atm`: added the `with :Draw` example.
+
+Pending (must do):
+
+- [x] Reinstall runtime so the CLI gets the filter
+      (`luarocks make --local`); CLI was loading the OLD rock without the
+      filter, gating everything.
+- [x] Run `cd tst && lua5.4 all.lua` — passing.
+- [ ] Re-gen `doc/manual-out.md` from `manual.md` (never edit it directly).
+
+Pending (optional):
+
+- [ ] Re-add the multi-pattern caveat in the manual (`with :a, :b` is
+      positional; "A or B" = predicate). Dropped for brevity.
+- [ ] Extra assert: task-form `with` immediately followed by another statement
+      (terminator edge — relies on `parser_list` stopping at first non-comma).
+
+Note (separate lua-atmos repo, not this plan):
+
+- [ ] `06-and-or-not`: `not`/`and`/`or`/`clock` as filters currently fail
+      QUIETLY (the runtime `filter 4` stub). Make them work or error.
+
 ## Scope
 
 Language/compiler only.

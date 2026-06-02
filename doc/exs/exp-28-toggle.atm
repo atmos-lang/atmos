@@ -9,6 +9,8 @@ toggle t(true)
 print :bef
 emit :X         ;; --> ok
 
+print "==="
+
 spawn {
     toggle :T {
         loop {
@@ -22,3 +24,22 @@ emit(:T, false)
 emit(:E, 2)
 emit(:T, true)
 emit(:E, 3)
+
+print "==="
+
+spawn {
+    toggle :Ok with :Draw {
+        par {
+            every :Tick {
+                print :tick     ;; ignored during :Ok=false
+            }
+        } with {
+            every :Draw {
+                print :draw     ;; responsive during :Ok=false
+            }
+        }
+    }
+}
+emit(:Ok, false)
+emit(:Tick)         ;; (nop)
+emit(:Draw)         ;; --> draw

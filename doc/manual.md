@@ -2204,8 +2204,8 @@ A `toggle` configures a task to either consider or disregard further
 [emit](#emit) operations:
 
 ```
-Toggle : `toggle´ Expr `(´ Expr `)´
-       | `toggle´ TAG Block
+Toggle : `toggle´ Expr `(´ Expr `)´ [ `with´ Expr* ]
+       | `toggle´ TAG [ `with´ Expr* ] Block
 ```
 
 In the first format, a toggle expects a task and a [boolean](#types--values),
@@ -2222,6 +2222,9 @@ It also specifies a [tag](#literals) to toggle the block when matching an
 [emit](#emit).
 The emit must be in the format `emit(<tag>, <boolean>)` to set the toggle
 state.
+
+An optional `with` filter clause specifies an [await pattern](#await), which
+keeps the task/block responsive when matching it.
 
 Examples:
 
@@ -2253,6 +2256,25 @@ emit(:T, false)
 emit(:E, 2)
 emit(:T, true)
 emit(:E, 3)
+```
+
+```
+spawn {
+    toggle :Ok with :Draw {
+        par {
+            every :Tick {
+                print :tick     ;; ignored during :Ok=false
+            }
+        } with {
+            every :Draw {
+                print :draw     ;; responsive during :Ok=false
+            }
+        }
+    }
+}
+emit(:Ok, false)
+emit(:Tick)         ;; (nop)
+emit(:Draw)         ;; --> draw
 ```
 
 ### Every
