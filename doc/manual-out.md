@@ -2227,18 +2227,30 @@ Await : `await´ `(´ Expr* `)´
       | `await´ ID `(´ Expr* `)´
 ```
 
-The first format accepts any of the following expressions:
+An `await` evaluates to the matching `emit` arguments.
 
-- `true` | matches any emit
-- `false` | never matches an emit
-- `c: clock` | matches a [clock](#clock) event (`c` decreases until expires)
-- `t: task` | matches a terminating task `t`
-- `ts: tasks` | matches any terminating task in `ts`
-- `f: function` | `f` receives the occurring event, matches if `f` returns `true`
-- `v` | matches if `e ?? v`, where `e` is the `emit` argument
-- `...` | each of the arguments must match each of the `emit` arguments
+For the first format, a task awakes if an `emit(e,...)` matches the await
+expression patterns as follows:
 
-The `await` evaluates to the matching `emit` payloads.
+- `true`        | matches any emit
+- `false`       | never matches an emit
+- `x, ...`      | if `x ?? e` and if `...` match the emit payloads
+- `c: clock`    | if [clock](#clock) `c` expires
+- `f: function` | if `f(e,...)` is truthy, returning its results
+- `t: task`     | matches when `t` terminates; returns `v,t`, where `v` is the
+                  task return value
+- `ts: tasks, [**'any'**|'all']`
+                | matches when any or all tasks in `ts` terminate
+    - `any`: returns `v,t,ts` (`t`: terminated task, `v`: its return value)
+    - `all`: returns `ts`
+- `logical`     | composition of sub-patterns
+    - `{ 'not', x }`:  matches any event that does not match `x`
+    - `{ 'and', ...}`: if all `...` match (in any order)
+    - `{ 'or', ...}`:  if any `...` matches
+- `x: meta`     | custom `v=__atmos(x,e,...)` metamethod
+    - `v = nil`:    use standard handler
+    - `v = false`:  no match
+    - `v = ...`:    matches, replacing the results
 
 The second format `await T(...)` [spawns](#spawn) and awaits the given task to
 terminate.
@@ -2253,6 +2265,8 @@ await(false)            ;; never awakes
 await(:key, :escape)    ;; awakes on :key == :escape
 await @1:10:30          ;; awakes after 1h 10min 30s
 await(\{it>10})         ;; awakes if event > 10
+await(:X && :Y)         ;; awakes after both :X and :Y occur in any order
+await(!:X)              ;; awakes on any non-:X event
 ```
 
 ```
@@ -2269,6 +2283,14 @@ func T (v) {
 }
 val v = await T(10)
 print(v)                ;; --> 20
+```
+
+```
+pin ts = tasks()
+spawn [ts] T()
+spawn [ts] T()
+val r, t = await(ts)    ;; awaits any task (default :any)
+await(ts, :all)         ;; awaits all tasks (pool drains)
 ```
 
 <a name="emit"/>
