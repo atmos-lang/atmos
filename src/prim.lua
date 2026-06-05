@@ -20,13 +20,13 @@ local function await_ast_logical (e)
     local function f (name, args)
         local es = {
             {
-                k = { tag='num', tk={tag='num', str='1'} },
+                k = { tag='tag', tk={tag='tag', str=':tag'} },
                 v = { tag='str', tk={tag='str', str=name} },
             },
         }
         for i, a in ipairs(args) do
             es[#es+1] = {
-                k = { tag='num', tk={tag='num', str=tostring(i+1)} },
+                k = { tag='num', tk={tag='num', str=tostring(i)} },
                 v = await_ast_logical(a),
             }
         end
@@ -249,15 +249,11 @@ function parser_1_prim ()
                 return {
                     tag = 'call',
                     f = { tag='acc', tk={tag='id',str='toggle'} },
-                    es = concat({
-                        { tag='tag', tk=tag },
-                        {
-                            tag = 'func',
-                            lua = true,
-                            pars = {},
-                            blk = blk,
-                        },
-                    }, filter),
+                    es = concat(
+                        { { tag='tag', tk=tag } },
+                        filter,
+                        { { tag='func', lua=true, pars={}, blk=blk } }
+                    ),
                 }
             else
                 local tk = TK0
