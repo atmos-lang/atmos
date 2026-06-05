@@ -282,12 +282,12 @@ do
     local src = [[
         var tk
         set tk = func () {
-            X.print((await(true)))
+            X.print((await(true)).tag)
         }
         pin co = spawn tk()
         var f = func () {
             var g = func () {
-                emit (:x,@{})
+                emit :x @{}
             }
             g()
         }
@@ -300,12 +300,12 @@ do
     local src = [[
         var tk
         set tk = func () {
-            X.print(await(true))
+            X.print((await(true)).v)
         }
         pin co = spawn tk()
         var f = func () {
             var g = func () {
-                emit (:x,@{})
+                emit :x @{v=10}
             }
             g()
         }
@@ -313,37 +313,37 @@ do
     ]]
     print("Testing...", "spawn 8")
     local out = atm_test(src)
-    assertx(out, "x\t@{}\n")
+    assertx(out, "10\n")
 
     local src = [[
         var tk
         set tk = func () {
-            X.print(await(true))
+            X.print((await(true)))
         }
         spawn(tk)()
         ;;var f = func' () {
-            emit (:x,@{})
+            emit :x
         ;;}
         ;;f()
     ]]
     print("Testing...", "spawn 9")
     local out = atm_test(src)
-    assertx(out, "x\t@{}\n")
+    assertx(out, "x\n")
 
     local src = [[
         var T = func () {
             do {
-                X.print(await(true))
+                X.print((await(true)).tag)
             }
         }
         pin t = spawn T()
         ;;print(:1111)
-        emit (:x,@{})
+        emit :x @{}
         ;;print(:2222)
     ]]
     print("Testing...", "spawn 10")
     local out = atm_test(src)
-    assertx(out, "x\t@{}\n")
+    assertx(out, "x\n")
 end
 
 -- SPAWN (scope)
@@ -548,19 +548,19 @@ do
 
     local src = [[
         val T = func (v) {
-            val _,e = await(true)
-            X.print(e)
+            val e = await(true)
+            X.print(e.tag)
         }
         spawn T(10)
         catch true {
             (func () {
-                emit (:t,@{})
+                emit :t @{}
             }) ()
         }
     ]]
     print("Testing...", "emit 8")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "t\n")
 
     local src = [[
         var T = func () {

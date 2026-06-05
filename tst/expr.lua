@@ -1412,8 +1412,8 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(e)), trim [[
-        toggle(:X, {
-        }, :Draw)
+        toggle(:X, :Draw, {
+        })
     ]])
 end
 

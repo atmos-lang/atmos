@@ -132,8 +132,22 @@ clock@{..}` FAILS (`clock` is a plain id) -> use clock literal
     - `emit(:Draw,1)` -> `emit :Draw @{v=1}`
     - `emit(:Show,false)` -> `emit :Show @{false}` (positional bool)
     - `await 1` two-arg emit left as-is (unreachable: errors first)
-- [ ] `tst/tasks.lua` (many), `tst/await.lua:114`, `tst/expr.lua:1196`
-  still use two-arg emit — out of scope for now
+### tasks.lua — value-event migration (user-approved conventions)
+
+await now returns ONE value (the whole event); no tag/payload split.
+1. `emit(:t,@{1})` -> `emit :t @{1}` (payload contents merge: `{tag='t',1}`)
+2. table-var payload `emit(:t, e)` -> **DELAY** (need tag-merge form)
+3. multi-value reads (`_,v=await`, `print(await)`) -> **index** event
+   (`e.tag` / `e[1]`); empty `@{}` payload has nothing to index -> `e.tag`
+4. fn pattern `await(func(_,e){..})` -> `await(func(e){..})`
+
+- [x] spawn 8a/8b/9/10, emit 8: `emit :x/:t @{}`, read `.tag`
+    - verified outputs (`x`, `t`) via worktree-src loader
+- [ ] remaining literal-payload emits: 626,663,677,692,721,744,746,778,
+  792,809,828,852,903,966,984,1015,1194-96,1593,3369
+- [ ] DELAYED table-var emits (need #2 form): 576,595,611,874,918,933,
+  949,999,1110,1433,1464  -> suite halts at 576 next
+- [ ] `tst/await.lua:114`, `tst/expr.lua:1196` two-arg emit (separate)
 
 ## Compiler fix — toggle filter block arg order
 
@@ -147,6 +161,8 @@ body)` (`f = filter or on`). Compiler emitted `toggle(e, body, filter)`
       `draw/tick/draw/tick`
     - NOTE: test suite uses the **installed** compiler; needs reinstall
       (`luarocks make`) before `tst/` picks this up
+- [x] `tst/expr.lua:1414` tosource expectation -> `toggle(:X, :Draw, {})`
+  (body last, matches new arg order)
 
 ## Pending
 
