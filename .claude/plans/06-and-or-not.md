@@ -108,10 +108,50 @@ coder proves fragile (e.g. aliased `await`).
 | src/tosource.lua   | round-trip combinator forms if needed               |
 | doc/manual.lua     | document `||`/`&&`/`!` await combinators, parens rule, event `{tag=}` model, single-arg emit |
 
+## Test migration (value-event emit) — side discovery
+
+Installed runtime now enforces single-arg `emit` (`init.lua:54`,
+`assert select('#',...)==0`). Deprecated two-arg `emit(:X, v)` must
+become `emit(:X @{v})`; `await(:X)` returns the whole event table, so
+payload binding changes.
+
+No-paren statement form (manual `:2303`): `emit :X @{v=10}`;
+`every it in :X { print(it.v) }`. Toggle `:Show` uses positional `[1]`
+bool, so `emit :Show @{false}`.
+
+Parser caveat (verified w/ `./atmos`): juxtaposition `emit ARG` only
+accepts a call-arg primary (tag / `@{}` / clock-lit / str). `emit
+clock@{..}` FAILS (`clock` is a plain id) -> use clock literal
+`emit @10` / `emit @0.100` instead. `emit(clock@{..})` needs parens.
+
+- [x] `tst/exec.lua`: await 2 clock, toggle 8, toggle filter block
+    - `emit(:clock,10*1000)` -> `emit @10`; `emit(:clock,100)`
+      -> `emit @0.100`
+    - `every _,evt in :Draw { print(evt) }`
+      -> `every it in :Draw { print(it.v) }`
+    - `emit(:Draw,1)` -> `emit :Draw @{v=1}`
+    - `emit(:Show,false)` -> `emit :Show @{false}` (positional bool)
+    - `await 1` two-arg emit left as-is (unreachable: errors first)
+- [ ] `tst/tasks.lua` (many), `tst/await.lua:114`, `tst/expr.lua:1196`
+  still use two-arg emit — out of scope for now
+
+## Compiler fix — toggle filter block arg order
+
+Runtime `M.toggle` string form wants body **last**: `toggle(e, <filter>,
+body)` (`f = filter or on`). Compiler emitted `toggle(e, body, filter)`
+-> "expected task prototype". Fixed `src/prim.lua:248` (tag/block form):
+`es = concat(concat({tag}, filter), {body})`. No-filter path unchanged.
+
+- [x] `src/prim.lua` toggle block-form arg order (body last)
+    - verified via worktree-src loader: block-filter test ->
+      `draw/tick/draw/tick`
+    - NOTE: test suite uses the **installed** compiler; needs reinstall
+      (`luarocks make`) before `tst/` picks this up
+
 ## Pending
 
 - [ ] `coder_pat` + n-ary flatten (`||`/`&&`/`!`)
-- [ ] route await / every / watching / toggle-filter args
+- [ ] route await / every / watching / toggle-filter args (combinators)
 - [ ] skip pool form `await(ts,'any'/'all')`
 - [ ] precedence + mixed-operator decision, documented
 - [ ] manual: combinators, parens rule, value-event model, single-arg emit

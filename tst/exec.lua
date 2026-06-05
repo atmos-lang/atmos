@@ -2355,9 +2355,9 @@ do
             await(@10.100)
             print(:y)
         }
-        emit(:clock, 10*1000)
+        emit @10
         print(:x)
-        emit(:clock, 100)
+        emit(clock @{ms=100})
     ]]
     print("Testing...", "await 2: clock")
     local out = atm_test(src)
@@ -2522,19 +2522,19 @@ do
             set pub = v
             toggle :Show {
                 print(pub)
-                every _,evt in :Draw {
-                    print(evt)
+                every it in :Draw {
+                    print(it.v)
                 }
             }
         }
         spawn T(0)
-        emit(:Draw, 1)
-        emit(:Show, false)
-        emit(:Show, false)
-        emit(:Draw, 99)
-        emit(:Show, true)
-        emit(:Show, true)
-        emit(:Draw, 2)
+        emit :Draw @{v=1}
+        emit :Show @{false}
+        emit :Show @{false}
+        emit :Draw @{v=99}
+        emit :Show @{true}
+        emit :Show @{true}
+        emit :Draw @{v=2}
     ]]
     print("Testing...", "toggle 8")
     local out = atm_test(src)
@@ -2587,10 +2587,10 @@ do
         }
         emit(:Draw)             ;; on  -> draw
         emit(:Tick)             ;; on  -> tick
-        emit(:Show, false)      ;; toggle off, filter :Draw
+        emit :Show @{false}     ;; toggle off, filter :Draw
         emit(:Draw)             ;; passes filter -> draw
         emit(:Tick)             ;; gated -> frozen
-        emit(:Show, true)       ;; toggle on
+        emit :Show @{true}      ;; toggle on
         emit(:Tick)             ;; on  -> tick
     ]]
     print("Testing...", "toggle filter block")
