@@ -243,7 +243,7 @@ function parser_1_prim ()
                 -- optional filter pattern terminated by the block
                 local filter = {}
                 if accept('with') then
-                    filter = parser_list(',', '{', parser)
+                    filter = parser_list_1(',', '{', parser)
                 end
                 local blk = parser_block()
                 return {
@@ -266,7 +266,7 @@ function parser_1_prim ()
                 -- optional trailing filter pattern (stops at first non-comma)
                 local filter = {}
                 if accept('with') then
-                    filter = parser_list(',', function () return false end, parser)
+                    filter = parser_list_1(',', function () return false end, parser)
                 end
                 return parser_7_out({ tag='call', f=cmd, es=concat(call.es,filter) })
             end
@@ -476,7 +476,7 @@ function parser_1_prim ()
 
     -- set x = 10
     elseif accept('set') then
-        local dsts = parser_list(',', '=', function ()
+        local dsts = parser_list_1(',', '=', function ()
             local tk = TK1
             local e = parser()
             if e.tag=='acc' or e.tag=='index' or e.tag=='nat' then
