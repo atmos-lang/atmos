@@ -219,15 +219,21 @@ function parser_1_prim ()
                     },
                 }
             else
-                local cmd = { tag='acc', tk={tag='id',str='await',lin=tk.lin} }
-                local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
-                if call.tag ~= 'call' then
-                    err(tk, "expected call syntax")
+                local awt
+                if accept('(') then
+                    -- await(PAT) : full pattern (combinators; until/while later)
+                    awt = parser_await()
+                    accept_err(')')
+                else
+                    -- await PAT : juxtaposition is a single primary, so
+                    -- `await :X || :Y` stays `(await :X) || :Y`
+                    awt = parser_1_prim()
                 end
-                if call.es[1] then
-                    call.es[1] = await_ast_logical(call.es[1])
-                end
-                return parser_7_out(call)
+                return {
+                    tag = 'call',
+                    f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
+                    es  = { awt },
+                }
             end
         -- spawn {}, spawn T()
         elseif check('spawn') then
