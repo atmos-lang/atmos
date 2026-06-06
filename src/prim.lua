@@ -11,43 +11,61 @@ local function spawn (lin, blk)
     }
 end
 
--- Rewrites &&/||/! inside await-pattern positions (await/watching/every
--- arguments) into the lua-atmos table format {'or'|'and'|'not', ...}.
--- Descends through parens and through nested &&/|| trees; stops at any
--- other node (calls, lambdas, literals, tags) preserving Lua semantics
--- elsewhere.
-local function await_ast_logical (e)
-    local function f (name, args)
-        local es = {
-            {
-                k = { tag='tag', tk={tag='tag', str=':tag'} },
-                v = { tag='str', tk={tag='str', str=name} },
-            },
+-- builds the lua-atmos event-combinator table {tag=name, [1]=items[1], ...}
+-- (items used verbatim).
+local function mk_tagged (name, items)
+    local es = {
+        { k = { tag='tag', tk={tag='tag', str=':tag'} },
+          v = { tag='str', tk={tag='str', str=name} } },
+    }
+    for i, it in ipairs(items) do
+        es[#es+1] = {
+            k = { tag='num', tk={tag='num', str=tostring(i)} },
+            v = it,
         }
-        for i, a in ipairs(args) do
-            es[#es+1] = {
-                k = { tag='num', tk={tag='num', str=tostring(i)} },
-                v = await_ast_logical(a),
-            }
-        end
-        return { tag='table', es=es }
     end
+    return { tag='table', es=es }
+end
+
+-- Rewrites &&/||/! inside await-pattern positions into the lua-atmos table
+-- format {tag='or'|'and'|'not', ...}. Descends through parens and nested
+-- &&/|| trees; stops at any other node (calls, lambdas, literals, tags).
+local function await_ast_logical (e)
     if e.tag == 'parens' then
         return await_ast_logical(e.e)
     elseif (e.tag == 'bin') and (e.op.str=='&&' or e.op.str=='||') then
         local name = (e.op.str=='&&') and 'and' or 'or'
-        return f(name, { e.e1, e.e2 })
+        return mk_tagged(name, { await_ast_logical(e.e1), await_ast_logical(e.e2) })
     elseif (e.tag == 'uno') and (e.op.str == '!') then
-        return f('not', { e.e })
+        return mk_tagged('not', { await_ast_logical(e.e) })
     else
         return e
     end
 end
 
--- parses a single await pattern (combinators lowered); parser() errors on an
--- empty slot. shared by await / every / watching.
-local function parser_await ()
-    return await_ast_logical(parser())
+-- a predicate: a func passes through; any other expr -> \{ e } (implicit `it`)
+local function await_pred (e)
+    if e.tag == 'func' then
+        return e
+    end
+    return { tag='func', lua=true, pars={{tag='id',str='it'}}, blk={tag='block', es={e}} }
+end
+
+-- attaches optional `until`/`while` predicates to a parsed pattern.
+-- stop = predicate-list terminator: ')' await(...) | '{' every/watching | nil juxtaposition
+local function parser_until (pat, stop)
+    local k = accept('until') or accept('while')
+    if not k then
+        return pat
+    end
+    local preds = parser_list_1(',', stop, parser)
+    return mk_tagged(k.str, concat({pat}, map(preds, await_pred)))
+end
+
+-- parses a single await pattern (combinators + until/while). parser() errors on
+-- an empty slot. shared by await(...) / every / watching.
+local function parser_await (stop)
+    return parser_until(await_ast_logical(parser()), stop)
 end
 
 function parser_spawn ()
@@ -221,13 +239,13 @@ function parser_1_prim ()
             else
                 local awt
                 if accept('(') then
-                    -- await(PAT) : full pattern (combinators; until/while later)
-                    awt = parser_await()
+                    -- await(PAT) : full pattern (combinators + until/while)
+                    awt = parser_await(')')
                     accept_err(')')
                 else
-                    -- await PAT : juxtaposition is a single primary, so
-                    -- `await :X || :Y` stays `(await :X) || :Y`
-                    awt = parser_1_prim()
+                    -- await PAT : juxtaposition base is a single primary, so
+                    -- `await :X || :Y` stays `(await :X) || :Y`; until/while ok
+                    awt = parser_until(parser_1_prim(), nil)
                 end
                 return {
                     tag = 'call',
@@ -697,13 +715,13 @@ function parser_1_prim ()
         if accept('every') then
             local ids = {}
             local tk  = TK1
-            local awt = parser_await()
+            local awt = parser_await('{')
             if accept('in') then
                 if awt.tag ~= 'acc' then
                     err(tk, "expected identifier")
                 end
                 ids = { awt.tk }
-                awt = parser_await()
+                awt = parser_await('{')
             end
             local blk = parser_block()
             local cb = { tag='func', lua=true, pars=ids, blk=blk }
@@ -734,7 +752,7 @@ function parser_1_prim ()
             }
         -- watching
         elseif accept('watching') then
-            local awt = parser_await()
+            local awt = parser_await('{')
             local blk = parser_block()
             return {
                 tag = 'call',
