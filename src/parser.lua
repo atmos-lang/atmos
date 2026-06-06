@@ -93,7 +93,7 @@ function parser_list_1 (sep, clo, one)
 end
 
 function parser_ids (clo)
-    return parser_list(",", clo, function () return accept_err(nil,'id') end)
+    return parser_list_1(",", clo, function () return accept_err(nil,'id') end)
 end
 
 function parser_dots_pars ()
