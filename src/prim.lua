@@ -44,6 +44,12 @@ local function await_ast_logical (e)
     end
 end
 
+-- parses a single await pattern (combinators lowered); parser() errors on an
+-- empty slot. shared by await / every / watching.
+local function parser_await ()
+    return await_ast_logical(parser())
+end
+
 function parser_spawn ()
     accept_err('spawn')
     if check('{') then
@@ -684,26 +690,21 @@ function parser_1_prim ()
         -- every { ... }
         if accept('every') then
             local ids = {}
-            local awt = parser_list(',', '{', parser)
+            local tk  = TK1
+            local awt = parser_await()
             if accept('in') then
-                ids = awt
-                for i,v in ipairs(ids) do
-                    if v.tag ~= 'acc' then
-                        err(v.tk, "expected identifier")
-                    end
-                    ids[i] = v.tk
+                if awt.tag ~= 'acc' then
+                    err(tk, "expected identifier")
                 end
-                awt = parser_list(',', '{', parser)
-            end
-            if awt[1] then
-                awt[1] = await_ast_logical(awt[1])
+                ids = { awt.tk }
+                awt = parser_await()
             end
             local blk = parser_block()
             local cb = { tag='func', lua=true, pars=ids, blk=blk }
             return {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='every'} },
-                es = concat(awt, {cb})
+                es = { awt, cb }
             }
         -- par
         elseif accept('par') or accept('par_and') or accept('par_or') then
@@ -727,22 +728,15 @@ function parser_1_prim ()
             }
         -- watching
         elseif accept('watching') then
-            local awt = parser_list(',', '{', parser)
-            if awt[1] then
-                awt[1] = await_ast_logical(awt[1])
-            end
+            local awt = parser_await()
             local blk = parser_block()
             return {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='watching'} },
-                es = concat(awt, {
-                    {
-                        tag  = 'func',
-                        lua  = true,
-                        pars = {},
-                        blk  = blk,
-                    }
-                })
+                es = {
+                    awt,
+                    { tag='func', lua=true, pars={}, blk=blk },
+                }
             }
         else
             error "bug found"
