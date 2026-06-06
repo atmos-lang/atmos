@@ -1,106 +1,81 @@
-# Unified await-pattern parsing (await / every / watching / toggle)
+# Unified await-pattern parsing — Option B (chosen)
 
 ## Goal
 
-One shared parser for the "await pattern" slot used by `await`, `every`,
-`watching`, and the `toggle` filter.
-It must handle, in one place:
+One recognizer for the **single** pattern of `await` / `every` / `watching`.
+Everything is exactly one pattern (no lists / no comma / no 2-arg), covering:
 
-- base pattern (tag, `true`/`false`, clock, task, function, ...);
 - combinators `||` / `&&` / `!`  -> `{tag='or'/'and'/'not', ...}`;
-- `where` predicates  -> `{tag='where', [1]=pat, [2]=\{p}, ...}`;
-- (await only) the pool mode `, :any` / `, :all`.
+- pool prefix `:any` / `:all`     -> `{tag='any'/'all', ts}`;
+- empty pattern                   -> parse error;
+- (later) `where` predicates      -> hooks into the same recognizer.
 
-Today each construct rolls its own parsing; combinators are duplicated and
-`where` exists only on `await`.
+## Recognizer
 
-## Current state (`src/prim.lua`)
-
-| site               | parse                       | combinators   | where | pool |
-| ------------------ | --------------------------- | ------------- | ----- | ---- |
-| `await(..)` :256   | call-chain -> `es`          | `es[1]` only  | yes   | yes  |
-| `every .. in P` :741 | `parser_list(',','{')`    | `awt[1]` only | no    | no   |
-| `watching P` :775  | `parser_list(',','{')`      | `awt[1]` only | no    | no   |
-| toggle `with` :288 | `parser_list(',','{')`      | no            | no    | no   |
-
-Helpers already present:
-
-- `await_ast_logical(e)` :19  -- lowers `||`/`&&`/`!` in one expression.
-- `await_where(es)` :56       -- builds `{tag='where', ..}` (await-only).
-- `await_is_pool_mode(e)` :49 -- detects `:any`/`:all`.
-
-The per-construct comma-list also enables a broken multi-pattern await
-(`every v in :X, :Y` -> `await(:X, :Y)` -> "invalid event pattern").
-
-## Proposed unified helper
-
-```
--- parses:  <pat-expr>  [ where <pred> , <pred> .. ]
--- stop = token ending the predicate list: ')' await, '{' every/watching/toggle
-local function parser_await_pat (stop)
-    local pat = await_ast_logical(parser())
-    if accept('where') then
-        local preds = parser_list(',', stop, parser)
-        return await_where(pat, preds)   -- rework await_where to (pat, preds)
+```lua
+local function parser_await_pat ()
+    if accept(:any) or accept(:all) then        -- pool prefix
+        local mode = TK0.str                    -- 'any' / 'all'
+        return { tag = mode, parser() }         -- needs lua-atmos branch
     end
-    return pat
+    return await_ast_logical(parser())          -- combinators; parser() errors on empty
 end
 ```
 
-`await_where` reworked to take `(pat, preds)` instead of the `es` list;
-predicate wrapping unchanged (non-func expr -> `\{ e }` with implicit `it`,
-a func arg passes through -- user rule #3).
+Empty falls out for free everywhere: an empty slot makes `parser()` hit the
+terminator (`)` / `{`) and error `expected expression` — one uniform message.
 
-### Call sites collapse to
+## Sites
 
-| site         | becomes                                                  |
-| ------------ | -------------------------------------------------------- |
-| `await(..)`  | `await( parser_await_pat(')') [, :any/:all] )`           |
-| `every .. in P` | `awt = { parser_await_pat('{') }` (single pattern)    |
-| `watching P` | `awt = { parser_await_pat('{') }`                        |
-| toggle `with`| `filter = { parser_await_pat('{') }` (+combinators+where)|
+| site | change |
+| ---- | ------ |
+| await | rewrite: parse `await ( parser_await_pat() )` or juxtaposition `await PAT` via the recognizer (NOT the generic call-chain); then re-apply the suffix chain for `::m()` / `-->` / `<--` / `where`-out. Drops the 2-arg comma/pool form. `await()` -> error. |
+| every | loop-vars list before `in` stays (`a, b in`); the pattern (after `in`, or no-`in`) = `parser_await_pat()` (single). |
+| watching | pattern = `parser_await_pat()` (single). |
 
-Net: combinators / `where` / future tweaks live in one place; every /
-watching / toggle gain `where`; the broken multi-pattern comma is removed
-(use `||`/`&&` for multiple events).
+## Resolved by B
 
-## Wrinkles / decisions
+- **pool**: `:any/:all ts` is a single-pattern prefix -> no 2-arg `await(ts,mode)`.
+- **empty error**: uniform `expected expression` (all go through `parser()`).
+- **multi-pattern**: gone -- `await(:X,:Y)` / `every v in :X,:Y` no longer parse.
 
-1. `await` call-syntax.
-   Today `await(x)::m()` works because await is parsed via the call-chain.
-   The predicate `where` must be intercepted *inside* arg parsing anyway
-   (else `parser_7_out`'s binding-`where` grabs it and demands `{`), so
-   await needs custom `( pattern )` parsing regardless -- main cost.
+## Cost / risk
 
-2. `where` is overloaded.
-   Existing `expr where { x=.. }` (binding form, `parser.lua:382`) vs the new
-   predicate form. `parser_await_pat` checks `where` right after the base
-   pattern, so the predicate form wins in pattern slots; nested binding-where
-   inside a predicate still works.
+- The **await rewrite** is the real work: today the call-chain
+  (`parser_2_suf..parser_6_pip`) gives `await(...)::m()`, pipes, binops on the
+  result for free. Parsing `( pat )` manually means re-applying that chain to the
+  built await-call node, and re-testing those forms.
 
-3. toggle filter = "one pattern" per runtime contract -- the single-pattern
-   shape fits; confirm `where` on a toggle filter is wanted.
+## Runtime dependency (lua-atmos -- user)
 
-4. pool form stays await-only (`, :any/:all` after the pattern) -- lives in
-   the await call site, not the shared helper.
+- `tag=='any'/'all'` branch in `M.await` (task-pool, parallel to or/and/not),
+  replacing the `await(ts, 'any'/'all')` 2-arg shape.
 
-## Depends on (runtime, lua-atmos -- user)
+## Done (≥1 lists -- separate from B)
 
-- `tag=='where'` branch in `M.await`:
-  `while true do it=M.await(awt[1]); if all awt[2..](it) then return it end end`.
-  Predicate gets `it` (first await return) only.
+- [x] toggle filter `with` x2, `set` targets, `parser_ids` -> `parser_list_1`.
 
-## Pending
+## Predicate form: `until` / `while` (NOT `where`)
 
-- [ ] rework `await_where(pat, preds)` signature
-- [ ] add `parser_await_pat(stop)`
-- [ ] route await / every / watching / toggle filter through it
-- [ ] decide: `where` on toggle filter?  predicate gets `it`-only?
-- [ ] manual: `where` predicates, parens rule, combinators
+lua-atmos renamed `where`->`until` and added `while` (`run.lua:538`):
+`{tag='until'|'while', [1]=pat, [2..]=pred-funcs}`, `#awt>=2` (>=1 pred).
+- `until`: return when ALL preds hold; result = last pred's non-true return
+  (else the event) -> preds can transform the result.
+- `while`: return the event when ANY pred fails.
+Source: `await PAT until c1, c2` / `await PAT while c`.
+Compiler wraps each non-func pred as `\{ e }` (implicit `it`); func passes
+through; >=1 pred via `parser_list_1`.
 
-## Done (current branch, value-event migration)
+## Pending (ordered)
 
-- [x] tasks.lua fully migrated to value events (emit / await / patterns)
-- [x] combinator lowering `||`/`&&`/`!` -> `{tag=..}` (`await_ast_logical`)
-- [x] `await_where` desugar (comma form) -- to be switched to `where`
-- [x] runtime: termination-as-event (defined), `await.time` regression fixed
+- [x] `parser_await` v1 (combinators + single pattern; `parser()` errors on empty)
+- [x] route every / watching through it (single pattern; multi-var `every`
+  dropped — one optional var)
+- [ ] 1. rewrite await onto `parser_await`; bare `call` node (outer chain keeps
+  `::m()`/pipes/binops); `await()` -> parse error; re-test
+- [ ] 2. `:any/:all` prefix in `parser_await` -> `{tag='any'/'all', ts}`
+  (runtime already has 'any'/'all' mode)
+- [ ] 3. `until`/`while` in `parser_await` -> `{tag='until'/'while', pat, \{p}..}`
+  (>=1 pred; stop token per caller: `)` await, `{` every/watching)
+- [ ] 4. fix tests to new syntax: `await(:X,10)` -> `await :X until it.v==10`
+  (+ `emit :X @{v=..}`); update/drop multi-`every` test (stmt.lua:888)
