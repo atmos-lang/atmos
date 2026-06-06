@@ -34,7 +34,7 @@ end
 
 -------------------------------------------------------------------------------
 
-function parser_list (sep, clo, f)
+function parser_list (sep, clo, one)
     assert(sep or clo)
     if clo == nil then
         clo = function () return false end
@@ -48,7 +48,7 @@ function parser_list (sep, clo, f)
     if clo() then
         return l
     end
-    l[#l+1] = f(#l+1)
+    l[#l+1] = one(#l+1)
     while true do
         if clo() then
             return l
@@ -65,8 +65,8 @@ function parser_list (sep, clo, f)
         end
         --[[
         -- HACK-01: flatten "seq" into list
-        if f == parser_stmt then
-            local es = f()
+        if one == parser_stmt then
+            local es = one()
             if es.tag == "seq" then
                 for _,s in ipairs(es) do
                     l[#l+1] = s
@@ -75,12 +75,21 @@ function parser_list (sep, clo, f)
                 l[#l+1] = es
             end
         else
-            l[#l+1] = f()
+            l[#l+1] = one()
         end
         ]]
-        l[#l+1] = f(#l+1)
+        l[#l+1] = one(#l+1)
     end
     return l
+end
+
+function parser_list_1 (sep, clo, one)
+    local tk = TK0
+    local ret = parser_list(sep, clo, one)
+    if #ret == 0 then
+        err(tk, "unexpected empty list")
+    end
+    return ret
 end
 
 function parser_ids (clo)
