@@ -225,6 +225,51 @@ duration. So the sigil is optional:
 Dropping the sigil leaves `@` cleanly available for indexing, completing
 the remap in section 1.
 
+## 10. Runtime Impact (lua-atmos)
+
+Since a clock literal collapses to an integer number of milliseconds
+(section 6), the `clock` runtime type disappears, and the change
+propagates downstream to lua-atmos.
+
+### Current coupling
+
+```
+Atmos  @5
+  └─ coder.lua:67  →  clock { h=0, min=0, s=5, ms=0 }
+                          └─ lua-atmos: first-class `clock` type
+                                await(clock) = wait until it expires
+```
+
+`clock` is today a real value type (`doc/manual.md:531,637`): own
+constructor, its own `?? :clock` test, and the scheduler dispatches on
+it for timers. A bare `number` is not special.
+
+### Required changes
+
+| Concern         | Now                    | After                         |
+| --------------- | ---------------------- | ----------------------------- |
+| constructor     | `clock{…}`             | none — `5000` literal         |
+| timer dispatch  | `await(clock)` expires | `await(number)` = relative ms |
+| type test       | `x ?? :clock`          | `x ?? :number`                |
+| value-type list | `…, clock`             | `clock` removed               |
+| coder emit      | `clock{…}`             | summed ms integer             |
+
+### Design note — the unused `await` slot
+
+`await` currently accepts a clock, a condition-lambda, or a tag-event,
+but never a bare number (`doc/manual.md:2110,2138,2139,2156`). So the
+number slot in `await` is unused today. Making `await(number)` mean
+"wait N ms" fills an empty slot — low collision risk. The runtime adds
+one branch: if the reaction value is a number, schedule a relative timer
+of that many milliseconds.
+
+### Scope
+
+lua-atmos is a separate repo — this is a downstream task there, not part
+of this compiler change. The Atmos side is trivial: `coder.lua:65-69`
+stops emitting `clock{…}` and emits the ms integer; the `clk` AST node
+collapses into a plain `num`.
+
 ## Open Questions
 
 - Keep an optional `$` marker, or go fully sigil-free?
