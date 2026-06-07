@@ -40,7 +40,7 @@ end
 
 -- attaches optional `until`/`while` predicates to a parsed pattern.
 -- stop = predicate-list terminator: ')' await(...) | '{' every/watching | nil juxtaposition
-function parser_until (pat, stop)
+local function parser_until (pat, stop)
     local k = accept('until') or accept('while')
     if not k then
         return pat
@@ -50,7 +50,7 @@ function parser_until (pat, stop)
 end
 
 -- pool prefix: :any ts / :all ts -> {tag='tasks', mode=, tasks=ts} (else nil)
-function parser_pool ()
+local function parser_pool ()
     local m = accept(':any', 'tag') or accept(':all', 'tag')
     if not m then
         return nil
@@ -64,6 +64,9 @@ end
 
 -- parses a single await pattern (pool prefix, combinators, until/while).
 -- parser() errors on an empty slot. shared by await(...) / every / watching.
-function parser_await (stop)
-    return parser_pool() or parser_until(await_ast_logical(parser()), stop)
+-- prim=true uses a single primary as base (bare `await PAT` juxtaposition),
+-- so `await :X || :Y` stays `(await :X) || :Y`; default uses the full expr.
+function parser_await (stop, prim)
+    local base = prim and parser_1_prim or parser
+    return parser_pool() or parser_until(await_ast_logical(base()), stop)
 end

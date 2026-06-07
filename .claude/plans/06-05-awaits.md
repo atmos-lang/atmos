@@ -125,6 +125,22 @@ runtime via lua-atmos `M.emit` `assert(select('#',...)==0)` (run.lua:725, a raw
 Lua assert marked "TODO: remove"). Parser check = clean Atmos error + honest
 grammar + symmetry with await. No lua-atmos change.
 
+## await-pattern parser split + single export (done)
+
+- [x] moved await-pattern parsing into `src/await.lua`
+  (`require "atmos.lang.await"` at `prim.lua:2`); helpers `mk_tagged`,
+  `await_ast_logical`, `await_pred` already local.
+- [x] unified to a SINGLE exported `parser_await`:
+    - `parser_until` / `parser_pool` -> `local function` (private).
+    - `parser_await(stop, prim)`: `prim=true` selects `parser_1_prim` base
+      (bare `await PAT` juxtaposition: `await :X || :Y` = `(await :X) || :Y`);
+      default uses full `parser`. `await_ast_logical` over a primary is a no-op,
+      so behavior-identical.
+    - `prim.lua:195` juxtaposition `parser_pool() or parser_until(parser_1_prim(),
+      nil)` -> `parser_await(nil, true)`. All 5 call sites now use only
+      `parser_await`.
+- [x] combinator tests split into `tst/await.lua` (registered `all.lua:12`).
+
 ## Pending: stale multi-arg sources broken by the new emit rule
 
 These files are NOT run by `tst/all.lua` (suite stays green), but are now

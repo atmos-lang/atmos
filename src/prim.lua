@@ -192,7 +192,7 @@ function parser_1_prim ()
                 else
                     -- await PAT : juxtaposition base is a single primary, so
                     -- `await :X || :Y` stays `(await :X) || :Y`; pool/until ok
-                    awt = parser_pool() or parser_until(parser_1_prim(), nil)
+                    awt = parser_await(nil, true)
                 end
                 return {
                     tag = 'call',
