@@ -114,6 +114,30 @@ Proposed set:
 
 Decision: units = `ms s min h day` (avoid bare `m`, drop `d`).
 
+### Name Length — As Short As Is Unambiguous
+
+Keep unit names short; spell out only where a single letter is
+ambiguous or collides. Common units stay terse for the hot path
+(`await 5s`), rare units get a few cheap extra chars.
+
+| Unit   | Form  | Why this length                  |
+| ------ | ----- | -------------------------------- |
+| milli  | `ms`  | bare `m` clashes (minute/meter)  |
+| second | `s`   | safe, conventional               |
+| minute | `min` | `m` ambiguous → spell it         |
+| hour   | `h`   | safe (`h` > hex `f`)             |
+| day    | `day` | `d` is a hex digit → spell it    |
+
+Long names (`seconds`, `sec`, `hours`) are rejected for v1:
+
+- Verbose on the hot path — `await 5seconds` vs `await 5s`.
+- Plurals get messy — `1second` vs `2seconds`.
+- They tend to contain `e`, which the number lexer treats as an
+  exponent (`lexer.lua:210`, `[PpEe]`): `5sec` greedy-reads as if `e`
+  starts an exponent. Short `e`-free names sidestep this entirely.
+
+A long alias can be added later non-breakingly; default stays short.
+
 ## 6. Value Type — Normalize to Integer Milliseconds
 
 Today a clock is roughly `@{h,min,s,ms}` (a table). Normalize instead to
