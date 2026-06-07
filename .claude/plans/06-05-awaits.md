@@ -107,3 +107,76 @@ through; >=1 pred via `parser_list_1`.
 - [x] `### Emit`: exactly-one-value event + no-paren constructor form; examples
 - [x] `### Toggle`: set form `emit(<tag> @{<boolean>})`; examples value-event
 - [ ] review: `every`/`watching`/`par_*` examples (mostly value-event already)
+
+## emit single-arg parser constraint (committed)
+
+Commit `1b0a198` "! emit now supports only single argument".
+- [x] `src/prim.lua` (after `parser_1_prim` emit call built, before the
+  `emit_in` target insert): `if #call.es ~= 1 then err(tk, "expected single
+  argument") end`. So `emit()` and `emit(a,b)` now parse-error.
+- [x] `tst/expr.lua`: `emit()` + `emit(:X,10)` -> error
+  `"... near 'emit' : expected single argument"`; `emit [xs] (:X)` ->
+  `emit_in(xs, :X)`.
+- [x] `tst/thread.lua`: `emit()` -> `emit(nil)` x4 (same runtime: `emt=nil`).
+
+WHY parser-side: `await(a,b)` already parse-errors via `parser_await` (single
+pattern). `emit` used generic call machinery so multi-arg only failed at
+runtime via lua-atmos `M.emit` `assert(select('#',...)==0)` (run.lua:725, a raw
+Lua assert marked "TODO: remove"). Parser check = clean Atmos error + honest
+grammar + symmetry with await. No lua-atmos change.
+
+## Pending: stale multi-arg sources broken by the new emit rule
+
+These files are NOT run by `tst/all.lua` (suite stays green), but are now
+invalid value-event source. `manual.lua` only builds the TOC/anchors and passes
+code blocks verbatim, so `exs/*.atm` are independent runnable companions to the
+manual's inline blocks (no auto-inject, no auto-revert). Exact edits
+(before -> after):
+
+- [ ] `doc/exs/exp-26-await.atm` (mirror manual Await blocks 2-3):
+    - L5  `await(:key, :escape)    ;; awakes on :key == :escape`
+       -> `await :escape           ;; awakes on an :escape event`
+    - L16 `emit(:key, :escape)`        -> `emit :escape`
+    - L30 `val x,y = await(true)`      -> `val e = await(true)`
+    - L31 `print(x, y)         ;; --> 10, 20`
+       -> `print(e.x, e.y)     ;; --> 10, 20`
+    - L33 `emit(10, 20)`              -> `emit(:P @{x=10, y=20})`
+    - OPTIONAL (not needed for validity): L9 keeps `await(\{it>10})` driven by
+      numeric `emit <-- 20`; manual block shows `await(\{it.v > 10})`. Align
+      only if also reworking the `emit <-- 10/20` drivers.
+- [ ] `doc/exs/exp-28-toggle.atm` (mirror manual Toggle block):
+    - L17 `val _,v = await(:E)`       -> `val e = await(:E)`
+    - L18 `print(v)            ;; --> 1 3`
+       -> `print(e[1])         ;; --> 1 3`
+    - L22 `emit(:E, 1)`     -> `emit :E @{1}`
+    - L23 `emit(:T, false)` -> `emit :T @{false}`
+    - L24 `emit(:E, 2)`     -> `emit :E @{2}`
+    - L25 `emit(:T, true)`  -> `emit :T @{true}`
+    - L26 `emit(:E, 3)`     -> `emit :E @{3}`
+    - NOTE L43 `emit(:Ok @{false})` already fixed (staged earlier).
+- [ ] `tst/guide.atm` (6.4 toggle):
+    - L266 `emit(:X, false)    ;; body above toggles off`
+        -> `emit :X @{false}   ;; body above toggles off`
+    - L269 `emit(:X, true)     ;; body above toggles on`
+        -> `emit :X @{true}    ;; body above toggles on`
+
+## Pending: open decisions
+
+- [ ] Reserved Names table (`manual.md` `#### Reserved Names`): `clock` and
+  `tasks` are listed under "await tags" but are hidden behind surface syntax
+  (`@...`, `:any`/`:all`). Decide: drop both from the user-facing row, or keep
+  with an "internal" note.
+
+## Pending: lua-atmos (user's domain -- not edited from atmos-lang)
+
+- [ ] bare-pool guard: `await(ts)` HANGS today (pool has no `.tag`, matches no
+  `M.await` branch). Add a guard -> error, plus its error test.
+- [ ] clock non-table emit regression test: `emit(5)` / `emit(true)` once hit a
+  nil-deref; fixed by `type(emt)=='table' and emt.tag=='clock'` guard
+  (run.lua:627). Add a test that pins it.
+- [ ] streams sanity check.
+
+## Pending: atmos-lang tests
+
+- [ ] `tst/streams.lua:81` `every a,b in :x` -> needs stream value-event shape
+  (only test still on the old multi-var form).
