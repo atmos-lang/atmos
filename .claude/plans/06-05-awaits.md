@@ -140,6 +140,15 @@ grammar + symmetry with await. No lua-atmos change.
       nil)` -> `parser_await(nil, true)`. All 5 call sites now use only
       `parser_await`.
 - [x] combinator tests split into `tst/await.lua` (registered `all.lua:12`).
+- [x] inlined `parser_pool`/`parser_until`/`await_pred` into `parser_await`;
+  kept `mk_tagged`/`await_ast_logical` as module locals (recursive/shared).
+- [x] `every` -> single `parser_await` call (5 -> 4): parse leading id; if `in`
+  follows it's the loop var, else seed `parser_await('{', start)`. 2nd param of
+  `parser_await` now: `true`=single primary (juxtaposition), node=seed full
+  chain (parser_2_suf..parser_7_out, same seam as emit prim.lua:156),
+  nil=`parser()`. No lexer/`check2`/`TK2` needed. Dropped the speculative
+  reparse + `err "expected identifier"`. Single-id every only.
+  Remaining 4 calls: await paren / await juxtaposition / every / watching.
 
 ## Pending: stale multi-arg sources broken by the new emit rule
 
