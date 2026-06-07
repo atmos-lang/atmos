@@ -295,12 +295,12 @@ do {
 do {
     print "-=-=- 7.2 -=-=-"
     func T (id) {
-        await(:X, id)
+        await(:X @{ v=id })
         throw :error
     }
     pin ts = tasks()
     spawn [ts] T(1)
     spawn [ts] T(2)
     spawn [ts] T(3)
-    emit(:X, 2)
+    emit(:X @{ v=2 })
 }

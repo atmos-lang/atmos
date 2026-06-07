@@ -1296,16 +1296,8 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local e = parser()
-    assert(check('<eof>'))
-    assertx(tosource(e), "await(:X, (x + 10))")
---[=[
-    assertx(tosource(e), trim [[
-        await(:X, func (evt) {
-            (x + 10)
-        })
-    ]])
-]=]
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near ',' : expected ')'")
 
     local src = "await @20:x.100"
     print("Testing...", src)
@@ -1322,11 +1314,53 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    --local ok, msg = pcall(parser)
-    --assertx(msg, "anon : line 1 : near ',' : expected ')'")
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near ',' : expected ')'")
+
+    local src = "await(:X until e1, e2)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await(@0:0:10.0, x)")
+    assertx(tosource(e), "await(@{[:tag]=\"until\", [1]=:X, [2]=func (it) {\ne1\n}, [3]=func (it) {\ne2\n}})")
+
+    local src = "await :X until e"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await(@{[:tag]=\"until\", [1]=:X, [2]=func (it) {\ne\n}})")
+
+    local src = "await(:X while e)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await(@{[:tag]=\"while\", [1]=:X, [2]=func (it) {\ne\n}})")
+
+    local src = "await :any ts"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await(@{[:tag]=\"tasks\", [:mode]=\"any\", [:tasks]=ts})")
+
+    local src = "await(:all ts)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await(@{[:tag]=\"tasks\", [:mode]=\"all\", [:tasks]=ts})")
 
     local src = "await T()"
     print("Testing...", src)

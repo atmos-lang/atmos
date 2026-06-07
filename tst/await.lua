@@ -108,7 +108,7 @@ do
     local src = [[
         spawn {
             val a = 10
-            await(:X, a || 20)
+            await(:X until a || 20)
             print(:ok)
         }
         emit :X @{10}

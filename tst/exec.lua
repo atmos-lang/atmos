@@ -2331,6 +2331,47 @@ do
     assertx(out, "20\n")
 end
 
+-- AWAIT / TASKS POOL (:any / :all)
+do
+    local src = [[
+        spawn {
+            pin ts = tasks()
+            func T (v) {
+                await(v)
+                print(v)
+                return(v)
+            }
+            spawn [ts] T(:a)
+            spawn [ts] T(:b)
+            val v = await :any ts
+            print(:any, v)
+        }
+        emit(:b)
+    ]]
+    print("Testing...", "await :any ts")
+    local out = atm_test(src)
+    assertx(out, "b\nany\tb\n")
+
+    local src = [[
+        spawn {
+            pin ts = tasks()
+            func T (v) {
+                await(true)
+                print(v)
+                return(v)
+            }
+            spawn [ts] T(:a)
+            spawn [ts] T(:b)
+            val v = await :all ts
+            print(:all, v==ts)
+        }
+        emit(true)
+    ]]
+    print("Testing...", "await :all ts")
+    local out = atm_test(src)
+    assertx(out, "a\nb\nall\ttrue\n")
+end
+
 print '--- AWAIT / CLOCK ---'
 
 do
