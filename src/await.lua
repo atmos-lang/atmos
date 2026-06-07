@@ -30,43 +30,36 @@ local function await_ast_logical (e)
     end
 end
 
--- a predicate: a func passes through; any other expr -> \{ e } (implicit `it`)
-local function await_pred (e)
-    if e.tag == 'func' then
-        return e
-    end
-    return { tag='func', lua=true, pars={{tag='id',str='it'}}, blk={tag='block', es={e}} }
-end
-
--- attaches optional `until`/`while` predicates to a parsed pattern.
--- stop = predicate-list terminator: ')' await(...) | '{' every/watching | nil juxtaposition
-local function parser_until (pat, stop)
-    local k = accept('until') or accept('while')
-    if not k then
-        return pat
-    end
-    local preds = parser_list_1(',', stop, parser)
-    return mk_tagged(k.str, concat({pat}, map(preds, await_pred)))
-end
-
--- pool prefix: :any ts / :all ts -> {tag='tasks', mode=, tasks=ts} (else nil)
-local function parser_pool ()
-    local m = accept(':any', 'tag') or accept(':all', 'tag')
-    if not m then
-        return nil
-    end
-    return { tag='table', es={
-        { k={tag='tag', tk={tag='tag', str=':tag'}},   v={tag='str', tk={tag='str', str='tasks'}} },
-        { k={tag='tag', tk={tag='tag', str=':mode'}},  v={tag='str', tk={tag='str', str=m.str:sub(2)}} },
-        { k={tag='tag', tk={tag='tag', str=':tasks'}}, v=parser() },
-    } }
-end
-
 -- parses a single await pattern (pool prefix, combinators, until/while).
 -- parser() errors on an empty slot. shared by await(...) / every / watching.
 -- prim=true uses a single primary as base (bare `await PAT` juxtaposition),
 -- so `await :X || :Y` stays `(await :X) || :Y`; default uses the full expr.
 function parser_await (stop, prim)
+    -- pool prefix: :any ts / :all ts -> {tag='tasks', mode=, tasks=ts}
+    local m = accept(':any', 'tag') or accept(':all', 'tag')
+    if m then
+        return { tag='table', es={
+            { k={tag='tag', tk={tag='tag', str=':tag'}},   v={tag='str', tk={tag='str', str='tasks'}} },
+            { k={tag='tag', tk={tag='tag', str=':mode'}},  v={tag='str', tk={tag='str', str=m.str:sub(2)}} },
+            { k={tag='tag', tk={tag='tag', str=':tasks'}}, v=parser() },
+        } }
+    end
+
+    -- base pattern + combinators &&/||/!
     local base = prim and parser_1_prim or parser
-    return parser_pool() or parser_until(await_ast_logical(base()), stop)
+    local pat = await_ast_logical(base())
+
+    -- optional until/while predicates (each non-func wrapped as \{ e })
+    local k = accept('until') or accept('while')
+    if not k then
+        return pat
+    end
+    local preds = parser_list_1(',', stop, parser)
+    local fs = map(preds, function (e)
+        if e.tag == 'func' then
+            return e
+        end
+        return { tag='func', lua=true, pars={{tag='id',str='it'}}, blk={tag='block', es={e}} }
+    end)
+    return mk_tagged(k.str, concat({pat}, fs))
 end
