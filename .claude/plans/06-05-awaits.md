@@ -87,7 +87,7 @@ through; >=1 pred via `parser_list_1`.
     - [x] stmt.lua `every x,y in :X,10` -> error `near ',':'{'`
     - [x] exec.lua await 1: `await(:X until x+10)` + `emit :X @{10}`; trace now
       has `emit`(L5) frame + ` <- [C]:-1 (task)` suffixes
-    - [ ] streams.lua:81 `every a,b in :x` -> needs stream value-event shape
+    - [x] streams.lua:81 `every a,b in :x` -> needs stream value-event shape
     - NOTE: parse-error msgs reasoned from parser (accept_err); outputs/traces
       verify on reinstall+run (still step 2 `:any/:all` pending)
     - [x] tasks.lua (review): RESTORED original checks by adapting code
@@ -192,7 +192,12 @@ manual's inline blocks (no auto-inject, no auto-revert). Exact edits
   (run.lua:627). Add a test that pins it.
 - [ ] streams sanity check.
 
-## Pending: atmos-lang tests
+## Done: streams value-event
 
-- [ ] `tst/streams.lua:81` `every a,b in :x` -> needs stream value-event shape
-  (only test still on the old multi-var form).
+- [x] lua-atmos `streams.lua:54` `S.emitter`: `emit_in(tgt, as, v)` ->
+  `emit_in(tgt, {tag=as, v})` (single value-event `{tag=as, [1]=v}`). Fixes
+  beh 1/2 runtime assert. (user, off-worktree)
+- [x] `tst/streams.lua` beh 3 (L81): `every a,b in :x { print(a,b) }` ->
+  `every e in :x { print(e.tag, e[1]) }`; expected output unchanged.
+- [ ] OPTIONAL: add lua-atmos pin test for `S.emitter` value-event
+  (proposed `emitter 1` using `emitter('global','x')` + `await('x')`).

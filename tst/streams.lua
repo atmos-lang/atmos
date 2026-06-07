@@ -78,8 +78,8 @@ do
                 ::map \{it[2]},
         }
         spawn {
-            every a,b in :x {
-                print(a, b)
+            every e in :x {
+                print(e.tag, e[1])
             }
         }
         emit @1
