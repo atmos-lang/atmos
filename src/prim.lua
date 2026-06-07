@@ -661,14 +661,19 @@ function parser_1_prim ()
         -- every { ... }
         if accept('every') then
             local ids = {}
-            local tk  = TK1
-            local awt = parser_await('{')
-            if accept('in') then
-                if awt.tag ~= 'acc' then
-                    err(tk, "expected identifier")
+            local start = nil
+            local tk = TK1
+            local id = accept(nil,'id')
+            if id then
+                if accept('in') then
+                    ids = { id }
+                else
+                    start = { tag='acc', tk=id }
                 end
-                ids = { awt.tk }
-                awt = parser_await('{')
+            end
+            local awt = parser_await('{', start)
+            if check('in') then
+                err(tk, "expected identifier")
             end
             local blk = parser_block()
             local cb = { tag='func', lua=true, pars=ids, blk=blk }

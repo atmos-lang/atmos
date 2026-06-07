@@ -2377,17 +2377,18 @@ print '--- AWAIT / CLOCK ---'
 do
     local src = [[
         spawn {
-            await(:X,
+            await(:X until
                 x+10)
         }
-        emit(:X,10)
+        emit :X @{10}
     ]]
     print("Testing...", "await 1")
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
          |  [C]:-1 (loop)
-         v  [string "anon.atm"]:3 (throw)
+         |  [string "anon.atm"]:5 (emit) <- [C]:-1 (task)
+         v  [string "anon.atm"]:3 (throw) <- [C]:-1 (task)
         ==> attempt to perform arithmetic on a nil value (global 'x')
     ]])
 
