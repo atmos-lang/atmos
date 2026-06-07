@@ -71,11 +71,39 @@ through; >=1 pred via `parser_list_1`.
 - [x] `parser_await` v1 (combinators + single pattern; `parser()` errors on empty)
 - [x] route every / watching through it (single pattern; multi-var `every`
   dropped — one optional var)
-- [ ] 1. rewrite await onto `parser_await`; bare `call` node (outer chain keeps
-  `::m()`/pipes/binops); `await()` -> parse error; re-test
-- [ ] 2. `:any/:all` prefix in `parser_await` -> `{tag='any'/'all', ts}`
-  (runtime already has 'any'/'all' mode)
-- [ ] 3. `until`/`while` in `parser_await` -> `{tag='until'/'while', pat, \{p}..}`
-  (>=1 pred; stop token per caller: `)` await, `{` every/watching)
-- [ ] 4. fix tests to new syntax: `await(:X,10)` -> `await :X until it.v==10`
-  (+ `emit :X @{v=..}`); update/drop multi-`every` test (stmt.lua:888)
+- [x] 1. await onto `parser_await`: `await(PAT)` full pattern, `await PAT`
+  single primary (so bare `await :X || :Y` = `(await :X) || :Y`), bare `call`
+  node, `await()` -> parse error. id/spawn `await T()` untouched.
+- [x] 2. `:any/:all`: `parser_pool` -> `{tag='tasks', mode=:any/:all, tasks=ts}`
+  (single node); wired into `parser_await` + await juxtaposition (=> await(paren)
+  /juxtaposition/every/watching). lua-atmos `tag=='tasks'` branch already done.
+- [x] 3. `until`/`while`: `mk_tagged` + `await_pred` + `parser_until(pat,stop)`;
+  `parser_await(stop)` = base + preds; wired into await(paren `)` / juxtaposition
+  `nil`) + every/watching (`{`). greedy comma preds (a), >=1 via parser_list_1.
+- [~] 4. fix tests to new syntax:
+    - [x] await.lua op_payload_or -> `await(:X until a||20)`
+    - [x] tasks.lua `await()` -> parse error
+    - [x] expr.lua `await(:X, x+10)` / `await(@10,x)` -> error `near ',':')'`
+    - [x] stmt.lua `every x,y in :X,10` -> error `near ',':'{'`
+    - [x] exec.lua await 1: `await(:X until x+10)` + `emit :X @{10}`; trace now
+      has `emit`(L5) frame + ` <- [C]:-1 (task)` suffixes
+    - [ ] streams.lua:81 `every a,b in :x` -> needs stream value-event shape
+    - NOTE: parse-error msgs reasoned from parser (accept_err); outputs/traces
+      verify on reinstall+run (still step 2 `:any/:all` pending)
+    - [x] tasks.lua (review): RESTORED original checks by adapting code
+      (`emit(:t,X)`->`emit(:t @{X})`, read payload via `[1]`); ~18 tests.
+      only `await()` -> parse error kept. (user dir #3)
+    - [x] expr.lua/stmt.lua (review): kept multi-arg parse-errors; ADDED
+      `until`/`while` + `:any`/`:all` tests; tosource `--TODO`s now FILLED
+      (from compiler probe) (user dir #1/#2)
+    - [x] exec.lua: runtime `await :any ts` / `:all ts` tests (pass)
+
+## Manual docs (draft #1) -- doc/manual.md (NOT manual-out.md)
+
+- [x] `### Await`: value-event (single event), `:any`/`:all` pool, `||`/`&&`/`!`
+  combinators, `until`/`while` predicates, `{tag=t,...}` match; examples redone
+- [x] `#### Reserved Names` table (await tags / pool modes / event keys /
+  clock keys / type names) -- mirrors lua-atmos api.md
+- [x] `### Emit`: exactly-one-value event + no-paren constructor form; examples
+- [x] `### Toggle`: set form `emit(<tag> @{<boolean>})`; examples value-event
+- [ ] review: `every`/`watching`/`par_*` examples (mostly value-event already)
