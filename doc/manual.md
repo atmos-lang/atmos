@@ -2272,7 +2272,7 @@ spawn {
         }
     }
 }
-emit(:Ok, false)
+emit(:Ok @{false})
 emit(:Tick)         ;; (nop)
 emit(:Draw)         ;; --> draw
 ```
