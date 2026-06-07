@@ -213,6 +213,9 @@ function parser_1_prim ()
             if call.tag ~= 'call' then
                 err(tk, "expected call syntax")
             end
+            if #call.es ~= 1 then
+                err(tk, "expected single argument")
+            end
             if f == 'emit_in' then
                 table.insert(call.es, 1, to)
             end

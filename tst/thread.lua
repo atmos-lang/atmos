@@ -57,7 +57,7 @@ do
             thread { await :OK }
         }
         `os.execute("sleep 0.1")`
-        emit()
+        emit(nil)
     ]]
     print("Testing...", "thread exec 00")
     local out = atm_test(src)
@@ -73,7 +73,7 @@ do
             print(v)
         }
         `os.execute("sleep 0.1")`
-        emit()
+        emit(nil)
     ]]
     print("Testing...", "thread exec 01")
     local out = atm_test(src)
@@ -94,7 +94,7 @@ do
             print(v)
         }
         `os.execute("sleep 0.1")`
-        emit()
+        emit(nil)
     ]]
     print("Testing...", "thread exec 02")
     local out = atm_test(src)
@@ -137,7 +137,7 @@ do
             }
         }
         `os.execute("sleep 0.1")`
-        emit()
+        emit(nil)
     ]]
     print("Testing...", "thread exec 03")
     local out = atm_test(src)

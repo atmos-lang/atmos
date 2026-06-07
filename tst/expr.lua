@@ -1193,23 +1193,30 @@ do
     assert(check('<eof>'))
     assert(tosource(e) == "yield(x, 10)")
 
+    local src = "emit()"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'emit' : expected single argument")
+
     local src = "emit(:X,10)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
-    local e = parser()
-    assert(check('<eof>'))
-    assert(tosource(e) == "emit(:X, 10)")
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'emit' : expected single argument")
 
-    local src = "emit [xs] (:X,10)"
+    local src = "emit [xs] (:X)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "emit_in(xs, :X, 10)")
+    assertx(tosource(e), "emit_in(xs, :X)")
 
     local src = "emit :X @{}"
     print("Testing...", src)
