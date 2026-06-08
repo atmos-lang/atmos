@@ -272,11 +272,17 @@ collapses into a plain `num`.
 
 ## Implementation Status (compiler side)
 
+Compiler + full test suite: DONE and PASSING.
+Remaining: docs migration + downstream runtime (both below).
+
 Decisions (this session):
 
 - Scope    : clock literals + drop `@` sigil (keep `@{` tables; no index yet).
 - Syntax   : unit-suffix (Proposal A) — `5s`, `300ms`, `2h30min`.
-- Emit     : constant exprs, e.g. `(5*_s_ + 30*_min_)` (NOT raw integers).
+- Order    : STRICT DESCENDING, no repeats (`day h min s ms us`). `30min2h`
+             and `5s5s` are errors. (Resolves Open-Question "compound order".)
+- Emit     : constant exprs; each component parenthesized, summed —
+             `2h30min` -> `((2*_h_) + (30*_min_))`.
 - Units    : `us ms s min h day` (full set; `us` included).
 - Base unit: MICROSECONDS, not ms. Runtime (`lua-atmos/atmos/init.lua`)
              defines `_us_=1, _ms_, _s_, _min_, _h_, _day_` and dropped the
@@ -284,12 +290,13 @@ Decisions (this session):
 
 Done:
 
-- [DONE] `src/lexer.lua` : `lexer_dur(s)` parses `(digits[.digits]unit)+`.
-- [DONE] `src/lexer.lua` : number branch emits `clk` token w/ `comps` (or
-         falls back to `invalid number`).
+- [DONE] `src/lexer.lua` : number branch — `tonumber` -> `num`; else parse
+         duration via one anchored `match` per unit in descending order
+         (leftover text -> `invalid number`); emits `clk` token w/ `comps`.
+         (Helper `lexer_dur` was extracted then inlined.)
 - [DONE] `src/lexer.lua` : `@` branch drops clock; keeps `@{`; bare `@` ->
          `err "unexpected '@'"`.
-- [DONE] `src/coder.lua` : `clk` emits `(n*_unit_ + ...)` constant expr.
+- [DONE] `src/coder.lua` : `clk` emits `((n*_unit_) + ...)` constant expr.
 - [DONE] `src/tosource.lua` : `clk` prints raw source (`e.tk.str`).
 - No parser change: `clk` AST tag kept; only payload changed
   (`clk{h,min,s,ms}` -> `comps[{n,u}]`).
