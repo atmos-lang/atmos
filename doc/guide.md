@@ -94,14 +94,14 @@ require "atmos.env.clock"
 
 print "Counts 5 seconds:"
 loop _ in 5 {
-    await @1
+    await 1s
     print "1 second..."
 }
 print "5 seconds elapsed."
 ```
 
-In the example, `@1` is a [clock value](manual-out.md#clock) in the format
-`@HH:MM:SS.sss`, allowing Atmos to await time.
+In the example, `1s` is a [clock duration](manual-out.md#literals), a
+unit-suffixed number of microseconds, allowing Atmos to await time.
 
 # 3. Lexical Structure
 
@@ -237,11 +237,11 @@ code.
 
 Atmos provides many compound statements built on top of tasks:
 
-- The `every` statement expands to a loop that awaits its first argument at the
+- The `loop on` statement expands to a loop that awaits an event at the
   beginning of each iteration:
 
 ```
-every @1 {
+loop on 1s {
     print "1 second elapses"    ;; prints every second
 }
 ```
@@ -250,7 +250,7 @@ every @1 {
   first argument occurs:
 
 ```
-watching @1 {
+watching 1s {
     await :X
     print "X happens before 1s" ;; prints unless 1 second elapses
 }
@@ -296,7 +296,7 @@ When a task terminates, it is automatically removed from the pool.
 func T (id, ms) {
     set pub = id
     print(:start, id, ms)
-    await @ms
+    await (ms * 1ms)
     print(:stop, id, ms)
 }
 
@@ -305,7 +305,7 @@ do {
     loop i in 10 {
         spawn [ts] T(i, math.random(500,1500))
     }
-    await @1
+    await 1s
 }
 ```
 
@@ -324,7 +324,7 @@ loop _,t in ts {
 }
 ```
 
-If we include this loop after the `await @1` in the previous example, it will
+If we include this loop after the `await 1s` in the previous example, it will
 print the task ids that did not awake.
 
 ## 5.3. Task Toggling
@@ -352,18 +352,18 @@ When receiving `true`, the body toggles on.
 
 ```
 spawn {
-    toggle :X {
-        every @.100 {
+    toggle on :X {
+        loop on 100ms {
             print "100ms elapses"
         }
     }
 }
 print 'off'
 emit(:X, false)    ;; body above toggles off
-await @1
+await 1s
 print 'on'
 emit(:X, true)     ;; body above toggles on
-await @1
+await 1s
 ```
 
 # 6. Errors
@@ -469,7 +469,7 @@ spawn {
         ::to()
 }
 loop i in 10 {
-    await @.1
+    await 1ms
     emit :V @{v=i}
 }
 ```
@@ -552,7 +552,7 @@ val func cpu (max) {
     sum
 }
 
-val t = watching @20 {
+val t = watching 20s {
     par_or {
         val v = thread {
             cpu(math.random(10000000000))
@@ -566,7 +566,7 @@ val t = watching @20 {
     }
 }
 
-if t == :clock {
+if t ?? :number {
     print("Computation timeout...")
 } else {
     print(t.worker ++ " yields " ++ t.value)

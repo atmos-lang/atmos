@@ -22,11 +22,10 @@
     * Literals
         - `nil` `true` `false`
         - `:X` `10` `"hello"`
-        - `@10:20.1` `` `lua` ``
+        - `2h30min` `` `lua` ``
     * Comments
         - `;; *` `;;; * ;;;`
 * TYPES & VALUES
-    * Clock
     * Table
         - `@{ * }` `:X @{ * }`
     * Function
@@ -58,7 +57,7 @@
         - `throw` `catch`
     * Task Operations
         - `spawn` `await` `emit` `toggle`
-        - `every` `watching` `par` `par_and` `par_or`
+        - `watching` `par` `par_and` `par_or`
     * Asynchronous Execution
         - `async` `thread`
 * STANDARD LIBRARIES
@@ -78,7 +77,7 @@ programming with two main functionalities:
     - A `task` primitive with deterministic scheduling provides predictable
       behavior and safe abortion.
     - Structured primitives compose concurrent tasks with lexical scope (e.g.,
-      `watching`, `every`, `par_or`).
+      `loop on`, `toggle`, `par_or`).
     - A `tasks` container primitive holds attached tasks and controls their
       lifecycle.
     - A `pin` declaration attaches a task or tasks to its enclosing lexical
@@ -171,13 +170,13 @@ The example uses a `par_or` to spawn two concurrent tasks:
 
 ```
 par_or {
-    await @10
+    await 10s
 } with {
     var n = 0
     defer {
         print("I counted ", n)    ;; invariably outputs 9
     }
-    every @1 {
+    loop on 1s {
         set n = n + 1
     }
 }
@@ -187,7 +186,7 @@ The [par_or](#parallels) is a structured mechanism that combines tasks in
 nested blocks and rejoins as a whole when one of them terminates, automatically
 aborting the others.
 
-The [every](#every) loop in the second task iterates exactly 9 times before the
+The [loop on](#loop) in the second task iterates exactly 9 times before the
 first task awakes and terminates the composition.
 For this reason, the second task is aborted before it has the opportunity to
 awake for the 10th time, but its `defer` statement still executes and outputs
@@ -240,11 +239,11 @@ When the condition is satisfied, the nested task is aborted:
 spawn {
     watching :done {
         par {
-            every :tick {
+            loop on :tick {
                 print "tick A"  ;; always awakes first
             }
         } with {
-            every :tick {
+            loop on :tick {
                 print "tick B"  ;; always awakes last
             }
         }
@@ -430,9 +429,8 @@ The following keywords are reserved in Atmos:
     else                ;; else block
     emit                ;; emit event
     escape              ;; escape block
-    every               ;; every block
-    false               ;; false value                      (10)
-    func                ;; function
+    false               ;; false value
+    func                ;; function                         (10)
     if                  ;; if block
     ifs                 ;; ifs block
     in                  ;; in iterator
@@ -440,6 +438,7 @@ The following keywords are reserved in Atmos:
     loop                ;; loop block
     match               ;; match block
     nil                 ;; nil value
+    on                  ;; on event clause
     par                 ;; par block
     par_and             ;; par-and block                    (20)
     par_or              ;; par-or block
@@ -528,18 +527,18 @@ y10
 ## Literals
 
 Atmos provides literals for all [value types](#types--values):
-    `nil`, `boolean`, `number`, `string`, and `clock`.
+    `nil`, `boolean`, `number`, and `string`.
 
-It also provides literals for [tag](#TODO) and [native](#TODO) expressions,
-which only exist at compile time.
+It also provides literals for [tag](#TODO), clock durations, and
+[native](#TODO) expressions, which only exist at compile time.
 
 ```
 NIL  : nil
 BOOL : true | false
 TAG  : :[A-Za-z0-9_\.]+     ;; colon + leter/digit/under/dot
 NUM  : [0-9][0-9A-Za-z\.]*  ;; digit/letter/dot
+CLK  : ([0-9\.]+(day|h|min|s|ms|us))+ ;; clock duration expression
 STR  : '.*' | ".*"          ;; string expression
-CLK  : (.*):(.*):(.*)\.(.*) ;; clock expression
 NAT  : `.*`                 ;; native expression
 ```
 
@@ -556,16 +555,12 @@ digits, and dots (`.`).
 A `number` literal starts with a digit and is followed by digits, letters, and
 dots (`.`).
 
+A `clock` duration literal is a straight sequence of numbers and time units
+(e.g. `1min30s`), which is converted into a number in microseconds.
+
 A `string` literal is a sequence of characters enclosed by an odd number
 of matching double (`"`) or single (`'`) quotes.
 Atmos supports multi-line strings when using multiple quote delimiters.
-
-A `clock` literal starts with an *at sign* (`@`) and is followed by the format
-`HH:MM:SS.sss` representing hours, minutes, seconds, and milliseconds.
-Each time segment accepts numbers or embedded identifiers as expressions.
-At runtime, identifiers evaluate to the corresponding variable value.
-Clock literals are interpreted as a table in the format
-`@{h=HH,min=MM,s=SS,ms=sss}`.
 
 A `native` literal is a sequence of characters enclosed by an odd number
 of matching back quotes (`` ` ``).
@@ -618,34 +613,16 @@ Atmos supports and mimics the semantics of the standard [Lua types][lua-types]:
     `nil`, `boolean`, `number`, `string`,
     `function`, `userdata`, `thread`, and `table`.
 
-In addition, Atmos also supports the types as follows:
-    `clock`, `task`, and `tasks`.
-Although these types are internally represented as Lua tables, they receive
-special treatment from the language.
+Atmos also supports the `task` and `tasks` types.
 
 Atmos differentiates between *value* and *reference* types:
 
 - Value types are built from the [basic literals](#literals):
-    `nil`, `boolean`, `number`, `string`, and `clock`.
+    `nil`, `boolean`, `number`, and `string`.
 - Reference types are built from constructors:
     `function`, `userdata`, `thread`, `table`, `task`, and `tasks`.
 
 [lua-types]: https://www.lua.org/manual/5.4/manual.html#2.1
-
-## Clock
-
-The `clock` value type represents clock tables in the [format](#literals)
-`@{h=HH,min=MM,s=SS,ms=sss}`.
-
-Examples:
-
-<!-- exs/val-01-clock.atm -->
-
-```
-val clk = @1:15:40.2    ;; a clock declaration
-print(clk.s)            ;; --> 40
-print(clk ?? :clock)    ;; --> true
-```
 
 ## Table
 
@@ -1651,7 +1628,7 @@ Operations in Atmos can be combined in expressions with the following
 precedence priority (from higher to lower):
 
 1. primary:
-    - literal:      `nil` `true` `...` `:X` `'x'` `@.x` (etc)
+    - literal:      `nil` `true` `...` `:X` `'x'` `5s` (etc)
     - identifier:   `x`
     - constructor:  `@{}` `\{}`
     - command:      `do` `set` `if` `await` (etc)
@@ -1799,18 +1776,21 @@ Atmos supports loops and iterators as follows:
 ```
 Loop : `loop´ Block                 ;; infinite
      | `loop´ ID Block              ;; numeric infinite
-     | `loop´ ID+ `in´ Expr Block   ;; iterator
+     | `loop´ ID* `in´ Expr Block   ;; data iterator
+     | `loop´ ID? `on´ Patt Block   ;; event loop
 ```
 
 A `loop` executes a block of code continuously until a termination condition is
 met.
-Atmos supports three loop variations:
+Atmos supports four loop variations:
 
 1. An *infinite loop* with an empty header, which only terminates from
    [break](#breaks) conditions.
 2. A *numeric infinite loop* with a variable that ranges from `0` upwards.
-3. An *iterator loop* with multiple variables that range according to an
-   iterator expression.
+3. An *iterator loop* (`in`) with multiple variables that range according to
+   an iterator expression.
+4. An *event loop* (`on`), which awaits an [event pattern](#await) at each
+   iteration, with an optional variable to capture the event.
 
 The following iterator expression types with predefined behaviors are
 supported:
@@ -1842,7 +1822,7 @@ Examples:
 
 ```
 loop {
-    await @1
+    await 1s
     print("1 more second elapsed...")
 }
 ```
@@ -1877,6 +1857,20 @@ val f = func (s,e) {
 }
 loop v in f(5,8) {
     print(v)        ;; --> 5, 6, 7
+}
+```
+
+<!-- exs/exp-29-every.atm -->
+
+```
+loop on 1s {
+    print("1 more second has elapsed")
+}
+```
+
+```
+loop it on :X {     ;; <-- (`emit :X @{v=10}`)
+    print(it.v)     ;; --> 10
 }
 ```
 
@@ -2107,7 +2101,7 @@ pattern `Patt` as follows:
 
 - `true`        | matches any event
 - `false`       | never matches
-- `c: clock`    | when [clock](#clock) `c` expires
+- `n: number`   | after `n` microseconds elapse (a relative timer)
 - `f: function` | when `f(e)` is truthy, returning its result
 - `t: task`     | when `t` terminates; returns `v,t`, where `v` is the
                   task return value
@@ -2144,7 +2138,7 @@ Examples:
 ```
 await(false)            ;; never awakes
 await :escape           ;; awakes on an :escape event
-await @1:10:30          ;; awakes after 1h 10min 30s
+await 1h10min30s        ;; awakes after 1h 10min 30s
 await(\{it.v > 10})     ;; awakes if event field v > 10
 await(:X && :Y)         ;; awakes after both :X and :Y occur in any order
 await(!:X)              ;; awakes on any non-:X event
@@ -2215,7 +2209,7 @@ A `toggle` configures a task or block to either consider or disregard further
 
 ```
 Toggle : `toggle´ Expr `(´ Expr `)´ [ `with´ Expr* ]
-       | `toggle´ TAG [ `with´ Expr* ] Block
+       | `toggle´ `on´ TAG [ `with´ Expr* ] Block
 ```
 
 By default, tasks and blocks are toggled on, thus reacting to all events.
@@ -2254,7 +2248,7 @@ emit :X         ;; --> ok
 
 ```
 spawn {
-    toggle :T {
+    toggle on :T {
         loop {
             val e = await(:E)
             print(e[1])         ;; --> 1 3
@@ -2270,13 +2264,13 @@ emit :E @{3}
 
 ```
 spawn {
-    toggle :Ok with :Draw {
+    toggle on :Ok with :Draw {
         par {
-            every :Tick {
+            loop on :Tick {
                 print :tick     ;; ignored during :Ok=false
             }
         } with {
-            every :Draw {
+            loop on :Draw {
                 print :draw     ;; responsive during :Ok=false
             }
         }
@@ -2287,35 +2281,7 @@ emit(:Tick)         ;; (nop)
 emit(:Draw)         ;; --> draw
 ```
 
-### Every
-
-An `every` is a [loop](#loop) that makes an iteration whenever an
-[await pattern](#await) is satisfied:
-
-```
-Every : `every´ [ID+ `in´] Expr* Block
-```
-
-The optional `in` clause captures the values of the occurring event into the
-given identifiers, which are local to the loop.
-
-Examples:
-
-<!-- exs/exp-29-every.atm -->
-
-```
-every @1 {
-    print("1 more second has elapsed")
-}
-```
-
-```
-every it in :X {    ;; <-- (`emit :X @{v=10}`)
-    print(it.v)     ;; --> 10
-}
-```
-
-#### Watching
+### Watching
 
 A `watching` spawns and awaits a block as a
 [transparent task](#transparent-task) until an [await pattern](#await) is
@@ -2330,8 +2296,8 @@ Examples:
 <!-- exs/exp-30-watching.atm -->
 
 ```
-watching @1 {
-    every :X {
+watching 1s {
+    loop on :X {
         print("one more :X occurred before 1 second")
     }
 }
@@ -2362,15 +2328,15 @@ Examples:
 
 ```
 par {
-    every @1 {
+    loop on 1s {
         print("1 second has elapsed")
     }
 } with {
-    every @1:0 {
+    loop on 1min {
         print("1 minute has elapsed")
     }
 } with {
-    every @1:0:0 {
+    loop on 1h {
         print("1 hour has elapsed")
     }
 }
@@ -2379,7 +2345,7 @@ print("never reached")
 
 ```
 val v = par_or {
-    await @1
+    await 1s
 } with {
     await :X
     print(":X occurred before 1 second")
@@ -2709,6 +2675,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `loop´ Block                                ;; infinite loop
       | `loop´ ID Block                             ;; numeric infinite loop
       | `loop´ ID+ `in´ Expr Block                  ;; iterator loop
+      | `loop´ ID* `on´ Pattern Block               ;; event loop
 
       | `break´ `(´ Expr* `)´                       ;; loop break
       | `until´ `(´ Expr+ `)´
@@ -2725,9 +2692,8 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `emit´ [`[´ Expr `]´] `(´ Expr* `)´         ;; emit event
 
       | `toggle´ Expr `(´ Expr `)´                  ;; toggle task
-      | `toggle´ TAG Block                          ;; toggle block
+      | `toggle´ `on´ Pattern Block                 ;; toggle block
 
-      | `every´ [ID+ `in´] Expr* Block              ;; every event loop
       | `watching´ Expr* Block                      ;; watching event block
 
       | `par´     Block { `with´ Block }            ;; parallels
@@ -2740,6 +2706,6 @@ ID    : [A-Za-z_][A-Za-z0-9_]*      ;; variable identifier
 TAG   : :[A-Za-z0-9_\.]+            ;; tag
 NUM   : [0-9][0-9A-Za-z\.]*         ;; number
 STR   : '.*' | ".*"                 ;; string
-CLK   : (.*):(.*):(.*)\.(.*)        ;; clock
+CLK   : ([0-9\.]+(us|ms|s|min|h|day))+  ;; duration
 NAT   : `.*`                        ;; native expression
 ```

@@ -1,3 +1,0 @@
-val clk = @1:15:40.2    ;; a clock declaration
-print(clk.s)            ;; --> 40
-print(clk ?? :clock)    ;; --> true
