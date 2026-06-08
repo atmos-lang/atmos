@@ -2183,6 +2183,9 @@ An `emit` broadcasts an event that can awake [awaiting](#await) tasks:
 Emit : `emit´ [`[´ Expr `]´] `(´ Expr `)´
 ```
 
+It takes the event to broadcast as its single argument, which is matched
+against [await patterns](#await) in suspended tasks.
+
 The optional target between brackets determines the scope of the broadcast:
 
 - `:task` (default): current task
@@ -2191,27 +2194,14 @@ The optional target between brackets determines the scope of the broadcast:
 - `t: task`: the given task
 - `n: number`: `n`th level up in the task hierarchy (`0` = current task)
 
-An `emit` takes exactly one value, the event, which is matched against
-[await](#await) patterns.
-The event is typically a [tagged table](#user-types) carrying a payload.
-As with [calls](#calls), a single constructor argument may drop the
-parenthesis.
-
 Examples:
 
 <!-- exs/exp-27-emit.atm -->
 
 ```
-emit(:X)                ;; a bare tag event
-emit :X @{v=10}         ;; a tagged table with payload
-emit @{x=1, y=2}        ;; a plain table event
-emit @1                 ;; a clock event
-```
-
-```
 func T () {
     val x = spawn X()
-    val e = :E @{}
+    val e = <...>
     emit [:global] (e)  ;; global broadcast
     emit [:task] (e)    ;; restricted to `T`
     emit [x] (e)        ;; restricted to `x`
@@ -2220,7 +2210,7 @@ func T () {
 
 ### Toggle
 
-A `toggle` configures a task to either consider or disregard further
+A `toggle` configures a task or block to either consider or disregard further
 [emit](#emit) operations:
 
 ```
@@ -2228,20 +2218,20 @@ Toggle : `toggle´ Expr `(´ Expr `)´ [ `with´ Expr* ]
        | `toggle´ TAG [ `with´ Expr* ] Block
 ```
 
-In the first format, a toggle expects a task and a [boolean](#types--values),
-which is handled as follows:
+By default, tasks and blocks are toggled on, thus reacting to all events.
+
+In the first format for tasks, a toggle expects the task and a
+[boolean](#types--values), which is handled as follows:
 
 - `true`: the task considers further broadcasts
 - `false`: the task disregards further emits and never awakes
 
-By default, all tasks consider events.
-
-In the second format, a toggle spawns and awaits a block as a
+In the second format for blocks, a toggle spawns and awaits a block as a
 [transparent task](#transparent-task).
 It also specifies a [tag](#literals) to toggle the block when matching an
 [emit](#emit).
-The emit must be in the format `emit(<tag> @{<boolean>})` to set the toggle
-state.
+The emit must be in the format `emit(<tag> @{<boolean>})`, which sets the
+toggle state.
 
 An optional `with` filter clause specifies an [await pattern](#await), which
 keeps the task/block responsive when matching it.
