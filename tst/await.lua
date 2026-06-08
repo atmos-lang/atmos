@@ -82,7 +82,7 @@ do
 
     local src = [[
         spawn {
-            every :A || :B {
+            loop on :A || :B {
                 print(:tick)
             }
         }

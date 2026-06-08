@@ -1445,7 +1445,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "toggle(t, false, :a, :b)")
 
-    local src = "toggle :X with :Draw { }"
+    local src = "toggle on :X with :Draw { }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)

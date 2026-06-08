@@ -57,7 +57,7 @@ do
             ::map \{it[2]}
             ;;::to()      ;; 1 / 2 / 3
         spawn {
-            every :x {
+            loop on :x {
                 print(x)
             }
         }
@@ -78,7 +78,7 @@ do
                 ::map \{it[2]},
         }
         spawn {
-            every e in :x {
+            loop e on :x {
                 print(e.tag, e[1])
             }
         }

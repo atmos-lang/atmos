@@ -205,7 +205,7 @@ end
 -- KEYWORDS, VAR
 
 do
-    local src = "x X await test every"
+    local src = "x X await test every on"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -213,7 +213,8 @@ do
     assert(X.tostring(LEX()) == "@{lin=1, sep=1, str=X, tag=id}")
     assert(X.tostring(LEX()) == "@{lin=1, sep=1, str=await, tag=key}")
     assert(X.tostring(LEX()) == "@{lin=1, sep=1, str=test, tag=key}")
-    assert(X.tostring(LEX()) == "@{lin=1, sep=1, str=every, tag=key}")
+    assert(X.tostring(LEX()) == "@{lin=1, sep=1, str=every, tag=id}")
+    assert(X.tostring(LEX()) == "@{lin=1, sep=1, str=on, tag=key}")
 
     local src = "x-1 10-abc"
     print("Testing...", src)

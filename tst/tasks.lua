@@ -3347,7 +3347,7 @@ print '--- EVERY ---'
 do
     local src = [[
         spawn {
-            every :X {
+            loop on :X {
                 print(:X)
             }
         }
@@ -3361,7 +3361,7 @@ do
 
     local src = [[
         spawn {
-            every v in :X @{10} {
+            loop v on :X @{10} {
                 print(:X, v[1])
             }
         }
@@ -3375,7 +3375,7 @@ do
 
     local src = [[
         spawn {
-            every :X {
+            loop on :X {
                 x where {
                     x = match x {
                         x => x
@@ -3392,11 +3392,11 @@ do
     local src = [[
         spawn {
             par {
-                every :X {
+                loop on :X {
                     print("x")
                 }
             } with {
-                every @.10 {
+                loop on @.10 {
                     print("ms")
                 }
             }
@@ -3413,7 +3413,7 @@ do
 
     local src = [[
         spawn {
-            every it in :X {
+            loop it on :X {
                 print(it.v)
             }
         }
@@ -3425,7 +3425,7 @@ do
 
     local src = [[
         spawn {
-            every true {
+            loop on true {
                 break()
             }
             print(:ok)
@@ -3439,7 +3439,7 @@ do
     local src = [[
         spawn {
             watching :Z {
-                every :X {
+                loop on :X {
                     break()
                 }
                 print(:inner)
@@ -3471,11 +3471,11 @@ do
     local src = [[
         spawn {
             par {
-                every :X {
+                loop on :X {
                     print(:X)
                 }
             } with {
-                every :Y {
+                loop on :Y {
                     print(:Y)
                 }
             }
@@ -3647,7 +3647,7 @@ do
                 await(:X)
                 print("x")
             } with {
-                every :X {
+                loop on :X {
                     print("no")
                 }
             }
@@ -3669,7 +3669,7 @@ do
                 await(:X)
                 print("x")
             } with {
-                every :X {
+                loop on :X {
                     print("no")
                 }
             }

@@ -127,7 +127,7 @@ do {
 do {
     print "-=-=- 4.1 -=-=-"
     watching @1 {
-        every @.100 {
+        loop on @.100 {
             print "100 ms elapses"    ;; prints this message every second
         }
     }
@@ -256,8 +256,8 @@ do {
 do {
     print "-=-=- 6.4 -=-=-"
     spawn {
-        toggle :X {
-            every @.100 {
+        toggle on :X {
+            loop on @.100 {
                 print "100ms elapses"
             }
         }

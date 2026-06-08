@@ -855,10 +855,10 @@ do
     assertx(msg, "anon : line 1 : near 'val' : invalid assignment : unexpected transparent task")
 end
 
-print '--- AWAIT / EVERY ---'
+print '--- LOOP ON ---'
 
 do
-    local src = "every :X {}"
+    local src = "loop on :X {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -872,7 +872,7 @@ do
 end
 
 do
-    local src = "every it in :X {}"
+    local src = "loop it on :X {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -906,7 +906,7 @@ do
 end
 
 do
-    local src = "every x in"
+    local src = "loop x on"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -924,9 +924,7 @@ do
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near '10' : expected identifier")
 end
-
-do
-    local src = "every it in :X until e1, e2 {}"
+    local src = "loop it on :X until e1, e2 {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -937,7 +935,7 @@ do
 end
 
 do
-    local src = "every it in :X while e {}"
+    local src = "loop it on :X while e {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -948,7 +946,7 @@ do
 end
 
 do
-    local src = "every :any ts {}"
+    local src = "loop on :any ts {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)

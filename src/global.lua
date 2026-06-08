@@ -30,8 +30,8 @@ SYMS = { '{', '}', '(', ')', '[', ']', ',', '\\' }
 ]]
 
 KEYS = {
-    'await', 'catch', 'defer', 'do', 'else', 'emit', 'every', 'false', 'func',
-    'if', 'ifs', 'in', 'loop', 'match', 'nil', 'par', 'par_and', 'par_or',
+    'await', 'catch', 'defer', 'do', 'else', 'emit', 'false', 'func',
+    'if', 'ifs', 'in', 'loop', 'match', 'nil', 'on', 'par', 'par_and', 'par_or',
     'pin', 'set', 'spawn', 'tasks', 'test', 'thread', 'toggle', 'true', 'val',
     'var', 'watching', 'where', 'with',
     -- 'abort', 'break', 'escape', 'it', 'pub', 'return', 'skip', 'task',

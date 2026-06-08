@@ -215,11 +215,10 @@ function parser_1_prim ()
             end
             return out
         elseif accept('toggle') then
-            local tag = accept(nil, 'tag')
-            if tag then
-                -- optional filter pattern terminated by the block
+            if accept('on') then
+                local tag = accept_err(nil, 'tag')
                 local filter = {}
-                if accept('with') then
+                if accept('with') then -- optional filter pattern
                     filter = parser_list_1(',', '{', parser)
                 end
                 local blk = parser_block()
@@ -648,42 +647,30 @@ function parser_1_prim ()
 
     -- loop
     elseif accept('loop') then
+        local tk = TK0
         local ids = check(nil,'id') and parser_ids('in') or nil
-        local itr = nil
-        if accept('in') then
-            itr = parser()
-        end
-        local blk = parser_block()
-        return { tag='loop', ids=ids, itr=itr, blk=blk }
-
-    -- every, pars, watching
-    elseif check('every') or check('par') or check('par_and') or check('par_or') or check('watching') then
-        -- every { ... }
-        if accept('every') then
-            local ids = {}
-            local start = nil
-            local tk = TK1
-            local id = accept(nil,'id')
-            if id then
-                if accept('in') then
-                    ids = { id }
-                else
-                    start = { tag='acc', tk=id }
-                end
-            end
-            local awt = parser_await('{', start)
-            if check('in') then
-                err(tk, "expected identifier")
-            end
+        if accept('on') then
+            local awt = parser_await('{')
             local blk = parser_block()
-            local cb = { tag='func', lua=true, pars=ids, blk=blk }
+            local cb = { tag='func', lua=true, pars=ids or {}, blk=blk }
             return {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='every'} },
                 es = { awt, cb }
             }
+        else
+            local itr = nil
+            if accept('in') then
+                itr = parser()
+            end
+            local blk = parser_block()
+            return { tag='loop', ids=ids, itr=itr, blk=blk }
+        end
+
+    -- pars, watching
+    elseif check('par') or check('par_and') or check('par_or') or check('watching') then
         -- par
-        elseif accept('par') or accept('par_and') or accept('par_or') then
+        if accept('par') or accept('par_and') or accept('par_or') then
             local par = TK0.str
             local fs = { parser_block() }
             while accept('with') do

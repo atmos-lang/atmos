@@ -2240,7 +2240,7 @@ do
 
     local src = [[
         val T = func (i) {
-            every :X {
+            loop on :X {
                 print(:X, i)
             }
         }
@@ -2564,7 +2564,7 @@ do
             set pub = v
             toggle :Show {
                 print(pub)
-                every it in :Draw {
+                loop it on :Draw {
                     print(it.v)
                 }
             }
@@ -2599,9 +2599,9 @@ do
     local src = [[
         val T = func () {
             spawn (func () {
-                every :Draw { print(:draw) }
+                loop on :Draw { print(:draw) }
             }) ()
-            every :Tick { print(:tick) }
+            loop on :Tick { print(:tick) }
         }
         pin t = spawn T()
         emit(:Draw)                 ;; on  -> draw
@@ -2621,9 +2621,9 @@ do
         spawn {
             toggle :Show with :Draw {
                 par {
-                    every :Draw { print(:draw) }
+                    loop on :Draw { print(:draw) }
                 } with {
-                    every :Tick { print(:tick) }
+                    loop on :Tick { print(:tick) }
                 }
             }
         }

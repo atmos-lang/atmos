@@ -31,10 +31,9 @@ local function await_ast_logical (e)
 end
 
 -- parses a single await pattern (pool prefix, combinators, until/while).
--- parser() errors on an empty slot. shared by await(...) / every / watching.
+-- parser() errors on an empty slot. shared by await(...) / loop on / watching.
 -- base0: true -> single primary (bare `await PAT`, so `await :X || :Y` stays
--- `(await :X) || :Y`); a node -> seed the full chain from it (every's leading
--- id); nil -> full expression.
+-- `(await :X) || :Y`); nil -> full expression.
 function parser_await (stop, base0)
     -- pool prefix: :any ts / :all ts -> {tag='tasks', mode=, tasks=ts}
     local m = accept(':any', 'tag') or accept(':all', 'tag')
@@ -48,10 +47,8 @@ function parser_await (stop, base0)
 
     -- base pattern + combinators &&/||/!
     local base
-    if base0 == true then
+    if base0 then
         base = parser_1_prim()
-    elseif base0 then
-        base = parser_7_out(parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(base0))))))
     else
         base = parser()
     end
