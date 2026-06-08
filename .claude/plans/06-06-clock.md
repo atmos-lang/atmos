@@ -309,7 +309,9 @@ Pending:
 - [DONE] lexer/expr clock tests rewritten to unit-suffix.
 - [TODO] migrate `doc/manual.md`, `doc/guide.md`, `doc/exs/` (docs, not run by
   `all.lua`).
-- [TODO] runtime `await(number)` = relative µs (lua-atmos, downstream).
+- [DONE] runtime `await(number)` = relative µs (lua-atmos, downstream —
+  commits f11d2e5 `await {clock} -> await (us)`, 9471433 streams). Verified
+  present; not part of this worktree.
 
 Runtime API notes (already done in lua-atmos, for migration reference):
 
