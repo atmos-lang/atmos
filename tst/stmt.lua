@@ -886,7 +886,7 @@ do
 end
 
 do
-    local src = "every x,y in :X,10 {}"
+    local src = "loop x,y on :X,10 {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -896,13 +896,13 @@ do
 end
 
 do
-    local src = "every in :X,10 {}"
+    local src = "loop on {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'in' : expected expression")
+    assertx(msg, "anon : line 1 : near '{' : expected expression")
 end
 
 do
@@ -916,14 +916,26 @@ do
 end
 
 do
-    local src = "every 10 in"
+    local src = "loop 10 on "
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near '10' : expected identifier")
+    assertx(msg, "anon : line 1 : near '10' : expected '{'")
 end
+
+do
+    local src = "loop x on "
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '<eof>' : expected expression")
+end
+
+do
     local src = "loop it on :X until e1, e2 {}"
     print("Testing...", src)
     init()

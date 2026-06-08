@@ -315,6 +315,12 @@ Runtime API notes (already done in lua-atmos, for migration reference):
 ## Open Questions
 
 - Keep an optional `$` marker, or go fully sigil-free?
+  - DECIDED: sigil-free (`@` reserved; bare `@` errors).
 - Allow `day` (and later `week`), or cap at `h`?
+  - DECIDED: `us ms s min h day` (full set, no week yet).
 - Any need for sub-ms (`us`)? Constrained by the unit alphabet.
+  - DECIDED: yes, `us` included (runtime base unit).
 - Compound order: enforce descending, or accept any order and sum?
+  - DECIDED: enforce strict descending order (`day h min s ms us`), no
+    repeats. Parser does one anchored `match` per unit in that order; any
+    leftover text -> "invalid number". So `30min2h` and `5s5s` are errors.

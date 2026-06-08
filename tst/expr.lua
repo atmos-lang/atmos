@@ -1260,32 +1260,23 @@ end
 print '--- CLOCK ---'
 
 do
-    local src = "@1:v1:3.x"
+    local src = "2h30min"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "@1:v1:3.x")
+    assertx(tosource(e), "2h30min")
 
-    local src = "@3.x"
+    local src = "100ms"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "@0:0:3.x")
-
-    local src = "@.10"
-    print("Testing...", src)
-    init()
-    lexer_init("anon", src)
-    lexer_next()
-    local e = parser()
-    assert(check('<eof>'))
-    assertx(tosource(e), "@0:0:0.10")
+    assertx(tosource(e), "100ms")
 end
 
 print '--- AWAIT ---'
@@ -1299,17 +1290,25 @@ do
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near ',' : expected ')'")
 
-    local src = "await @20:x.100"
+    local src = "await 20min + 1s"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    --assertx(tosource(e), "await(:clock, ((0 * 3600000) + ((20 * 60000) + ((x * 1000) + (100 * 1)))))")
-    assertx(tosource(e), "await(@0:20:x.100)")
+    assertx(tosource(e), "(await(20min) + 1s)")
 
-    local src = "await(@10,x)"
+    local src = "await (20min + (x*1s) + 100ms)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await(((20min + (x * 1s)) + 100ms))")
+
+    local src = "await(10s,x)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)

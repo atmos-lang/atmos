@@ -49,7 +49,7 @@ do
     assert(LEX().str == '#')
     assert(LEX().str == '{')
     local _,msg = pcall(LEX)
-    assertx(msg, "anon : line 1 : near '@' : invalid clock")
+    assertx(msg, "anon : line 1 : near '@' : unexpected '@'")
 end
 
 -- OPERATORS
@@ -358,34 +358,59 @@ end
 print "--- CLOCK ---"
 
 do
-    local src = "@1:2:3.4"
+    local src = "5s"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
-    assertx(X.tostring(LEX()), "@{clk=@{h=1, min=2, ms=4, s=3}, lin=1, sep=1, str=1:2:3.4, tag=clk}")
+    assertx(X.tostring(LEX()), "@{comps=@{@{n=5, u=s}}, lin=1, sep=1, str=5s, tag=clk}")
 
-    local src = "@10:05"
+    local src = "300ms"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
-    assertx(X.tostring(LEX()), "@{clk=@{h=0, min=10, ms=0, s=05}, lin=1, sep=1, str=10:05, tag=clk}")
+    assertx(X.tostring(LEX()), "@{comps=@{@{n=300, u=ms}}, lin=1, sep=1, str=300ms, tag=clk}")
 
-    local src = "@1:v1:3.x"
+    local src = "1.5h"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
-    assertx(X.tostring(LEX()), "@{clk=@{h=1, min=v1, ms=x, s=3}, lin=1, sep=1, str=1:v1:3.x, tag=clk}")
+    assertx(X.tostring(LEX()), "@{comps=@{@{n=1.5, u=h}}, lin=1, sep=1, str=1.5h, tag=clk}")
 
-    local src = "@.x1"
+    local src = "5us"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
-    assertx(X.tostring(LEX()), "@{clk=@{h=0, min=0, ms=x1, s=0}, lin=1, sep=1, str=.x1, tag=clk}")
+    assertx(X.tostring(LEX()), "@{comps=@{@{n=5, u=us}}, lin=1, sep=1, str=5us, tag=clk}")
 
-    local src = "@1:v1:3."
+    local src = "2day"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    assertx(X.tostring(LEX()), "@{comps=@{@{n=2, u=day}}, lin=1, sep=1, str=2day, tag=clk}")
+
+    local src = "2h30min"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    assertx(X.tostring(LEX()), "@{comps=@{@{n=2, u=h}, @{n=30, u=min}}, lin=1, sep=1, str=2h30min, tag=clk}")
+
+    local src = "1h30min500ms"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    assertx(X.tostring(LEX()), "@{comps=@{@{n=1, u=h}, @{n=30, u=min}, @{n=500, u=ms}}, lin=1, sep=1, str=1h30min500ms, tag=clk}")
+
+    local src = "5x"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     local ok, msg = pcall(LEX)
-    assertx(msg, "anon : line 1 : near '@' : invalid clock")
+    assertx(msg, "anon : line 1 : near '5x' : invalid number")
+
+    local src = "2h30"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    local ok, msg = pcall(LEX)
+    assertx(msg, "anon : line 1 : near '2h30' : invalid number")
 end
