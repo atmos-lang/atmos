@@ -11,15 +11,15 @@ function tosource_args (es)
 end
 
 function tosource (e, lbd)
-    if e.tag=='nil' or e.tag=='bool' or e.tag=='tag' or e.tag=='num' or e.tag=='acc' or e.tag=='dots' then
+    if (
+        e.tag=='nil' or e.tag=='bool' or e.tag=='tag' or e.tag=='num' or
+        e.tag=='clk' or e.tag=='acc'  or e.tag=='dots'
+    ) then
         return e.tk.str
     elseif e.tag == 'str' then
         return '"' .. e.tk.str .. '"'
     elseif e.tag == 'nat' then
         return '`' .. e.tk.str .. '`'
-    elseif e.tag == 'clk' then
-        local t = e.tk.clk
-        return '@' .. t.h .. ':' .. t.min .. ':' .. t.s .. '.' .. t.ms
     elseif e.tag == 'uno' then
         return '(' .. e.op.str .. tosource(e.e) .. ')'
     elseif e.tag == 'bin' then

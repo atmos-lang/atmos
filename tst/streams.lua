@@ -53,17 +53,17 @@ do
     print("Testing...", "beh 2")
     local src = [[
         val S = require "atmos.streams"
-        pin x* = S.zip (S.from(@1), S.from(1))
+        pin x* = S.zip (S.fr_await(1s), S.from(1))
             ::map \{it[2]}
             ;;::to()      ;; 1 / 2 / 3
         spawn {
-            every :x {
+            loop on :x {
                 print(x)
             }
         }
-        emit @1
-        emit @1
-        emit @1
+        emit 1s
+        emit 1s
+        emit 1s
     ]]
     local out = atm_test(src)
     assertx(out, "1\n2\n3\n")
@@ -72,20 +72,20 @@ do
     local src = [[
         val S = require "atmos.streams"
         pin x* = @{
-            S.zip (S.from(@1), S.from(1))
+            S.zip (S.fr_await(1s), S.from(1))
                 ::map \{it[2]},
             S.zip (S.fr_await('X'), S.from(1))
                 ::map \{it[2]},
         }
         spawn {
-            every a,b in :x {
-                print(a, b)
+            loop e on :x {
+                print(e.tag, e[1])
             }
         }
-        emit @1
+        emit 1s
         emit :X
-        emit @1
-        emit @1
+        emit 1s
+        emit 1s
         emit :X
     ]]
     local out = atm_test(src)

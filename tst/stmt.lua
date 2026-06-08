@@ -855,10 +855,10 @@ do
     assertx(msg, "anon : line 1 : near 'val' : invalid assignment : unexpected transparent task")
 end
 
-print '--- AWAIT / EVERY ---'
+print '--- LOOP ON ---'
 
 do
-    local src = "every :X {}"
+    local src = "loop on :X {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -872,7 +872,7 @@ do
 end
 
 do
-    local src = "every it in :X {}"
+    local src = "loop it on :X {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -886,31 +886,27 @@ do
 end
 
 do
-    local src = "every x,y in :X,10 {}"
-    print("Testing...", src)
-    init()
-    lexer_init("anon", src)
-    lexer_next()
-    local s = parser()
-    assert(check('<eof>'))
-    assertx(trim(tosource(s)), trim [[
-        every(:X, 10, \(x, y){
-        })
-    ]])
-end
-
-do
-    local src = "every in :X,10 {}"
+    local src = "loop x,y on :X,10 {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'in' : expected expression")
+    assertx(msg, "anon : line 1 : near ',' : expected '{'")
 end
 
 do
-    local src = "every x in"
+    local src = "loop on {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '{' : expected expression")
+end
+
+do
+    local src = "loop x on"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -920,11 +916,65 @@ do
 end
 
 do
-    local src = "every 10 in"
+    local src = "loop 10 on "
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near '10' : expected identifier")
+    assertx(msg, "anon : line 1 : near '10' : expected '{'")
+end
+
+do
+    local src = "loop x on "
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '<eof>' : expected expression")
+end
+
+do
+    local src = "loop it on :X until e1, e2 {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "every(@{[:tag]=\"until\", [1]=:X, [2]=func (it) {\ne1\n}, [3]=func (it) {\ne2\n}}, \\(it){\n\n})")
+end
+
+do
+    local src = "loop it on :X while e {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "every(@{[:tag]=\"while\", [1]=:X, [2]=func (it) {\ne\n}}, \\(it){\n\n})")
+end
+
+do
+    local src = "loop on :any ts {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "every(@{[:tag]=\"tasks\", [:mode]=\"any\", [:tasks]=ts}, {\n\n})")
+end
+
+do
+    local src = "watching :all ts {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "watching(@{[:tag]=\"tasks\", [:mode]=\"all\", [:tasks]=ts}, {\n\n})")
 end

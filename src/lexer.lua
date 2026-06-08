@@ -98,47 +98,13 @@ local function _lexer_ (str)
                 end
             end
 
-        -- @{, @clk
+        -- @{
         elseif c == '@' then
             local c2 = read()
             if c2 == '{' then
                 coroutine.yield { tag='sym', str=c..'{', lin=LIN,sep=SEP }
-            else -- clock
-                unread()
-                local t = read_while('', M"[%w_:%.]")
-                local h,min,s,ms = match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)%.([^:%.]+)$')
-                if not h then
-                    h,min,s = match(t, '^([^:%.]+):([^:%.]+):([^:%.]+)$')
-                    if not h then
-                        min,s,ms = match(t, '^([^:%.]+):([^:%.]+)%.([^:%.]+)$')
-                        if not min then
-                            min,s = match(t, '^([^:%.]+):([^:%.]+)$')
-                            if not min then
-                                s,ms = match(t, '^([^:%.]+)%.([^:%.]+)$')
-                                if not s then
-                                    s = match(t, '^([^:%.]+)$')
-                                    if not s then
-                                        ms = match(t, '^%.([^:%.]+)$')
-                                        if not ms then
-                                            err({str='@',lin=LIN,sep=SEP}, "invalid clock")
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-                coroutine.yield {
-                    tag = 'clk',
-                    str = t,
-                    clk = {
-                        h   = (h or 0),
-                        min = (min or 0),
-                        s   = (s or 0),
-                        ms  = (ms or 0)
-                    },
-                    lin=LIN,sep=SEP,
-                }
+            else
+                err({str='@',lin=LIN,sep=SEP}, "unexpected '@'")
             end
 
         -- symbols:  {  (  ,  ;
@@ -205,15 +171,30 @@ local function _lexer_ (str)
             end
 
         -- numbers:  0xFF  10.1
+        -- clocks:   5s  300ms  2h30min
         elseif match(c, "%d") then
             local num = read_while(c, M"[%w%.]")
             if string.find(num, '[PpEe]') then
                 num = read_while(num, M"[%w%.%-%+]")
             end
-            if not tonumber(num) then
-                err({str=num,lin=LIN,sep=SEP}, "invalid number")
-            else
+            if tonumber(num) then
                 coroutine.yield { tag='num', str=num, lin=LIN,sep=SEP }
+            else
+                -- duration: digits+unit in descending order: day h min s ms us
+                local comps = {}
+                local rest = num
+                for _, u in ipairs({ 'day', 'h', 'min', 's', 'ms', 'us' }) do
+                    local n, r = match(rest, '^(%d+%.?%d*)'..u..'(.*)$')
+                    if n then
+                        comps[#comps+1] = { n=n, u=u }
+                        rest = r
+                    end
+                end
+                if (rest == '') and (#comps > 0) then
+                    coroutine.yield { tag='clk', str=num, comps=comps, lin=LIN,sep=SEP }
+                else
+                    err({str=num,lin=LIN,sep=SEP}, "invalid number")
+                end
             end
 
         elseif c=='`' then

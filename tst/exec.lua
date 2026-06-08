@@ -2240,7 +2240,7 @@ do
 
     local src = [[
         val T = func (i) {
-            every :X {
+            loop on :X {
                 print(:X, i)
             }
         }
@@ -2331,33 +2331,75 @@ do
     assertx(out, "20\n")
 end
 
+-- AWAIT / TASKS POOL (:any / :all)
+do
+    local src = [[
+        spawn {
+            pin ts = tasks()
+            func T (v) {
+                await(v)
+                print(v)
+                return(v)
+            }
+            spawn [ts] T(:a)
+            spawn [ts] T(:b)
+            val v = await :any ts
+            print(:any, v)
+        }
+        emit(:b)
+    ]]
+    print("Testing...", "await :any ts")
+    local out = atm_test(src)
+    assertx(out, "b\nany\tb\n")
+
+    local src = [[
+        spawn {
+            pin ts = tasks()
+            func T (v) {
+                await(true)
+                print(v)
+                return(v)
+            }
+            spawn [ts] T(:a)
+            spawn [ts] T(:b)
+            val v = await :all ts
+            print(:all, v==ts)
+        }
+        emit(true)
+    ]]
+    print("Testing...", "await :all ts")
+    local out = atm_test(src)
+    assertx(out, "a\nb\nall\ttrue\n")
+end
+
 print '--- AWAIT / CLOCK ---'
 
 do
     local src = [[
         spawn {
-            await(:X,
+            await(:X until
                 x+10)
         }
-        emit(:X,10)
+        emit :X @{10}
     ]]
     print("Testing...", "await 1")
     local out = atm_test(src)
     assertx(trim(out), trim [[
         ==> ERROR:
          |  [C]:-1 (loop)
-         v  [string "anon.atm"]:3 (throw)
+         |  [string "anon.atm"]:5 (emit) <- [C]:-1 (task)
+         v  [string "anon.atm"]:3 (throw) <- [C]:-1 (task)
         ==> attempt to perform arithmetic on a nil value (global 'x')
     ]])
 
     local src = [[
         spawn {
-            await(@10.100)
+            await(10s100ms)
             print(:y)
         }
-        emit(:clock, 10*1000)
+        emit 10s
         print(:x)
-        emit(:clock, 100)
+        emit(100ms)
     ]]
     print("Testing...", "await 2: clock")
     local out = atm_test(src)
@@ -2365,12 +2407,12 @@ do
 
     local src = [[
         spawn {
-            await(@10.100)
+            await(10s100ms)
             print(:y)
         }
-        emit(clock@{s=10})
+        emit(10s)
         print(:x)
-        emit(clock@{ms=100})
+        emit(100ms)
     ]]
     print("Testing...", "await 3: clock")
     local out = atm_test(src)
@@ -2378,16 +2420,16 @@ do
 
     local src = [[
         spawn {
-            await(@00:01:02.003)
+            await(1min2s3ms)
             print(:ok)
         }
-        emit(@1:0)
+        emit(1min)
         print(:1)
-        emit(@0:02)
+        emit(2s)
         print(:2)
-        emit(@.1)
+        emit(1ms)
         print(:3)
-        emit(@.2)
+        emit(2ms)
         print(:4)
     ]]
     print("Testing...", "await 4: clock")
@@ -2520,21 +2562,21 @@ do
     local src = [[
         func T (v) {
             set pub = v
-            toggle :Show {
+            toggle on :Show {
                 print(pub)
-                every _,evt in :Draw {
-                    print(evt)
+                loop it on :Draw {
+                    print(it.v)
                 }
             }
         }
         spawn T(0)
-        emit(:Draw, 1)
-        emit(:Show, false)
-        emit(:Show, false)
-        emit(:Draw, 99)
-        emit(:Show, true)
-        emit(:Show, true)
-        emit(:Draw, 2)
+        emit :Draw @{v=1}
+        emit :Show @{false}
+        emit :Show @{false}
+        emit :Draw @{v=99}
+        emit :Show @{true}
+        emit :Show @{true}
+        emit :Draw @{v=2}
     ]]
     print("Testing...", "toggle 8")
     local out = atm_test(src)
@@ -2542,7 +2584,7 @@ do
 
     local src = [[
         spawn {
-            val x = toggle :Show {
+            val x = toggle on :Show {
                 10
             }
             print(x)
@@ -2557,9 +2599,9 @@ do
     local src = [[
         val T = func () {
             spawn (func () {
-                every :Draw { print(:draw) }
+                loop on :Draw { print(:draw) }
             }) ()
-            every :Tick { print(:tick) }
+            loop on :Tick { print(:tick) }
         }
         pin t = spawn T()
         emit(:Draw)                 ;; on  -> draw
@@ -2577,20 +2619,20 @@ do
     -- filter: block form, toggled off via :Show but still draws
     local src = [[
         spawn {
-            toggle :Show with :Draw {
+            toggle on :Show with :Draw {
                 par {
-                    every :Draw { print(:draw) }
+                    loop on :Draw { print(:draw) }
                 } with {
-                    every :Tick { print(:tick) }
+                    loop on :Tick { print(:tick) }
                 }
             }
         }
         emit(:Draw)             ;; on  -> draw
         emit(:Tick)             ;; on  -> tick
-        emit(:Show, false)      ;; toggle off, filter :Draw
+        emit :Show @{false}     ;; toggle off, filter :Draw
         emit(:Draw)             ;; passes filter -> draw
         emit(:Tick)             ;; gated -> frozen
-        emit(:Show, true)       ;; toggle on
+        emit :Show @{true}      ;; toggle on
         emit(:Tick)             ;; on  -> tick
     ]]
     print("Testing...", "toggle filter block")
@@ -2622,7 +2664,7 @@ do
 
     local src = [[
         print(@{} ?? :table)
-        print(@1 ?? :clock)
+        print(1s ?? :number)
         print(task\{} ?? :task)
         pin xs = tasks()
         print(xs ?? :tasks)

@@ -82,7 +82,7 @@ do
 
     local src = [[
         spawn {
-            every :A || :B {
+            loop on :A || :B {
                 print(:tick)
             }
         }
@@ -96,10 +96,10 @@ do
 
     local src = [[
         spawn {
-            await(:X || @.5)
+            await(:X || 5ms)
             print(:ok)
         }
-        emit(@.5)
+        emit(5ms)
     ]]
     print("Testing...", "op_clock_or 1")
     local out = atm_test(src)
@@ -108,10 +108,10 @@ do
     local src = [[
         spawn {
             val a = 10
-            await(:X, a || 20)
+            await(:X until a || 20)
             print(:ok)
         }
-        emit(:X, 10)
+        emit :X @{10}
     ]]
     print("Testing...", "op_payload_or 1")
     local out = atm_test(src)

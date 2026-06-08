@@ -1193,23 +1193,30 @@ do
     assert(check('<eof>'))
     assert(tosource(e) == "yield(x, 10)")
 
+    local src = "emit()"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'emit' : expected single argument")
+
     local src = "emit(:X,10)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
-    local e = parser()
-    assert(check('<eof>'))
-    assert(tosource(e) == "emit(:X, 10)")
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'emit' : expected single argument")
 
-    local src = "emit [xs] (:X,10)"
+    local src = "emit [xs] (:X)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "emit_in(xs, :X, 10)")
+    assertx(tosource(e), "emit_in(xs, :X)")
 
     local src = "emit :X @{}"
     print("Testing...", src)
@@ -1253,32 +1260,23 @@ end
 print '--- CLOCK ---'
 
 do
-    local src = "@1:v1:3.x"
+    local src = "2h30min"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "@1:v1:3.x")
+    assertx(tosource(e), "2h30min")
 
-    local src = "@3.x"
+    local src = "100ms"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "@0:0:3.x")
-
-    local src = "@.10"
-    print("Testing...", src)
-    init()
-    lexer_init("anon", src)
-    lexer_next()
-    local e = parser()
-    assert(check('<eof>'))
-    assertx(tosource(e), "@0:0:0.10")
+    assertx(tosource(e), "100ms")
 end
 
 print '--- AWAIT ---'
@@ -1289,37 +1287,79 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local e = parser()
-    assert(check('<eof>'))
-    assertx(tosource(e), "await(:X, (x + 10))")
---[=[
-    assertx(tosource(e), trim [[
-        await(:X, func (evt) {
-            (x + 10)
-        })
-    ]])
-]=]
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near ',' : expected ')'")
 
-    local src = "await @20:x.100"
+    local src = "await 20min + 1s"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    --assertx(tosource(e), "await(:clock, ((0 * 3600000) + ((20 * 60000) + ((x * 1000) + (100 * 1)))))")
-    assertx(tosource(e), "await(@0:20:x.100)")
+    assertx(tosource(e), "(await(20min) + 1s)")
 
-    local src = "await(@10,x)"
+    local src = "await (20min + (x*1s) + 100ms)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
-    --local ok, msg = pcall(parser)
-    --assertx(msg, "anon : line 1 : near ',' : expected ')'")
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await(@0:0:10.0, x)")
+    assertx(tosource(e), "await(((20min + (x * 1s)) + 100ms))")
+
+    local src = "await(10s,x)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near ',' : expected ')'")
+
+    local src = "await(:X until e1, e2)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await(@{[:tag]=\"until\", [1]=:X, [2]=func (it) {\ne1\n}, [3]=func (it) {\ne2\n}})")
+
+    local src = "await :X until e"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await(@{[:tag]=\"until\", [1]=:X, [2]=func (it) {\ne\n}})")
+
+    local src = "await(:X while e)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await(@{[:tag]=\"while\", [1]=:X, [2]=func (it) {\ne\n}})")
+
+    local src = "await :any ts"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await(@{[:tag]=\"tasks\", [:mode]=\"any\", [:tasks]=ts})")
+
+    local src = "await(:all ts)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await(@{[:tag]=\"tasks\", [:mode]=\"all\", [:tasks]=ts})")
 
     local src = "await T()"
     print("Testing...", src)
@@ -1404,7 +1444,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "toggle(t, false, :a, :b)")
 
-    local src = "toggle :X with :Draw { }"
+    local src = "toggle on :X with :Draw { }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1412,8 +1452,8 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(e)), trim [[
-        toggle(:X, {
-        }, :Draw)
+        toggle(:X, :Draw, {
+        })
     ]])
 end
 

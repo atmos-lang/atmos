@@ -2095,34 +2095,43 @@ pin t = spawn {}            ;; ERR: cannot assign
 An `await` suspends a [task](#task) until a matching [emit](#emit) occurs:
 
 ```
-Await : `await´ `(´ Expr* `)´
+Await : `await´ `(´ Patt `)´
       | `await´ ID `(´ Expr* `)´
+Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr {`,´ Expr}] `)´
 ```
 
-An `await` evaluates to the matching `emit` arguments.
+When awaking, an `await` evaluates to its matching event value.
 
-For the first format, a task awakes if an `emit(e,...)` matches the await
-expression patterns as follows:
+For the first format, a task awakes when an `emit(e)` matches the given await
+pattern `Patt` as follows:
 
-- `true`        | matches any emit
-- `false`       | never matches an emit
-- `x, ...`      | if `x ?? e` and if `...` match the emit payloads
-- `c: clock`    | if [clock](#clock) `c` expires
-- `f: function` | if `f(e,...)` is truthy, returning its results
-- `t: task`     | matches when `t` terminates; returns `v,t`, where `v` is the
+- `true`        | matches any event
+- `false`       | never matches
+- `c: clock`    | when [clock](#clock) `c` expires
+- `f: function` | when `f(e)` is truthy, returning its result
+- `t: task`     | when `t` terminates; returns `v,t`, where `v` is the
                   task return value
-- `ts: tasks, [**'any'**|'all']`
-                | matches when any or all tasks in `ts` terminate
-    - `any`: returns `v,t,ts` (`t`: terminated task, `v`: its return value)
-    - `all`: returns `ts`
-- `logical`     | composition of sub-patterns
-    - `{ 'not', x }`:  matches any event that does not match `x`
-    - `{ 'and', ...}`: if all `...` match (in any order)
-    - `{ 'or', ...}`:  if any `...` matches
-- `x: meta`     | custom `v=__atmos(x,e,...)` metamethod
-    - `v = nil`:    use standard handler
-    - `v = false`:  no match
-    - `v = ...`:    matches, replacing the results
+- `:any ts`     | when any task in pool `ts` terminates
+- `:all ts`     | when all tasks in pool `ts` terminate
+- `p1 || p2`    | when either sub-pattern matches
+- `p1 && p2`    | when both sub-patterns match, in any order
+- `!p`          | when an event does not match `p`
+- `{ tag=t, ... }` | when `e.tag ?? t` and each field `e[k] ?? v` matches
+- `x: any`      | when `e ?? x`
+
+The combinators `||`, `&&`, and `!` compose sub-patterns into a single event
+condition.
+
+A trailing `until` or `while` clause re-awaits the pattern, filtering events
+through one or more predicate expressions:
+
+- `until`: re-awaits until all predicates hold; evaluates to the event or the
+  last predicate result
+- `while`: re-awaits while all predicates hold; evaluates to the event when any
+  predicate fails
+
+Each predicate is a [function](#function) applied to the event, or a plain
+expression treated as an implicit [lambda](#lambda) over `it`.
 
 The second format `await T(...)` [spawns](#spawn) and awaits the given task to
 terminate.
@@ -2134,19 +2143,20 @@ Examples:
 
 ```
 await(false)            ;; never awakes
-await(:key, :escape)    ;; awakes on :key == :escape
+await :escape           ;; awakes on an :escape event
 await @1:10:30          ;; awakes after 1h 10min 30s
-await(\{it>10})         ;; awakes if event > 10
+await(\{it.v > 10})     ;; awakes if event field v > 10
 await(:X && :Y)         ;; awakes after both :X and :Y occur in any order
 await(!:X)              ;; awakes on any non-:X event
+await(:X until it.n==3) ;; re-awaits :X until its field n equals 3
 ```
 
 ```
 spawn {
-    val x,y = await(true)
-    print(x, y)         ;; --> 10, 20
+    val e = await(true)
+    print(e.x, e.y)     ;; --> 10, 20
 }
-emit(10, 20)
+emit(:P @{x=10, y=20})
 ```
 
 ```
@@ -2161,8 +2171,8 @@ print(v)                ;; --> 20
 pin ts = tasks()
 spawn [ts] T()
 spawn [ts] T()
-val r, t = await(ts)    ;; awaits any task (default :any)
-await(ts, :all)         ;; awaits all tasks (pool drains)
+val e = await(:any ts)  ;; awaits any task to terminate
+await(:all ts)          ;; awaits all tasks (pool drains)
 ```
 
 ### Emit
@@ -2170,8 +2180,11 @@ await(ts, :all)         ;; awaits all tasks (pool drains)
 An `emit` broadcasts an event that can awake [awaiting](#await) tasks:
 
 ```
-Emit : `emit´ [`[´ Expr `]´] `(´ Expr* `)´
+Emit : `emit´ [`[´ Expr `]´] `(´ Expr `)´
 ```
+
+It takes the event to broadcast as its single argument, which is matched
+against [await patterns](#await) in suspended tasks.
 
 The optional target between brackets determines the scope of the broadcast:
 
@@ -2180,9 +2193,6 @@ The optional target between brackets determines the scope of the broadcast:
 - `:global`: all tasks
 - `t: task`: the given task
 - `n: number`: `n`th level up in the task hierarchy (`0` = current task)
-
-The arguments to `emit` are the event payloads matched against await
-operations.
 
 Examples:
 
@@ -2200,7 +2210,7 @@ func T () {
 
 ### Toggle
 
-A `toggle` configures a task to either consider or disregard further
+A `toggle` configures a task or block to either consider or disregard further
 [emit](#emit) operations:
 
 ```
@@ -2208,20 +2218,20 @@ Toggle : `toggle´ Expr `(´ Expr `)´ [ `with´ Expr* ]
        | `toggle´ TAG [ `with´ Expr* ] Block
 ```
 
-In the first format, a toggle expects a task and a [boolean](#types--values),
-which is handled as follows:
+By default, tasks and blocks are toggled on, thus reacting to all events.
+
+In the first format for tasks, a toggle expects the task and a
+[boolean](#types--values), which is handled as follows:
 
 - `true`: the task considers further broadcasts
 - `false`: the task disregards further emits and never awakes
 
-By default, all tasks consider events.
-
-In the second format, a toggle spawns and awaits a block as a
+In the second format for blocks, a toggle spawns and awaits a block as a
 [transparent task](#transparent-task).
 It also specifies a [tag](#literals) to toggle the block when matching an
 [emit](#emit).
-The emit must be in the format `emit(<tag>, <boolean>)` to set the toggle
-state.
+The emit must be in the format `emit(<tag> @{<boolean>})`, which sets the
+toggle state.
 
 An optional `with` filter clause specifies an [await pattern](#await), which
 keeps the task/block responsive when matching it.
@@ -2246,16 +2256,16 @@ emit :X         ;; --> ok
 spawn {
     toggle :T {
         loop {
-            val _,v = await(:E)
-            print(v)            ;; --> 1 3
+            val e = await(:E)
+            print(e[1])         ;; --> 1 3
         }
     }
 }
-emit(:E, 1)
-emit(:T, false)
-emit(:E, 2)
-emit(:T, true)
-emit(:E, 3)
+emit :E @{1}
+emit :T @{false}
+emit :E @{2}
+emit :T @{true}
+emit :E @{3}
 ```
 
 ```
@@ -2272,7 +2282,7 @@ spawn {
         }
     }
 }
-emit(:Ok, false)
+emit(:Ok @{false})
 emit(:Tick)         ;; (nop)
 emit(:Draw)         ;; --> draw
 ```
@@ -2280,7 +2290,7 @@ emit(:Draw)         ;; --> draw
 ### Every
 
 An `every` is a [loop](#loop) that makes an iteration whenever an
-[await](#await) condition is satisfied:
+[await pattern](#await) is satisfied:
 
 ```
 Every : `every´ [ID+ `in´] Expr* Block
@@ -2308,7 +2318,7 @@ every it in :X {    ;; <-- (`emit :X @{v=10}`)
 #### Watching
 
 A `watching` spawns and awaits a block as a
-[transparent task](#transparent-task) until an [await](#await) condition is
+[transparent task](#transparent-task) until an [await pattern](#await) is
 satisfied, which aborts the block:
 
 ```

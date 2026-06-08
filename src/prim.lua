@@ -1,4 +1,5 @@
 local atmos = require "atmos"
+require "atmos.lang.await"
 
 local function spawn (lin, blk)
     return {
@@ -9,39 +10,6 @@ local function spawn (lin, blk)
             { tag='func', pars={}, blk=blk },
         },
     }
-end
-
--- Rewrites &&/||/! inside await-pattern positions (await/watching/every
--- arguments) into the lua-atmos table format {'or'|'and'|'not', ...}.
--- Descends through parens and through nested &&/|| trees; stops at any
--- other node (calls, lambdas, literals, tags) preserving Lua semantics
--- elsewhere.
-local function await_ast_logical (e)
-    local function f (name, args)
-        local es = {
-            {
-                k = { tag='num', tk={tag='num', str='1'} },
-                v = { tag='str', tk={tag='str', str=name} },
-            },
-        }
-        for i, a in ipairs(args) do
-            es[#es+1] = {
-                k = { tag='num', tk={tag='num', str=tostring(i+1)} },
-                v = await_ast_logical(a),
-            }
-        end
-        return { tag='table', es=es }
-    end
-    if e.tag == 'parens' then
-        return await_ast_logical(e.e)
-    elseif (e.tag == 'bin') and (e.op.str=='&&' or e.op.str=='||') then
-        local name = (e.op.str=='&&') and 'and' or 'or'
-        return f(name, { e.e1, e.e2 })
-    elseif (e.tag == 'uno') and (e.op.str == '!') then
-        return f('not', { e.e })
-    else
-        return e
-    end
 end
 
 function parser_spawn ()
@@ -189,6 +157,9 @@ function parser_1_prim ()
             if call.tag ~= 'call' then
                 err(tk, "expected call syntax")
             end
+            if #call.es ~= 1 then
+                err(tk, "expected single argument")
+            end
             if f == 'emit_in' then
                 table.insert(call.es, 1, to)
             end
@@ -213,15 +184,21 @@ function parser_1_prim ()
                     },
                 }
             else
-                local cmd = { tag='acc', tk={tag='id',str='await',lin=tk.lin} }
-                local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
-                if call.tag ~= 'call' then
-                    err(tk, "expected call syntax")
+                local awt
+                if accept('(') then
+                    -- await(PAT) : full pattern (combinators + until/while)
+                    awt = parser_await(')')
+                    accept_err(')')
+                else
+                    -- await PAT : juxtaposition base is a single primary, so
+                    -- `await :X || :Y` stays `(await :X) || :Y`; pool/until ok
+                    awt = parser_await(nil, true)
                 end
-                if call.es[1] then
-                    call.es[1] = await_ast_logical(call.es[1])
-                end
-                return parser_7_out(call)
+                return {
+                    tag = 'call',
+                    f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
+                    es  = { awt },
+                }
             end
         -- spawn {}, spawn T()
         elseif check('spawn') then
@@ -238,26 +215,21 @@ function parser_1_prim ()
             end
             return out
         elseif accept('toggle') then
-            local tag = accept(nil, 'tag')
-            if tag then
-                -- optional filter pattern terminated by the block
+            if accept('on') then
+                local tag = accept_err(nil, 'tag')
                 local filter = {}
-                if accept('with') then
-                    filter = parser_list(',', '{', parser)
+                if accept('with') then -- optional filter pattern
+                    filter = parser_list_1(',', '{', parser)
                 end
                 local blk = parser_block()
                 return {
                     tag = 'call',
                     f = { tag='acc', tk={tag='id',str='toggle'} },
-                    es = concat({
-                        { tag='tag', tk=tag },
-                        {
-                            tag = 'func',
-                            lua = true,
-                            pars = {},
-                            blk = blk,
-                        },
-                    }, filter),
+                    es = concat(
+                        { { tag='tag', tk=tag } },
+                        filter,
+                        { { tag='func', lua=true, pars={}, blk=blk } }
+                    ),
                 }
             else
                 local tk = TK0
@@ -270,7 +242,7 @@ function parser_1_prim ()
                 -- optional trailing filter pattern (stops at first non-comma)
                 local filter = {}
                 if accept('with') then
-                    filter = parser_list(',', function () return false end, parser)
+                    filter = parser_list_1(',', function () return false end, parser)
                 end
                 return parser_7_out({ tag='call', f=cmd, es=concat(call.es,filter) })
             end
@@ -480,7 +452,7 @@ function parser_1_prim ()
 
     -- set x = 10
     elseif accept('set') then
-        local dsts = parser_list(',', '=', function ()
+        local dsts = parser_list_1(',', '=', function ()
             local tk = TK1
             local e = parser()
             if e.tag=='acc' or e.tag=='index' or e.tag=='nat' then
@@ -675,42 +647,30 @@ function parser_1_prim ()
 
     -- loop
     elseif accept('loop') then
+        local tk = TK0
         local ids = check(nil,'id') and parser_ids('in') or nil
-        local itr = nil
-        if accept('in') then
-            itr = parser()
-        end
-        local blk = parser_block()
-        return { tag='loop', ids=ids, itr=itr, blk=blk }
-
-    -- every, pars, watching
-    elseif check('every') or check('par') or check('par_and') or check('par_or') or check('watching') then
-        -- every { ... }
-        if accept('every') then
-            local ids = {}
-            local awt = parser_list(',', '{', parser)
-            if accept('in') then
-                ids = awt
-                for i,v in ipairs(ids) do
-                    if v.tag ~= 'acc' then
-                        err(v.tk, "expected identifier")
-                    end
-                    ids[i] = v.tk
-                end
-                awt = parser_list(',', '{', parser)
-            end
-            if awt[1] then
-                awt[1] = await_ast_logical(awt[1])
-            end
+        if accept('on') then
+            local awt = parser_await('{')
             local blk = parser_block()
-            local cb = { tag='func', lua=true, pars=ids, blk=blk }
+            local cb = { tag='func', lua=true, pars=ids or {}, blk=blk }
             return {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='every'} },
-                es = concat(awt, {cb})
+                es = { awt, cb }
             }
+        else
+            local itr = nil
+            if accept('in') then
+                itr = parser()
+            end
+            local blk = parser_block()
+            return { tag='loop', ids=ids, itr=itr, blk=blk }
+        end
+
+    -- pars, watching
+    elseif check('par') or check('par_and') or check('par_or') or check('watching') then
         -- par
-        elseif accept('par') or accept('par_and') or accept('par_or') then
+        if accept('par') or accept('par_and') or accept('par_or') then
             local par = TK0.str
             local fs = { parser_block() }
             while accept('with') do
@@ -731,22 +691,15 @@ function parser_1_prim ()
             }
         -- watching
         elseif accept('watching') then
-            local awt = parser_list(',', '{', parser)
-            if awt[1] then
-                awt[1] = await_ast_logical(awt[1])
-            end
+            local awt = parser_await('{')
             local blk = parser_block()
             return {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='watching'} },
-                es = concat(awt, {
-                    {
-                        tag  = 'func',
-                        lua  = true,
-                        pars = {},
-                        blk  = blk,
-                    }
-                })
+                es = {
+                    awt,
+                    { tag='func', lua=true, pars={}, blk=blk },
+                }
             }
         else
             error "bug found"
