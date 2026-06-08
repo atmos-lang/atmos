@@ -1,5 +1,5 @@
 package = "atmos-lang"
-version = "dev-2"
+version = "dev-3"
 source = {
    url = "git+https://github.com/atmos-lang/atmos",
    branch = "main",
@@ -49,6 +49,7 @@ build = {
    modules = {
       ["atmos.lang.aux"]       = "src/aux.lua",
       ["atmos.lang.argparse"]  = "src/argparse.lua",
+      ["atmos.lang.await"]     = "src/await.lua",
       ["atmos.lang.coder"]     = "src/coder.lua",
       ["atmos.lang.exec"]      = "src/exec.lua",
       ["atmos.lang.global"]    = "src/global.lua",
