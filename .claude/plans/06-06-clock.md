@@ -275,6 +275,19 @@ collapses into a plain `num`.
 Compiler + full test suite: DONE and PASSING.
 Remaining: none — docs migrated (below), runtime done downstream.
 
+## Next Steps (resume here)
+
+This plan is COMPLETE: compiler, tests, docs, and downstream runtime all done.
+No code or doc action remains that is specific to the clock redesign.
+
+The only related follow-up is shared with the in/on plan and tracked there:
+review the await-patterns section of `doc/manual.md` (the `n: number` µs slot
+was changed here). See `06-06-in-on.md` -> "Pending" + "Next Steps (resume
+here)" for that item and the `spawn on` step.
+
+Reminder: out-of-scope sigil remap (table `@{}`->`[]`, index `t[]`->`t@()`) is
+NOT part of this plan (see §1); `@` is reserved and bare `@` errors today.
+
 Decisions (this session):
 
 - Scope    : clock literals + drop `@` sigil (keep `@{` tables; no index yet).
