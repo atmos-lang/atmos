@@ -1,11 +1,11 @@
 spawn {
     watching :done {
         par {
-            every :tick {
+            loop on :tick {
                 print "tick A"  ;; always awakes first
             }
         } with {
-            every :tick {
+            loop on :tick {
                 print "tick B"  ;; always awakes last
             }
         }

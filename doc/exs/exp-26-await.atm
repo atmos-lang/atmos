@@ -4,7 +4,7 @@ spawn {
     print :2
     await(:key, :escape)    ;; awakes on :key == :escape
     print :3
-    await @1:10:30          ;; awakes after 1h 10min 30s
+    await 1h10min30s        ;; awakes after 1h 10min 30s
     print :4
     await(\{it>10})         ;; awakes if event > 10
     print :5
@@ -15,11 +15,11 @@ emit :X
 print :b
 emit(:key, :escape)
 print :c
-emit @1:00:00
+emit 1h
 print :d
-emit @10:00
+emit 10min
 print :e
-emit @30
+emit 30s
 print :f
 emit <-- 10
 print :g

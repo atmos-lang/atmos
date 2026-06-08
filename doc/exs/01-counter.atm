@@ -1,13 +1,13 @@
 require "atmos.env.clock"
 
 par_or {
-    await @10
+    await 10s
 } with {
     var n = 0
     defer {
         print("I counted ", n)    ;; invariably outputs 9
     }
-    every @1 {
+    loop on 1s {
         set n = n + 1
     }
 }

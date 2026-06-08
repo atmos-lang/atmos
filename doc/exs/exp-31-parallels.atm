@@ -2,15 +2,15 @@ require "atmos.env.clock"
 
 spawn {
     par {
-        every @1 {
+        loop on 1s {
             print("1 second has elapsed")
         }
     } with {
-        every @1:0 {
+        loop on 1min {
             print("1 minute has elapsed")
         }
     } with {
-        every @1:0:0 {
+        loop on 1h {
             print("1 hour has elapsed")
         }
     }
@@ -19,7 +19,7 @@ spawn {
 
 spawn {
     val v = par_or {
-        await @1
+        await 1s
     } with {
         await :X
         print(":X occurred before 1 second")

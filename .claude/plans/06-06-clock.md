@@ -273,7 +273,7 @@ collapses into a plain `num`.
 ## Implementation Status (compiler side)
 
 Compiler + full test suite: DONE and PASSING.
-Remaining: docs migration + downstream runtime (both below).
+Remaining: none — docs migrated (below), runtime done downstream.
 
 Decisions (this session):
 
@@ -307,8 +307,11 @@ Pending:
   `clock@{}` constructor removed, `?? :clock`->`:number`, var dur `@.ms`->
   `(ms * 1ms)`). Verified via parse+codegen probes.
 - [DONE] lexer/expr clock tests rewritten to unit-suffix.
-- [TODO] migrate `doc/manual.md`, `doc/guide.md`, `doc/exs/` (docs, not run by
-  `all.lua`).
+- [DONE] migrate `doc/manual.md`, `doc/guide.md`, `doc/exs/` (docs, not run by
+  `all.lua`). `@`-clock -> unit-suffix; `clock` value-type removed (constructor,
+  `## Clock` section, `?? :clock`->`:number`, value-type lists, `CLK`->`DUR`
+  grammar, `await` slot `c: clock`->`n: number`). Orphan `exs/val-01-clock.atm`
+  deleted. TOC regen (`manual.lua`) passes.
 - [DONE] runtime `await(number)` = relative µs (lua-atmos, downstream —
   commits f11d2e5 `await {clock} -> await (us)`, 9471433 streams). Verified
   present; not part of this worktree.

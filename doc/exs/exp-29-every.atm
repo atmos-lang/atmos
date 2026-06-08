@@ -1,13 +1,13 @@
 require "atmos.env.clock"
 
 spawn {
-    every @1 {
+    loop on 1s {
         print("1 more second has elapsed")
     }
 }
 
 spawn {
-    every it in :X {    ;; (`emit :X @{v=10}`)
+    loop it on :X {    ;; (`emit :X @{v=10}`)
         print(it.v)     ;; --> 10
     }
 }
