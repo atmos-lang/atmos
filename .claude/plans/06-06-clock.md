@@ -270,6 +270,48 @@ of this compiler change. The Atmos side is trivial: `coder.lua:65-69`
 stops emitting `clock{…}` and emits the ms integer; the `clk` AST node
 collapses into a plain `num`.
 
+## Implementation Status (compiler side)
+
+Decisions (this session):
+
+- Scope    : clock literals + drop `@` sigil (keep `@{` tables; no index yet).
+- Syntax   : unit-suffix (Proposal A) — `5s`, `300ms`, `2h30min`.
+- Emit     : constant exprs, e.g. `(5*_s_ + 30*_min_)` (NOT raw integers).
+- Units    : `us ms s min h day` (full set; `us` included).
+- Base unit: MICROSECONDS, not ms. Runtime (`lua-atmos/atmos/init.lua`)
+             defines `_us_=1, _ms_, _s_, _min_, _h_, _day_` and dropped the
+             `clock` type. This supersedes plan §6 ("integer milliseconds").
+
+Done:
+
+- [DONE] `src/lexer.lua` : `lexer_dur(s)` parses `(digits[.digits]unit)+`.
+- [DONE] `src/lexer.lua` : number branch emits `clk` token w/ `comps` (or
+         falls back to `invalid number`).
+- [DONE] `src/lexer.lua` : `@` branch drops clock; keeps `@{`; bare `@` ->
+         `err "unexpected '@'"`.
+- [DONE] `src/coder.lua` : `clk` emits `(n*_unit_ + ...)` constant expr.
+- [DONE] `src/tosource.lua` : `clk` prints raw source (`e.tk.str`).
+- No parser change: `clk` AST tag kept; only payload changed
+  (`clk{h,min,s,ms}` -> `comps[{n,u}]`).
+
+Pending:
+
+- [DONE] migrate `@`-clock call sites -> unit-suffix in `tst/` (incl. guide.atm,
+  `clock@{}` constructor removed, `?? :clock`->`:number`, var dur `@.ms`->
+  `(ms * 1ms)`). Verified via parse+codegen probes.
+- [DONE] lexer/expr clock tests rewritten to unit-suffix.
+- [TODO] migrate `doc/manual.md`, `doc/guide.md`, `doc/exs/` (docs, not run by
+  `all.lua`).
+- [TODO] runtime `await(number)` = relative µs (lua-atmos, downstream).
+
+Runtime API notes (already done in lua-atmos, for migration reference):
+
+- `await {clock}` -> `await (us)` + `_ts_` (commit f11d2e5). Base unit µs.
+- Periodic-timer stream: `S.from(clk)` REMOVED -> `S.fr_await(dt)` where `dt`
+  is a µs duration (commit 9471433). So `S.from(@1)` -> `S.fr_await(1s)`.
+  Plain `S.from(n[,m])` stays a numeric range/counter.
+- `x ?? :clock` -> `x ?? :number`. `clock` value-type/constructor removed.
+
 ## Open Questions
 
 - Keep an optional `$` marker, or go fully sigil-free?

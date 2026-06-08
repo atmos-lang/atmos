@@ -3396,16 +3396,16 @@ do
                     print("x")
                 }
             } with {
-                loop on @.10 {
+                loop on 10ms {
                     print("ms")
                 }
             }
         }
-        emit(@.10)
+        emit(10ms)
         emit(:X)
-        emit(@.5)
+        emit(5ms)
         emit(:X)
-        emit(@.5)
+        emit(5ms)
     ]]
     print("Testing...", "every-clock")
     local out = atm_test(src)

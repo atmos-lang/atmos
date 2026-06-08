@@ -2394,12 +2394,12 @@ do
 
     local src = [[
         spawn {
-            await(@10.100)
+            await(10s100ms)
             print(:y)
         }
-        emit @10
+        emit 10s
         print(:x)
-        emit(clock @{ms=100})
+        emit(100ms)
     ]]
     print("Testing...", "await 2: clock")
     local out = atm_test(src)
@@ -2407,12 +2407,12 @@ do
 
     local src = [[
         spawn {
-            await(@10.100)
+            await(10s100ms)
             print(:y)
         }
-        emit(clock@{s=10})
+        emit(10s)
         print(:x)
-        emit(clock@{ms=100})
+        emit(100ms)
     ]]
     print("Testing...", "await 3: clock")
     local out = atm_test(src)
@@ -2420,16 +2420,16 @@ do
 
     local src = [[
         spawn {
-            await(@00:01:02.003)
+            await(1min2s3ms)
             print(:ok)
         }
-        emit(@1:0)
+        emit(1min)
         print(:1)
-        emit(@0:02)
+        emit(2s)
         print(:2)
-        emit(@.1)
+        emit(1ms)
         print(:3)
-        emit(@.2)
+        emit(2ms)
         print(:4)
     ]]
     print("Testing...", "await 4: clock")
@@ -2562,7 +2562,7 @@ do
     local src = [[
         func T (v) {
             set pub = v
-            toggle :Show {
+            toggle on :Show {
                 print(pub)
                 loop it on :Draw {
                     print(it.v)
@@ -2584,7 +2584,7 @@ do
 
     local src = [[
         spawn {
-            val x = toggle :Show {
+            val x = toggle on :Show {
                 10
             }
             print(x)
@@ -2619,7 +2619,7 @@ do
     -- filter: block form, toggled off via :Show but still draws
     local src = [[
         spawn {
-            toggle :Show with :Draw {
+            toggle on :Show with :Draw {
                 par {
                     loop on :Draw { print(:draw) }
                 } with {
@@ -2664,7 +2664,7 @@ do
 
     local src = [[
         print(@{} ?? :table)
-        print(@1 ?? :clock)
+        print(1s ?? :number)
         print(task\{} ?? :task)
         pin xs = tasks()
         print(xs ?? :tasks)

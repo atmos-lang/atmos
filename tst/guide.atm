@@ -45,7 +45,7 @@ do {
     print "-=-=- 2.2 -=-=-"
     print "Counts 5 seconds:"
     loop _ in 5 {
-        await @.100
+        await 100ms
         print "1 second..."
     }
     print "5 seconds elapsed."
@@ -126,8 +126,8 @@ do {
 ;; 4.1
 do {
     print "-=-=- 4.1 -=-=-"
-    watching @1 {
-        loop on @.100 {
+    watching 1s {
+        loop on 100ms {
             print "100 ms elapses"    ;; prints this message every second
         }
     }
@@ -137,7 +137,7 @@ do {
 do {
     print "-=-=- 4.2 -=-=-"
     spawn {
-        watching @1 {
+        watching 1s {
             await :X
             print "X happens before 1s" ;; prints unless 1 second elapses
         }
@@ -177,7 +177,7 @@ do {
             ::to()
     }
     loop i in 10 {
-        await @.1
+        await 1ms
         emit :X @{v=i}
     }
 }
@@ -223,7 +223,7 @@ do {
     func T (id, ms) {
         set pub = id
         print(:start, id, ms)
-        await @.ms
+        await (ms * 1ms)
         print(:stop, id, ms)
     }
     do {
@@ -231,7 +231,7 @@ do {
         loop i in 10 {
             spawn [ts] T(i, math.random(500,1500))
         }
-        await @1
+        await 1s
         loop _,t in ts {
             print(t.pub)
         }
@@ -257,17 +257,17 @@ do {
     print "-=-=- 6.4 -=-=-"
     spawn {
         toggle on :X {
-            loop on @.100 {
+            loop on 100ms {
                 print "100ms elapses"
             }
         }
     }
     print 'off'
     emit(:X, false)    ;; body above toggles off
-    await @1
+    await 1s
     print 'on'
     emit(:X, true)     ;; body above toggles on
-    await @1
+    await 1s
 }
 
 ;; 7. Errors

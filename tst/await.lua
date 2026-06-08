@@ -96,10 +96,10 @@ do
 
     local src = [[
         spawn {
-            await(:X || @.5)
+            await(:X || 5ms)
             print(:ok)
         }
-        emit(@.5)
+        emit(5ms)
     ]]
     print("Testing...", "op_clock_or 1")
     local out = atm_test(src)

@@ -114,7 +114,7 @@ do
         }
 
         spawn {
-            val t = watching @20 {
+            val t = watching 20s {
                 par_or {
                     val v = thread {
                         loop {
