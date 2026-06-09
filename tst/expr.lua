@@ -256,7 +256,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == 'x[:a]')
+    assert(tosource(e) == 'x@(:a)')
 
     local src = "t[1"
     print("Testing...", src)
@@ -289,7 +289,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == 'x[1]()[:a]')
+    assert(tosource(e) == 'x@(1)()@(:a)')
 
     local src = "#t"
     print("Testing...", src)
@@ -329,7 +329,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assert(tosource(e) == '(-x[0])')
+    assert(tosource(e) == '(-x@(0))')
 
     local src = ":X @{}"
     print("Testing...", src)

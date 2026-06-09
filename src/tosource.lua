@@ -25,7 +25,7 @@ function tosource (e, lbd)
     elseif e.tag == 'bin' then
         return '('..tosource(e.e1)..' '..e.op.str..' '..tosource(e.e2)..')'
     elseif e.tag == 'index' then
-        return tosource(e.t)..'['..tosource(e.idx)..']'
+        return tosource(e.t)..'@('..tosource(e.idx)..')'
     elseif e.tag == 'table' then
         local es = join(", ", map(e.es, function (t)
             return '['..tosource(t.k)..']='..tosource(t.v)
