@@ -176,7 +176,9 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       of bare/parens AND of `@`/`[` across tests (both forms still parse —
       diversity for coverage). `tosource` is UNCHANGED (always prints `t@(…)`),
       so expected results stay parens regardless of source form.
-    - ppp accessors `[=]/[+]/[-]` left on `[` (parser `@=/@+/@-` deferred).
+    - ppp accessors `[=]/[+]/[-]` left on `[` for now. The `@=/@+/@-` parser
+      extension is CANCELLED — superseded by from-end indexing `t@#` /
+      `t@(#±n)`; see `06-09-ppp.md`.
     - [DONE] `tst/expr.lua`, `tst/stmt.lua` (sources migrated, mixed forms).
     - [DONE] `tst/exec.lua` (number/tag sites -> `@`; `#t±` / nested / ppp
       left as `[`).
