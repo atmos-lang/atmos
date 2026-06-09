@@ -46,7 +46,7 @@
         - `#` `++`
         - `?>` `!>`
     * Indexing
-        - `t[*]` `t.x` `t[=]` `t[+]` `t[-]`
+        - `t.x` `t@i` `t@#`
     * Calls
         - `f(*)` `-->` `->` `<-` `<--`
     * Conditionals
@@ -288,9 +288,9 @@ The next example uses tags as table keys:
 
 ```
 val pos = @{}           ;; a new table
-set pos[:x] = 10
-set pos.y   = 20        ;; equivalent to pos[:y]=20
-print(pos.x, pos[:y])   ;; -> 10, 20
+set pos@(:x) = 10
+set pos.y = 20          ;; equivalent to pos@(:y)=20
+print(pos.x, pos@(:y))  ;; -> 10, 20
 ```
 
 Tags can also be used to "tag" tables, introducing the notion of lightweight
@@ -663,16 +663,16 @@ val t = @{      ;; all 3 formats:
     20, 30
 }
 print(t ?? :table)          ;; --> true
-print(t.idx, t["v"], t[2])  ;; --> 10, x, 30
+print(t.idx, t@("v"), t@2)  ;; --> 10, x, 30
 ```
 
 <!-- exs/val-02-vector.atm -->
 
 ```
 val vs = @{1, 2, 3}     ;; a vector of numbers
-print(vs[2])            ;; --> 2
+print(vs@2)             ;; --> 2
 print(vs ?? :table)     ;; --> true
-set vs[#vs+1] = 4       ;; @{1, 2, 3, 4}
+set vs@(#vs+1) = 4      ;; @{1, 2, 3, 4}
 ```
 
 [lua-table]: https://www.lua.org/manual/5.4/manual.html#3.4.9
@@ -1270,7 +1270,7 @@ var x
 set x = 20              ;; OK
 
 val y = @{10}
-set y[1] = 20           ;; OK
+set y@1 = 20            ;; OK
 set y = 0               ;; ERROR: cannot reassign `y`
 
 set `z` = 10            ;; OK
@@ -1489,8 +1489,8 @@ Examples:
 
 ```
 val t = @{ x=1 }
-print(t['x'])       ;; --> 1
-print(t[:x])        ;; --> 1
+print(t@('x'))      ;; --> 1
+print(t@(:x))       ;; --> 1
 print(t.x)          ;; --> 1
 print(t.y)          ;; --> nil
 ```
@@ -1524,12 +1524,14 @@ Examples:
 
 ```
 val stk = @{1,2,3}
-print(stk[=])         ;; --> 3
-set stk[=] = 30
+print(stk@#)          ;; --> 3
+set stk@# = 30
 print(stk)            ;; --> @{1, 2, 30}
-print(stk[-])         ;; --> 30
+val x = stk@#         ;; pop = read + remove
+set stk@# = nil
+print(x)              ;; --> 30
 print(stk)            ;; --> @{1, 2}
-set stk[+] = 3
+set stk@(#+1) = 3
 print(stk)            ;; --> @{1, 2, 3}
 ```
 
@@ -2251,7 +2253,7 @@ spawn {
     toggle on :T {
         loop {
             val e = await(:E)
-            print(e[1])         ;; --> 1 3
+            print(e@1)          ;; --> 1 3
         }
     }
 }
