@@ -1471,15 +1471,33 @@ Examples:
 
 ## Indexing
 
-Atmos uses brackets (`[` and `]`) or a dot (`.`) to index [tables](#table):
+Atmos uses an *at sign* (`@`) or a dot (`.`) to index [tables](#table), and a
+bare `#` after `@` to address a [vector](#table) from its tip (end):
 
 ```
-Expr : Expr `[´ Expr `]´
-     | Expr `.´ ID
+Expr : Expr `@´ Prim                ;; t@i  t@5
+     | Expr `@´ `(´ Expr `)´        ;; t@(e)
+     | Expr `.´ ID                  ;; t.x
 ```
 
+The bare form `t@i` indexes by a single primary, while `t@(e)` accepts any
+expression.
 The dot notation is a syntactic sugar to index string keys: `t.x` expands to
-`t["x"]`.
+`t@("x")`.
+
+A bare `#` is the receiver's length, addressing a vector from its tip (the
+receiver must be a variable):
+
+- `vec@#` is the last element (`vec@(#vec)`), and is assignable (set last).
+- `vec@(#-1)` is the second-to-last, and so on.
+- `vec@(#+1)` is one past the end, so `set vec@(#+1) = x` pushes.
+
+Pop (read and remove the last element) has no plain form; read then remove:
+
+```
+val x = vec@#
+set vec@# = nil
+```
 
 Atmos mimics the semantics of [Lua indexing][lua-indexing] for tables.
 
@@ -1497,28 +1515,12 @@ print(t.y)          ;; --> nil
 
 ```
 val v = @{ 1 }
-set v[1] = 10       ;; @{ 10 }
-set v[#v+1] = 20    ;; @{ 10, 20 }
-print(v[1])         ;; --> 10
-print(v[#v])        ;; --> 20
-print(v[#v+1])      ;; --> nil
+set v@1 = 10        ;; @{ 10 }
+set v@(#v+1) = 20   ;; @{ 10, 20 }
+print(v@1)          ;; --> 10
+print(v@(#v))       ;; --> 20
+print(v@(#v+1))     ;; --> nil
 ```
-
-[lua-indexing]: https://www.lua.org/manual/5.4/manual.html#3.2
-
-### Peek, Push, Pop
-
-The *ppp operators* (peek, push, pop) manipulate [vectors](#table) as stacks:
-
-```
-Expr : Expr `[´ (`=´|`+´|`-´) `]´
-```
-
-The peek operation `vec[=]` sets or gets the last element of a vector.
-The push operation `vec[+]` adds a new element to the end of a vector.
-The pop  operation `vec[-]` gets and removes the last element of a vector.
-
-Examples:
 
 <!-- exs/exp-13-ppp.atm -->
 
@@ -1534,6 +1536,8 @@ print(stk)            ;; --> @{1, 2}
 set stk@(#+1) = 3
 print(stk)            ;; --> @{1, 2, 3}
 ```
+
+[lua-indexing]: https://www.lua.org/manual/5.4/manual.html#3.2
 
 ## Calls
 
@@ -1638,7 +1642,7 @@ precedence priority (from higher to lower):
     - parenthesis:  `()`
 2. suffix:
     - call:         `f()` `o::m()` `f ""` `f @{}` `f \{}` `f @clk`
-    - index:        `t[]`
+    - index:        `t@i` `t@(e)`
     - field:        `t.x`
     - tag:          `:X()` `:X @{}`
 3. inner pipe:

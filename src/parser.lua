@@ -254,23 +254,36 @@ function parser_2_suf (pre)
     local tk0 = TK0
     local ret
 
-    if accept('[') then
-        -- (t) [...]
-        local idx; do
-            if accept('=') or accept('+') or accept('-') then
-                idx = { tag='str', tk={tag='str',str=TK0.str} }
+    if accept('@') then
+        -- (t) @(e) | @prim | @# : computed index via `@`
+        -- a bare `#` (no operand: next is `)`/`+`/`-`) is the receiver's
+        -- "tip" (its length), desugared to `#t` -- so the receiver must be a
+        -- variable. `#x` stays the normal length operator.
+        local idx
+        if accept('(') then
+            if check(nil,'op') and TK1.str=='#' then
+                local hash = accept_err(nil,'op')
+                if TK1.str==')' or TK1.str=='+' or TK1.str=='-' then
+                    if e.tag ~= 'acc' then
+                        err(hash, "index error : tip `@#` requires a variable")
+                    end
+                    idx = { tag='uno', op=hash, e=e }
+                else
+                    idx = { tag='uno', op=hash, e=parser_4_pre() }
+                end
+                if TK1.str=='+' or TK1.str=='-' then
+                    local op = accept_err(nil,'op')
+                    idx = { tag='bin', op=op, e1=idx, e2=parser_4_pre() }
+                end
             else
                 idx = parser()
             end
-        end
-        accept_err(']')
-        ret = { tag='index', t=e, idx=idx }
-    elseif accept('@') then
-        -- (t) @(e) | @prim : computed index via `@`
-        local idx
-        if accept('(') then
-            idx = parser()
             accept_err(')')
+        elseif check(nil,'op') and TK1.str=='#' then
+            if e.tag ~= 'acc' then
+                err(TK1, "index error : tip `@#` requires a variable")
+            end
+            idx = { tag='uno', op=accept_err(nil,'op'), e=e }
         else
             idx = parser_1_prim()
         end
