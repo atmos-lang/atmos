@@ -48,8 +48,7 @@ do
     assert(LEX().str == '@{')
     assert(LEX().str == '#')
     assert(LEX().str == '{')
-    local _,msg = pcall(LEX)
-    assertx(msg, "anon : line 1 : near '@' : unexpected '@'")
+    assert(LEX().str == '@')
 end
 
 -- OPERATORS

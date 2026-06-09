@@ -265,6 +265,16 @@ function parser_2_suf (pre)
         end
         accept_err(']')
         ret = { tag='index', t=e, idx=idx }
+    elseif accept('@') then
+        -- (t) @(e) | @prim : computed index via `@`
+        local idx
+        if accept('(') then
+            idx = parser()
+            accept_err(')')
+        else
+            idx = parser_1_prim()
+        end
+        ret = { tag='index', t=e, idx=idx }
     elseif accept('.') then
         -- (t) .id
         local id = accept_err(nil,'id')
