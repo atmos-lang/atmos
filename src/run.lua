@@ -24,28 +24,6 @@ end
 
 -------------------------------------------------------------------------------
 
-local meta_table = {
-    __index = function (t, i)
-        if i == '=' then
-            return t[#t]
-        elseif i == '-' then
-            local v = t[#t]
-            t[#t] = nil
-            return v
-        else
-            return nil
-        end
-    end,
-    __newindex = function (t, i, v)
-        if i == '=' then
-            t[#t] = v
-        elseif i == '+' then
-            t[#t+1] = v
-        else
-            rawset(t, i, v)
-        end
-    end,
-}
 
 function atm_table (t)
     return setmetatable(t, meta_table)
