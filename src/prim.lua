@@ -477,7 +477,7 @@ function parser_1_prim ()
                 return { tag='do', esc=tag, blk=blk }
             else
                 local tk = TK0
-                local cmd = { tag='acc', tk={tag='id',str='atm_id',lin=TK0.lin} }
+                local cmd = { tag='acc', tk={tag='id',str='atm_do',lin=TK0.lin} }
                 local call = parser_6_pip(parser_5_bin(parser_4_pre(parser_3_met(parser_2_suf(cmd)))))
                 if call.tag ~= 'call' then
                     err(tk, "expected call syntax")

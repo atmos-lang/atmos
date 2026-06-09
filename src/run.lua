@@ -19,7 +19,8 @@ function atm_tag_do (tag, t)
     return t
 end
 
-function atm_id ()
+function atm_do ()
+    -- do(...)
 end
 
 -------------------------------------------------------------------------------
