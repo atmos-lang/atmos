@@ -567,7 +567,7 @@ do
         ==> attempt to index a number value
     ]])
 
-    local src = "print((@{1})[@{}])"
+    local src = "print((@{1})@(@{}))"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "nil\n")
