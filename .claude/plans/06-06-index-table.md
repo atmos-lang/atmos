@@ -148,3 +148,30 @@ Open questions:
 - Index assignment: confirm `set t@k = v` (vs a dedicated form).
 - Keep `t.x` field sugar, or fold everything into `t@("x")`?
 - Should `[ ]` empty literal default to vector or generic table?
+
+## Status
+
+Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
+
+- [DONE] index `t@(…)` PARSING (src + lexer test; full suite PASSES):
+    - `src/lexer.lua` : bare `@` emits a `@` sym (was error); `@{` unchanged.
+    - `src/parser.lua` : `parser_2_suf` gains `@` index suffix — `@(e)` (full
+      expr in parens) / `@prim` (single primary). Same `{tag='index'}` node, so
+      `coder.lua` is unchanged; chaining `t@i@j` and `set t@k=v` fall out free.
+    - `tst/lexer.lua` : `@` now lexes to a token (was the error assertion).
+    - Decision: `[` indexing KEPT (transitional — both `t[i]` and `t@i` work).
+- [DEFERRED] `tosource` printing the `@` form. `src/tosource.lua` was reverted
+  to the `t[…]` form, so `@`-indexing round-trips as `t[…]` for now (no tosource
+  test churn). Revisit when migrating call sites / printing canonical `@`.
+  (The earlier expr/stmt tosource test edits were reverted accordingly.)
+- [TODO] migrate `t[…]` -> `t@(…)` call sites in `src/`, `tst/`, `doc/`.
+- [TODO] table `@{}` -> `[]` (needs `[` freed: remove `[` index first).
+- [TODO] block `{}` mono-purpose (falls out of the table move).
+
+Correction (affects §6; revisit at the TABLE phase — do not rely on §6 as
+written): `sep` counts only `;` and `\n` (`lexer.lua:15-20`), NOT spaces. The
+suffix-adjacency gate (`parser.lua` `TK0.sep==TK1.sep`) therefore treats `t@i`,
+`t @ i`, and `f[…]` vs `f […]` identically — only a `;`/newline separates, never
+whitespace. §6's "spacing disambiguates" premise is wrong; the table phase needs
+a real disambiguator for `f[…]` call-sugar vs `[…]` literal. Harmless for index
+(suffix-only, no competing meaning).
