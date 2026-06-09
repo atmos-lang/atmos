@@ -199,3 +199,58 @@ suffix-adjacency gate (`parser.lua` `TK0.sep==TK1.sep`) therefore treats `t@i`,
 whitespace. §6's "spacing disambiguates" premise is wrong; the table phase needs
 a real disambiguator for `f[…]` call-sugar vs `[…]` literal. Harmless for index
 (suffix-only, no competing meaning).
+
+## Next Steps (resume here)
+
+DONE so far: index moved to `@` (sole index sigil), `[` index REMOVED from the
+parser, all `tst/` + `doc/` migrated, ppp via `t@#` / `t@(#±n)` implemented
+(`06-09-ppp.md`). Suite GREEN. The `@`-index tip logic is fully local in
+`parser_2_suf`'s `@` branch (no global; `parser_4_pre` untouched).
+
+The ONE remaining move in this plan: table `@{}` -> `[]` (then block `{}`
+becomes mono-purpose for free). It is now unblocked (`[` is free at the suffix
+level). Steps, in order:
+
+1. DECIDE the §6 blocker FIRST (design, no code): `f[…]` call-sugar vs a
+   standalone `[…]` literal cannot be told apart by whitespace (`sep` ignores
+   spaces). Options to pick from:
+   a. drop `f[…]` call-sugar entirely (require `f([…])`); `[…]` is always a
+      literal. Simplest, recommended.
+   b. keep call-sugar via the adjacency gate (`TK0.sep==TK1.sep`) — but that
+      only separates by `;`/newline, so `f [x]` (spaced) is still a call. Ugly.
+   Also decide what happens to the two OTHER current `[` users:
+   - dict-keys `@{[k]=v}` -> become `[k=v]` / `[[k]=v]` inside the new `[…]`
+     table literal (see plan §3 `[x=1, y=2]`).
+   - pools `[ts]` / `emit[t]` / `spawn [ts]` -> need a new spelling (the `[`
+     is taken by literals). Pick one (e.g. keep `[ts]` as a special prefix, or
+     move pools to another marker). THIS IS THE MAIN OPEN QUESTION.
+
+2. lexer (`src/lexer.lua`): drop the `@{` token; make `[` / `]` plain symbols.
+
+3. parser: `[…]` parses as the table/vector literal (replaces today's `@{…}`
+   constructor in `prim.lua`); dict-keys + tag-prefix `:Pos [..]` per §3.
+   Re-spell pools per the §1 decision. Add `[` to `check_call_arg` only if
+   keeping call-sugar (option 1b).
+
+4. coder (`src/coder.lua`): table constructor already emits plain Lua `{…}`
+   (the `atm_table` wrapper was removed), so likely just the `[…]` parse maps
+   to the same table node — minimal coder change.
+
+5. tosource (`src/tosource.lua`): print tables as `[…]` (was `@{…}`).
+
+6. MASS-migrate `@{…}` -> `[…]` across `src/`? NO (src is Lua). Across `tst/`
+   and ALL `doc/` (manual, exs, guide) — big sweep. Watch the same blind spot:
+   greps that exclude `@{`/`[` lines miss nested cases.
+
+7. block `{}` mono-purpose: once tables leave `{}`, `{` after an expr is always
+   a block; remove any block-vs-table disambiguation still in the parser.
+
+Environment / how to run (cross-machine):
+- Tests load `atmos.lang` from the INSTALLED tree, NOT `src/`. After editing
+  `src/`, sync: `cp src/*.lua /x/lua-atmos/atmos/atmos/lang/` then
+  `cd tst && lua5.4 all.lua`.
+- Edit `doc/manual.md`, never `doc/manual-out.md` (auto-generated via
+  `cd doc && lua5.4 manual.lua manual.md > manual-out.md`; leave regen to the
+  doc build — do not commit/edit it by hand).
+- `[` currently still serves dict-keys `@{[k]=v}` and pools `[ts]`/`emit[t]`;
+  those are SEPARATE parsers from the (removed) index suffix.
