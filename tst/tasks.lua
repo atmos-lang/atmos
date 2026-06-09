@@ -564,7 +564,7 @@ do
             do {
                 val v =
                     await(true)
-                X.print(v[1])
+                X.print(v@1)
             }
         }
         spawn T()
@@ -580,7 +580,7 @@ do
     local src = [[
         var T = func () {
             val v = await(true)
-            X.print(v[1])
+            X.print(v@1)
         }
         pin t = spawn T()
         do {
@@ -655,7 +655,7 @@ do
     local src = [[
         val T = func (v) {
             val e = await(true)
-            X.print(e[1])
+            X.print(e@(1))
         }
         spawn T(10)
         (func () {
@@ -669,7 +669,7 @@ do
     local src = [[
         val T = func (v) {
             val x = await(true)
-            X.print(x[1])
+            X.print(x@1)
         }
         spawn T(10)
         (func () {
@@ -683,7 +683,7 @@ do
     local src = [[
         val T = func () {
             val e = await(true)
-            X.print(e[1])
+            X.print(e@(1))
             await(true)
         }
         spawn T()
@@ -713,7 +713,7 @@ do
                     type(x)
                     return(x)
                 }) (await(true))
-            X.print(e[1])
+            X.print(e@(1))
         }
         spawn T()
         do {
@@ -729,9 +729,9 @@ do
         var tk
         set tk = func (v) {
             print(v)
-            val e1 = await(func(e) { (e && e.tag, e && e[1]) })
+            val e1 = await(func(e) { (e && e.tag, e && e@(1)) })
             X.print(e1)
-            val e2 = await(func(e) { (e && e.tag, e && e[1]) })
+            val e2 = await(func(e) { (e && e.tag, e && e@(1)) })
             X.print(e2)
         }
         print(:1)
@@ -766,8 +766,8 @@ do
     local src = [[
         val f = func (v) {
             (func (x) {
-                set x[1] = v[1]
-                X.print(x[1])
+                set x@1 = v@1
+                X.print(x@1)
             }) (@{1})
         }
         var T = func () {
@@ -782,7 +782,7 @@ do
 
     local src = [[
         val f = func (v) {
-            X.print(v[1])
+            X.print(v@1)
         }
         var T = func () {
             f(await(true))
@@ -797,8 +797,8 @@ do
     local src = [[
         val f = func (v) {
             (func (x) {
-                set x[1] = v[1]
-                X.print(x[1])
+                set x@1 = v@1
+                X.print(x@1)
             }) (@{0})
         }
         var T = func () {
@@ -813,7 +813,7 @@ do
 
     local src = [[
         val f = func (v) {
-            X.print(v[1])
+            X.print(v@1)
         }
         val T = func () {
             f(await(true))
@@ -837,7 +837,7 @@ do
 
     local src = [[
         val f = func (v) {
-            X.print(v[1])
+            X.print(v@1)
         }
         val T = func () {
             do {
@@ -861,7 +861,7 @@ do
         var T = func () {
             var v =
                 (func (it) {return(it)}) (await(true))
-            X.print(v[1])
+            X.print(v@1)
         }
         spawn T()
         ;;print(:1111)
@@ -924,7 +924,7 @@ do
     local src = [[
         spawn (func () {
             val v = await(true)
-            X.print(v[1])
+            X.print(v@1)
             await(false)
         }) (nil)
         do {
@@ -940,7 +940,7 @@ do
     local src = [[
         val T = func () {
             val x = await(true)
-            X.print(x[1])
+            X.print(x@1)
         }
         spawn T()
         do {
@@ -973,7 +973,7 @@ do
         spawn (func () {
             val evt = await(true)
             do {
-                val x = evt[1]
+                val x = evt@(1)
                 X.print(x)
                 await(true)
             }
@@ -990,7 +990,7 @@ do
     local src = [[
         spawn (func () {
             val evt = await(true)
-            val x = evt[1]
+            val x = evt@(1)
             X.print(x)
         }) ()
         do {
@@ -1005,7 +1005,7 @@ do
 
     local src = [=[
         var f = func (v) {  ;; *** v is no longer fleeting ***
-            val x = v[1]    ;; v also holds x, both are fleeting -> unsafe
+            val x = v@1    ;; v also holds x, both are fleeting -> unsafe
             X.print(x)      ;; x will be freed and v would contain dangling pointer
         }
         var T = func () {
@@ -1020,7 +1020,7 @@ do
 
     local src = [=[
         var f = func (v) {
-            val x = v[1]    ;; v also holds x, both are fleeting -> unsafe
+            val x = v@1    ;; v also holds x, both are fleeting -> unsafe
             X.print(x)      ;; x will be freed and v would contain dangling pointer
         }
         var T = func () {
@@ -1100,7 +1100,7 @@ do
     local src = [[
         spawn (func () {
             var evt = await(true)
-            val x = evt[1]
+            val x = evt@(1)
             X.print(x)
             set evt = await(true)
             X.print(x)
@@ -1122,7 +1122,7 @@ do
             var evt = await(true)
             do :X {
                 loop {
-                    if evt[:type]==:x {
+                    if evt@(:type)==:x {
                         escape(:X)
                     }
                     set evt = await(true)
@@ -1178,7 +1178,7 @@ do
     local src = [[
         spawn {
             val e = await(true)
-            print(e.tag, e[1])
+            print(e.tag, e@(1))
         }
         emit :10 @{:20}
     ]]
@@ -1188,8 +1188,8 @@ do
 
     local src = [[
         func tsk () {
-            var e = await(func (e) { (e && (e.tag==:X) && (e[1]==10), e) })
-            print(e.tag, e[1])
+            var e = await(func (e) { (e && (e.tag==:X) && (e@(1)==10), e) })
+            print(e.tag, e@(1))
         }
         spawn tsk()
         emit :X @{99}
@@ -1587,7 +1587,7 @@ do
     local src = [[
         val T = func () {
             set pub = 10
-            await(func (e) { e && (e.tag==:X) && (e[1]==pub) })
+            await(func (e) { e && (e.tag==:X) && (e@(1)==pub) })
             print(pub)
         }
         pin t = spawn T()
