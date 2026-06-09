@@ -5,4 +5,4 @@ val t = @{      ;; all 3 formats:
     20, 30
 }
 print(t ?? :table)          ;; --> true
-print(t.idx, t["v"], t[2])  ;; --> 10, x, 30
+print(t.idx, t@("v"), t@2)  ;; --> 10, x, 30

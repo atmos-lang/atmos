@@ -15,7 +15,7 @@ spawn {
     toggle on :T {
         loop {
             val e = await(:E)
-            print(e[1])         ;; --> 1 3
+            print(e@1)          ;; --> 1 3
         }
     }
 }

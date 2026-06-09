@@ -1,7 +1,7 @@
 val pos = @{}               ;; a new table
-set pos[:x] = 10
-set pos.y   = 20            ;; equivalent to pos[:y]=20
-print(pos.x, pos[:y])       ;; --> 10, 20
+set pos@(:x) = 10
+set pos.y   = 20            ;; equivalent to pos@(:y)=20
+print(pos.x, pos@(:y))      ;; --> 10, 20
 
 print(:T.A.x ?? :T)         ;; --> true  (:T.A.x is a subtype of :T)
 print(:T.A.x ?? :T.A)       ;; --> true  (:T.A.x is a subtype of :T)

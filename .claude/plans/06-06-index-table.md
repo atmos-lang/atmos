@@ -169,22 +169,27 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
     - `tst/lexer.lua` : `@` lexes to a token.
     - `tst/exec.lua` (+ runtime tests) : unaffected — execution via `coder`
       (unchanged); only 1 non-index `tosource` use.
-- [WIP] migrate `t[…]` -> `t@…` call sites in `tst/`, `doc/`. (`src/` is the
-  compiler in Lua -> NOT migrated.) Conventions settled:
+- [DONE] migrate `t[…]` -> `t@…` call sites in `tst/`, and REMOVE `[` index.
+  (`src/` is the compiler in Lua -> NOT migrated.) Conventions settled:
     - Programmer source: bare `t@i` / `t@1` for ident/number, parens
-      `t@(:x)` / `t@("f")` / `t@(#t+1)` for tag/string/expression. Keep a MIX
-      of bare/parens AND of `@`/`[` across tests (both forms still parse —
-      diversity for coverage). `tosource` is UNCHANGED (always prints `t@(…)`),
-      so expected results stay parens regardless of source form.
-    - ppp accessors `[=]/[+]/[-]` left on `[` for now. The `@=/@+/@-` parser
-      extension is CANCELLED — superseded by from-end indexing `t@#` /
-      `t@(#±n)`; see `06-09-ppp.md`.
-    - [DONE] `tst/expr.lua`, `tst/stmt.lua` (sources migrated, mixed forms).
-    - [DONE] `tst/exec.lua` (number/tag sites -> `@`; `#t±` / nested / ppp
-      left as `[`).
-    - [TODO] `tst/tasks.lua`, `streams.lua`, `await.lua`, `cmd.lua`,
-      `guide.atm`; then `doc/` (manual Indexing section, exs, guide).
-- [TODO] table `@{}` -> `[]` (needs `[` freed: remove `[` index first).
+      `t@(:x)` / `t@("f")` / `t@(#t+1)` for tag/string/expression. Mix of
+      bare/parens for coverage. `tosource` UNCHANGED (always `t@(…)`).
+    - Parser distinguishes `t@(#+1)` (tip) from `t@(#t+1)` (explicit): a `#`
+      is the tip only when operandless (followed by `)`/`+`/`-`); else it is
+      the normal `#x` length operator. So no `((…))` escape is needed.
+    - [DONE] all `tst/`: expr, stmt, exec, streams, guide.atm, tasks, +
+      missed `(@{1})[@{}]` (the `@{`-on-line blind spot of the sweep greps).
+    - [DONE] `src/parser.lua`: the `accept('[')` index branch REMOVED. `[`
+      now only serves `@{[k]=v}` dict-keys and `[ts]`/`emit[t]` pools.
+      Suite GREEN.
+    - [DONE] `doc/`: `exp-12`/`val-02`/`val-03`/`exp-08`/`03-tags`/`exp-28`
+      exs; manual `## Indexing` grammar (`[`->`@`) + prose (`t.x` -> `t@("x")`)
+      + all inline examples + precedence-list `t[]` + nav; `guide.md`. TOC
+      regenerates clean. (`manual-out.md` left to the doc build.)
+- ppp accessors: replaced by from-end indexing `t@#` / `t@(#±n)` — see
+  `06-09-ppp.md` (implemented).
+- [TODO] table `@{}` -> `[]` (now unblocked: `[` is freed at the suffix
+  level; still used by dict-keys/pools, to be reworked in this move).
 - [TODO] block `{}` mono-purpose (falls out of the table move).
 
 Correction (affects §6; revisit at the TABLE phase — do not rely on §6 as
