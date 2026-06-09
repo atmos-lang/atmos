@@ -557,7 +557,7 @@ do
     local out = atm_test(src)
     assertx(out, "nil\t1\t10\t20\n")
 
-    local src = "print((1)[1])"
+    local src = "print((1)@1)"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(trim(out), trim [[
@@ -580,12 +580,12 @@ do
     ]])
 ]=]
 
-    local src = "print((@{@{1}})[(@{1})[1]][1])"
+    local src = "print((@{@{1}})@((@{1})@1)@1)"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "1\n")
 
-    local src = "X.print((@{@{1}})[(@{1})[1]])"
+    local src = "X.print((@{@{1}})@((@{1})@1))"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "@{1}\n")
@@ -616,7 +616,7 @@ do
     local src = [[
         val t = @{}
         print(#t)
-        set t[#t+1] = 10
+        set t@(#t+1) = 10
         print(t@1)
         print(#t)
     ]]
@@ -627,9 +627,9 @@ do
     local src = [[
         val t = @{}
         print(#t)
-        set t[#t+1] = 1
+        set t@(#t+1) = 1
         print(#t)
-        set t[#t] = nil
+        set t@(#t) = nil
         print(#t)
     ]]
     print("Testing...", "vector 2")
@@ -640,9 +640,9 @@ do
         val t = @{}
         val x = t
         print(#x)
-        set t[#t+1] = 1
+        set t@(#t+1) = 1
         print(#x)
-        set t[#t] = nil
+        set t@(#t) = nil
         print(#x)
     ]]
     print("Testing...", "vector 3")
@@ -652,9 +652,9 @@ do
     local src = [[
         val x = @{1,2,3}
         val t = @{}
-        set t[#t+1] = 4
-        set t[#t+1] = 5
-        set t[#t] = nil
+        set t@(#t+1) = 4
+        set t@(#t+1) = 5
+        set t@(#t) = nil
         X.print(x ++ t ++ @{5,6,7})
     ]]
     print("Testing...", "vector 4")
@@ -675,9 +675,9 @@ end
 do
     local src = [[
         val t = @{}
-        set t[#t+1] = 1
-        set t[#t+1] = 2
-        set t[#t+1] = 3
+        set t@(#t+1) = 1
+        set t@(#t+1) = 2
+        set t@(#t+1) = 3
         print(t@(2))
         X.print(t)
     ]]
@@ -687,7 +687,7 @@ do
 
     local src = [[
         val t = @{}
-        set t[#t] = nil
+        set t@(#t) = nil
         X.print(t)
     ]]
     print("Testing...", "ppp 2: error pop")
@@ -705,9 +705,9 @@ do
     local src = [[
         val t = @{}
         print(#t)
-        set t[#t+1] = 10
+        set t@(#t+1) = 10
         print(#t)
-        set t[#t] = nil
+        set t@(#t) = nil
         print(#t)
     ]]
     print("Testing...", "ppp 3")
@@ -716,10 +716,10 @@ do
 
     local src = [[
         val t = @{}
-        set t[#t+1] = 10
-        set t[#t] = nil
-        set t[#t+1] = 10
-        set t[#t+1] = 20
+        set t@(#t+1) = 10
+        set t@(#t) = nil
+        set t@(#t+1) = 10
+        set t@(#t+1) = 20
         set t@1  = t@1 + 1
         set t@(2)  = t@(2) + 1
         set t@3  = 99
@@ -731,11 +731,11 @@ do
 
     local src = [[
         val t = @{}
-        set t[#t+1] = 10
-        set t[#t] = nil
-        set t[#t+1] = 10
-        set t[#t+1] = 20
-        print(t[3])
+        set t@(#t+1) = 10
+        set t@(#t) = nil
+        set t@(#t+1) = 10
+        set t@(#t+1) = 20
+        print(t@3)
     ]]
     print("Testing...", "ppp 5: error out of bounds")
     local out = atm_test(src)
@@ -751,7 +751,7 @@ do
 
     local src = [[
         val t = @{}
-        set t[#t] = 10
+        set t@(#t) = 10
         X.print(t)
     ]]
     print("Testing...", "ppp 6: error push")
