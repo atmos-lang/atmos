@@ -306,7 +306,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(s), trim [[
         do {
-            atm_id(1)
+            atm_void(1)
             2
         }
     ]])
@@ -320,7 +320,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(s), trim [[
         do {
-            atm_id(1)
+            atm_void(1)
             2
         }
     ]])

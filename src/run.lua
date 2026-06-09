@@ -19,7 +19,7 @@ function atm_tag_do (tag, t)
     return t
 end
 
-function atm_do ()
+function atm_void ()
     -- do(...)
 end
 
