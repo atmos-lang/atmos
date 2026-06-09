@@ -160,11 +160,28 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       `coder.lua` is unchanged; chaining `t@i@j` and `set t@k=v` fall out free.
     - `tst/lexer.lua` : `@` now lexes to a token (was the error assertion).
     - Decision: `[` indexing KEPT (transitional — both `t[i]` and `t@i` work).
-- [DEFERRED] `tosource` printing the `@` form. `src/tosource.lua` was reverted
-  to the `t[…]` form, so `@`-indexing round-trips as `t[…]` for now (no tosource
-  test churn). Revisit when migrating call sites / printing canonical `@`.
-  (The earlier expr/stmt tosource test edits were reverted accordingly.)
-- [TODO] migrate `t[…]` -> `t@(…)` call sites in `src/`, `tst/`, `doc/`.
+- [DONE] `tosource` prints the `@` form. `src/tosource.lua` index case ->
+  `tosource(e.t)..'@('..tosource(e.idx)..')'` (uniform: computed, string, AND
+  tag/field all render `t@(idx)`; `.x` is input-only sugar now).
+- [DONE] test suite converted to the `@(…)` expected results; FULL SUITE PASSES.
+    - `tst/expr.lua` : `x@(:a)`, `x@(1)()@(:a)`, `(-x@(0))`.
+    - `tst/stmt.lua` : `set M@("f")`, `set M@("o")@("f")`, `set x, t@(1) = …`.
+    - `tst/lexer.lua` : `@` lexes to a token.
+    - `tst/exec.lua` (+ runtime tests) : unaffected — execution via `coder`
+      (unchanged); only 1 non-index `tosource` use.
+- [WIP] migrate `t[…]` -> `t@…` call sites in `tst/`, `doc/`. (`src/` is the
+  compiler in Lua -> NOT migrated.) Conventions settled:
+    - Programmer source: bare `t@i` / `t@1` for ident/number, parens
+      `t@(:x)` / `t@("f")` / `t@(#t+1)` for tag/string/expression. Keep a MIX
+      of bare/parens AND of `@`/`[` across tests (both forms still parse —
+      diversity for coverage). `tosource` is UNCHANGED (always prints `t@(…)`),
+      so expected results stay parens regardless of source form.
+    - ppp accessors `[=]/[+]/[-]` left on `[` (parser `@=/@+/@-` deferred).
+    - [DONE] `tst/expr.lua`, `tst/stmt.lua` (sources migrated, mixed forms).
+    - [DONE] `tst/exec.lua` (number/tag sites -> `@`; `#t±` / nested / ppp
+      left as `[`).
+    - [TODO] `tst/tasks.lua`, `streams.lua`, `await.lua`, `cmd.lua`,
+      `guide.atm`; then `doc/` (manual Indexing section, exs, guide).
 - [TODO] table `@{}` -> `[]` (needs `[` freed: remove `[` index first).
 - [TODO] block `{}` mono-purpose (falls out of the table move).
 

@@ -448,7 +448,7 @@ do
     assert(not check('<eof>'))
     assert(TK1.str == ',')
 
-    local src = "set x, t[1] = (10, 20)"
+    local src = "set x, t@1 = (10, 20)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)

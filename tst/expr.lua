@@ -240,7 +240,7 @@ do
     assertx(msg, "anon : line 1 : near '}' : expected ')'")
     --assertx(msg, "anon : line 1 : near '<eof>' : expected '='")
 
-    local src = "x[1]"
+    local src = "x@1"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -258,13 +258,13 @@ do
     assert(check('<eof>'))
     assert(tosource(e) == 'x@(:a)')
 
-    local src = "t[1"
+    local src = "t@(1"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assert(not ok and msg=="anon : line 1 : near '<eof>' : expected ']'")
+    assert(not ok and msg=="anon : line 1 : near '<eof>' : expected ')'")
 
     local src = "x . ."
     print("Testing...", src)
@@ -282,7 +282,7 @@ do
     local ok, msg = pcall(parser)
     assert(not ok and msg=="anon : line 1 : near '2' : expected <id>")
 
-    local src = "x[1]().a"
+    local src = "x@(1)().a"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -300,7 +300,7 @@ do
     assert(check('<eof>'))
     assert(X.tostring(e) == "@{e=@{tag=acc, tk=@{lin=1, sep=1, str=t, tag=id}}, op=@{lin=1, sep=1, str=#, tag=op}, tag=uno}")
 
-    local src = "1[1]"
+    local src = "1@(1)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -322,7 +322,7 @@ do
     --local ok, msg = pcall(parser)
     --assert(not ok and msg=="anon : line 1 : near '.' : field error : expected prefix expression")
 
-    local src = "-x[0]"
+    local src = "-x@0"
     print("Testing...", src)
     init()
     lexer_init("anon", src)

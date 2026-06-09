@@ -168,7 +168,7 @@ do
         ```
         _xy = { 10,20 }
         ```
-        print(_xy[2])
+        print(_xy@2)
     ]]
     print("Testing...", "native 3")
     local out = atm_test(src)
@@ -551,7 +551,7 @@ end
 do
     local src = [[
         val t = @{1, x=10, [:y]=20}
-        print(t[0], t[1], t[:x], t.y)
+        print(t@0, t@(1), t@(:x), t.y)
     ]]
     print("Testing...", "table 1")
     local out = atm_test(src)
@@ -602,7 +602,7 @@ do
 
     local src = [[
         val t = @{[:x]=1}
-        print(t[:x], t.x)
+        print(t@(:x), t.x)
     ]]
     print("Testing...", "table 1")
     local out = atm_test(src)
@@ -617,7 +617,7 @@ do
         val t = @{}
         print(#t)
         set t[#t+1] = 10
-        print(t[1])
+        print(t@1)
         print(#t)
     ]]
     print("Testing...", "vector 1")
@@ -678,7 +678,7 @@ do
         set t[#t+1] = 1
         set t[#t+1] = 2
         set t[#t+1] = 3
-        print(t[2])
+        print(t@(2))
         X.print(t)
     ]]
     print("Testing...", "ppp 1")
@@ -720,9 +720,9 @@ do
         set t[#t] = nil
         set t[#t+1] = 10
         set t[#t+1] = 20
-        set t[1]  = t[1] + 1
-        set t[2]  = t[2] + 1
-        set t[3]  = 99
+        set t@1  = t@1 + 1
+        set t@(2)  = t@(2) + 1
+        set t@3  = 99
         X.print(t)
     ]]
     print("Testing...", "ppp 4")

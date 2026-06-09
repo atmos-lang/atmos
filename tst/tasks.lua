@@ -619,7 +619,7 @@ do
         }
         var T = func () {
             val e = await(true)
-            fff(e.tag, e[1])
+            fff(e.tag, e@1)
         }
         spawn T()
         emit :t @{@{1}}
@@ -957,7 +957,7 @@ do
         spawn (func () {
             val evt = await(true)
             val x = @{nil}
-            set x[1] = evt[1]
+            set x@1 = evt@(1)
             X.print(x)
         }) ()
         do {
@@ -1151,7 +1151,7 @@ do
                 print(3)
             }
             print(4)
-            fff(evt[:type])
+            fff(evt@(:type))
             print(99)
         }) ()
         emit (:T @{type=:y})
@@ -2576,7 +2576,7 @@ do
             })
             coroutine.resume(co)
             print(:3)
-            coroutine['close'](co)
+            coroutine@('close')(co)
         }) ()
     ]]
     print("Testing...", "abort 34")
@@ -3362,7 +3362,7 @@ do
     local src = [[
         spawn {
             loop v on :X @{10} {
-                print(:X, v[1])
+                print(:X, v@1)
             }
         }
         emit(:X)

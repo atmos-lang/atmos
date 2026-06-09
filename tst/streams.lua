@@ -54,7 +54,7 @@ do
     local src = [[
         val S = require "atmos.streams"
         pin x* = S.zip (S.fr_await(1s), S.from(1))
-            ::map \{it[2]}
+            ::map \{it@2}
             ;;::to()      ;; 1 / 2 / 3
         spawn {
             loop on :x {
@@ -73,13 +73,13 @@ do
         val S = require "atmos.streams"
         pin x* = @{
             S.zip (S.fr_await(1s), S.from(1))
-                ::map \{it[2]},
+                ::map \{it@(2)},
             S.zip (S.fr_await('X'), S.from(1))
-                ::map \{it[2]},
+                ::map \{it@2},
         }
         spawn {
             loop e on :x {
-                print(e.tag, e[1])
+                print(e.tag, e@1)
             }
         }
         emit 1s
@@ -215,7 +215,7 @@ local src = [[
     }
     ;; map will iterate through each row, and the lambda
     ;; indexes each to retrieve the first element
-    X.print <-- S.from(matrix)::map(\{it[2]})::table()::to()
+    X.print <-- S.from(matrix)::map(\{it@(2)})::table()::to()
 ]]
 print("Testing...", "func 9")
 local out = atm_test(src)
