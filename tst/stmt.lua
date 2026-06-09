@@ -72,7 +72,7 @@ do
     assert(check('<eof>'))
     assertx(X.tostring(s), "@{dsts=@{@{idx=@{tag=str, tk=@{lin=1, sep=1, str=f, tag=id}}, t=@{tag=acc, tk=@{lin=1, sep=1, str=M, tag=id}}, tag=index}}, src=@{blk=@{es=@{}, tag=block}, dots=false, pars=@{@{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=set}")
     assertx(trim(tosource(s)), trim [[
-        set M["f"] = func (v) {
+        set M@("f") = func (v) {
         }
     ]])
 
@@ -84,7 +84,7 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        set M["o"]["f"] = func (self, v) {
+        set M@("o")@("f") = func (self, v) {
         }
     ]])
 
@@ -455,7 +455,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assert(tosource(s) == "set x, t[1] = (10, 20)")
+    assert(tosource(s) == "set x, t@(1) = (10, 20)")
     --local _,msg = pcall(parser)
     --assertx(msg, "anon : line 1 : near '=' : invalid set : multiple assignment with index is not supported")
 
