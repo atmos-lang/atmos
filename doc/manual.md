@@ -46,7 +46,7 @@
         - `#` `++`
         - `?>` `!>`
     * Indexing
-        - `t.x` `t@i` `t@#`
+        - `t.x` `t@1` `t@i` `t@#` `t@+`
     * Calls
         - `f(*)` `-->` `->` `<-` `<--`
     * Conditionals
@@ -1474,15 +1474,16 @@ Examples:
 Atmos uses the at (`@`) or dot (`.`) notations to index [tables](#table):
 
 ```
-Expr : Expr `@´ `(´ Expr `)´    ;; t@(e)
-     | Expr `@´ (NUM | ID)      ;; t@1  t@i
-     | Expr `.´ ID              ;; t.x
+Expr : Expr `@´ `(´ Expr `)´            ;; t@(e)
+     | Expr `@´ (NUM | ID | `#´ | `+´)  ;; t@1  t@i  t@#  t@+
+     | Expr `.´ ID                      ;; t.x
 ```
 
 The at notation uses parenthesis (instead of brackets) to provide the index
 expression.
-It is possible to omit the parenthesis if the index is a number or a variable
-identifier.
+It is possible to omit the parenthesis to index literal numbers and
+identifiers, as well as `#` for the last item and `+` for the append index
+(i.e., `#t+1`).
 The dot notation is a syntactic sugar to index string keys: `t.x` expands to
 `t@("x")`.
 
@@ -1503,43 +1504,15 @@ print(t.y)          ;; --> nil
 ```
 val v = @{ 1 }
 set v@1 = 10        ;; @{ 10 }
-set v@(#v+1) = 20   ;; @{ 10, 20 }
+set v@+ = 20        ;; @{ 10, 20 }
+print(v@#)          ;; --> 20
 print(v@1)          ;; --> 10
-print(v@(#v))       ;; --> 20
-print(v@(#v+1))     ;; --> nil
+print(v@+)          ;; --> nil
 ```
-
-[lua-indexing]: https://www.lua.org/manual/5.4/manual.html#3.2
-
-### Tip-Based Indexing
-
-The index prefix `#` allows to access vectors relative to its tip:
-
-```
-Expr : Expr `@´ `#´                             ;; vec@#
-     | Expr `@´ `(´ `#´ [(`+´|`-´) Expr] `)´    ;; vec@(#+-e)
-```
-
-- `t@#`     expands to `t@(#t)`
-- `t@(#-x)` expands to `t@(#t-x)`
-- `t@(#+x)` expands to `t@(#t+x)`
-
-Examples:
 
 <!-- exs/exp-13-ppp.atm -->
 
-```
-val vec = @{1,2,3}
-print(vec@#)          ;; --> 3
-set vec@# = 30
-print(vec)            ;; --> @{1, 2, 30}
-val x = vec@#
-set vec@# = nil
-print(x)              ;; --> 30
-print(vec)            ;; --> @{1, 2}
-set vec@(#+1) = 3
-print(vec)            ;; --> @{1, 2, 3}
-```
+[lua-indexing]: https://www.lua.org/manual/5.4/manual.html#3.2
 
 ## Calls
 

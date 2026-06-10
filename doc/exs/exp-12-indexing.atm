@@ -6,7 +6,7 @@ print(t.y)          ;; --> nil
 
 val v = @{ 1 }
 set v@1 = 10        ;; @{ 10 }
-set v@(#v+1) = 20   ;; @{ 10, 20 }
+set v@+ = 20        ;; @{ 10, 20 }
 print(v@1)          ;; --> 10
-print(v@(#v))       ;; --> 20
-print(v@(#v+1))     ;; --> nil
+print(v@#)          ;; --> 20
+print(v@+)          ;; --> nil
