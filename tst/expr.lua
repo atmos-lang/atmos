@@ -273,9 +273,17 @@ do
         lexer_init("anon", src)
         lexer_next()
         local ok, msg = pcall(parser)
-print(ok, msg)
         assert(not ok and msg=="anon : line 1 : near '@' : invalid tip index : expected variable prefix")
     end
+
+    -- bare index must be a name or number (keyword rejected)
+    local src = "t@true"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assert(not ok and msg=="anon : line 1 : near 'true' : expected <id>")
 
     local src = "x . ."
     print("Testing...", src)

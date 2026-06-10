@@ -261,6 +261,7 @@ function parser_2_suf (pre)
             chk = true
             idx = { tag='uno', op=TK0, e=e }
         elseif not accept('(') then     -- t@x
+            local _ = check(nil,'num') or check_err(nil,'id')
             idx = parser_1_prim()
         else
             if not accept('#') then     -- t@(...)
