@@ -174,9 +174,10 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
     - Programmer source: bare `t@i` / `t@1` for ident/number, parens
       `t@(:x)` / `t@("f")` / `t@(#t+1)` for tag/string/expression. Mix of
       bare/parens for coverage. `tosource` UNCHANGED (always `t@(…)`).
-    - Parser distinguishes `t@(#+1)` (tip) from `t@(#t+1)` (explicit): a `#`
-      is the tip only when operandless (followed by `)`/`+`/`-`); else it is
-      the normal `#x` length operator. So no `((…))` escape is needed.
+    - Tip indexing is now two bare markers only — `t@#` (last) and `t@+`
+      (next/append) — see `06-09-ppp.md`. The earlier operandless-`#`-in-parens
+      distinction (`t@(#+1)` tip vs `t@(#t+1)` explicit) was DROPPED; `#`
+      inside `@(…)` is always the ordinary length operator now.
     - [DONE] all `tst/`: expr, stmt, exec, streams, guide.atm, tasks, +
       missed `(@{1})[@{}]` (the `@{`-on-line blind spot of the sweep greps).
     - [DONE] `src/parser.lua`: the `accept('[')` index branch REMOVED. `[`
@@ -186,8 +187,8 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       exs; manual `## Indexing` grammar (`[`->`@`) + prose (`t.x` -> `t@("x")`)
       + all inline examples + precedence-list `t[]` + nav; `guide.md`. TOC
       regenerates clean. (`manual-out.md` left to the doc build.)
-- ppp accessors: replaced by from-end indexing `t@#` / `t@(#±n)` — see
-  `06-09-ppp.md` (implemented).
+- ppp accessors: replaced by tip indexing `t@#` (last) / `t@+` (append) — see
+  `06-09-ppp.md` (implemented, tests pass).
 - [TODO] table `@{}` -> `[]` (now unblocked: `[` is freed at the suffix
   level; still used by dict-keys/pools, to be reworked in this move).
 - [TODO] block `{}` mono-purpose (falls out of the table move).
@@ -203,7 +204,7 @@ a real disambiguator for `f[…]` call-sugar vs `[…]` literal. Harmless for in
 ## Next Steps (resume here)
 
 DONE so far: index moved to `@` (sole index sigil), `[` index REMOVED from the
-parser, all `tst/` + `doc/` migrated, ppp via `t@#` / `t@(#±n)` implemented
+parser, all `tst/` + `doc/` migrated, ppp via `t@#` / `t@+` implemented
 (`06-09-ppp.md`). Suite GREEN. The `@`-index tip logic is fully local in
 `parser_2_suf`'s `@` branch (no global; `parser_4_pre` untouched).
 
