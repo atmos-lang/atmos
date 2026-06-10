@@ -1471,33 +1471,20 @@ Examples:
 
 ## Indexing
 
-Atmos uses an *at sign* (`@`) or a dot (`.`) to index [tables](#table), and a
-bare `#` after `@` to address a [vector](#table) from its tip (end):
+Atmos uses the at (`@`) or dot (`.`) notations to index [tables](#table):
 
 ```
-Expr : Expr `@´ Prim                ;; t@i  t@5
-     | Expr `@´ `(´ Expr `)´        ;; t@(e)
-     | Expr `.´ ID                  ;; t.x
+Expr : Expr `@´ `(´ Expr `)´    ;; t@(e)
+     | Expr `@´ (NUM | ID)      ;; t@1  t@i
+     | Expr `.´ ID              ;; t.x
 ```
 
-The bare form `t@i` indexes by a single primary, while `t@(e)` accepts any
+The at notation uses parenthesis (instead of brackets) to provide the index
 expression.
+It is possible to omit the parenthesis if the index is a number or a variable
+identifier.
 The dot notation is a syntactic sugar to index string keys: `t.x` expands to
 `t@("x")`.
-
-A bare `#` is the receiver's length, addressing a vector from its tip (the
-receiver must be a variable):
-
-- `vec@#` is the last element (`vec@(#vec)`), and is assignable (set last).
-- `vec@(#-1)` is the second-to-last, and so on.
-- `vec@(#+1)` is one past the end, so `set vec@(#+1) = x` pushes.
-
-Pop (read and remove the last element) has no plain form; read then remove:
-
-```
-val x = vec@#
-set vec@# = nil
-```
 
 Atmos mimics the semantics of [Lua indexing][lua-indexing] for tables.
 
@@ -1522,22 +1509,37 @@ print(v@(#v))       ;; --> 20
 print(v@(#v+1))     ;; --> nil
 ```
 
+[lua-indexing]: https://www.lua.org/manual/5.4/manual.html#3.2
+
+### Tip-Based Indexing
+
+The index prefix `#` allows to access vectors relative to its tip:
+
+```
+Expr : Expr `@´ `#´                             ;; vec@#
+     | Expr `@´ `(´ `#´ [(`+´|`-´) Expr] `)´    ;; vec@(#+-e)
+```
+
+- `t@#`     expands to `t@(#t)`
+- `t@(#-x)` expands to `t@(#t-x)`
+- `t@(#+x)` expands to `t@(#t+x)`
+
+Examples:
+
 <!-- exs/exp-13-ppp.atm -->
 
 ```
-val stk = @{1,2,3}
-print(stk@#)          ;; --> 3
-set stk@# = 30
-print(stk)            ;; --> @{1, 2, 30}
-val x = stk@#         ;; pop = read + remove
-set stk@# = nil
+val vec = @{1,2,3}
+print(vec@#)          ;; --> 3
+set vec@# = 30
+print(vec)            ;; --> @{1, 2, 30}
+val x = vec@#
+set vec@# = nil
 print(x)              ;; --> 30
-print(stk)            ;; --> @{1, 2}
-set stk@(#+1) = 3
-print(stk)            ;; --> @{1, 2, 3}
+print(vec)            ;; --> @{1, 2}
+set vec@(#+1) = 3
+print(vec)            ;; --> @{1, 2, 3}
 ```
-
-[lua-indexing]: https://www.lua.org/manual/5.4/manual.html#3.2
 
 ## Calls
 
