@@ -90,8 +90,8 @@ function parser_1_prim ()
     -- tag
     elseif accept(nil,'tag') then
         local e = { tag='tag', tk=TK0 }
-        if (check'(' or check'@{') and (TK0.sep == TK1.sep) then
-            -- (:X) @{...}
+        if (check'(' or check'[') and (TK0.sep == TK1.sep) then
+            -- (:X) [...]
             local t = parser_1_prim()
             local f = { tag='acc', tk={tag='id',str="atm_tag_do"} }
             return { tag='call', f=f, es={e,t} }
@@ -99,14 +99,19 @@ function parser_1_prim ()
             return e
         end
 
-    -- table: @{...}
-    elseif accept('@{') then
+    -- table: [...]
+    elseif accept('[') then
         local idx = 1
-        local es = parser_list(',', '}', function ()
-            local key
-            if accept('[') then
-                key = parser()
-                accept_err(']')
+        local es = parser_list(',', ']', function ()
+            local key, val
+            -- computed key: @(e)=v  @id=v  @5=v  (mirrors t@(e) index)
+            if accept('@') then
+                if accept('(') then
+                    key = parser()
+                    accept_err(')')
+                else
+                    key = parser_1_prim()
+                end
                 accept_err('=')
                 val = parser()
             else
@@ -123,7 +128,7 @@ function parser_1_prim ()
             end
             return { k=key, v=val }
         end)
-        accept_err('}')
+        accept_err(']')
         return { tag='table', es=es }
 
     -- parens: (...)

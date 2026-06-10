@@ -24,7 +24,7 @@ do
     assertx(X.tostring(s), "@{dsts=@{@{tag=acc, tk=@{lin=1, sep=1, str=f, tag=id}}}, src=@{blk=@{es=@{@{ids=@{@{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk=@{lin=1, sep=1, str=val, tag=key}}}, tag=block}, dots=false, pars=@{@{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=set}")
 
     local src = [[
-        val e = @{}
+        val e = []
         (f)()
     ]]
     print("Testing...", "call 1")
@@ -34,7 +34,7 @@ do
     local s = parser_main()
     assertx(tosource(s), trim [[
         do {
-            val e = @{}
+            val e = []
             (f)()
         }
     ]])
@@ -141,7 +141,7 @@ do
         }
     ]])
 
-    local src = "catch :X { throw :X@{} }"
+    local src = "catch :X { throw :X[] }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -151,11 +151,11 @@ do
     --assertx(msg, "anon : line 1 : near '@{' : sequence error : expected ';' or new line")
     assertx(tosource(s), trim [[
         catch :X {
-            throw(atm_tag_do(:X, @{}))
+            throw(atm_tag_do(:X, []))
         }
     ]])
 
-    local src = "catch :X { throw :X;@{} }"
+    local src = "catch :X { throw :X;[] }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -164,7 +164,7 @@ do
     assertx(tosource(s), trim [[
         catch :X {
             throw(:X)
-            @{}
+            []
         }
     ]])
     --local ok, msg = pcall(parser_main)
@@ -226,7 +226,7 @@ do
         }
     ]])
 
-    local src = "var v2 ; @{tp,v1,v2} ; nil"
+    local src = "var v2 ; [tp,v1,v2] ; nil"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -235,14 +235,14 @@ do
     assertx(tosource(s), trim [[
         do {
             var v2
-            @{[1]=tp, [2]=v1, [3]=v2}
+            [@(1)=tp, @(2)=v1, @(3)=v2]
             nil
         }
     ]])
     --local ok, msg = pcall(parser_main)
     --assertx(msg, "anon : line 1 : near '[' : expected statement")
 
-    local src = "var v2 ; @{tp,v1,v2}"
+    local src = "var v2 ; [tp,v1,v2]"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -251,7 +251,7 @@ do
     assertx(trim(tosource(s)), trim [[
         do {
             var v2
-            @{[1]=tp, [2]=v1, [3]=v2}
+            [@(1)=tp, @(2)=v1, @(3)=v2]
         }
     ]])
 
@@ -270,7 +270,7 @@ do
         }
     ]])
 
-    local src = "val x = do :X { escape(:X @{10}) }"
+    local src = "val x = do :X { escape(:X [10]) }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -279,7 +279,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(s), trim [[
         val x = do :X {
-            escape(atm_tag_do(:X, @{[1]=10}))
+            escape(atm_tag_do(:X, [@(1)=10]))
         }
     ]])
 
@@ -422,13 +422,13 @@ do
     --local ok, msg = pcall(parser)
     --assert(not ok and msg=="anon : line 1 : near 'it' : expected <id>")
 
-    local src = "set @{1} = 1"
+    local src = "set [1] = 1"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near '@{' : expected assignable expression")
+    assertx(msg, "anon : line 1 : near '[' : expected assignable expression")
 
     local src = "set x, y, z = (10, 20)"
     print("Testing...", src)
@@ -943,7 +943,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "every(@{[:tag]=\"until\", [1]=:X, [2]=func (it) {\ne1\n}, [3]=func (it) {\ne2\n}}, \\(it){\n\n})")
+    assertx(tosource(s), "every([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\ne1\n}, @(3)=func (it) {\ne2\n}], \\(it){\n\n})")
 end
 
 do
@@ -954,7 +954,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "every(@{[:tag]=\"while\", [1]=:X, [2]=func (it) {\ne\n}}, \\(it){\n\n})")
+    assertx(tosource(s), "every([@(:tag)=\"while\", @(1)=:X, @(2)=func (it) {\ne\n}], \\(it){\n\n})")
 end
 
 do
@@ -965,7 +965,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "every(@{[:tag]=\"tasks\", [:mode]=\"any\", [:tasks]=ts}, {\n\n})")
+    assertx(tosource(s), "every([@(:tag)=\"tasks\", @(:mode)=\"any\", @(:tasks)=ts], {\n\n})")
 end
 
 do
@@ -976,5 +976,5 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "watching(@{[:tag]=\"tasks\", [:mode]=\"all\", [:tasks]=ts}, {\n\n})")
+    assertx(tosource(s), "watching([@(:tag)=\"tasks\", @(:mode)=\"all\", @(:tasks)=ts], {\n\n})")
 end

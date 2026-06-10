@@ -28,9 +28,9 @@ function tosource (e, lbd)
         return tosource(e.t)..'@('..tosource(e.idx)..')'
     elseif e.tag == 'table' then
         local es = join(", ", map(e.es, function (t)
-            return '['..tosource(t.k)..']='..tosource(t.v)
+            return '@('..tosource(t.k)..')='..tosource(t.v)
         end))
-        return '@{' .. es .. '}'
+        return '[' .. es .. ']'
     elseif e.tag == 'es' then
         return '(' .. tosource_args(e.es) .. ')'
     elseif e.tag == 'parens' then

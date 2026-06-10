@@ -42,11 +42,18 @@ val v = [1,2,3]  ;; table literal
 
 ```
 [1, 2, 3]          ;; vector   (was @{1,2,3})
-[x = 1, y = 2]     ;; dict     (was @{x=1,y=2})
+[x = 1, y = 2]     ;; dict, string keys      (was @{x=1,y=2})
+[@(k) = v]         ;; computed key, mirrors t@(k)   (was @{[k]=v})
+[@5 = v]           ;; key by literal/var, mirrors t@5
 [1, x = 2]         ;; mixed    (positional + keyed)
 []                 ;; empty table
+[ [1,2], [] ]      ;; nested tables, positional (no key collision)
 :Pos [x=1, y=2]    ;; tagged table (tag prefix unchanged)
 ```
+
+Computed keys move onto `@` (like indexing, §4), so a `[` INSIDE a table is
+ALWAYS a nested table, never a key — the dict-key/nested ambiguity is gone.
+`[@(k)=v]` mirrors `set t@(k)=v` exactly.
 
 Call-sugar (Lua's `f{…}`, today `f@{…}`) becomes `f[…]`, disambiguated
 from a standalone literal by the existing adjacency rule (section 6):
@@ -186,8 +193,21 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       regenerates clean. (`manual-out.md` left to the doc build.)
 - ppp accessors: replaced by tip indexing `t@#` (last) / `t@+` (append) — see
   `done/06-09-ppp.md` (implemented, tests pass).
-- [TODO] table `@{}` -> `[]` (now unblocked: `[` is freed at the suffix
-  level; still used by dict-keys/pools, to be reworked in this move).
+- [WIP] table `@{}` -> `[]`, layer by layer (each layer's own test green,
+  downstream red until reached):
+    - [DONE] LEXER: `src/lexer.lua` drops the `@{` combiner; `@` folded into
+      `SYMS` (`src/global.lua`). `tst/lexer.lua` updated. (`[`/`]` already syms.)
+    - [DONE] PARSER: `[…]` is the table literal in `prim.lua`; computed keys
+      use `@(k)=v` (mirrors index §4) so `[` inside is ALWAYS a nested table —
+      no dict-key ambiguity. `check_call_arg` uses `[` (`f[…]` call-sugar).
+      `tosource` prints `[…]` with bare `@k=v` for number/identifier keys and
+      parens `@(k)=v` for tag/string/expr (matches index §4). `tst/expr.lua` + `tst/stmt.lua`
+      migrated (source + tosource expecteds; `X.tostring` AST dumps untouched).
+      EXPECTED: lexer/expr/stmt GREEN; exec/tasks/streams/await/thread RED.
+    - [TODO] CODER/EXEC layer: `coder.lua` needs NO table change (node
+      unchanged); migrate `tst/exec.lua`/`tasks`/`streams`/`await`/`thread` +
+      runtime `@{`->`[`. Also re-spell pools/emit `[ts]`/`emit[t]` -> `in …,`.
+    - [TODO] doc/: migrate `@{`->`[`, computed keys `[k]=`->`@(k)=`, manual §3.
 - [TODO] block `{}` mono-purpose (falls out of the table move).
 
 Note (§6 fact): `sep` counts only `;` and `\n` (`lexer.lua:15-20`), NOT spaces,
@@ -213,8 +233,10 @@ level). Steps, in order:
    - call-sugar KEPT: `f[…]` = renamed `f@{…}` (add `[` to `check_call_arg`).
    - literal KEPT: `x = [...]` = renamed `x = @{...}`.
    The two OTHER current `[` users:
-   - dict-keys `@{[k]=v}` -> become `[[k]=v]` inside the new `[…]` literal
-     (outer `@{`->`[`, inner key brackets unchanged); plain `[k=v]` per §3.
+   - dict computed-keys `@{[k]=v}` -> become `[@(k)=v]` (keys move onto `@`,
+     mirroring index §4). So `[` inside a table is ALWAYS a nested table —
+     the dict-key/nested ambiguity is dissolved, no lookahead needed. String
+     keys stay `[x=v]`. [RESOLVED]
    - pools / emit-target `[ts]` / `emit[t]` / `spawn [ts]` -> [RESOLVED]
      re-spelled as a prefix `in <qualifier>,` clause (option D):
 
