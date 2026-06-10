@@ -266,6 +266,17 @@ do
     local ok, msg = pcall(parser)
     assert(not ok and msg=="anon : line 1 : near '<eof>' : expected ')'")
 
+    -- tip `@#` requires a variable receiver (non-acc must error cleanly)
+    for _, src in ipairs{ "t.x@#", "f()@#", "t.x@(#)" } do
+        print("Testing...", src)
+        init()
+        lexer_init("anon", src)
+        lexer_next()
+        local ok, msg = pcall(parser)
+print(ok, msg)
+        assert(not ok and msg=="anon : line 1 : near '@' : invalid tip index : expected variable prefix")
+    end
+
     local src = "x . ."
     print("Testing...", src)
     init()
