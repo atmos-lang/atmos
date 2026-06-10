@@ -769,13 +769,13 @@ do
     local src = [[
         val stk = @{1,2,3}
         print(stk@#)        ;; --> 3
-        set stk@(#) = 30
+        set stk@# = 30
         X.print(stk)         ;; --> @{1, 2, 30}
-        val x = stk@(#)      ;; pop = read + remove
+        val x = stk@#       ;; pop = read + remove
         set stk@# = nil
         print(x)            ;; --> 30
         X.print(stk)         ;; --> @{1, 2}
-        set stk@(#+1) = 3
+        set stk@+ = 3
         X.print(stk)         ;; --> @{1, 2, 3}
     ]]
     print("Testing...", "ppp 5")

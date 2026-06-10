@@ -266,8 +266,8 @@ do
     local ok, msg = pcall(parser)
     assert(not ok and msg=="anon : line 1 : near '<eof>' : expected ')'")
 
-    -- tip `@#` requires a variable receiver (non-acc must error cleanly)
-    for _, src in ipairs{ "t.x@#", "f()@#", "t.x@(#)" } do
+    -- tip markers `@#` / `@+` require a variable receiver
+    for _, src in ipairs{ "t.x@#", "f()@#", "t.x@+", "f()@+" } do
         print("Testing...", src)
         init()
         lexer_init("anon", src)
@@ -284,6 +284,22 @@ do
     lexer_next()
     local ok, msg = pcall(parser)
     assert(not ok and msg=="anon : line 1 : near 'true' : expected <id>")
+
+    -- tip markers: t@# (last) == t@(#t) ; t@+ (next) == t@(#t+1)
+    for _, p in ipairs{ {"t@#","t@(#t)"}, {"t@+","t@(#t+1)"} } do
+        print("Testing...", p[1])
+        init()
+        lexer_init("anon", p[1])
+        lexer_next()
+        local a = parser()
+        assert(check('<eof>'))
+        init()
+        lexer_init("anon", p[2])
+        lexer_next()
+        local b = parser()
+        assert(check('<eof>'))
+        assert(tosource(a) == tosource(b))
+    end
 
     local src = "x . ."
     print("Testing...", src)

@@ -255,33 +255,26 @@ function parser_2_suf (pre)
 
     if accept('@') then
         local idx
-        local chk = false
+        local chk = check'#' or check '+'
         local tk0 = TK0 -- @
-        if accept('#') then             -- t@#...
-            chk = true
+        if accept('#') then         -- t@#  (last item)
             idx = { tag='uno', op=TK0, e=e }
-        elseif not accept('(') then     -- t@x
+        elseif accept('+') then     -- t@+  (next item: #t+1)
+            local len = { tag='op', str='#', lin=tk0.lin, sep=tk0.sep }
+            local add = { tag='op', str='+', lin=tk0.lin, sep=tk0.sep }
+            local one = { tag='num', tk={ tag='num', str='1' } }
+            idx = {
+                tag = 'bin',
+                op  = add,
+                e1  = { tag='uno', op=len, e=e },
+                e2  = one,
+            }
+        elseif accept('(') then     -- t@(e)
+            idx = parser()
+            accept_err(')')
+        else                        -- t@x
             local _ = check(nil,'num') or check_err(nil,'id')
             idx = parser_1_prim()
-        else
-            if not accept('#') then     -- t@(...)
-                idx = parser()
-            else                        -- t@(#...)
-                local tkl = TK0 -- #
-                if check ')' then
-                    chk = true
-                    idx = { tag='uno', op=tkl, e=e }
-                elseif check'+' or check'-' then
-                    chk = true
-                    idx = { tag='uno', op=tkl, e=e }
-                else
-                    idx = { tag='uno', op=tkl, e=parser_4_pre() }
-                end
-                if accept'+' or accept'-' then
-                    idx = { tag='bin', op=TK0, e1=idx, e2=parser_4_pre() }
-                end
-            end
-            accept_err(')')
         end
         if chk and e.tag~='acc' then
             err(tk0, "invalid tip index : expected variable prefix")
