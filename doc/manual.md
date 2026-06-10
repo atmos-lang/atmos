@@ -27,7 +27,7 @@
         - `;; *` `;;; * ;;;`
 * TYPES & VALUES
     * Table
-        - `@{ * }` `:X @{ * }`
+        - `[ * ]` `:X [ * ]`
     * Function
         - `func (*) { * }` `\(*) { * }`
     * Task
@@ -353,8 +353,8 @@ worth mentioning:
     - Nevertheless, Atmos does not use parenthesis for variables in the left of
       declarations and assignments.
 - Table constructor:
-    - Lua: `{ ... }` (no `@` prefix)
-    - Atmos: `@{ ... }` (`@` prefix)
+    - Lua: `{ ... }` (braces)
+    - Atmos: `[ ... ]` (brackets)
         - The reason is to avoid ambiguity with blocks:
             - `if f { ... }` is `if f{...} ...` or `if (f) { ... }`?
 - Operators:
@@ -471,10 +471,10 @@ The following keywords are reserved in Atmos:
 The following symbols are designated in Atmos:
 
 ```
-    {   }           ;; block/operators delimeters
-    (   )           ;; expression delimeters
-    [   ]           ;; index delimeters
-    @{              ;; dictionary constructor delimeter
+    {   }           ;; block/operator delimiters
+    (   )           ;; expression delimiters
+    [   ]           ;; table constructor delimiters
+    @               ;; table indexing
     \               ;; lambda declaration
     =               ;; assignment separator
     =>              ;; if/ifs/match clauses
@@ -629,21 +629,21 @@ Atmos differentiates between *value* and *reference* types:
 The `table` reference type represents [Lua tables][lua-types] with indexes of
 any type.
 
-A table constructor `@{ * }` receives a list `*` of key-value assignments:
+A table constructor `[ * ]` receives a list `*` of key-value assignments:
 
 ```
-Table : `@{´ Key_Val* `}´
-Key_Val : `[` Expr `]´ `=´ Expr
-        | ID `=´ Expr
-        | Expr
+Table : `[´ Key_Val* `]´
+Key_Val : `@´ `(´ Expr `)´ `=´ Expr     ;; explicit index
+        | ID `=´ Expr                   ;; string key
+        | Expr                          ;; positional
 ```
 
 Like [table constructors in Lua][lua-table], it accepts assignments in three
 formats:
 
-- `[e1]=e2` maps `e1` to `e2`
-- `id=e` maps string `id` to `e` (same as `["id"]=e`)
-- `e` maps numeric index `i` to `e` (same as `[i]=e`), where `i` starts at `1`
+- `@(e1)=e2` maps key/index `e1` to value `e2`
+- `id=e` maps string `id` to `e` (same as `@("id")=e`)
+- `e` maps numeric index `i` to `e` (same as `@(i)=e`), where `i` starts at `1`
   and increments after each assignment
 
 A table is also a vector if it contains numeric indexes starting from `1` with
@@ -686,8 +686,8 @@ an user type:
 User : TAG Table
 ```
 
-The tag is assigned to key `"tag"`, i.e., `:X @{ * }` is equivalent to
-`@{ tag=:X, * }`
+The tag is assigned to key `"tag"`, i.e., `:X [ * ]` is equivalent to
+`[ tag=:X, * ]`
 
 Examples:
 

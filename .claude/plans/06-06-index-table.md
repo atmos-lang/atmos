@@ -214,6 +214,16 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       some `local src = [[…]]` to bump to `[=[…]=]` (Lua long-string clash).
       Pools `[ts]`/`emit[t]` still PARSE (special-parsed) — `in …,` deferred.
     - [TODO] doc/: migrate `@{`->`[`, computed keys `[k]=`->`@(k)=`, manual §3.
+    - [TODO] FIX `@{…}` OUTPUTS (downstream/cross-repo): runtime table dumps
+      still print `@{…}` because `X.print`'s renderer lives in lua-atmos
+      (`atmos/x.lua`), NOT in this worktree. Once that renderer moves to `[…]`
+      (+ keys `@(k)=v`):
+        - lua-atmos `x.lua`: table render `@{`->`[`, `}`->`]`, keys to `@(k)=`.
+        - here: flip the kept-as-`@{…}` OUTPUT assertions to `[…]` —
+          `tst/exec.lua` (~16) + `tst/tasks.lua` (`@{20}`/`@{30=30}` etc, the
+          `assertx(trim(out), [[…]])` blocks). These were LEFT as `@{…}` under
+          option A; grep `assertx(out|trim(out)` for `@{`.
+      Until then `@{…}` in those output strings is INTENTIONAL, not a miss.
 - [TODO] block `{}` mono-purpose (falls out of the table move).
 
 Note (§6 fact): `sep` counts only `;` and `\n` (`lexer.lua:15-20`), NOT spaces,
