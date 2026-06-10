@@ -98,17 +98,7 @@ local function _lexer_ (str)
                 end
             end
 
-        -- @{ table constructor, or bare @ index sigil
-        elseif c == '@' then
-            local c2 = read()
-            if c2 == '{' then
-                coroutine.yield { tag='sym', str=c..'{', lin=LIN,sep=SEP }
-            else
-                unread()
-                coroutine.yield { tag='sym', str=c, lin=LIN,sep=SEP }
-            end
-
-        -- symbols:  {  (  ,  ;
+        -- symbols:  {  (  ,  @  [  ]
         elseif contains(SYMS, c) then
             coroutine.yield { tag='sym', str=c, lin=LIN,sep=SEP }
 

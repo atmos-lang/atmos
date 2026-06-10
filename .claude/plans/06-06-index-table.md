@@ -92,27 +92,24 @@ symbol that consumes nothing after it:
 
 This dependency is why the clock plan must land first.
 
-## 6. Adjacency Rule (Reused, Not New)
+## 6. Call-Sugar vs Literal — by Position (Not Spacing)
 
-Both new juxtapositions (`f[…]` call-sugar, `t@…` index) reuse the
-existing adjacency check in `parser_2_suf` (`parser.lua:240`):
+`[…]` inherits `@{…}`'s existing rule EXACTLY: a table LITERAL in prim
+position, CALL-SUGAR in suffix position. The split is by position, never
+by whitespace (`sep` counts only `;`/newline, `lexer.lua:15-20`):
 
-```lua
-local ok = (not no) and is_prefix(e) and
-            (TK0.sep==TK1.sep or TK1.str=='.' or TK1.str=='::')
-```
+| Code      | Parse                              |
+| --------- | ---------------------------------- |
+| `x = [1]` | literal (prim)                     |
+| `f[1]`    | call `f([1])` (suffix call-sugar)  |
+| `f [1]`   | also `f([1])` — spaces are ignored |
 
-A suffix is only taken when adjacency matches — the same mechanism that
-already separates `f(x)` (call) from `f (x)` (separate parens). So:
-
-| Code     | Parse                          |
-| -------- | ------------------------------ |
-| `t@i`    | index (adjacent)               |
-| `t @i`   | `t`, then separate (spaced)    |
-| `f[1,2]` | call (adjacent)                |
-| `f [1,2]`| `f`, then literal (spaced)     |
-
-No new disambiguation machinery is introduced.
+Identical to today's `@{…}` (`f@{}` calls, `x=@{}` is a literal), so
+`@{`->`[` PRESERVES behavior with NO new disambiguation. Two adjacent
+expressions still require a `;`/newline (sequence rule), so `f` then a
+separate `[…]` literal on one line is a sequence error regardless —
+exactly as with `@{` today. (`t[1]` = renamed `t@{1}` = `t([1])`, a call,
+not an index — indexing is on `@`.)
 
 ## 7. Lexer / Parser / Coder Change Points
 
@@ -193,13 +190,11 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
   level; still used by dict-keys/pools, to be reworked in this move).
 - [TODO] block `{}` mono-purpose (falls out of the table move).
 
-Correction (affects §6; revisit at the TABLE phase — do not rely on §6 as
-written): `sep` counts only `;` and `\n` (`lexer.lua:15-20`), NOT spaces. The
-suffix-adjacency gate (`parser.lua` `TK0.sep==TK1.sep`) therefore treats `t@i`,
-`t @ i`, and `f[…]` vs `f […]` identically — only a `;`/newline separates, never
-whitespace. §6's "spacing disambiguates" premise is wrong; the table phase needs
-a real disambiguator for `f[…]` call-sugar vs `[…]` literal. Harmless for index
-(suffix-only, no competing meaning).
+Note (§6 fact): `sep` counts only `;` and `\n` (`lexer.lua:15-20`), NOT spaces,
+so `t@i`/`t @ i` and `f[…]`/`f […]` parse identically. This needs NO
+disambiguator: call-sugar vs literal is decided by POSITION (suffix vs prim),
+exactly as `@{…}` already is — `@{`->`[` is a behavior-preserving rename. (An
+earlier draft wrongly called for a "real disambiguator"; there is none to add.)
 
 ## Next Steps (resume here)
 
@@ -212,26 +207,43 @@ The ONE remaining move in this plan: table `@{}` -> `[]` (then block `{}`
 becomes mono-purpose for free). It is now unblocked (`[` is free at the suffix
 level). Steps, in order:
 
-1. DECIDE the §6 blocker FIRST (design, no code): `f[…]` call-sugar vs a
-   standalone `[…]` literal cannot be told apart by whitespace (`sep` ignores
-   spaces). Options to pick from:
-   a. drop `f[…]` call-sugar entirely (require `f([…])`); `[…]` is always a
-      literal. Simplest, recommended.
-   b. keep call-sugar via the adjacency gate (`TK0.sep==TK1.sep`) — but that
-      only separates by `;`/newline, so `f [x]` (spaced) is still a call. Ugly.
-   Also decide what happens to the two OTHER current `[` users:
-   - dict-keys `@{[k]=v}` -> become `[k=v]` / `[[k]=v]` inside the new `[…]`
-     table literal (see plan §3 `[x=1, y=2]`).
-   - pools `[ts]` / `emit[t]` / `spawn [ts]` -> need a new spelling (the `[`
-     is taken by literals). Pick one (e.g. keep `[ts]` as a special prefix, or
-     move pools to another marker). THIS IS THE MAIN OPEN QUESTION.
+1. [RESOLVED] No §6 blocker — `@{`->`[` is a behavior-preserving RENAME.
+   Call-sugar vs literal is positional (suffix vs prim), exactly as `@{…}`
+   already is (see §6); there is NOTHING to disambiguate. So:
+   - call-sugar KEPT: `f[…]` = renamed `f@{…}` (add `[` to `check_call_arg`).
+   - literal KEPT: `x = [...]` = renamed `x = @{...}`.
+   The two OTHER current `[` users:
+   - dict-keys `@{[k]=v}` -> become `[[k]=v]` inside the new `[…]` literal
+     (outer `@{`->`[`, inner key brackets unchanged); plain `[k=v]` per §3.
+   - pools / emit-target `[ts]` / `emit[t]` / `spawn [ts]` -> [RESOLVED]
+     re-spelled as a prefix `in <qualifier>,` clause (option D):
+
+     ```
+     spawn in ts, T()           ;; pool (was spawn [ts] T())
+     spawn in ts, { ... }       ;; pool + block task
+     emit  in :global, (:e)     ;; target scope (was emit [:global] (:e))
+     emit  in t, (:e)           ;; target task
+
+     spawn T()                  ;; no qualifier — unchanged
+     emit  (:e)                 ;; no qualifier — unchanged
+     ```
+
+     - Grammar: after `spawn`/`emit`, an optional `in <expr> ,` clause; the
+       `<expr>` is a single `parser()` which HALTS at the top-level comma
+       (commas are only consumed by list contexts — call args, constructors,
+       declarations), so the comma unambiguously delimits qualifier from
+       payload. No new operator; `in` stays a clean prefix.
+     - Same `in` connector for both roles (pool for spawn, target for emit).
+     - Rejected alternatives: postfix `in` (routing moves to line end), parens
+       `in(ts)`, colon (`:global:` clashes with tag colons), `=>`/`<-` (overload
+       existing operators), atom-only no-delimiter (terser but less explicit).
 
 2. lexer (`src/lexer.lua`): drop the `@{` token; make `[` / `]` plain symbols.
 
 3. parser: `[…]` parses as the table/vector literal (replaces today's `@{…}`
    constructor in `prim.lua`); dict-keys + tag-prefix `:Pos [..]` per §3.
-   Re-spell pools per the §1 decision. Add `[` to `check_call_arg` only if
-   keeping call-sugar (option 1b).
+   Re-spell pools per the §1 decision (option D `in …,`). Add `[` to
+   `check_call_arg` (keeps `f[…]` call-sugar = renamed `f@{…}`).
 
 4. coder (`src/coder.lua`): table constructor already emits plain Lua `{…}`
    (the `atm_table` wrapper was removed), so likely just the `[…]` parse maps
