@@ -111,7 +111,7 @@ do
             await(:X until a || 20)
             print(:ok)
         }
-        emit :X @{10}
+        emit :X [10]
     ]]
     print("Testing...", "op_payload_or 1")
     local out = atm_test(src)

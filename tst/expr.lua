@@ -639,8 +639,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near '[' : expected expression")
-    --assertx(msg, "anon : line 1 : near '{' : expected expression")
+    assertx(msg, "anon : line 1 : near '<eof>' : expected expression")
 
     local src = "f(10"
     print("Testing...", src)

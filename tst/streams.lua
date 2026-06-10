@@ -28,7 +28,7 @@ do
         })
     ]])
 
-    local src = "pin x* = @{}"
+    local src = "pin x* = []"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -37,8 +37,8 @@ do
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
         pin _x = tasks()
-        val x = @{}
-        atm_behavior("x", _x, x, @{})
+        val x = []
+        atm_behavior("x", _x, x, [])
     ]])
 
     print("Testing...", "beh 1")
@@ -71,12 +71,12 @@ do
     print("Testing...", "beh 3")
     local src = [[
         val S = require "atmos.streams"
-        pin x* = @{
+        pin x* = [
             S.zip (S.fr_await(1s), S.from(1))
                 ::map \{it@(2)},
             S.zip (S.fr_await('X'), S.from(1))
                 ::map \{it@2},
-        }
+        ]
         spawn {
             loop e on :x {
                 print(e.tag, e@1)
@@ -123,12 +123,12 @@ assertx(out, "1\n2\n3\n4\n5\n")
 
 local src = [[
     val S = require "atmos.streams"
-    val names = @{
+    val names = [
       "Arya",
       "Beatrice",
       "Caleb",
       "Dennis"
-    }
+    ]
     val names_with_b = S.from(names)
         ::filter(\{it::find("[Bb]")})
         ::table()
@@ -141,12 +141,12 @@ assertx(out, "@{Beatrice, Caleb}\n")
 
 local src = [[
     val S = require "atmos.streams"
-    val names = @{
+    val names = [
       "Arya",
       "Beatrice",
       "Caleb",
       "Dennis"
-    }
+    ]
     val names_with_b = S.from(names)
         ::filter(\{it::find("[Bb]")})
         ::map(string.upper)
@@ -171,7 +171,7 @@ assertx(out, "2\n4\n6\n8\n10\n")
 
 local src = [[
     val S = require "atmos.streams"
-    val names = @{"hellen", "oDYSseuS", "aChIlLeS", "PATROCLUS"}
+    val names = ["hellen", "oDYSseuS", "aChIlLeS", "PATROCLUS"]
     val fix_case = func (name) {
       name::sub(1,1)::upper() ++ name::sub(2)::lower()
     }
@@ -195,7 +195,7 @@ assertx(out, "75\n")
 
 local src = [[
     val S = require "atmos.streams"
-    val numbers = @{2, 1, 3, 4, 7, 11, 18, 29}
+    val numbers = [2, 1, 3, 4, 7, 11, 18, 29]
 
     val is_even = \{(it % 2) == 0}
     X.print <-- S.from(numbers)::filter(is_even)::table()::to()
@@ -208,11 +208,11 @@ assertx(out, "@{2, 4, 18}\n@{2, 4, 18}\n")
 
 local src = [[
     val S = require "atmos.streams"
-    val matrix = @{
-      @{1, 2, 3}, ;; first element of matrix
-      @{4, 5, 6}, ;; second element of matrix
-      @{7, 8, 9}  ;; third element of matrix
-    }
+    val matrix = [
+      [1, 2, 3], ;; first element of matrix
+      [4, 5, 6], ;; second element of matrix
+      [7, 8, 9]  ;; third element of matrix
+    ]
     ;; map will iterate through each row, and the lambda
     ;; indexes each to retrieve the first element
     X.print <-- S.from(matrix)::map(\{it@(2)})::table()::to()

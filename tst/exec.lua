@@ -81,7 +81,7 @@ do
         local out = atm_test(src)
         assertx(out, "true\n")
 
-        local src = "print(@{1,2,3} === @{1,2,3})"
+        local src = "print([1,2,3] === [1,2,3])"
         print("Testing...", src)
         local out = atm_test(src)
         assertx(out, "true\n")
@@ -91,53 +91,53 @@ do
         local out = atm_test(src)
         assertx(out, "true\n")
 
-        local src = "print(@{x=1} =!= @{x=1})"
+        local src = "print([x=1] =!= [x=1])"
         print("Testing...", src)
         local out = atm_test(src)
         assertx(out, "false\n")
 
-        local src = [[
-            print(@{ } =!= @{ })
-            print(@{1} === @{1})
-            print(@{ } === @{1})
-            print(@{1} =!= @{1})
-            print(@{1,@{},@{1,2,3}} === @{1,@{},@{1,2,3}})
-            print(@{nil,@{@{1,1},1}} === @{nil,@{@{1,1},1}})
-            print(@{1,@{1},1} =!= @{1,@{1},1})
-            print(@{[:y]=false} === @{[:x]=true})
-            print(@{@{}} === @{@{}})
-            print(@{[@{}]=true} === @{[@{}]=true})  ;; table keys (=== false)
-        ]]
+        local src = [=[
+            print([ ] =!= [ ])
+            print([1] === [1])
+            print([ ] === [1])
+            print([1] =!= [1])
+            print([1,[],[1,2,3]] === [1,[],[1,2,3]])
+            print([nil,[[1,1],1]] === [nil,[[1,1],1]])
+            print([1,[1],1] =!= [1,[1],1])
+            print([@(:y)=false] === [@(:x)=true])
+            print([[]] === [[]])
+            print([@([])=true] === [@([])=true])  ;; table keys (=== false)
+        ]=]
         print("Testing...", "expr ===")
         local out = atm_test(src)
         assertx(out, "false\ntrue\nfalse\nfalse\ntrue\ntrue\nfalse\nfalse\ntrue\nfalse\n")
 
         local src = [[
-            print(@{} ==  @{})
-            print(@{} === @{})
-            print(@{} !=  @{})
-            print(@{} =!= @{})
+            print([] ==  [])
+            print([] === [])
+            print([] !=  [])
+            print([] =!= [])
         ]]
         print("Testing...", "expr === :table")
         local out = atm_test(src)
         assertx(out, "false\ntrue\ntrue\nfalse\n")
 
         local src = [[
-            print(@{}  ==  @{})
-            print(@{1} === @{1})
-            print(@{1} !=  @{1})
-            print(@{}  =!= @{})
+            print([]  ==  [])
+            print([1] === [1])
+            print([1] !=  [1])
+            print([]  =!= [])
         ]]
         print("Testing...", "expr === :vector")
         local out = atm_test(src)
         assertx(out, "false\ntrue\ntrue\nfalse\n")
 
-        local src = [[
-            print(@{@{},@{}} ==  @{@{},@{}})
-            print(@{@{},@{}} !=  @{@{},@{}})
-            print(@{@{1},@{[:y]=false,[:x]=true}} === @{@{1},@{[:x]=true,[:y]=false}})
-            print(@{@{},@{}} =!= @{@{},@{}})
-        ]]
+        local src = [=[
+            print([[],[]] ==  [[],[]])
+            print([[],[]] !=  [[],[]])
+            print([[1],[@(:y)=false,@(:x)=true]] === [[1],[@(:x)=true,@(:y)=false]])
+            print([[],[]] =!= [[],[]])
+        ]=]
         print("Testing...", "expr === :vector")
         local out = atm_test(src)
         assertx(out, "false\ntrue\ntrue\nfalse\n")
@@ -297,7 +297,7 @@ do
     local src = [[
         val x = do :X {
             var x
-            set x = @{0}
+            set x = [0]
             escape(:X,x)   ;; escape but no access
         }
         X.print(x)
@@ -328,7 +328,7 @@ do
 
     local src = [[
         val x = do :X {
-            escape <- :X @{10}
+            escape <- :X [10]
         }
         X.print(x)
     ]]
@@ -550,7 +550,7 @@ end
 
 do
     local src = [[
-        val t = @{1, x=10, [:y]=20}
+        val t = [1, x=10, @(:y)=20]
         print(t@0, t@(1), t@(:x), t.y)
     ]]
     print("Testing...", "table 1")
@@ -567,7 +567,7 @@ do
         ==> attempt to index a number value
     ]])
 
-    local src = "print((@{1})@(@{}))"
+    local src = "print(([1])@([]))"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "nil\n")
@@ -580,41 +580,41 @@ do
     ]])
 ]=]
 
-    local src = "print((@{@{1}})@((@{1})@1)@1)"
+    local src = "print(([[1]])@(([1])@1)@1)"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "1\n")
 
-    local src = "X.print((@{@{1}})@((@{1})@1))"
+    local src = "X.print(([[1]])@(([1])@1))"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "@{1}\n")
 
-    local src = "X.print(@{[:key]=:val})"
+    local src = "X.print([@(:key)=:val])"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "@{key=val}\n")
 
-    local src = "print(type(@{[:key]=:val}))"
+    local src = "print(type([@(:key)=:val]))"
     print("Testing...", src)
     local out = atm_test(src)
     assert(out == "table\n")
 
     local src = [[
-        val t = @{[:x]=1}
+        val t = [@(:x)=1]
         print(t@(:x), t.x)
     ]]
     print("Testing...", "table 1")
     local out = atm_test(src)
     assert(out == "1\t1\n")
 
-    local src = "X.print(:X @{10})"
+    local src = "X.print(:X [10])"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "@{10, tag=X}\n")
 
     local src = [[
-        val t = @{}
+        val t = []
         print(#t)
         set t@(#t+1) = 10
         print(t@1)
@@ -625,7 +625,7 @@ do
     assertx(out, "0\n10\n1\n")
 
     local src = [[
-        val t = @{}
+        val t = []
         print(#t)
         set t@(#t+1) = 1
         print(#t)
@@ -637,7 +637,7 @@ do
     assertx(out, "0\n1\n0\n")
 
     local src = [[
-        val t = @{}
+        val t = []
         val x = t
         print(#x)
         set t@(#t+1) = 1
@@ -650,20 +650,20 @@ do
     assertx(out, "0\n1\n0\n")
 
     local src = [[
-        val x = @{1,2,3}
-        val t = @{}
+        val x = [1,2,3]
+        val t = []
         set t@(#t+1) = 4
         set t@(#t+1) = 5
         set t@(#t) = nil
-        X.print(x ++ t ++ @{5,6,7})
+        X.print(x ++ t ++ [5,6,7])
     ]]
     print("Testing...", "vector 4")
     local out = atm_test(src)
     assertx(out, "@{1, 2, 3, 4, 5, 6, 7}\n")
 
     local src = [[
-        X.print(@{x=1} ++ @{y=2} ++ @{z=3})
-        X.print(@{1} ++ @{2} ++ @{3})
+        X.print([x=1] ++ [y=2] ++ [z=3])
+        X.print([1] ++ [2] ++ [3])
     ]]
     print("Testing...", "expr 2")
     local out = atm_test(src)
@@ -674,7 +674,7 @@ end
 
 do
     local src = [[
-        val t = @{}
+        val t = []
         set t@(#t+1) = 1
         set t@(#t+1) = 2
         set t@(#t+1) = 3
@@ -686,7 +686,7 @@ do
     assertx(out, "2\n@{1, 2, 3}\n")
 
     local src = [[
-        val t = @{}
+        val t = []
         set t@(#t) = nil
         X.print(t)
     ]]
@@ -703,7 +703,7 @@ do
 ]=]
 
     local src = [[
-        val t = @{}
+        val t = []
         print(#t)
         set t@(#t+1) = 10
         print(#t)
@@ -715,7 +715,7 @@ do
     assertx(out, "0\n1\n0\n")
 
     local src = [[
-        val t = @{}
+        val t = []
         set t@(#t+1) = 10
         set t@(#t) = nil
         set t@(#t+1) = 10
@@ -730,7 +730,7 @@ do
     assertx(out, "@{11, 21, 99}\n")
 
     local src = [[
-        val t = @{}
+        val t = []
         set t@(#t+1) = 10
         set t@(#t) = nil
         set t@(#t+1) = 10
@@ -750,7 +750,7 @@ do
 ]=]
 
     local src = [[
-        val t = @{}
+        val t = []
         set t@(#t) = 10
         X.print(t)
     ]]
@@ -767,16 +767,16 @@ do
 ]=]
 
     local src = [[
-        val stk = @{1,2,3}
+        val stk = [1,2,3]
         print(stk@#)        ;; --> 3
         set stk@# = 30
-        X.print(stk)         ;; --> @{1, 2, 30}
+        X.print(stk)         ;; --> [1, 2, 30]
         val x = stk@#       ;; pop = read + remove
         set stk@# = nil
         print(x)            ;; --> 30
-        X.print(stk)         ;; --> @{1, 2}
+        X.print(stk)         ;; --> [1, 2]
         set stk@+ = 3
-        X.print(stk)         ;; --> @{1, 2, 3}
+        X.print(stk)         ;; --> [1, 2, 3]
     ]]
     print("Testing...", "ppp 5")
     local out = atm_test(src)
@@ -911,7 +911,7 @@ do
     local src = [[
         func f (v) {
             if v > 0 {
-                @{f(v - 1)}
+                [f(v - 1)]
             } else {
                 0
             }
@@ -926,7 +926,7 @@ do
         func f (v) {
             if v > 0 {
                 val x = f(v - 1)
-                @{x} ;; invalid return
+                [x] ;; invalid return
             } else {
                 0
             }
@@ -1052,7 +1052,7 @@ do
 
     -- binary: \===
     local src = [[
-        print((\===)(@{1,2}, @{1,2}))
+        print((\===)([1,2], [1,2]))
     ]]
     print("Testing...", "\\===")
     local out = atm_test(src)
@@ -1071,7 +1071,7 @@ do
     assertx(out, "false\n")
 
     -- unary: \#
-    local src = "print((\\#)(@{1,2,3}))"
+    local src = "print((\\#)([1,2,3]))"
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "3\n")
@@ -1172,7 +1172,7 @@ do
     assertx(out, "10\n")
 
     local src = [[
-        var x = :X.A @{a=10}
+        var x = :X.A [a=10]
         match x {
             :X.A => { print(x.a) }
             else => { throw()  }
@@ -1329,7 +1329,7 @@ do
     assertx(out, "1\n2\n")
 
     local src = [[
-        loop k,v in @{1,2,3} {
+        loop k,v in [1,2,3] {
             print(k,v)
         }
     ]]
@@ -1338,7 +1338,7 @@ do
     assertx(out, "1\t1\n2\t2\n3\t3\n")
 
     local src = [[
-        loop i,v in @{1,2,3} {
+        loop i,v in [1,2,3] {
             print(i,v)
         }
     ]]
@@ -1347,7 +1347,7 @@ do
     assertx(out, "1\t1\n2\t2\n3\t3\n")
 
     local src = [[
-        loop k,v in @{x=1,y=2} {
+        loop k,v in [x=1,y=2] {
             print(k,v)
         }
     ]]
@@ -1613,7 +1613,7 @@ do
     local src = [[
         val _,x = catch :X {
             catch :Y {
-                throw <- :X @{10}
+                throw <- :X [10]
             }
         }
         X.print(x)
@@ -1638,7 +1638,7 @@ do
     local src = [[
         val x = catch :X {
             catch :Y {
-                throw (:Z ;;;@{10};;;)
+                throw (:Z ;;;[10];;;)
             }
             :ok
         }
@@ -1657,7 +1657,7 @@ do
     local src = [[
         val x = catch :Y.X {
             catch :Z {
-                throw (:Y ;;;@{10};;;)
+                throw (:Y ;;;[10];;;)
             }
             :ok
         }
@@ -1676,7 +1676,7 @@ do
     local src = [[
         val _,x = catch :Y {
             catch :Z {
-                (func() { throw (:Y.X @{10}) })()
+                (func() { throw (:Y.X [10]) })()
             }
             :ok
         }
@@ -2382,7 +2382,7 @@ do
             await(:X until
                 x+10)
         }
-        emit :X @{10}
+        emit :X [10]
     ]]
     print("Testing...", "await 1")
     local out = atm_test(src)
@@ -2572,13 +2572,13 @@ do
             }
         }
         spawn T(0)
-        emit :Draw @{v=1}
-        emit :Show @{false}
-        emit :Show @{false}
-        emit :Draw @{v=99}
-        emit :Show @{true}
-        emit :Show @{true}
-        emit :Draw @{v=2}
+        emit :Draw [v=1]
+        emit :Show [false]
+        emit :Show [false]
+        emit :Draw [v=99]
+        emit :Show [true]
+        emit :Show [true]
+        emit :Draw [v=2]
     ]]
     print("Testing...", "toggle 8")
     local out = atm_test(src)
@@ -2631,10 +2631,10 @@ do
         }
         emit(:Draw)             ;; on  -> draw
         emit(:Tick)             ;; on  -> tick
-        emit :Show @{false}     ;; toggle off, filter :Draw
+        emit :Show [false]     ;; toggle off, filter :Draw
         emit(:Draw)             ;; passes filter -> draw
         emit(:Tick)             ;; gated -> frozen
-        emit :Show @{true}      ;; toggle on
+        emit :Show [true]      ;; toggle on
         emit(:Tick)             ;; on  -> tick
     ]]
     print("Testing...", "toggle filter block")
@@ -2647,7 +2647,7 @@ print '--- IS / IN ---'
 do
     local src = [[
         print(10 ?? :number)
-        print(@{} !? :table)
+        print([] !? :table)
         print <-- :x ?? :number
     ]]
     print("Testing...", "is 1")
@@ -2655,8 +2655,8 @@ do
     assertx(out, "true\nfalse\nfalse\n")
 
     local src = [[
-        print(@{} ?? :bool)
-        print(@{} ?? :table)
+        print([] ?? :bool)
+        print([] ?? :table)
         print(1 !? :table)
         print(1 !? :number)
     ]]
@@ -2665,7 +2665,7 @@ do
     assertx(out, "false\ntrue\ntrue\nfalse\n")
 
     local src = [[
-        print(@{} ?? :table)
+        print([] ?? :table)
         print(1s ?? :number)
         print(task\{} ?? :task)
         pin xs = tasks()
@@ -2676,8 +2676,8 @@ do
     assertx(out, "true\ntrue\ntrue\ntrue\n")
 
     local src = [[
-        print(@{} ?? @{})
-        print(@{1,2,3} ?? @{1,2,3})
+        print([] ?? [])
+        print([1,2,3] ?? [1,2,3])
         print(\{} !? \{})
     ]]
     print("Testing...", "is 4")
@@ -2685,7 +2685,7 @@ do
     assertx(out, "true\ntrue\ntrue\n")
 
     local src = [[
-        val t = @{1,2,3}
+        val t = [1,2,3]
         print(2 ?> t)
         print(4 ?> t)
         print(2 !> t)
@@ -2695,9 +2695,9 @@ do
     local out = atm_test(src)
     assertx(out, "true\nfalse\nfalse\ntrue\n")
 
-    local src = [[
-        print(@{tag=@{}} ?? :number)
-    ]]
+    local src = [=[
+        print([tag=[]] ?? :number)
+    ]=]
     print("Testing...", "is 5")
     local out = atm_test(src)
     assertx(out, "false\n")
@@ -2780,7 +2780,7 @@ do
 
     local src = [[
         func f (self,v) { self.v+v }
-        val o = @{v=10,f=f}
+        val o = [v=10,f=f]
         print(o::f(20))
     ]]
     print("Testing...", "method 6")
@@ -2800,7 +2800,7 @@ do
             print(v)
             self
         }
-        val o = @{f=f}
+        val o = [f=f]
         print(o::f'v'::f\{})
     ]]
     print("Testing...", "method 7")

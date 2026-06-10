@@ -121,12 +121,12 @@ do
                             cpu(math.random(10000000))
                         }
                     }
-                    @{worker="A", value=v}
+                    [worker="A", value=v]
                 } with {
                     val v = thread {
                         cpu(100)
                     }
-                    @{worker="B", value=v}
+                    [worker="B", value=v]
                 }
             }
 

@@ -193,8 +193,8 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       regenerates clean. (`manual-out.md` left to the doc build.)
 - ppp accessors: replaced by tip indexing `t@#` (last) / `t@+` (append) — see
   `done/06-09-ppp.md` (implemented, tests pass).
-- [WIP] table `@{}` -> `[]`, layer by layer (each layer's own test green,
-  downstream red until reached):
+- [DONE] table `@{}` -> `[]` — FULL SUITE GREEN (user-confirmed). Done layer
+  by layer (each layer's own test green, downstream red until reached):
     - [DONE] LEXER: `src/lexer.lua` drops the `@{` combiner; `@` folded into
       `SYMS` (`src/global.lua`). `tst/lexer.lua` updated. (`[`/`]` already syms.)
     - [DONE] PARSER: `[…]` is the table literal in `prim.lua`; computed keys
@@ -204,9 +204,15 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       parens `@(k)=v` for tag/string/expr (matches index §4). `tst/expr.lua` + `tst/stmt.lua`
       migrated (source + tosource expecteds; `X.tostring` AST dumps untouched).
       EXPECTED: lexer/expr/stmt GREEN; exec/tasks/streams/await/thread RED.
-    - [TODO] CODER/EXEC layer: `coder.lua` needs NO table change (node
-      unchanged); migrate `tst/exec.lua`/`tasks`/`streams`/`await`/`thread` +
-      runtime `@{`->`[`. Also re-spell pools/emit `[ts]`/`emit[t]` -> `in …,`.
+    - [DONE] CODER/EXEC layer: `coder.lua`/`run.lua` NO change (table node
+      unchanged -> identical Lua -> identical runtime). Migrated Atmos SOURCE
+      `@{`->`[` (+ computed keys `[k]=`->`@(k)=`) in `exec`/`tasks`/`streams`/
+      `await`/`thread` + `guide.atm` via a stack-based converter (handles
+      nesting, func-block braces, pools). X.print OUTPUT assertions kept as
+      `@{…}` (option A — `x.lua` renderer lives in lua-atmos, not migrated).
+      tosource-expecteds (streams) -> `[…]`. Nested `@{@{}}`->`[[]]` forced
+      some `local src = [[…]]` to bump to `[=[…]=]` (Lua long-string clash).
+      Pools `[ts]`/`emit[t]` still PARSE (special-parsed) — `in …,` deferred.
     - [TODO] doc/: migrate `@{`->`[`, computed keys `[k]=`->`@(k)=`, manual §3.
 - [TODO] block `{}` mono-purpose (falls out of the table move).
 

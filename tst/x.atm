@@ -1,4 +1,4 @@
-set X = @{}
+set X = []
 
 func X.f (v) {
     (v * 2)
