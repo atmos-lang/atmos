@@ -892,16 +892,16 @@ Examples:
 do {
     pin ts = tasks()        ;; a pool of tasks
     print(ts ?? :tasks)     ;; --> true
-    val t1 = spawn [ts] T()
-    val t2 = spawn [ts] T()
+    val t1 = spawn @ts T()
+    val t2 = spawn @ts T()
     <...>
 }                           ;; aborts t1, t2, ...
 ```
 
 ```
 pin ts = tasks(1)           ;; bounded pool
-val t1 = spawn [ts] T()     ;; success
-val t2 = spawn [ts] T()     ;; failure
+val t1 = spawn @ts T()      ;; success
+val t2 = spawn @ts T()      ;; failure
 print(t1, t2)               ;; --> t1, nil
 ```
 
@@ -1407,8 +1407,8 @@ Examples:
 #([1,2,3])      ;; --> 3
 
 pin ts = tasks()
-spawn [ts] T(...)
-spawn [ts] T(...)
+spawn @ts T(...)
+spawn @ts T(...)
 print(#ts)      ;; --> 2
 ```
 
@@ -1443,8 +1443,8 @@ Examples:
 func T () { await(false) }
 pin xs = tasks()
 pin ys = tasks()
-val x = spawn [xs] T()
-val y = spawn [ys] T()
+val x = spawn @xs T()
+val y = spawn @ys T()
 val ts = xs ++ ys           ;; [x, y]
 print(#ts, x?>ts, y?>ts)    ;; 2, true, false
 ```
@@ -2035,11 +2035,11 @@ A `spawn` receives a [task](#task), [function](#function), or [block](#blocks)
 and starts it as a task:
 
 ```
-Spawn : `spawn` [`[´ Expr `]´] Expr `(´ Expr* `)`
+Spawn : `spawn` [`@´ (`(´ Expr `)´ | NUM | ID)] Expr `(´ Expr* `)`
       | `spawn` Block
 ```
 
-- The format `spawn [ts] T(...)` receives an optional [pool](#tasks) to
+- The format `spawn @ts T(...)` receives an optional [pool](#tasks) to
   hold the task, a task or function, and a list of arguments to pass to the
   body about to start.
   The operation returns a reference to spawned task.
@@ -2056,7 +2056,7 @@ func T (id) {
     set pub = id
 }
 pin ts = tasks()
-val t1 = spawn [ts] T(:t1)  ;; --> t1, started
+val t1 = spawn @ts T(:t1)  ;; --> t1, started
 print(t1.pub)               ;; --> t1
 
 spawn {
@@ -2145,8 +2145,8 @@ print(v)                ;; --> 20
 
 ```
 pin ts = tasks()
-spawn [ts] T()
-spawn [ts] T()
+spawn @ts T()
+spawn @ts T()
 val e = await(:any ts)  ;; awaits any task to terminate
 await(:all ts)          ;; awaits all tasks (pool drains)
 ```
@@ -2156,7 +2156,7 @@ await(:all ts)          ;; awaits all tasks (pool drains)
 An `emit` broadcasts an event that can awake [awaiting](#await) tasks:
 
 ```
-Emit : `emit´ [`[´ Expr `]´] `(´ Expr `)´
+Emit : `emit´ [`@´ (`(´ Expr `)´ | NUM | ID)] `(´ Expr `)´
 ```
 
 It takes the event to broadcast as its single argument, which is matched
@@ -2178,9 +2178,9 @@ Examples:
 func T () {
     val x = spawn X()
     val e = <...>
-    emit [:global] (e)  ;; global broadcast
-    emit [:task] (e)    ;; restricted to `T`
-    emit [x] (e)        ;; restricted to `x`
+    emit @(:global) (e)  ;; global broadcast
+    emit @(:task) (e)    ;; restricted to `T`
+    emit @x (e)        ;; restricted to `x`
 }
 ```
 
@@ -2667,12 +2667,12 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `throw´ `(´ Expr* `)´                       ;; throw exception
       | `catch´ Expr Block                          ;; catch exception
 
-      | `spawn` [`[´ Expr `]´] Expr `(´ Expr* `)`   ;; spawn task
+      | `spawn` [`@´ (`(´ Expr `)´|NUM|ID)] Expr `(´ Expr* `)` ;; spawn
       | `spawn´ Block                               ;; spawn block
 
       | `await´ `(´ Expr* `)´                       ;; await event
       | `await´ ID `(´ Expr* `)´                    ;; await task
-      | `emit´ [`[´ Expr `]´] `(´ Expr* `)´         ;; emit event
+      | `emit´ [`@´ (`(´ Expr `)´|NUM|ID)] `(´ Expr* `)´  ;; emit
 
       | `toggle´ Expr `(´ Expr `)´                  ;; toggle task
       | `toggle´ `on´ Pattern Block                 ;; toggle block

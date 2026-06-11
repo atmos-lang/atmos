@@ -285,8 +285,12 @@ level). Steps, in order:
        micro-syntax across all `@` sites. (`in …,` cost: comma wart + reused
        keyword; the `@` "at pool/target" reading is a slight semantic stretch
        but the consistency wins.)
-     - DONE: parser (`prim.lua`), all `tst/` call sites (114) migrated, suite
-       GREEN. TODO: docs (SYNTAX grammar + Task-Ops examples + exs).
+     - DONE: parser (`prim.lua`), all `tst/` call sites (114), unified via
+       `parser_at(ret)` (one `@`-helper for index/key/pool/target), clearer
+       error ("expected name, number, or '('"). Suite GREEN.
+     - DONE: docs — SYNTAX grammar (Spawn/Emit rules + the two inline rules:
+       `[`@´ (`(´Expr`)´|NUM|ID)]`), Task-Ops examples, `exs/` (exp-25-spawn,
+       exp-27-emit, exp-11-length/concatenation, val-07-tasks) + `guide.md`.
 
 2. lexer (`src/lexer.lua`): drop the `@{` token; make `[` / `]` plain symbols.
 

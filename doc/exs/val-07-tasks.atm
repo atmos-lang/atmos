@@ -7,12 +7,12 @@ func T () {
 do {
     pin ts = tasks()        ;; a pool of tasks
     print(ts ?? :tasks)     ;; --> true
-    val t1 = spawn [ts] T()
-    val t2 = spawn [ts] T()
+    val t1 = spawn @ts T()
+    val t2 = spawn @ts T()
 }
 print :end
 
 pin ts = tasks(1)           ;; bounded pool
-val t1 = spawn [ts] T()     ;; success
-val t2 = spawn [ts] T()     ;; failure
+val t1 = spawn @ts T()      ;; success
+val t2 = spawn @ts T()      ;; failure
 print(t1, t2)

@@ -5,8 +5,8 @@ xprint <-- [x=10] ++ [x=1,y=2]      ;; [x=1, y=2]
 func T () { await(false) }
 pin xs = tasks()
 pin ys = tasks()
-val x = spawn [xs] T()
-val y = spawn [ys] T()
+val x = spawn @xs T()
+val y = spawn @ys T()
 val ts = xs ++ ys
 print <-- ts                        ;; [x,y]
 print(#ts, x?>ts, y?>ts, 10?>ts)    ;; 2, true, true, false

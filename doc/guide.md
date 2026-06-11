@@ -303,14 +303,14 @@ func T (id, ms) {
 do {
     pin ts = tasks()
     loop i in 10 {
-        spawn [ts] T(i, math.random(500,1500))
+        spawn @ts T(i, math.random(500,1500))
     }
     await 1s
 }
 ```
 
 In the example, we first create a pool `ts`.
-Then we use `spawn [ts]` to spawn and attach 10 tasks into the pool.
+Then we use `spawn @ts` to spawn and attach 10 tasks into the pool.
 Each task sleeps between `500ms` and `1500ms` before terminating.
 After `1s`, the `ts` block goes out of scope, aborting all tasks that did not
 complete.
@@ -424,9 +424,9 @@ func T (id) {
 }
 
 pin ts = tasks()
-spawn [ts] T(1)
-spawn [ts] T(2)
-spawn [ts] T(3)
+spawn @ts T(1)
+spawn @ts T(2)
+spawn @ts T(3)
 
 emit(:X, 2)
 ```
