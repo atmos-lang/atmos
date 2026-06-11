@@ -20,7 +20,7 @@ Language work already DONE for v0.7 (plans archived in `done/`):
 
 Prerequisites — these language plans MUST land before cutting v0.7:
 
-- [ ] `06-and-or-not.md` — value-event await/emit + `||`/`&&`/`!` combinators
+- [ ] `06-11-await.md` — value-event await/emit + `||`/`&&`/`!` combinators
       (in progress; blocked on a lua-atmos `where` runtime branch)
 - [ ] `06-11-spawn-on.md` — `spawn on` (step 4) + await-docs review
 
@@ -56,7 +56,7 @@ v0.7 (jun/26)
 - `loop` folds `every` (`loop ids on :Y {}`); `toggle on`
 ```
 
-(Confirm the final feature list against `06-and-or-not.md` / `06-11-spawn-on.md`
+(Confirm the final feature list against `06-11-await.md` / `06-11-spawn-on.md`
 once those land — combinators, `spawn on`, etc.)
 
 ## Steps

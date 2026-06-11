@@ -56,10 +56,10 @@ spawn on P { body }   ==   spawn { await P ; body }
   / pool / combinators / `{tag=…}` / `x: any`), `until` / `while`, and the
   `await PAT` vs `await(PAT)` juxtaposition rule match `src/await.lua` /
   `parser_await` after the `on` / clock changes. Shared with
-  `06-05-awaits.md` / `06-and-or-not.md`.
+  `06-11-await.md`.
 
 ## Cross-refs
 
 - Parent (archived): `done/06-06-in-on.md` — full `in`/`on`/`loop`/`every`
   rationale, desugarings, and the `parser_spawn` recipe in its step 4.
-- Sibling await plans: `06-05-awaits.md`, `06-and-or-not.md`.
+- Sibling await plan: `06-11-await.md`.
