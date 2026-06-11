@@ -231,7 +231,14 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
           `assertx(trim(out), [[…]])` blocks). These were LEFT as `@{…}` under
           option A; grep `assertx(out|trim(out)` for `@{`.
       Until then `@{…}` in those output strings is INTENTIONAL, not a miss.
-- [TODO] block `{}` mono-purpose (falls out of the table move).
+- [DONE] block `{}` mono-purpose — fell out of the table move; NO code change
+  needed. VERIFIED: every `{` consumer in the parser is a block context
+  (`parser_block`, or `check('{')`/`accept_err('{')` into do/if/ifs/match/
+  where/spawn/toggle/par/watching/thread/lambda/func); `check_call_arg` has no
+  `{`, so `f { … }` is never a call, and control-flow `if cnd {…}` is
+  unambiguous (`parser()` stops before `{`). Doc: symbols table `{ }` ->
+  "block delimiters" (was "block/operator"); §ambiguity rationale already
+  updated in the table move.
 
 Note (§6 fact): `sep` counts only `;` and `\n` (`lexer.lua:15-20`), NOT spaces,
 so `t@i`/`t @ i` and `f[…]`/`f […]` parse identically. This needs NO
@@ -241,14 +248,25 @@ earlier draft wrongly called for a "real disambiguator"; there is none to add.)
 
 ## Next Steps (resume here)
 
-DONE so far: index moved to `@` (sole index sigil), `[` index REMOVED from the
-parser, all `tst/` + `doc/` migrated, ppp via `t@#` / `t@+` implemented
-(`done/06-09-ppp.md`). Suite GREEN. The `@`-index tip logic is fully local in
-`parser_2_suf`'s `@` branch (no global; `parser_4_pre` untouched).
+STATUS: migration essentially COMPLETE — committed & pushed, suite GREEN.
+Every sigil is now mono-purpose: `[…]` table, `@` index/key/pool/target,
+`{…}` block.
 
-The ONE remaining move in this plan: table `@{}` -> `[]` (then block `{}`
-becomes mono-purpose for free). It is now unblocked (`[` is free at the suffix
-level). Steps, in order:
+DONE: index `t@(…)`; ppp `t@#`/`t@+` (`done/06-09-ppp.md`); table `@{}`->`[]`
+(lexer/parser/coder/tests/docs); pool & emit-target `[ts]`/`emit[t]` ->
+`@`-qualifier (`spawn @ts` / `emit @(:t)`); `parser_at(ret)` unifying all four
+`@` sites; block `{}` mono-purpose (verified, no code change).
+
+REMAINING (both optional / external):
+- [TODO] X.print OUTPUT `@{}`->`[]` — cross-repo: edit lua-atmos `atmos/x.lua`
+  table renderer, then flip the kept-as-`@{}` output assertions in
+  `tst/exec.lua`/`tst/tasks.lua` (option A; see the CODER/EXEC layer note).
+- [TODO] DOC CLEANUP: shared `At` grammar production reused across Index /
+  Table `Key_Val` / Spawn / Emit (see the pool-docs note above).
+
+--- historical record (how the table move was decided/executed) below ---
+
+The table `@{}` -> `[]` move (now DONE). Steps, in order:
 
 1. [RESOLVED] No §6 blocker — `@{`->`[` is a behavior-preserving RENAME.
    Call-sugar vs literal is positional (suffix vs prim), exactly as `@{…}`

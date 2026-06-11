@@ -471,7 +471,7 @@ The following keywords are reserved in Atmos:
 The following symbols are designated in Atmos:
 
 ```
-    {   }           ;; block/operator delimiters
+    {   }           ;; block delimiters
     (   )           ;; expression delimiters
     [   ]           ;; table constructor delimiters
     @               ;; table indexing
