@@ -7,10 +7,10 @@ spawn {
 }
 
 spawn {
-    loop it on :X {    ;; (`emit :X @{v=10}`)
-        print(it.v)     ;; --> 10
+    loop it on :X {    ;; (`emit :X [v=10]`)
+        print(it.v)    ;; --> 10
     }
 }
 
-emit <-- :X @{v=10}
+emit <-- :X [v=10]
 await(false)

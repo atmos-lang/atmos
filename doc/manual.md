@@ -287,7 +287,7 @@ representing states (e.g., `:pending`, `:done`).
 The next example uses tags as table keys:
 
 ```
-val pos = @{}           ;; a new table
+val pos = []           ;; a new table
 set pos@(:x) = 10
 set pos.y = 20          ;; equivalent to pos@(:y)=20
 print(pos.x, pos@(:y))  ;; -> 10, 20
@@ -295,7 +295,7 @@ print(pos.x, pos@(:y))  ;; -> 10, 20
 
 Tags can also be used to "tag" tables, introducing the notion of lightweight
 user types in Atmos.
-The constructor `:Pos @{x=10,y=20}` is equivalent to `@{tag=:Pos,x=10,y=20}`.
+The constructor `:Pos [x=10,y=20]` is equivalent to `[tag=:Pos,x=10,y=20]`.
 
 Tags can describe type hierarchies by splitting identifiers with (`.`).
 For instance, a tag such as `:T.A.x` is a subtype of `:T`, `:T.A`, and
@@ -314,7 +314,7 @@ The operator `??` also works with tagged tables.
 Therefore, tags, tables, and `??` can be combined as follows:
 
 ```
-val t = :T.A @{ a=10 }      ;; @{ tag=:T.A, a=10 }
+val t = :T.A [ a=10 ]      ;; [ tag=:T.A, a=10 ]
 print(t ?? :T)              ;; --> true
 ```
 
@@ -657,11 +657,11 @@ Examples:
 
 ```
 val k = "idx"
-val t = @{      ;; all 3 formats:
-    [k] = 10,   ;; same as @{ [k]=10, ["v"]="x", [1]=20, [2]=30 }
+val t = [      ;; all 3 formats:
+    @k = 10,   ;; same as [ @(k)=10, @("v")="x", @(1)=20, @(2)=30 ]
     v = "x",
     20, 30
-}
+]
 print(t ?? :table)          ;; --> true
 print(t.idx, t@("v"), t@2)  ;; --> 10, x, 30
 ```
@@ -669,10 +669,10 @@ print(t.idx, t@("v"), t@2)  ;; --> 10, x, 30
 <!-- exs/val-02-vector.atm -->
 
 ```
-val vs = @{1, 2, 3}     ;; a vector of numbers
+val vs = [1, 2, 3]     ;; a vector of numbers
 print(vs@2)             ;; --> 2
 print(vs ?? :table)     ;; --> true
-set vs@(#vs+1) = 4      ;; @{1, 2, 3, 4}
+set vs@(#vs+1) = 4      ;; [1, 2, 3, 4]
 ```
 
 [lua-table]: https://www.lua.org/manual/5.4/manual.html#3.4.9
@@ -694,10 +694,10 @@ Examples:
 <!-- exs/val-04-users.atm -->
 
 ```
-val p = :Pos @{         ;; a tagged table:
-    x = 10,             ;; same as @{ ["tag"]="Pos", ["x"]=10, ["y"]=20 }
+val p = :Pos [         ;; a tagged table:
+    x = 10,             ;; same as [ @("tag")="Pos", @("x")=10, @("y")=20 ]
     y = 20,
-}
+]
 print(p ?? :table)      ;; --> true
 print(p ?? :Pos)        ;; --> true
 ```
@@ -1017,7 +1017,7 @@ Examples:
 
 ```
 val v = do :X {
-    escape(:X @{x=10})
+    escape(:X [x=10])
     print('never executes')
 }
 print(v.x)  ;; --> 10
@@ -1214,7 +1214,7 @@ print(add(1,2))     ;; --> 3
 ```
 
 ```
-val o = @{ v=1 }
+val o = [ v=1 ]
 func o::inc () {
     set self.v = self.v + 1
 }
@@ -1269,7 +1269,7 @@ Examples:
 var x
 set x = 20              ;; OK
 
-val y = @{10}
+val y = [10]
 set y@1 = 20            ;; OK
 set y = 0               ;; ERROR: cannot reassign `y`
 
@@ -1323,7 +1323,7 @@ Examples:
 ```
 -(1 + 10)           ;; --> -11
 !(true && false)    ;; --> true
-#(@{1,2,3})         ;; --> 3
+#([1,2,3])          ;; --> 3
 ```
 
 [lua-operators]: https://www.lua.org/manual/5.4/manual.html#3.4
@@ -1353,11 +1353,11 @@ Examples:
 <!-- exs/exp-09-deep-equality.atm -->
 
 ```
-@{1,2,3} === @{1,2,3}       ;; --> true
-\{} =!= @{}                 ;; --> true (different types)
-@{v=@{}} =!= @{v=@{}}       ;; --> false
-@{[@{}]=1} === @{[@{}]=1}   ;; --> false (keys are not `==`)
-\{} === \{}                 ;; --> false (func refs are not `==`)
+[1,2,3] === [1,2,3]       ;; --> true
+\{} =!= []                ;; --> true (different types)
+[v=[]] =!= [v=[]]         ;; --> false
+[@([])=1] === [@([])=1]   ;; --> false (keys are not `==`)
+\{} === \{}               ;; --> false (func refs are not `==`)
 ```
 
 [lua-metatables]: https://www.lua.org/manual/5.4/manual.html#2.4
@@ -1370,7 +1370,7 @@ If any of the following conditions are met, then `a ?? b` is true:
 
 - `a === b` (e.g., `'x' ?? 'x'`)
 - `type(a) === b` (e.g., `10 ?? :number`)
-- `a.tag === b` (e.g., `:X @{} ?? :X`)
+- `a.tag === b` (e.g., `:X [] ?? :X`)
 - `b` is "dot" prefix of `a` (e.g., `'x.y.z' ?? 'x.y'`)
 
 Note that the comparisons use [deep equality](#deep-equality).
@@ -1382,10 +1382,10 @@ Examples:
 <!-- exs/exp-09-equivalence.atm -->
 
 ```
-@{} ?? @{}          ;; --> false
+[] ?? []            ;; --> false
 task(\{}) ?? :task  ;; --> true
 10 ?? nil           ;; --> false
-:X.Y @{} ?? :X      ;; --> true
+:X.Y [] ?? :X       ;; --> true
 ```
 
 ### Length
@@ -1403,7 +1403,7 @@ Examples:
 <!-- exs/exp-11-length.atm -->
 
 ```
-#(@{1,2,3})     ;; --> 3
+#([1,2,3])      ;; --> 3
 
 pin ts = tasks()
 spawn [ts] T(...)
@@ -1433,9 +1433,9 @@ Examples:
 <!-- exs/exp-11-concatenation.atm -->
 
 ```
-'abc' ++ 'def'              ;; abcdef
-@{1,2} ++ @{3,4}            ;; @{1,2,3,4}
-@{x=10} ++ @{x=1,y=2}       ;; @{x=1, y=2}
+'abc' ++ 'def'            ;; abcdef
+[1,2] ++ [3,4]            ;; [1,2,3,4]
+[x=10] ++ [x=1,y=2]       ;; [x=1, y=2]
 ```
 
 ```
@@ -1444,7 +1444,7 @@ pin xs = tasks()
 pin ys = tasks()
 val x = spawn [xs] T()
 val y = spawn [ys] T()
-val ts = xs ++ ys           ;; @{x, y}
+val ts = xs ++ ys           ;; [x, y]
 print(#ts, x?>ts, y?>ts)    ;; 2, true, false
 ```
 
@@ -1464,9 +1464,9 @@ Examples:
 <!-- exs/exp-10-membership.atm -->
 
 ```
-10 ?> @{10,20,30}       ;; true
- 1 ?> @{10,20,30}       ;; false
-:x ?> @{x=10,y=20}      ;; true
+10 ?> [10,20,30]       ;; true
+ 1 ?> [10,20,30]       ;; false
+:x ?> [x=10,y=20]      ;; true
 ```
 
 ## Indexing
@@ -1494,7 +1494,7 @@ Examples:
 <!-- exs/exp-12-indexing.atm -->
 
 ```
-val t = @{ x=1 }
+val t = [ x=1 ]
 print(t@('x'))      ;; --> 1
 print(t@(:x))       ;; --> 1
 print(t.x)          ;; --> 1
@@ -1502,9 +1502,9 @@ print(t.y)          ;; --> nil
 ```
 
 ```
-val v = @{ 1 }
-set v@1 = 10        ;; @{ 10 }
-set v@+ = 20        ;; @{ 10, 20 }
+val v = [ 1 ]
+set v@1 = 10        ;; [ 10 ]
+set v@+ = 20        ;; [ 10, 20 ]
 print(v@#)          ;; --> 20
 print(v@1)          ;; --> 10
 print(v@+)          ;; --> nil
@@ -1521,7 +1521,7 @@ Atmos supports many formats to call functions:
 ```
 Expr : Expr `(´ Expr* `)´
      | Expr Expr ;; single constructor argument
-                 ;; (STR | TAG | `@{´ | `\` | CLK | NAT)
+                 ;; (STR | TAG | `[´ | `\` | CLK | NAT)
 ```
 
 A call expects an expression of type [func](#function) and an optional list of
@@ -1543,7 +1543,7 @@ Examples:
 print(1,2,3)    ;; --> 1 2 3
 print "Hello"   ;; --> Hello
 print :ok       ;; --> ok
-type @{}        ;; :table
+type []         ;; :table
 ```
 
 [lua-call]: https://www.lua.org/manual/5.4/manual.html#3.4.10
@@ -1611,15 +1611,15 @@ precedence priority (from higher to lower):
 1. primary:
     - literal:      `nil` `true` `...` `:X` `'x'` `5s` (etc)
     - identifier:   `x`
-    - constructor:  `@{}` `\{}`
+    - constructor:  `[]` `\{}`
     - command:      `do` `set` `if` `await` (etc)
     - declaration:  `func` `val` (etc)
     - parenthesis:  `()`
 2. suffix:
-    - call:         `f()` `o::m()` `f ""` `f @{}` `f \{}` `f @clk`
+    - call:         `f()` `o::m()` `f ""` `f []` `f \{}` `f @clk`
     - index:        `t@i` `t@(e)`
     - field:        `t.x`
-    - tag:          `:X()` `:X @{}`
+    - tag:          `:X()` `:X []`
 3. inner pipe:
     - single pipe:  `v->f` `f<-v`
 4. prefix:
@@ -1644,7 +1644,7 @@ Examples:
 x + 10 - 1      ;; ERROR: requires parenthesis
 - x + y         ;; (-x) + y
 x || y || z     ;; (x || y) || z
-f :X @{}        ;; ERROR: (f :X) @{}
+f :X []         ;; ERROR: (f :X) []
 ```
 
 ## Conditionals
@@ -1822,7 +1822,7 @@ print(x)            ;; --> nil
 ```
 
 ```
-loop i,v in @{10,20,30} {
+loop i,v in [10,20,30] {
     print(i,v)      ;; --> (1,10), (2,20), (3,30)
 }
 ```
@@ -1850,7 +1850,7 @@ loop on 1s {
 ```
 
 ```
-loop it on :X {     ;; <-- (`emit :X @{v=10}`)
+loop it on :X {     ;; <-- (`emit :X [v=10]`)
     print(it.v)     ;; --> 10
 }
 ```
@@ -1954,7 +1954,7 @@ print(ok, v)        ;; --> true, 42
 
 ```
 val ok, x = catch :X {
-    throw(:X @{v=10, msg="error"})
+    throw(:X [v=10, msg="error"])
     print("unreachable")
 }
 print(ok, x.msg)    ;; --> false, error
@@ -2131,7 +2131,7 @@ spawn {
     val e = await(true)
     print(e.x, e.y)     ;; --> 10, 20
 }
-emit(:P @{x=10, y=20})
+emit(:P [x=10, y=20])
 ```
 
 ```
@@ -2205,7 +2205,7 @@ In the second format for blocks, a toggle spawns and awaits a block as a
 [transparent task](#transparent-task).
 It also specifies a [tag](#literals) to toggle the block when matching an
 [emit](#emit).
-The emit must be in the format `emit(<tag> @{<boolean>})`, which sets the
+The emit must be in the format `emit(<tag> [<boolean>])`, which sets the
 toggle state.
 
 An optional `with` filter clause specifies an [await pattern](#await), which
@@ -2236,11 +2236,11 @@ spawn {
         }
     }
 }
-emit :E @{1}
-emit :T @{false}
-emit :E @{2}
-emit :T @{true}
-emit :E @{3}
+emit :E [1]
+emit :T [false]
+emit :E [2]
+emit :T [true]
+emit :E [3]
 ```
 
 ```
@@ -2257,7 +2257,7 @@ spawn {
         }
     }
 }
-emit(:Ok @{false})
+emit(:Ok [false])
 emit(:Tick)         ;; (nop)
 emit(:Draw)         ;; --> draw
 ```
@@ -2617,7 +2617,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | TAG | NUM | STR | CLK | NAT
       | ID | `pub´                                  ;;  identifiers
 
-      | [TAG] `@{´ Key_Val* `}´                     ;; table
+      | [TAG] `[´ Key_Val* `]´                      ;; table
             Key_Val : `[` Expr `]´ `=´ Expr
                     | ID `=´ Expr
                     | Expr

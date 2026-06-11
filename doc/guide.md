@@ -470,7 +470,7 @@ spawn {
 }
 loop i in 10 {
     await 1ms
-    emit :V @{v=i}
+    emit :V [v=i]
 }
 ```
 
@@ -557,12 +557,12 @@ val t = watching 20s {
         val v = thread {
             cpu(math.random(10000000000))
         }
-        @{worker="A", value=v}
+        [worker="A", value=v]
     } with {
         val v = thread {
             cpu(math.random(10000000000))
         }
-        @{worker="B", value=v}
+        [worker="B", value=v]
     }
 }
 

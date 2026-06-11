@@ -3,7 +3,7 @@ func add (x, y) {
 }
 print(add(1,2))     ;; --> 3
 
-val o = @{ v=1 }
+val o = [ v=1 ]
 func o::inc () {
     set self.v = self.v + 1
 }

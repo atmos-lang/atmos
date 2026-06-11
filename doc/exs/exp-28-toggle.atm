@@ -19,11 +19,11 @@ spawn {
         }
     }
 }
-emit :E @{1}
-emit :T @{false}
-emit :E @{2}
-emit :T @{true}
-emit :E @{3}
+emit :E [1]
+emit :T [false]
+emit :E [2]
+emit :T [true]
+emit :E [3]
 
 print "==="
 
@@ -40,6 +40,6 @@ spawn {
         }
     }
 }
-emit(:Ok @{false})
+emit(:Ok [false])
 emit(:Tick)         ;; (nop)
 emit(:Draw)         ;; --> draw

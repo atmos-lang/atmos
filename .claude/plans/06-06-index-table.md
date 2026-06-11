@@ -213,7 +213,13 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       tosource-expecteds (streams) -> `[…]`. Nested `@{@{}}`->`[[]]` forced
       some `local src = [[…]]` to bump to `[=[…]=]` (Lua long-string clash).
       Pools `[ts]`/`emit[t]` still PARSE (special-parsed) — `in …,` deferred.
-    - [TODO] doc/: migrate `@{`->`[`, computed keys `[k]=`->`@(k)=`, manual §3.
+    - [DONE] doc/: `manual.md` structural (nav, symbols `[ ]`/`@`, Lua-subtlety
+      rationale, Table grammar `[ Key_Val* ]` with `@(k)=v` keys, User Types) +
+      all code-fence examples; `exs/*.atm` + `guide.md` via converter. Prose
+      inline `@{` hand-fixed (6). `manual-out.md` left to the doc build.
+      CAVEAT: output-illustration comments (`;; --> [1, 2, 30]`, `xprint`
+      results in exs) now show `[…]` but `X.print` still prints `@{…}` until the
+      lua-atmos `x.lua` fix above — forward-looking, accurate once that lands.
     - [TODO] FIX `@{…}` OUTPUTS (downstream/cross-repo): runtime table dumps
       still print `@{…}` because `X.print`'s renderer lives in lua-atmos
       (`atmos/x.lua`), NOT in this worktree. Once that renderer moves to `[…]`

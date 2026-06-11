@@ -1,5 +1,5 @@
 val v = do :X {
-    escape(:X @{x=10})
+    escape(:X [x=10])
     print('never executes')
 }
 print(v.x)  ;; --> 10

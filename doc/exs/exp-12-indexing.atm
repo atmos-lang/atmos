@@ -1,12 +1,12 @@
-val t = @{ x=1 }
+val t = [ x=1 ]
 print(t@('x'))      ;; --> 1
 print(t@(:x))       ;; --> 1
 print(t.x)          ;; --> 1
 print(t.y)          ;; --> nil
 
-val v = @{ 1 }
-set v@1 = 10        ;; @{ 10 }
-set v@+ = 20        ;; @{ 10, 20 }
+val v = [ 1 ]
+set v@1 = 10        ;; [ 10 ]
+set v@+ = 20        ;; [ 10, 20 ]
 print(v@1)          ;; --> 10
 print(v@#)          ;; --> 20
 print(v@+)          ;; --> nil
