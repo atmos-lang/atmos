@@ -291,6 +291,13 @@ level). Steps, in order:
      - DONE: docs — SYNTAX grammar (Spawn/Emit rules + the two inline rules:
        `[`@´ (`(´Expr`)´|NUM|ID)]`), Task-Ops examples, `exs/` (exp-25-spawn,
        exp-27-emit, exp-11-length/concatenation, val-07-tasks) + `guide.md`.
+     - [TODO] DOC CLEANUP: the `@`-qualifier `(`(´Expr`)´|NUM|ID)` is now
+       inlined in 4+ grammar spots (Index, Table `Key_Val`, Spawn, Emit, both
+       in their sections and in the big SYNTAX block). Verify if manual.md can
+       define it ONCE as a shared production `At` and reference it everywhere —
+       mirroring the parser's `parser_at` unification. (Index also adds the
+       tip `#`/`+`; check the SYNTAX block's flat `Expr : …` style allows a
+       named sub-production cleanly, like `Key_Val`/`Case` already do.)
 
 2. lexer (`src/lexer.lua`): drop the `@{` token; make `[` / `]` plain symbols.
 
