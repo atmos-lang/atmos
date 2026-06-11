@@ -257,12 +257,15 @@ DONE: index `t@(…)`; ppp `t@#`/`t@+` (`done/06-09-ppp.md`); table `@{}`->`[]`
 `@`-qualifier (`spawn @ts` / `emit @(:t)`); `parser_at(ret)` unifying all four
 `@` sites; block `{}` mono-purpose (verified, no code change).
 
-REMAINING (both optional / external):
+- [DONE] DOC CLEANUP: shared `At` grammar production — defined once in the
+  Indexing section (and once in the formal SYNTAX block) and reused as
+  `At` / `[At]` / `At =Expr` across Index, Table `Key_Val`, Spawn, Emit
+  (mirrors `parser_at`). Tip `#`/`+` stays index-only on its own line.
+
+REMAINING (optional / external):
 - [TODO] X.print OUTPUT `@{}`->`[]` — cross-repo: edit lua-atmos `atmos/x.lua`
   table renderer, then flip the kept-as-`@{}` output assertions in
   `tst/exec.lua`/`tst/tasks.lua` (option A; see the CODER/EXEC layer note).
-- [TODO] DOC CLEANUP: shared `At` grammar production reused across Index /
-  Table `Key_Val` / Spawn / Emit (see the pool-docs note above).
 
 --- historical record (how the table move was decided/executed) below ---
 
@@ -309,13 +312,10 @@ The table `@{}` -> `[]` move (now DONE). Steps, in order:
      - DONE: docs — SYNTAX grammar (Spawn/Emit rules + the two inline rules:
        `[`@´ (`(´Expr`)´|NUM|ID)]`), Task-Ops examples, `exs/` (exp-25-spawn,
        exp-27-emit, exp-11-length/concatenation, val-07-tasks) + `guide.md`.
-     - [TODO] DOC CLEANUP: the `@`-qualifier `(`(´Expr`)´|NUM|ID)` is now
-       inlined in 4+ grammar spots (Index, Table `Key_Val`, Spawn, Emit, both
-       in their sections and in the big SYNTAX block). Verify if manual.md can
-       define it ONCE as a shared production `At` and reference it everywhere —
-       mirroring the parser's `parser_at` unification. (Index also adds the
-       tip `#`/`+`; check the SYNTAX block's flat `Expr : …` style allows a
-       named sub-production cleanly, like `Key_Val`/`Case` already do.)
+     - [DONE] DOC CLEANUP: `At` shared production — defined once in Indexing
+       (and once in the SYNTAX block, like `Key_Val`/`Case`), referenced as
+       `At` / `[At]` across Index, Table `Key_Val`, Spawn, Emit. Tip `#`/`+`
+       on its own index-only line. See the top REMAINING/DONE summary.
 
 2. lexer (`src/lexer.lua`): drop the `@{` token; make `[` / `]` plain symbols.
 

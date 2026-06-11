@@ -633,11 +633,12 @@ A table constructor `[ * ]` receives a list `*` of key-value assignments:
 
 ```
 Table : `[´ Key_Val* `]´
-Key_Val : `@´ `(´ Expr `)´ `=´ Expr     ;; explicit index
-        | `@´ (NUM | ID) `=´ Expr       ;; explicit index, bare
-        | ID `=´ Expr                   ;; string key
-        | Expr                          ;; positional
+Key_Val : At `=´ Expr           ;; computed key
+        | ID `=´ Expr           ;; string key
+        | Expr                  ;; positional index
 ```
+
+The `At` (`@`) keys follow the same [indexing rules](#indexing).
 
 Like [table constructors in Lua][lua-table], it accepts assignments in three
 formats:
@@ -1475,18 +1476,25 @@ Examples:
 Atmos uses the at (`@`) or dot (`.`) notations to index [tables](#table):
 
 ```
-Expr : Expr `@´ `(´ Expr `)´            ;; t@(e)
-     | Expr `@´ (NUM | ID | `#´ | `+´)  ;; t@1  t@i  t@#  t@+
-     | Expr `.´ ID                      ;; t.x
+Expr : Expr At                  ;; t@(e)  t@1  t@i
+     | Expr `@´ (`#´ | `+´)     ;; t@#  t@+
+     | Expr `.´ ID              ;; t.x
+
+At   : `@´ `(´ Expr `)´         ;; t@(e)
+     | `@´ (NUM | ID)           ;; t@1  t@i
 ```
 
 The at notation uses parenthesis (instead of brackets) to provide the index
 expression.
 It is possible to omit the parenthesis to index literal numbers and
-identifiers, as well as `#` for the last item and `+` for the append index
-(i.e., `#t+1`).
+identifiers.
 The dot notation is a syntactic sugar to index string keys: `t.x` expands to
 `t@("x")`.
+Finally, the tip markers `#` and `+` refer to the last (`#t`) and append
+(`#t+1`) indexes, respectively.
+
+The same `At` rules apply to [table constructors](#table),
+[spawn pools](#tasks), and [emit targets](#emit).
 
 Atmos mimics the semantics of [Lua indexing][lua-indexing] for tables.
 
@@ -2035,7 +2043,7 @@ A `spawn` receives a [task](#task), [function](#function), or [block](#blocks)
 and starts it as a task:
 
 ```
-Spawn : `spawn` [`@´ (`(´ Expr `)´ | NUM | ID)] Expr `(´ Expr* `)`
+Spawn : `spawn` [At] Expr `(´ Expr* `)`
       | `spawn` Block
 ```
 
@@ -2156,7 +2164,7 @@ await(:all ts)          ;; awaits all tasks (pool drains)
 An `emit` broadcasts an event that can awake [awaiting](#await) tasks:
 
 ```
-Emit : `emit´ [`@´ (`(´ Expr `)´ | NUM | ID)] `(´ Expr `)´
+Emit : `emit´ [At] `(´ Expr `)´
 ```
 
 It takes the event to broadcast as its single argument, which is matched
@@ -2619,8 +2627,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | ID | `pub´                                  ;;  identifiers
 
       | [TAG] `[´ Key_Val* `]´                      ;; table
-            Key_Val : `@´ `(´ Expr `)´ `=´ Expr
-                    | `@´ (NUM | ID) `=´ Expr
+            Key_Val : At `=´ Expr
                     | ID `=´ Expr
                     | Expr
 
@@ -2636,8 +2643,8 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `(´ Expr+ `)´                               ;; parenthesis
 
       | Expr `.´ ID                                 ;; table field
-      | Expr `@´ `(´ Expr `)´                       ;; index t@(e)
-      | Expr `@´ (NUM | ID | `#´ | `+´)             ;; index t@1 t@i t@# t@+
+      | Expr At                                     ;; index t@(e) t@1 t@i
+      | Expr `@´ (`#´ | `+´)                        ;; tip index t@# t@+
 
       | Expr `(´ Expr* `)´                          ;; call
       | Expr Expr                                   ;; single-constructor call
@@ -2667,12 +2674,12 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `throw´ `(´ Expr* `)´                       ;; throw exception
       | `catch´ Expr Block                          ;; catch exception
 
-      | `spawn` [`@´ (`(´ Expr `)´|NUM|ID)] Expr `(´ Expr* `)` ;; spawn
+      | `spawn` [At] Expr `(´ Expr* `)`             ;; spawn task
       | `spawn´ Block                               ;; spawn block
 
       | `await´ `(´ Expr* `)´                       ;; await event
       | `await´ ID `(´ Expr* `)´                    ;; await task
-      | `emit´ [`@´ (`(´ Expr `)´|NUM|ID)] `(´ Expr* `)´  ;; emit
+      | `emit´ [At] `(´ Expr* `)´                   ;; emit event
 
       | `toggle´ Expr `(´ Expr `)´                  ;; toggle task
       | `toggle´ `on´ Pattern Block                 ;; toggle block
@@ -2684,6 +2691,8 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `par_or´  Block { `with´ Block }
 
       | `thread´ Block                              ;; OS thread
+
+At    : `@´ (`(´ Expr `)´ | NUM | ID)   ;; @-qualifier (index/key/pool/target)
 
 ID    : [A-Za-z_][A-Za-z0-9_]*      ;; variable identifier
 TAG   : :[A-Za-z0-9_\.]+            ;; tag
