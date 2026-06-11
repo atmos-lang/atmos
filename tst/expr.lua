@@ -227,7 +227,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assert(not ok and msg=="anon : line 1 : near ':x' : expected <id>")
+    assert(not ok and msg=="anon : line 1 : near ':x' : expected name, number, or '('")
 
     local src = "[["
     print("Testing...", src)
@@ -305,7 +305,7 @@ do
     lexer_init("anon", src)
     lexer_next()
     local ok, msg = pcall(parser)
-    assert(not ok and msg=="anon : line 1 : near 'true' : expected <id>")
+    assert(not ok and msg=="anon : line 1 : near 'true' : expected name, number, or '('")
 
     -- tip markers: t@# (last) == t@(#t) ; t@+ (next) == t@(#t+1)
     for _, p in ipairs{ {"t@#","t@(#t)"}, {"t@+","t@(#t+1)"} } do

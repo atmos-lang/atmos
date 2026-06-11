@@ -23,13 +23,7 @@ function parser_spawn ()
         local tk = TK0
         local ts = nil; do
             if accept('@') then
-                if accept('(') then
-                    ts = parser()
-                    accept_err(')')
-                else
-                    local _ = check(nil,'num') or check_err(nil,'id')
-                    ts = parser_1_prim()
-                end
+                ts = parser_at()
             end
         end
         local call = parser_6_pip()
@@ -111,13 +105,7 @@ function parser_1_prim ()
             local key, val
             -- computed key: @(e)=v  @id=v  @5=v  (mirrors t@(e) index)
             if accept('@') then
-                if accept('(') then
-                    key = parser()
-                    accept_err(')')
-                else
-                    local _ = check(nil,'num') or check_err(nil,'id')
-                    key = parser_1_prim()
-                end
+                key = parser_at()
                 accept_err('=')
                 val = parser()
             else
@@ -157,13 +145,7 @@ function parser_1_prim ()
             local to = nil
             local f  = nil
             if accept('@') then
-                if accept('(') then
-                    to = parser()
-                    accept_err(')')
-                else
-                    local _ = check(nil,'num') or check_err(nil,'id')
-                    to = parser_1_prim()
-                end
+                to = parser_at()
                 f = 'emit_in'
             else
                 f = 'emit'

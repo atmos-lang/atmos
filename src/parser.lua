@@ -240,6 +240,24 @@ local function check_call_arg ()
            check(nil,'nat') or check(nil,'clk')
 end
 
+-- @-qualifier (after '@' is consumed): @(e) | bare @num | @id.
+-- shared by index, table key, pool, emit-target.
+-- ret==true : return false on no-match so the caller can continue
+-- (used by index, which then handles the @# / @+ tip markers).
+function parser_at (ret)
+    if accept('(') then
+        local e = parser()
+        accept_err(')')
+        return e
+    elseif check(nil,'num') or check(nil,'id') then
+        return parser_1_prim()
+    elseif ret then
+        return false
+    else
+        err(TK1, "expected name, number, or '('")
+    end
+end
+
 function parser_2_suf (pre)
     local no = check('emit') or check('spawn') or
                check('toggle') or check('thread')
@@ -254,27 +272,25 @@ function parser_2_suf (pre)
     local ret
 
     if accept('@') then
-        local idx
         local chk = check'#' or check '+'
         local tk0 = TK0 -- @
-        if accept('#') then         -- t@#  (last item)
-            idx = { tag='uno', op=TK0, e=e }
-        elseif accept('+') then     -- t@+  (next item: #t+1)
-            local len = { tag='op', str='#', lin=tk0.lin, sep=tk0.sep }
-            local add = { tag='op', str='+', lin=tk0.lin, sep=tk0.sep }
-            local one = { tag='num', tk={ tag='num', str='1' } }
-            idx = {
-                tag = 'bin',
-                op  = add,
-                e1  = { tag='uno', op=len, e=e },
-                e2  = one,
-            }
-        elseif accept('(') then     -- t@(e)
-            idx = parser()
-            accept_err(')')
-        else                        -- t@x
-            local _ = check(nil,'num') or check_err(nil,'id')
-            idx = parser_1_prim()
+        local idx = parser_at(true)         -- @(e) | @num | @id (or false)
+        if not idx then
+            if accept('#') then             -- t@#  (last item)
+                idx = { tag='uno', op=TK0, e=e }
+            elseif accept('+') then         -- t@+  (next item: #t+1)
+                local len = { tag='op', str='#', lin=tk0.lin, sep=tk0.sep }
+                local add = { tag='op', str='+', lin=tk0.lin, sep=tk0.sep }
+                local one = { tag='num', tk={ tag='num', str='1' } }
+                idx = {
+                    tag = 'bin',
+                    op  = add,
+                    e1  = { tag='uno', op=len, e=e },
+                    e2  = one,
+                }
+            else
+                err(TK1, "expected name, number, or '('")
+            end
         end
         if chk and e.tag~='acc' then
             err(tk0, "invalid tip index : expected variable prefix")

@@ -212,7 +212,8 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       `@{…}` (option A — `x.lua` renderer lives in lua-atmos, not migrated).
       tosource-expecteds (streams) -> `[…]`. Nested `@{@{}}`->`[[]]` forced
       some `local src = [[…]]` to bump to `[=[…]=]` (Lua long-string clash).
-      Pools `[ts]`/`emit[t]` still PARSE (special-parsed) — `in …,` deferred.
+      Pools `[ts]`/`emit[t]` were later re-spelled to the `@`-qualifier (DONE,
+      see §1 below) — `spawn @ts` / `emit @(:t)`.
     - [DONE] doc/: `manual.md` structural (nav, symbols `[ ]`/`@`, Lua-subtlety
       rationale, Table grammar `[ Key_Val* ]` with `@(k)=v` keys, User Types) +
       all code-fence examples; `exs/*.atm` + `guide.md` via converter. Prose
@@ -259,34 +260,39 @@ level). Steps, in order:
      mirroring index §4). So `[` inside a table is ALWAYS a nested table —
      the dict-key/nested ambiguity is dissolved, no lookahead needed. String
      keys stay `[x=v]`. [RESOLVED]
-   - pools / emit-target `[ts]` / `emit[t]` / `spawn [ts]` -> [RESOLVED]
-     re-spelled as a prefix `in <qualifier>,` clause (option D):
+   - pools / emit-target `[ts]` / `emit[t]` / `spawn [ts]` -> [DONE, IMPLEMENTED]
+     re-spelled with the `@`-qualifier — SAME micro-syntax as index & table
+     keys (`@(e)` parens, bare `@num`/`@id`). Supersedes option D (`in …,`).
 
      ```
-     spawn in ts, T()           ;; pool (was spawn [ts] T())
-     spawn in ts, { ... }       ;; pool + block task
-     emit  in :global, (:e)     ;; target scope (was emit [:global] (:e))
-     emit  in t, (:e)           ;; target task
+     spawn @ts T()            ;; pool          (was spawn [ts] T())
+     spawn @(e) T()           ;; pool, expr
+     spawn @ts { ... }        ;; pool + block task
+     emit  @(:global) (:e)    ;; target scope  (was emit [:global] (:e))
+     emit  @t (:e)            ;; target task
+     emit  @(nil) (:e)        ;; keyword target needs parens
 
-     spawn T()                  ;; no qualifier — unchanged
-     emit  (:e)                 ;; no qualifier — unchanged
+     spawn T()  /  emit (:e)  ;; no qualifier — unchanged
      ```
 
-     - Grammar: after `spawn`/`emit`, an optional `in <expr> ,` clause; the
-       `<expr>` is a single `parser()` which HALTS at the top-level comma
-       (commas are only consumed by list contexts — call args, constructors,
-       declarations), so the comma unambiguously delimits qualifier from
-       payload. No new operator; `in` stays a clean prefix.
-     - Same `in` connector for both roles (pool for spawn, target for emit).
-     - Rejected alternatives: postfix `in` (routing moves to line end), parens
-       `in(ts)`, colon (`:global:` clashes with tag colons), `=>`/`<-` (overload
-       existing operators), atom-only no-delimiter (terser but less explicit).
+     - `@` now unifies ALL four sites: index `t@i`/`t@(e)`, table key
+       `[@i=v]`/`[@(e)=v]`, pool `spawn @ts`, target `emit @(:t)`. Bare for
+       num/id; parens for tag/`nil`/`false`/expr (the `check num or check_err
+       id` guard, identical to the table-key branch).
+     - Self-delimiting: `@<prim>` / `@(e)` is one unit, so the payload follows
+       with no comma and no keyword. `src/prim.lua` spawn (~25) + emit (~154).
+     - Why over option D `in …,`: terser, no comma, no `in` keyword reuse, one
+       micro-syntax across all `@` sites. (`in …,` cost: comma wart + reused
+       keyword; the `@` "at pool/target" reading is a slight semantic stretch
+       but the consistency wins.)
+     - DONE: parser (`prim.lua`), all `tst/` call sites (114) migrated, suite
+       GREEN. TODO: docs (SYNTAX grammar + Task-Ops examples + exs).
 
 2. lexer (`src/lexer.lua`): drop the `@{` token; make `[` / `]` plain symbols.
 
 3. parser: `[…]` parses as the table/vector literal (replaces today's `@{…}`
    constructor in `prim.lua`); dict-keys + tag-prefix `:Pos [..]` per §3.
-   Re-spell pools per the §1 decision (option D `in …,`). Add `[` to
+   Re-spell pools per the §1 decision (`@`-qualifier). Add `[` to
    `check_call_arg` (keeps `f[…]` call-sugar = renamed `f@{…}`).
 
 4. coder (`src/coder.lua`): table constructor already emits plain Lua `{…}`
