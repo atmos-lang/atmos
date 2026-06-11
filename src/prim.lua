@@ -110,6 +110,7 @@ function parser_1_prim ()
                     key = parser()
                     accept_err(')')
                 else
+                    local _ = check(nil,'num') or check_err(nil,'id')
                     key = parser_1_prim()
                 end
                 accept_err('=')

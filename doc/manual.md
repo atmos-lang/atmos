@@ -634,6 +634,7 @@ A table constructor `[ * ]` receives a list `*` of key-value assignments:
 ```
 Table : `[´ Key_Val* `]´
 Key_Val : `@´ `(´ Expr `)´ `=´ Expr     ;; explicit index
+        | `@´ (NUM | ID) `=´ Expr       ;; explicit index, bare
         | ID `=´ Expr                   ;; string key
         | Expr                          ;; positional
 ```
@@ -2618,7 +2619,8 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | ID | `pub´                                  ;;  identifiers
 
       | [TAG] `[´ Key_Val* `]´                      ;; table
-            Key_Val : `[` Expr `]´ `=´ Expr
+            Key_Val : `@´ `(´ Expr `)´ `=´ Expr
+                    | `@´ (NUM | ID) `=´ Expr
                     | ID `=´ Expr
                     | Expr
 
@@ -2634,8 +2636,8 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `(´ Expr+ `)´                               ;; parenthesis
 
       | Expr `.´ ID                                 ;; table field
-      | Expr `[´ Expr `]´                           ;; index
-      | Expr `[´ (`=´|`+´|`-´) `]´                  ;; ppp operations
+      | Expr `@´ `(´ Expr `)´                       ;; index t@(e)
+      | Expr `@´ (NUM | ID | `#´ | `+´)             ;; index t@1 t@i t@# t@+
 
       | Expr `(´ Expr* `)´                          ;; call
       | Expr Expr                                   ;; single-constructor call

@@ -204,6 +204,31 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), '[@(1)=f()]')
 
+    -- bare computed keys @5 / @x (mirror index t@5 / t@x); == parens form
+    for _, p in ipairs{ {"[@5=v]","[@(5)=v]"}, {"[@x=v]","[@(x)=v]"} } do
+        print("Testing...", p[1])
+        init()
+        lexer_init("anon", p[1])
+        lexer_next()
+        local a = parser()
+        assert(check('<eof>'))
+        init()
+        lexer_init("anon", p[2])
+        lexer_next()
+        local b = parser()
+        assert(check('<eof>'))
+        assert(tosource(a) == tosource(b))
+    end
+
+    -- bare computed key must be NUM or ID (tag/string need parens)
+    local src = "[@:x=v]"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assert(not ok and msg=="anon : line 1 : near ':x' : expected <id>")
+
     local src = "[["
     print("Testing...", src)
     init()
