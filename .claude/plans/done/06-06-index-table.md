@@ -179,7 +179,7 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       `t@(:x)` / `t@("f")` / `t@(#t+1)` for tag/string/expression. Mix of
       bare/parens for coverage. `tosource` UNCHANGED (always `t@(…)`).
     - Tip indexing is now two bare markers only — `t@#` (last) and `t@+`
-      (next/append) — see `done/06-09-ppp.md`. The earlier operandless-`#`-in-parens
+      (next/append) — see `06-09-ppp.md`. The earlier operandless-`#`-in-parens
       distinction (`t@(#+1)` tip vs `t@(#t+1)` explicit) was DROPPED; `#`
       inside `@(…)` is always the ordinary length operator now.
     - [DONE] all `tst/`: expr, stmt, exec, streams, guide.atm, tasks, +
@@ -192,7 +192,7 @@ Phase order: index (this) -> table `@{}`->`[]` -> block `{}` mono-purpose.
       + all inline examples + precedence-list `t[]` + nav; `guide.md`. TOC
       regenerates clean. (`manual-out.md` left to the doc build.)
 - ppp accessors: replaced by tip indexing `t@#` (last) / `t@+` (append) — see
-  `done/06-09-ppp.md` (implemented, tests pass).
+  `06-09-ppp.md` (implemented, tests pass).
 - [DONE] table `@{}` -> `[]` — FULL SUITE GREEN (user-confirmed). Done layer
   by layer (each layer's own test green, downstream red until reached):
     - [DONE] LEXER: `src/lexer.lua` drops the `@{` combiner; `@` folded into
@@ -252,7 +252,7 @@ STATUS: migration essentially COMPLETE — committed & pushed, suite GREEN.
 Every sigil is now mono-purpose: `[…]` table, `@` index/key/pool/target,
 `{…}` block.
 
-DONE: index `t@(…)`; ppp `t@#`/`t@+` (`done/06-09-ppp.md`); table `@{}`->`[]`
+DONE: index `t@(…)`; ppp `t@#`/`t@+` (`06-09-ppp.md`); table `@{}`->`[]`
 (lexer/parser/coder/tests/docs); pool & emit-target `[ts]`/`emit[t]` ->
 `@`-qualifier (`spawn @ts` / `emit @(:t)`); `parser_at(ret)` unifying all four
 `@` sites; block `{}` mono-purpose (verified, no code change).
