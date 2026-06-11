@@ -262,10 +262,9 @@ DONE: index `t@(…)`; ppp `t@#`/`t@+` (`done/06-09-ppp.md`); table `@{}`->`[]`
   `At` / `[At]` / `At =Expr` across Index, Table `Key_Val`, Spawn, Emit
   (mirrors `parser_at`). Tip `#`/`+` stays index-only on its own line.
 
-REMAINING (optional / external):
-- [TODO] X.print OUTPUT `@{}`->`[]` — cross-repo: edit lua-atmos `atmos/x.lua`
-  table renderer, then flip the kept-as-`@{}` output assertions in
-  `tst/exec.lua`/`tst/tasks.lua` (option A; see the CODER/EXEC layer note).
+REMAINING: none.
+- [DONE] X.print OUTPUT — settled in lua-atmos `atmos/x.lua` (user); the
+  debug-render format is final and not changing further. Migration complete.
 
 --- historical record (how the table move was decided/executed) below ---
 
