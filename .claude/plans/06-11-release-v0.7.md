@@ -22,7 +22,7 @@ Prerequisites — these language plans MUST land before cutting v0.7:
 
 - [ ] `06-and-or-not.md` — value-event await/emit + `||`/`&&`/`!` combinators
       (in progress; blocked on a lua-atmos `where` runtime branch)
-- [ ] `06-06-in-on.md` — `spawn on` (step 4) + await-docs review
+- [ ] `06-11-spawn-on.md` — `spawn on` (step 4) + await-docs review
 
 Next actions, in order: finish the two prereq plans -> §1 tests -> §2 docs ->
 §3 rockspec -> §5 release branch -> §6 publish -> §7 remote verify -> §8
@@ -56,7 +56,7 @@ v0.7 (jun/26)
 - `loop` folds `every` (`loop ids on :Y {}`); `toggle on`
 ```
 
-(Confirm the final feature list against `06-and-or-not.md` / `06-06-in-on.md`
+(Confirm the final feature list against `06-and-or-not.md` / `06-11-spawn-on.md`
 once those land — combinators, `spawn on`, etc.)
 
 ## Steps
