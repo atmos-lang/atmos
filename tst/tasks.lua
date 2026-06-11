@@ -1298,7 +1298,7 @@ print "--- EMIT / IN ---"
 
 do
     local src = [[
-        emit[nil](:ok)
+        emit @(nil)(:ok)
         print(:ok)
     ]]
     print("Testing...", "emit-in 1")
@@ -1311,7 +1311,7 @@ do
             print(:ok, x)
         }) ()
         spawn (func () {
-            emit [:global] (:10)
+            emit @(:global) (:10)
         }) ()
     ]]
     print("Testing...", "emit-in 2")
@@ -1324,9 +1324,9 @@ do
             print(:ok, x)
         }) ()
         spawn (func () {
-            emit [:task] (:10)
+            emit @(:task) (:10)
             print(:no)
-            emit [:global] (:20)
+            emit @(:global) (:20)
         }) ()
     ]]
     print("Testing...", "emit-in 3")
@@ -1345,7 +1345,7 @@ do
         do {
             var t2
             pin t2 = spawn T (2)
-            emit [t2] (:nil)
+            emit @t2 (:nil)
         }
     ]]
     print("Testing...", "emit-in 4: in t2")
@@ -1756,14 +1756,14 @@ do
     local src = [[
         spawn {
             pin ts = tasks()
-            spawn [ts] (func () {
+            spawn @ts (func () {
                 defer {
                     print(:1)
                 }
                 await(true)
                 print(:no1)
             }) ()
-            spawn [ts] (func () {
+            spawn @ts (func () {
                 defer {
                     print(:2)
                 }
@@ -1930,7 +1930,7 @@ do
         spawn {
             spawn {
                 await(true)
-                emit [:global] (:true)
+                emit @(:global) (:true)
             }
             await(true)
         }
@@ -1945,7 +1945,7 @@ do
         spawn {
             spawn(func () {
                 await(true)
-                emit [:global] (:true)
+                emit @(:global) (:true)
             })()
             await(true)
         }
@@ -1969,7 +1969,7 @@ do
                 print(:2)
                 await(true)
                 print(:b)
-                emit[t](:)     ;; pending
+                emit @t(:)     ;; pending
                 print(999)
             } )()
             print(:3)
@@ -1991,7 +1991,7 @@ do
             pin t = spawn T()
             spawn( func () {
                 await(true)
-                emit [t] (:)
+                emit @t (:)
                 print(999)
             } )()
             await(true)
@@ -2015,7 +2015,7 @@ do
                 (func (it) { print(it==10) }) (await(t))
                 print(:C)
             }) ()
-            emit[t] (:)
+            emit @t (:)
         ;;})()
         print(:ok)
     ]]
@@ -2066,7 +2066,7 @@ do
             do {
                 spawn (func () {
                     await(true)
-                    emit [:global](:)
+                    emit @(:global)(:)
                 }) ()
                 await(true)
             }
@@ -2092,7 +2092,7 @@ do
                 print(:2)
                 await(true)
                 print(:b)
-                emit[t](:)
+                emit @t(:)
                 print(999)
             } )()
             print(:3)
@@ -2117,7 +2117,7 @@ do
                 await(true)
                 do {
                     print(:1)
-                    emit[t](:)
+                    emit @t(:)
                     print(:no)
                 }
                 print(:no)
@@ -2140,7 +2140,7 @@ do
                 defer {
                     print(:1)
                 }
-                emit[:global](:)
+                emit @(:global)(:)
             }
             await(true)
             print(:0)
@@ -2167,7 +2167,7 @@ do
                         print(:ok)
                     }
                     print(:1)
-                    emit[t](:)
+                    emit @t(:)
                     print(:no)
                 }
                 print(:no)
@@ -2199,7 +2199,7 @@ do
                     }
                     print(:1)
                     (func () {
-                        emit[t](:)
+                        emit @t(:)
                     }) ()
                     print(:no)
                 }
@@ -2222,7 +2222,7 @@ do
                 print(:ok)
             }
             print(:1)
-            emit[t](:)
+            emit @t(:)
             print(:no)
         }
         spawn (func () {
@@ -2260,14 +2260,14 @@ do
                         print(:3)
                     }
                     print(:1)
-                    emit [:global] (:)
+                    emit @(:global) (:)
                     print(:999)
                 }
             }) ()
             await(true)
             print(:2)
         }) ()
-        emit[ :global ](:)
+        emit @(:global)(:)
     ]]
     print("Testing...", "abort 21")
     local out = atm_test(src)
@@ -2278,13 +2278,13 @@ do
             spawn (func () {
                 await(true)
                 print(:1)
-                emit [:global] (:)
+                emit @(:global) (:)
                 print(:999)
             }) ()
             await(true)
             print(:2)
         }) ()
-        emit[:global] (:)
+        emit @(:global) (:)
         print(:3)
     ]]
     print("Testing...", "abort 22")
@@ -2295,7 +2295,7 @@ do
         spawn (func () {
             spawn (func () {
                 await(true)
-                emit[:global](:)
+                emit @(:global)(:)
             }) ()
             await(true)
         }) ()
@@ -2313,7 +2313,7 @@ do
                     print(:4)    ;; TODO: aborted func should execute defer
                 }
                 print(:1)
-                emit [:global] (:)
+                emit @(:global) (:)
                 print(:999)
             }
         }
@@ -2331,7 +2331,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit[:global] (:)
+        emit @(:global) (:)
     ]]
     print("Testing...", "abort 24")
     local out = atm_test(src)
@@ -2348,7 +2348,7 @@ do
                     print(:1)
                     resume (coro (func () {
                         ;; TODO: coro hides outer t.co and consumes the error
-                        emit [:global](:)
+                        emit @(:global)(:)
                     })) ()
                     print(:999)
                 }
@@ -2356,7 +2356,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit[:global](:)
+        emit @(:global)(:)
     ]]
     print("Testing...", "abort 25")
     local out = atm_test(src)
@@ -2367,12 +2367,12 @@ do
             spawn (func () {
                 await(true)
                 spawn (func () {
-                    emit [:global](:)
+                    emit @(:global)(:)
                 }) ()
             }) ()
             await(true)
         }) ()
-        emit [:global] (:)
+        emit @(:global) (:)
         print(:ok)
     ]]
     print("Testing...", "abort 26")
@@ -2389,7 +2389,7 @@ do
                     }
                     print(:1)
                     spawn (func () {
-                        emit[:global](:)
+                        emit @(:global)(:)
                     }) ()
                     print(:999)
                 }
@@ -2397,7 +2397,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit[:global](:)
+        emit @(:global)(:)
     ]]
     print("Testing...", "abort 27")
     local out = atm_test(src)
@@ -2411,7 +2411,7 @@ do
                 }
                 print(:1)
                 ;;resume (coro(func () {
-                    emit[:global](:)
+                    emit @(:global)(:)
                 ;;})) ()
                 print(:y999)
             }
@@ -2430,7 +2430,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit[:global](:)
+        emit @(:global)(:)
     ]]
     print("Testing...", "abort 28")
     local out = atm_test(src)
@@ -2439,7 +2439,7 @@ do
     local src = [[
         val f = func () {
             val x = []
-            emit[:global](:)
+            emit @(:global)(:)
         }
         spawn (func () {
             spawn (func () {
@@ -2464,7 +2464,7 @@ do
                 }
                 print(:1)
                 spawn (func () {
-                    emit[:global](:)
+                    emit @(:global)(:)
                 }) ()
                 print(:y999)
             }
@@ -2483,7 +2483,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit[:global](:)
+        emit @(:global)(:)
     ]]
     print("Testing...", "abort 30")
     local out = atm_test(src)
@@ -2500,7 +2500,7 @@ do
                                 print(:3)
                             }
                             print(:1)
-                            emit[:global](:)
+                            emit @(:global)(:)
                         }
                     ;;})) ()
                     print(:999)
@@ -2509,7 +2509,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit[:global](:)
+        emit @(:global)(:)
     ]]
     print("Testing...", "abort 31")
     local out = atm_test(src)
@@ -2526,7 +2526,7 @@ do
                                 print(:3)
                             }
                             print(:1)
-                            emit [:global] (:)
+                            emit @(:global) (:)
                         }
                     }) ()
                     print(:999)
@@ -2535,7 +2535,7 @@ do
             await(true)
             print(:2)
         }) ()
-        emit[:global](:)
+        emit @(:global)(:)
     ]]
     print("Testing...", "abort 32")
     local out = atm_test(src)
@@ -2613,7 +2613,7 @@ do
                 print(:2)
                 await(true)
                 print(:6)
-                emit[:global](:)
+                emit @(:global)(:)
             }) ()
             ;;resume (coro (func () {
             spawn {
@@ -2939,7 +2939,7 @@ do
 
     local src = [[
         pin ts = tasks()
-        spawn [ts] (func () { print(:in) })()
+        spawn @ts (func () { print(:in) })()
         print(:out)
     ]]
     print("Testing...", "tasks 3")
@@ -2952,7 +2952,7 @@ do
             print(:in)
         }
         pin ts = tasks()
-        spawn [ts] T()
+        spawn @ts T()
         print(:out)
         emit(:)
     ]]
@@ -2965,7 +2965,7 @@ do
             await(true)
         }
         pin ts = tasks()
-        val ok = spawn [ts] T()
+        val ok = spawn @ts T()
         print(ok)
     ]]
     print("Testing...", "tasks 5")
@@ -2986,7 +2986,7 @@ do
         var x = 0
         do :X {
             loop {
-                spawn [ts] T()
+                spawn @ts T()
                 set x = x + 1
                 if x==500 {
                     escape (:X)
@@ -3009,7 +3009,7 @@ do
             print(evt)
         }
         do {
-            spawn [ts] T(1)
+            spawn @ts T(1)
         }
         emit(:2)
     ]]
@@ -3024,22 +3024,22 @@ do
         }
         pin ts = tasks(1)
         do {
-            spawn [ts] T()
-            spawn [ts] T()
-            spawn [ts] T()
+            spawn @ts T()
+            spawn @ts T()
+            spawn @ts T()
             emit(:T[])
-            spawn [ts] T()
-            spawn [ts] T()
-            spawn [ts] T()
+            spawn @ts T()
+            spawn @ts T()
+            spawn @ts T()
             emit(:T[])
-            spawn [ts] T()
-            spawn [ts] T()
-            spawn [ts] T()
+            spawn @ts T()
+            spawn @ts T()
+            spawn @ts T()
             emit(:T[])
-            spawn [ts] T()
-            spawn [ts] T()
-            spawn [ts] T()
-            spawn [ts] T()
+            spawn @ts T()
+            spawn @ts T()
+            spawn @ts T()
+            spawn @ts T()
             emit(:T[])
             print(:ok)
         }
@@ -3054,7 +3054,7 @@ do
             await(true)
         }
         pin ts = tasks()
-        spawn [ts] T()
+        spawn @ts T()
         print(1)
     ]]
     print("Testing...", "tasks 10")
@@ -3075,8 +3075,8 @@ do
             }
         }
         print(0)
-        spawn [ts] T(false)
-        spawn [ts] T(true)
+        spawn @ts T(false)
+        spawn @ts T(true)
         print(1)
         emit(:99)
         print(2)
@@ -3102,8 +3102,8 @@ do
             }
         }
         print(0)
-        spawn [ts] T(false)
-        spawn [ts] T(true)
+        spawn @ts T(false)
+        spawn @ts T(true)
         print(1)
         emit(:99)
         print(2)
@@ -3133,8 +3133,8 @@ do
             }
             print(v)
         }
-        spawn [ts] T(1)
-        spawn [ts] T(2)
+        spawn @ts T(1)
+        spawn @ts T(2)
         emit(:)
         emit(:)
         print(999)
@@ -3162,8 +3162,8 @@ do
             }
             print(v)
         }
-        spawn [ts] T(1)
-        spawn [ts] T(2)
+        spawn @ts T(1)
+        spawn @ts T(2)
         emit(:)
         emit(:)
         print(999)
@@ -3179,8 +3179,8 @@ do
             await(true)
         }
         pin ts = tasks()
-        spawn [ts] T()
-        spawn [ts] T()
+        spawn @ts T()
+        spawn @ts T()
         print(:ok)
     ]]
     print("Testing...", "tasks 15")
@@ -3193,10 +3193,10 @@ do
             await(true)
         }
         pin ts = tasks()
-        spawn [ts] T()
+        spawn @ts T()
         loop _,t in ts {
             var x = t.pub
-            emit [t] (:nil)
+            emit @t (:nil)
             X.print(x)
         }
         print(999)
@@ -3208,7 +3208,7 @@ do
     local src = [[
         func T () {}
         pin ts = tasks(0)
-        val x = spawn [ts] T()
+        val x = spawn @ts T()
         print(x)
     ]]
     print("Testing...", "tasks 17")
@@ -3231,11 +3231,11 @@ do
     local src = [[
         pin ts = tasks(1)
         var T = func () { await(true) }
-        val t1 = spawn [ts] T()
-        val t2 = spawn [ts] T()
-        emit [ts] (:)
-        val t3 = spawn [ts] T()
-        val t4 = spawn [ts] T()
+        val t1 = spawn @ts T()
+        val t2 = spawn @ts T()
+        emit @ts (:)
+        val t3 = spawn @ts T()
+        val t4 = spawn @ts T()
         print(t1??:task, t2??:task, t3??:task, t4??:task)
     ]]
     print("Testing...", "tasks 19")
@@ -3246,9 +3246,9 @@ do
         pin ts = tasks(1)
         var T
         set T = func () { await(true) }
-        val ok1 = spawn [ts] T()
-        emit [ts] (:)
-        val ok2 = spawn [ts] T()
+        val ok1 = spawn @ts T()
+        emit @ts (:)
+        val ok2 = spawn @ts T()
         print(atmos.status(ok1), atmos.status(ok2))
     ]]
     print("Testing...", "tasks 20")
@@ -3261,12 +3261,12 @@ do
             await(tostring(n))
         }
         pin ts = tasks(2)
-        spawn [ts] T(1)
-        spawn [ts] T(2)
+        spawn @ts T(1)
+        spawn @ts T(2)
         loop _,t in ts {
             print(:t, t.pub)
             emit(:2)                    ;; opens hole for 99 below
-            val ok = spawn [ts] T(99)   ;; (no) must not fill hole b/c ts in the stack
+            val ok = spawn @ts T(99)   ;; (no) must not fill hole b/c ts in the stack
             print(ok != nil)
         }
         loop _,t in ts {
@@ -3282,7 +3282,7 @@ do
             await(true)
         }
         pin ts = tasks()
-        spawn [ts] T()
+        spawn @ts T()
         spawn {
             loop _ in ts {
                 break()
@@ -3299,7 +3299,7 @@ do
             await(true)
         }
         pin ts = tasks()
-        spawn [ts] T()
+        spawn @ts T()
         spawn {
             val x = loop _,t in ts {
                 break(t)
@@ -3317,8 +3317,8 @@ do
         func T () { await(false) }
         pin xs = tasks()
         pin ys = tasks()
-        val x = spawn [xs] T()
-        val y = spawn [ys] T()
+        val x = spawn @xs T()
+        val y = spawn @ys T()
         val ts = xs ++ ys
         print(#(xs ++ ys), x?>ts, y?>ts, 10?>ts)
     ]]
@@ -3332,7 +3332,7 @@ do
         spawn {
             watching :X {
                 await :Y
-                spawn [ts] T()
+                spawn @ts T()
             }
         }
         emit :Y

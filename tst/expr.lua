@@ -1265,7 +1265,7 @@ do
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near 'emit' : expected single argument")
 
-    local src = "emit [xs] (:X)"
+    local src = "emit @xs (:X)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)

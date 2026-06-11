@@ -19,12 +19,17 @@ function parser_spawn ()
         local spw = spawn(TK0.lin, parser_block())
         return spw, spw
     else
-        -- spawn [...] T(...)
+        -- spawn @ts T(...)  |  spawn @(e) T(...)
         local tk = TK0
         local ts = nil; do
-            if accept('[') then
-                ts = parser()
-                accept_err(']')
+            if accept('@') then
+                if accept('(') then
+                    ts = parser()
+                    accept_err(')')
+                else
+                    local _ = check(nil,'num') or check_err(nil,'id')
+                    ts = parser_1_prim()
+                end
             end
         end
         local call = parser_6_pip()
@@ -145,15 +150,20 @@ function parser_1_prim ()
 
     -- emit, await, spawn, toggle
     elseif check('emit') or check('await') or check('spawn') or check('toggle') then
-        -- emit [t] (...)
-        -- emit [t] <- :X (...)
+        -- emit @t (...)
+        -- emit @t <- :X (...)
         if accept('emit') then
             local tk = TK0
             local to = nil
             local f  = nil
-            if accept('[') then
-                to = parser()
-                accept_err(']')
+            if accept('@') then
+                if accept('(') then
+                    to = parser()
+                    accept_err(')')
+                else
+                    local _ = check(nil,'num') or check_err(nil,'id')
+                    to = parser_1_prim()
+                end
                 f = 'emit_in'
             else
                 f = 'emit'
