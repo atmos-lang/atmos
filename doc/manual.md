@@ -2089,33 +2089,26 @@ When awaking, an `await` evaluates to its matching event value.
 For the first format, a task awakes when an `emit(e)` matches the given await
 pattern `Patt` as follows:
 
-- `true`        | matches any event
-- `false`       | never matches
-- `n: number`   | after `n` microseconds elapse (a relative timer)
-- `f: function` | when `f(e)` is truthy, returning its result
-- `t: task`     | when `t` terminates; returns `v,t`, where `v` is the
-                  task return value
-- `:any ts`     | when any task in pool `ts` terminates
-- `:all ts`     | when all tasks in pool `ts` terminate
-- `p1 || p2`    | when either sub-pattern matches
-- `p1 && p2`    | when both sub-patterns match, in any order
-- `!p`          | when an event does not match `p`
-- `{ tag=t, ... }` | when `e.tag ?? t` and each field `e[k] ?? v` matches
-- `x: any`      | when `e ?? x`
-
-The combinators `||`, `&&`, and `!` compose sub-patterns into a single event
-condition.
-
-A trailing `until` or `while` clause re-awaits the pattern, filtering events
-through one or more predicate expressions:
-
-- `until`: re-awaits until all predicates hold; evaluates to the event or the
-  last predicate result
-- `while`: re-awaits while all predicates hold; evaluates to the event when any
-  predicate fails
-
-Each predicate is a [function](#function) applied to the event, or a plain
-expression treated as an implicit [lambda](#lambda) over `it`.
+<!-- AWAIT-PATTERNS: keep identical in lua-atmos/api.md and atmos-lang/doc/manual.md -->
+| Group     | Atmos       | Lua API                             | matches        | returns  |
+|-----------|-------------|-------------------------------------|----------------|----------|
+| Boolean   | `true`      | `true`                              | any event      | `e`      |
+|           | `false`     | `false`                             | never          | —        |
+| Value     | `[tag=:T]`  | `{tag=t,...}`                       | tag + fields   | `e`      |
+|           | `x`         | `x: any`                            | `is(e,x)`      | `e`      |
+| Time      | `5s`        | `us: number`                        | timeout        | overrun  |
+|           | `(none)`    | `'clock'`                           | clock tick     | delta    |
+| Tasks     | `t`         | `t: task`                           | `t` ends       | `v,t`    |
+|           | `:any ts`   | `{tag='tasks',mode='any',tasks=ts}` | any pool end   | `v,t,ts` |
+|           | `:all ts`   | `{tag='tasks',mode='all',tasks=ts}` | all pool end   | `ts`     |
+| Condition | `\{...}`    | `f: function`                       | `f(e)` truthy  | result   |
+|           | `p until c` | `{tag='until',x,...}`               | until all hold | `e`      |
+|           | `p while c` | `{tag='while',x,...}`               | while any fail | `e`      |
+| Logical   | `!p`        | `{tag='not',x}`                     | not `p`        | `e`      |
+|           | `p1 && p2`  | `{tag='and',...}`                   | all subs       | `e`      |
+|           | `p1 \|\| p2`| `{tag='or',...}`                    | any sub        | `e`      |
+| Meta      | `(none)`    | `x: meta`                           | via `__atmos`  | result   |
+<!-- /AWAIT-PATTERNS -->
 
 The second format `await T(...)` [spawns](#spawn) and awaits the given task to
 terminate.
