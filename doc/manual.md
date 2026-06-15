@@ -2089,25 +2089,25 @@ When awaking, an `await` evaluates to its matching event value.
 For the first format, a task awakes when an `emit(e)` matches the given await
 pattern `Patt` as follows:
 
-<!-- AWAIT-PATTERNS: keep identical in lua-atmos/api.md and atmos-lang/doc/manual.md -->
-| Group     | Atmos       | Lua API                             | matches        | returns  |
-|-----------|-------------|-------------------------------------|----------------|----------|
-| Boolean   | `true`      | `true`                              | any event      | `e`      |
-|           | `false`     | `false`                             | never          | —        |
-| Value     | `[tag=:T]`  | `{tag=t,...}`                       | tag + fields   | `e`      |
-|           | `x`         | `x: any`                            | `is(e,x)`      | `e`      |
-| Time      | `5s`        | `us: number`                        | timeout        | overrun  |
-|           | `(none)`    | `'clock'`                           | clock tick     | delta    |
-| Tasks     | `t`         | `t: task`                           | `t` ends       | `v,t`    |
-|           | `:any ts`   | `{tag='tasks',mode='any',tasks=ts}` | any pool end   | `v,t,ts` |
-|           | `:all ts`   | `{tag='tasks',mode='all',tasks=ts}` | all pool end   | `ts`     |
-| Condition | `\{...}`    | `f: function`                       | `f(e)` truthy  | result   |
-|           | `p until c` | `{tag='until',x,...}`               | until all hold | `e`      |
-|           | `p while c` | `{tag='while',x,...}`               | while any fail | `e`      |
-| Logical   | `!p`        | `{tag='not',x}`                     | not `p`        | `e`      |
-|           | `p1 && p2`  | `{tag='and',...}`                   | all subs       | `e`      |
-|           | `p1 \|\| p2`| `{tag='or',...}`                    | any sub        | `e`      |
-| Meta      | `(none)`    | `x: meta`                           | via `__atmos`  | result   |
+<!-- AWAIT-PATTERNS: Group/matches/returns mirror lua-atmos api.md; Pattern is per-doc -->
+| Group     | Pattern     | matches        | returns  |
+|-----------|-------------|----------------|----------|
+| Boolean   | `true`      | any event      | `e`      |
+|           | `false`     | never          | —        |
+| Value     | `[tag=:T]`  | tag + fields   | `e`      |
+|           | `x`         | `is(e,x)`      | `e`      |
+| Time      | `5s`        | timeout        | overrun  |
+|           | `(none)`    | clock tick     | delta    |
+| Tasks     | `t`         | `t` ends       | `v,t`    |
+|           | `:any ts`   | any pool end   | `v,t,ts` |
+|           | `:all ts`   | all pool end   | `ts`     |
+| Condition | `\{...}`    | `f(e)` truthy  | result   |
+|           | `p until c` | until all hold | `e`      |
+|           | `p while c` | while any fail | `e`      |
+| Logical   | `!p`        | not `p`        | `e`      |
+|           | `p1 && p2`  | all subs       | `e`      |
+|           | `p1 \|\| p2`| any sub        | `e`      |
+| Meta      | `(none)`    | via `__atmos`  | result   |
 <!-- /AWAIT-PATTERNS -->
 
 The second format `await T(...)` [spawns](#spawn) and awaits the given task to
