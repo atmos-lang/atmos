@@ -2081,7 +2081,7 @@ An `await` suspends a [task](#task) until a matching [emit](#emit) occurs:
 ```
 Await : `await´ `(´ Patt `)´
       | `await´ ID `(´ Expr* `)´
-Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr {`,´ Expr}] `)´
+Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr {`,´ Expr}]
 ```
 
 When awaking, an `await` evaluates to its matching event value.
@@ -2089,15 +2089,14 @@ When awaking, an `await` evaluates to its matching event value.
 For the first format, a task awakes when an `emit(e)` matches the given await
 pattern `Patt` as follows:
 
-<!-- AWAIT-PATTERNS: Group/matches/returns mirror lua-atmos api.md; Pattern is per-doc -->
 | Group     | Pattern     | matches        | returns  |
 |-----------|-------------|----------------|----------|
 | Boolean   | `true`      | any event      | `e`      |
 |           | `false`     | never          | —        |
-| Value     | `[tag=:T]`  | tag + fields   | `e`      |
-|           | `x`         | `is(e,x)`      | `e`      |
+| Value     | `:T [...]`  | tag + fields   | `e`      |
+|           | `x`         | `e ?? x`       | `e`      |
 | Time      | `5s`        | timeout        | overrun  |
-|           | `(none)`    | clock tick     | delta    |
+|           | `:clock`    | clock tick     | delta    |
 | Tasks     | `t`         | `t` ends       | `v,t`    |
 |           | `:any ts`   | any pool end   | `v,t,ts` |
 |           | `:all ts`   | all pool end   | `ts`     |
@@ -2107,8 +2106,7 @@ pattern `Patt` as follows:
 | Logical   | `!p`        | not `p`        | `e`      |
 |           | `p1 && p2`  | all subs       | `e`      |
 |           | `p1 \|\| p2`| any sub        | `e`      |
-| Meta      | `(none)`    | via `__atmos`  | result   |
-<!-- /AWAIT-PATTERNS -->
+| Meta      | `mt`        | via `__atmos`  | result   |
 
 The second format `await T(...)` [spawns](#spawn) and awaits the given task to
 terminate.
