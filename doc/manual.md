@@ -2093,7 +2093,7 @@ pattern `Patt` as follows:
 |-----------|-------------|----------------|----------|
 | Boolean   | `true`      | any event      | `e`      |
 |           | `false`     | never          | —        |
-| Value     | `:T [...]`  | tag + fields   | `e`      |
+| Value     | `:T [...]`  | `e =<= pat`    | `e`      |
 |           | `x`         | `e ?? x`       | `e`      |
 | Time      | `5s`        | timeout        | overrun  |
 |           | `:clock`    | clock tick     | delta    |
