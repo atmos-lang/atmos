@@ -68,7 +68,6 @@ function atm_func (f)
     end
 end
 
-
 function atm_do (tag, blk)
     return (function (ok, ...)
         if ok then
@@ -94,51 +93,4 @@ end
 
 function escape (...)
     return throw('atm-do', ...)
-end
-
--------------------------------------------------------------------------------
--- ITER
--------------------------------------------------------------------------------
-
-local function fi (N, i)
-    i = i + 1
-    if i>N then
-        return nil
-    end
-    return i
-end
-
-function iter (t, ...)
-    local mt = getmetatable(t)
-    if mt and mt.__pairs then
-        return mt.__pairs(t)
-    elseif mt and mt.__call then
-        return t
-    elseif t == nil then
-        return fi, math.maxinteger-1, 0
-    elseif type(t) == 'function' then
-        return t
-    elseif type(t) == 'number' then
-        local fr, to
-        if ... then
-            fr, to = t-1, ...
-        else
-            fr, to = 0, t
-        end
-        return fi, to, fr
-    elseif type(t) == 'table' then
-        -- TODO: xnext
-        return coroutine.wrap(function()
-            for i=1, #t do
-                coroutine.yield(i, t[i])
-            end
-            for k,v in pairs(t) do
-                if type(k)~='number' or k<=0 or k>#t then
-                    coroutine.yield(k,v)
-                end
-            end
-        end)
-    else
-        error("TODO - iter(t)")
-    end
 end
