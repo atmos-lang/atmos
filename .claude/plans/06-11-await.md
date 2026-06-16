@@ -51,10 +51,13 @@ Compile to the lua-atmos value-event runtime:
 - [ ] Manual combinator subsection (`doc/manual.md`, after `### Await`):
   `||`/`&&`/`!` combinators, parens + first-arg rule, value-event `{tag=}`
   model, single-arg emit, `until`/`while` preds. (all three originals)
-- [ ] Manual: review `every` / `watching` / `par_*` examples (mostly
-  value-event already).
-- [ ] Reserved-Names table: `clock` / `tasks` are surface-hidden (`@…`,
-  `:any`/`:all`) — drop from the user-facing await-tags row, or keep w/ a note.
+- [DONE] Manual: reviewed `every`(->`loop on`) / `watching` / `par_*` examples
+  — all v0.7 value-event already; renamed capture var `loop it on :X` ->
+  `loop e on :X` (manual:1862) to avoid clashing with the `it` keyword.
+- [DONE] Reserved-Names: no change. `tasks` (real `tasks()` constructor) and
+  `where` (live `v where {...}`, parser:416) stay; `clock` already absent (now
+  numeric literals `1s`/`100ms`). The raw-tag leak concern was already fixed by
+  the `### Await` table atmos-ification (`:clock`, `:any ts`, `p until c`).
 - NOTE: the `### Await` match-slot review lives in `06-11-spawn-on.md`.
 
 ### atmos-lang — stale example/source files

@@ -1859,8 +1859,8 @@ loop on 1s {
 ```
 
 ```
-loop it on :X {     ;; <-- (`emit :X [v=10]`)
-    print(it.v)     ;; --> 10
+loop e on :X {      ;; <-- (`emit :X [v=10]`)
+    print(e.v)      ;; --> 10
 }
 ```
 
@@ -2117,13 +2117,13 @@ Examples:
 <!-- exs/exp-26-await.atm -->
 
 ```
-await(false)            ;; never awakes
-await :escape           ;; awakes on an :escape event
-await 1h10min30s        ;; awakes after 1h 10min 30s
-await(\{it.v > 10})     ;; awakes if event field v > 10
-await(:X && :Y)         ;; awakes after both :X and :Y occur in any order
-await(!:X)              ;; awakes on any non-:X event
-await(:X until it.n==3) ;; re-awaits :X until its field n equals 3
+await(false)                ;; never awakes
+await :Key [:escape]        ;; awakes on an :Key :escape event
+await 1h10min30s            ;; awakes after the given time
+await \{it && (it.v > 10)}  ;; awakes if event field v > 10
+await(:X && :Y)             ;; awakes after both :X and :Y occur in any order
+await(!:X)                  ;; awakes on any non-:X event
+await(:X until it.n==3)     ;; awaits :X until its field n equals 3
 ```
 
 ```
@@ -2136,7 +2136,7 @@ emit(:P [x=10, y=20])
 
 ```
 func T (v) {
-    v * 2
+    (true, v * 2)
 }
 val v = await T(10)
 print(v)                ;; --> 20
