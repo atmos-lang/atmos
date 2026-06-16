@@ -2100,13 +2100,19 @@ pattern `Patt` as follows:
 | Tasks     | `t`         | `t` ends       | `v,t`    |
 |           | `:any ts`   | any pool end   | `v,t,ts` |
 |           | `:all ts`   | all pool end   | `ts`     |
-| Condition | `\{...}`    | `f(e)` truthy  | result   |
-|           | `p until c` | until all hold | `e`      |
+| Condition | `\{...}`    | `f(e)` truthy  | `e / res`|
+|           | `p until c` | until all hold | `e / res`|
 |           | `p while c` | while any fail | `e`      |
 | Logical   | `!p`        | not `p`        | `e`      |
 |           | `p1 && p2`  | all subs       | `e`      |
 |           | `p1 \|\| p2`| any sub        | `e`      |
-| Meta      | `mt`        | via `__atmos`  | result   |
+| Meta      | `mt`        | via `__atmos`  | `e / res`|
+
+Note that some patterns may modify the final result:
+
+- Time: difference between the time elapsed and expected
+- Tasks: task result, terminating task, and task pool
+- Condition, Meta: function result (defaults to `e` if `true`)
 
 The second format `await T(...)` [spawns](#spawn) and awaits the given task to
 terminate.
