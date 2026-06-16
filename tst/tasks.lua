@@ -575,7 +575,7 @@ do
     ]]
     print("Testing...", "emit 9")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [[
         var T = func () {
@@ -596,7 +596,7 @@ do
     ]]
     print("Testing...", "emit 10")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [[
         var T = func () {
@@ -611,7 +611,7 @@ do
     ]]
     print("Testing...", "emit 11")
     local out = atm_test(src)
-    assertx(out, "@{@{}, tag=t}\n")
+    assertx(out, ":t [[]]\n")
 
     local src = [=[
         var fff = func (...) {
@@ -626,7 +626,7 @@ do
     ]=]
     print("Testing...", "emit 12")
     local out = atm_test(src)
-    assertx(out, "t\t@{1}\n")
+    assertx(out, "t\t[1]\n")
 
     local src = [[
         func t2 () {
@@ -664,7 +664,7 @@ do
     ]=]
     print("Testing...", "emit scope 1")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [=[
         val T = func (v) {
@@ -678,7 +678,7 @@ do
     ]=]
     print("Testing...", "emit scope 2")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [=[
         val T = func () {
@@ -692,7 +692,7 @@ do
     ]=]
     print("Testing...", "emit scope 3")
     local out = atm_test(src)
-    assertx(out, "@{}\n@{}\n")
+    assertx(out, "[]\n[]\n")
 
     local src = [[
         val T = func (v) {
@@ -704,7 +704,7 @@ do
     ]]
     print("Testing...", "emit scope 4")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [=[
         val T = func () {
@@ -723,7 +723,7 @@ do
     ]=]
     print("Testing...", "emit scope 5")
     local out = atm_test(src)
-    assertx(out, "@{20}\nok\n")
+    assertx(out, "[20]\nok\n")
 
     local src = [=[
         var tk
@@ -755,11 +755,11 @@ do
         10
         10
         2
-        @{20}
-        @{20}
+        [20]
+        [20]
         3
-        @{30=30}
-        @{30=30}
+        [30=30]
+        [30=30]
         atm-func
     ]])
 
@@ -778,7 +778,7 @@ do
     ]=]
     print("Testing...", "emit scope 7")
     local out = atm_test(src)
-    assertx(out, "@{2}\n")
+    assertx(out, "[2]\n")
 
     local src = [=[
         val f = func (v) {
@@ -792,7 +792,7 @@ do
     ]=]
     print("Testing...", "emit scope 8")
     local out = atm_test(src)
-    assertx(out, "@{1}\n")
+    assertx(out, "[1]\n")
 
     local src = [=[
         val f = func (v) {
@@ -809,7 +809,7 @@ do
     ]=]
     print("Testing...", "emit scope 9")
     local out = atm_test(src)
-    assertx(out, "@{1}\n")
+    assertx(out, "[1]\n")
 
     local src = [=[
         val f = func (v) {
@@ -833,7 +833,7 @@ do
     ]=]
     print("Testing...", "emit scope 10")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [=[
         val f = func (v) {
@@ -855,7 +855,7 @@ do
     ]=]
     print("Testing...", "emit scope 11")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [[
         var T = func () {
@@ -877,7 +877,7 @@ do
     ]]
     print("Testing...", "emit scope 12")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [[
         var T1 = func () {
@@ -919,7 +919,7 @@ do
     ]]
     print("Testing...", "alien 0")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [[
         spawn (func () {
@@ -935,7 +935,7 @@ do
     ]]
     print("Testing...", "alien 1")
     local out = atm_test(src)
-    assert(out == "@{}\nok\n")
+    assert(out == "[]\nok\n")
 
     local src = [[
         val T = func () {
@@ -951,7 +951,7 @@ do
     ]]
     print("Testing...", "alien 2")
     local out = atm_test(src)
-    assert(out == "@{}\nok\n")
+    assert(out == "[]\nok\n")
 
     local src = [=[
         spawn (func () {
@@ -967,7 +967,7 @@ do
     ]=]
     print("Testing...", "alien 3")
     local out = atm_test(src)
-    assertx(out, "@{@{10}}\n")
+    assertx(out, "[[10]]\n")
 
     local src = [=[
         spawn (func () {
@@ -985,7 +985,7 @@ do
     ]=]
     print("Testing...", "alien 4")
     local out = atm_test(src)
-    assertx(out, "@{10}\n")
+    assertx(out, "[10]\n")
 
     local src = [=[
         spawn (func () {
@@ -1001,7 +1001,7 @@ do
     ]=]
     print("Testing...", "alien 5")
     local out = atm_test(src)
-    assertx(out, "@{10}\n")
+    assertx(out, "[10]\n")
 
     local src = [=[
         var f = func (v) {  ;; *** v is no longer fleeting ***
@@ -1016,7 +1016,7 @@ do
     ]=]
     print("Testing...", "alien 6")
     local out = atm_test(src)
-    assertx(out, "@{1}\n")
+    assertx(out, "[1]\n")
 
     local src = [=[
         var f = func (v) {
@@ -1032,7 +1032,7 @@ do
     ]=]
     print("Testing...", "alien 7")
     local out = atm_test(src)
-    assertx(out, "@{1}\n")
+    assertx(out, "[1]\n")
 end
 
 -- EMIT-AWAIT / PAYLOAD
@@ -1113,7 +1113,7 @@ do
     ]]
     print("Testing...", "payload 4")
     local out = atm_test(src)
-    assertx(out, "@{10}\n@{10}\n")
+    assertx(out, "[10]\n[10]\n")
 
     local src = [[
         var fff
@@ -1173,7 +1173,7 @@ do
     ]]
     print("Testing...", "payload 7")
     local out = atm_test(src)
-    assertx(out, "nil\n@{tag=T}\n")
+    assertx(out, "nil\n:T []\n")
 
     local src = [[
         spawn {
@@ -1212,7 +1212,7 @@ do
     ]]
     print("Testing...", "payload 9")
     local out = atm_test(src)
-    assertx(out, "@{tag=X, v=10}\n")
+    assertx(out, ":X [v=10]\n")
 end
 
 -- LEXICAL ORDER
@@ -1521,7 +1521,7 @@ do
     ]]
     print("Testing...", "pub 1")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [[
         val T = func () {
@@ -1560,7 +1560,7 @@ do
     ]]
     print("Testing...", "pub 4")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [[
         val T = func () {
@@ -1574,7 +1574,7 @@ do
     ]]
     print("Testing...", "pub 5")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [[
         print(pub)  ;; now runs inside task
@@ -1642,7 +1642,7 @@ do
     ]]
     print("Testing...", "nested 3")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 
     local src = [[
         do {
@@ -2898,7 +2898,7 @@ do
     ]]
     print("Testing...", "return 1")
     local out = atm_test(src)
-    assertx(out, "suspended\t@{1}\ndead\t@{1}\t@{2}\n")
+    assertx(out, "suspended\t[1]\ndead\t[1]\t[2]\n")
 
     local src = [[
         spawn {
@@ -3203,7 +3203,7 @@ do
     ]]
     print("Testing...", "tasks 16")
     local out = atm_test(src)
-    assertx(out, "@{10}\n999\n")
+    assertx(out, "[10]\n999\n")
 
     local src = [[
         func T () {}

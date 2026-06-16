@@ -221,7 +221,7 @@ do
     ]]
     print("Testing...", "do 1")
     local out = atm_test(src)
-    assertx(out, "@{0}\n")
+    assertx(out, "[0]\n")
 
     local src = [[
         val a,b = do :X {
@@ -251,7 +251,7 @@ do
     ]]
     print("Testing...", "do 4")
     local out = atm_test(src)
-    assertx(out, "@{10, tag=X}\n")
+    assertx(out, ":X [10]\n")
 
     local src = [[
         do :X.Z {
@@ -505,12 +505,12 @@ do
     local src = "X.print(([[1]])@(([1])@1))"
     print("Testing...", src)
     local out = atm_test(src)
-    assertx(out, "@{1}\n")
+    assertx(out, "[1]\n")
 
     local src = "X.print([@(:key)=:val])"
     print("Testing...", src)
     local out = atm_test(src)
-    assertx(out, "@{key=val}\n")
+    assertx(out, "[key=val]\n")
 
     local src = "print(type([@(:key)=:val]))"
     print("Testing...", src)
@@ -528,7 +528,7 @@ do
     local src = "X.print(:X [10])"
     print("Testing...", src)
     local out = atm_test(src)
-    assertx(out, "@{10, tag=X}\n")
+    assertx(out, ":X [10]\n")
 
     local src = [[
         val t = []
@@ -580,7 +580,7 @@ do
     ]]
     print("Testing...", "ppp 1")
     local out = atm_test(src)
-    assertx(out, "2\n@{1, 2, 3}\n")
+    assertx(out, "2\n[1, 2, 3]\n")
 
     local src = [[
         val t = []
@@ -589,7 +589,7 @@ do
     ]]
     print("Testing...", "ppp 2: error pop")
     local out = atm_test(src)
-    assertx(out, "@{}\n")
+    assertx(out, "[]\n")
 --[=[
     assertx(trim(out), trim [[
         ==> ERROR:
@@ -624,7 +624,7 @@ do
     ]]
     print("Testing...", "ppp 4")
     local out = atm_test(src)
-    assertx(out, "@{11, 21, 99}\n")
+    assertx(out, "[11, 21, 99]\n")
 
     local src = [[
         val t = []
@@ -653,7 +653,7 @@ do
     ]]
     print("Testing...", "ppp 6: error push")
     local out = atm_test(src)
-    assertx(out, "@{0=10}\n")
+    assertx(out, "[0=10]\n")
 --[=[
     assertx(trim(out), trim [[
         ==> ERROR:
@@ -677,7 +677,7 @@ do
     ]]
     print("Testing...", "ppp 5")
     local out = atm_test(src)
-    assertx(out, "3\n@{1, 2, 30}\n30\n@{1, 2}\n@{1, 2, 3}\n")
+    assertx(out, "3\n[1, 2, 30]\n30\n[1, 2]\n[1, 2, 3]\n")
 
 --[=[
     local src = [[
@@ -817,7 +817,7 @@ do
     ]]
     print("Testing...", "func 5: recursive table")
     local out = atm_test(src)
-    assertx(out, "@{@{0}}\n")
+    assertx(out, "[[0]]\n")
 
     local src = [[
         func f (v) {
@@ -832,7 +832,7 @@ do
     ]]
     print("Testing...", "func 7: recursive table")
     local out = atm_test(src)
-    assertx(out, "@{@{@{0}}}\n")
+    assertx(out, "[[[0]]]\n")
 
     local src = [[
         func f (v) {
@@ -1503,7 +1503,7 @@ do
     ]]
     print("Testing...", "catch 11")
     local out = atm_test(src)
-    assertx(out, "@{10, tag=X}\n")
+    assertx(out, ":X [10]\n")
 
     local src = [[
         throw :Z
@@ -1567,7 +1567,7 @@ do
     ]]
     print("Testing...", "catch 14")
     local out = atm_test(src)
-    assertx(out, "@{10, tag=Y.X}\n")
+    assertx(out, ":Y.X [10]\n")
 
     local src = [[
         func f () {

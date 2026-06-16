@@ -97,7 +97,7 @@ do
     ]]
     print("Testing...", "cat 3: vector")
     local out = atm_test(src)
-    assertx(out, "@{1, 2, 3, 4, 5, 6, 7}\n")
+    assertx(out, "[1, 2, 3, 4, 5, 6, 7]\n")
 
     local src = [[
         X.print([x=1] ++ [y=2] ++ [z=3])
@@ -105,7 +105,7 @@ do
     ]]
     print("Testing...", "cat 4: table")
     local out = atm_test(src)
-    assertx(out, "@{x=1, y=2, z=3}\n@{1, 2, 3}\n")
+    assertx(out, "[x=1, y=2, z=3]\n[1, 2, 3]\n")
 end
 
 print '--- IS / IN ---'

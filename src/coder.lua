@@ -203,7 +203,7 @@ function coder (e)
         return (
             "atm_loop(" ..
                 "function () " ..
-                    "for " .. ids .. " in iter(" .. itr .. ") do " ..
+                    "for " .. ids .. " in X.iter(" .. itr .. ") do " ..
                         coder_stmts(e.blk.es,true) ..
                     " end" ..
                 " end" ..

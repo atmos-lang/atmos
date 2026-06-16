@@ -1,6 +1,8 @@
+local X = require "atmos.x"
+
 function atm_pin_chk_set (chk, pin, ...)
     local t = ...
-    if _is_(t,'task') or _is_(t,'tasks') then
+    if X.is(t,'task') or X.is(t,'tasks') then
         if pin then
             assertn(2, (not chk) or (not t.pin),
                 "invalid assignment : expected unpinned value")
@@ -26,8 +28,6 @@ end
 -------------------------------------------------------------------------------
 -- TOSTRING : render values as atmos-lang tables (:X [...])
 -------------------------------------------------------------------------------
-
-local X = require "atmos.x"
 
 -- override `atmos.x` generic tostring with atmos-lang surface syntax;
 -- `X.print` picks this up since it calls `M.tostring` on the same table

@@ -117,5 +117,7 @@ actual output:
 ## Status
 
 - [x] add `X.tostring` override to `src/run.lua`
-- [ ] regenerate failing `assertx` expectations in `tst/` (~339 sites)
-- [ ] full suite green: `cd tst && lua5.4 all.lua`
+- [x] regenerate `assertx` expectations in `tst/` — `@{...}` -> `[...]` /
+  `:tag [...]` across `x.lua`, `exec.lua`, `streams.lua`, `tasks.lua`
+  (`lexer.lua:42` kept: it is lexer INPUT, not output)
+- [ ] full suite green: `cd tst && lua5.4 all.lua` (user runs)

@@ -605,7 +605,7 @@ function parser_1_prim ()
                             op = { str='&&' },
                             e1 = {
                                 tag = 'call',
-                                f = { tag='acc', tk={str="_is_"} },
+                                f = { tag='acc', tk={str="X.is"} },
                                 es = {
                                     { tag='acc', tk={str="atm_"..match.n} },
                                     cmp
