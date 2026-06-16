@@ -79,19 +79,19 @@ function coder (e)
     elseif e.tag == 'bin' then
         if false then
         elseif e.op.str == '===' then
-            return "atm_equal(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
+            return "X.eq(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '=!=' then
-            return "(not atm_equal(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
+            return "(not X.eq(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
         elseif e.op.str == '++' then
-            return "atm_cat(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
+            return "X.cat(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '??' then
-            return "atm_is(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
+            return "X.is(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '!?' then
-            return "(not atm_is(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
+            return "(not X.is(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
         elseif e.op.str == '?>' then
-            return "atm_in(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
+            return "X.xin(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '!>' then
-            return "(not atm_in(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
+            return "(not X.xin(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
         else
             return '('..coder(e.e1)..' '..(L(e.op)..(OPS.lua[e.op.str] or e.op.str))..' '..coder(e.e2)..')'
         end
