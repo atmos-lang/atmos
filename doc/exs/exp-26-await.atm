@@ -1,36 +1,63 @@
 spawn {
-    print :1
-    await(true)             ;; never awakes
-    print :2
-    await :Key [:escape]    ;; awakes on :key == :escape
-    print :3
-    await 1h10min30s        ;; awakes after 1h 10min 30s
-    print :4
-    await(\{it && (it@1>10)})         ;; awakes if event > 10
-    print :5
+    await(false)
+    error "should never awake"
 }
-
-print :a
-emit :X
-print :b
-emit <-- :Key [:escape]
-print :c
-emit 1h
-print :d
-emit 10min
-print :e
-emit 30s
-print :f
-emit <-- [10]
-print :g
-emit <-- [20]
-print :h
 
 spawn {
-    val t = await(true)
-    print(t@1, t@2)         ;; --> 10, 20
+    print :1
+    await(true)
+    print :2
+    await :Key [:escape]        ;; awakes on :key == :escape
+    print :3
+    await 1h10min30s            ;; awakes after 1h 10min 30s
+    print :4
+    await(\{it && (it@1>10)})   ;; awakes if event > 10
+    print :5
+    await(:X && :Y)             ;; awakes after both :X and :Y occur in any order
+    print :6
+    await(!:X)                  ;; awakes on any non-:X event
+    print :7
+    await(:X until it.n==3)     ;; awaits :X until its field n equals 3
+    print :8
 }
-emit [10, 20]
+
+print :ok
+emit :X
+print :no
+emit :Key [:enter]
+print :ok
+emit :Key [:escape]
+print :no
+emit 1h
+print :no
+emit 10min
+print :ok
+emit 30s
+print :no
+emit [10]
+print :ok
+emit [20]
+print :no
+emit :Y
+print :no
+emit :Z
+print :ok
+emit :X
+print :no
+emit :X
+print :ok
+emit :Y
+print :no
+emit :X [n=2]
+print :ok
+emit :X [n=3]
+print :ok
+
+spawn {
+    val e = await(true)
+    print(e)         ;; --> OK
+}
+emit :OK
 
 func T (v) {
     v * 2

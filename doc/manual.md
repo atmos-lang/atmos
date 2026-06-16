@@ -2118,9 +2118,9 @@ Examples:
 
 ```
 await(false)                ;; never awakes
-await :Key [:escape]        ;; awakes on an :Key :escape event
+await :Key [:escape]        ;; awakes on a :Key :escape event
 await 1h10min30s            ;; awakes after the given time
-await \{it && (it.v > 10)}  ;; awakes if event field v > 10
+await \{it && (it@1 > 10)}  ;; awakes if event index 1 > 10
 await(:X && :Y)             ;; awakes after both :X and :Y occur in any order
 await(!:X)                  ;; awakes on any non-:X event
 await(:X until it.n==3)     ;; awaits :X until its field n equals 3
@@ -2129,14 +2129,14 @@ await(:X until it.n==3)     ;; awaits :X until its field n equals 3
 ```
 spawn {
     val e = await(true)
-    print(e.x, e.y)     ;; --> 10, 20
+    print(e)                ;; --> OK
 }
-emit(:P [x=10, y=20])
+emit :OK
 ```
 
 ```
 func T (v) {
-    (true, v * 2)
+    v * 2
 }
 val v = await T(10)
 print(v)                ;; --> 20
