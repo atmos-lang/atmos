@@ -1,0 +1,7 @@
+set Z = []
+
+func Z.f (v) {
+    (v * 2)
+}
+
+return(Z)

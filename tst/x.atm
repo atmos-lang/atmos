@@ -1,7 +1,0 @@
-set X = []
-
-func X.f (v) {
-    (v * 2)
-}
-
-return(X)

@@ -2703,12 +2703,12 @@ print "--- REQUIRE ---"
 
 do
     local src = [[
-        val X,f = require "x"
-        print(f, X.f(10))
+        val Z,f = require "z"
+        print(f, Z.f(10))
     ]]
     print("Testing...", "require 1")
     local out = atm_test(src)
-    assertx(out, "./x.atm\t20\n")
+    assertx(out, "./z.atm\t20\n")
 end
 
 do
