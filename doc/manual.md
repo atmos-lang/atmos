@@ -1447,7 +1447,7 @@ pin ys = tasks()
 val x = spawn @xs T()
 val y = spawn @ys T()
 val ts = xs ++ ys           ;; [x, y]
-print(#ts, x?>ts, y?>ts)    ;; 2, true, false
+print(#ts, x?>ts, y?>ts)    ;; 2, true, true
 ```
 
 ### Membership
@@ -1653,7 +1653,7 @@ Examples:
 x + 10 - 1      ;; ERROR: requires parenthesis
 - x + y         ;; (-x) + y
 x || y || z     ;; (x || y) || z
-f :X []         ;; ERROR: (f :X) []
+f :X []         ;; f(:X [])
 ```
 
 ## Conditionals
@@ -2183,9 +2183,9 @@ Examples:
 func T () {
     val x = spawn X()
     val e = <...>
-    emit @(:global) (e)  ;; global broadcast
-    emit @(:task) (e)    ;; restricted to `T`
-    emit @x (e)        ;; restricted to `x`
+    emit @(:global) (e) ;; global broadcast
+    emit @(:task) (e)   ;; restricted to `T`
+    emit @x (e)         ;; restricted to `x`
 }
 ```
 
