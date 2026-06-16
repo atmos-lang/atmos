@@ -24,6 +24,54 @@ function atm_void ()
 end
 
 -------------------------------------------------------------------------------
+-- TOSTRING : render values as atmos-lang tables (:X [...])
+-------------------------------------------------------------------------------
+
+local X = require "atmos.x"
+
+-- override `atmos.x` generic tostring with atmos-lang surface syntax;
+-- `X.print` picks this up since it calls `M.tostring` on the same table
+function X.tostring (v)
+    if type(v) ~= 'table' then
+        return tostring(v)
+    else
+        local fst = true
+        local vs = ""
+        local t = {}
+        for k,x in pairs(v) do
+            assert(type(k)=='number' or type(k)=='string')
+            if k ~= 'tag' then
+                t[#t+1] = { k, x }
+            end
+        end
+        table.sort(t, function (x, y)
+            local n1, n2 = tonumber(x[1]), tonumber(y[1])
+            if n1 and n2 then
+                return (n1 < n2)
+            else
+                return (tostring(x[1]) < tostring(y[1]))
+            end
+        end)
+        local i = 1
+        for _,kx in ipairs(t) do
+            local k,x = table.unpack(kx)
+            if not fst then
+                vs = vs .. ', '
+            end
+            if tonumber(k) == i then
+                i = i + 1
+                vs = vs .. X.tostring(x)
+            else
+                vs = vs .. k .. '=' .. X.tostring(x)
+            end
+            fst = false
+        end
+        local tag = v.tag and (':'..v.tag..' ') or ''
+        return tag .. "[" .. vs .. "]"
+    end
+end
+
+-------------------------------------------------------------------------------
 -- CATCH/THROW, LOOP/UNTIL/WHILE/BREAK, FUNC/RETURN, DO/ESCAPE
 -------------------------------------------------------------------------------
 
