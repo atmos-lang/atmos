@@ -1,4 +1,4 @@
-local X = require "atmos.x"
+X = require "atmos.x"   -- global bc of threads/lanes
 
 function atm_pin_chk_set (chk, pin, ...)
     local t = ...
