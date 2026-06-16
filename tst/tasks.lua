@@ -729,9 +729,9 @@ do
         var tk
         set tk = func (v) {
             print(v)
-            val e1 = await(func(e) { (e && e.tag, e && e@(1)) })
+            val e1 = await(func(e) { e && e@(1) })
             X.print(e1)
-            val e2 = await(func(e) { (e && e.tag, e && e@(1)) })
+            val e2 = await(\{ it && it@1 })
             X.print(e2)
         }
         print(:1)

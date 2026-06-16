@@ -143,12 +143,12 @@ do
 
     local src = [[
         print([] ?? [])
-        print([1,2,3] ?? [1,2,3])
+        print([1,2,3] === [1,2,3])
         print(\{} !? \{})
     ]]
     print("Testing...", "is 4")
     local out = atm_test(src)
-    assertx(out, "true\ntrue\ntrue\n")
+    assertx(out, "false\ntrue\ntrue\n")
 
     local src = [[
         val t = [1,2,3]
