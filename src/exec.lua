@@ -20,7 +20,6 @@ function atm_test (src, tst)
     end
 
     atmos = require "atmos"
-    X = require "atmos.x"
     require "atmos.lang.run"
     atmos.thread_modules[#atmos.thread_modules+1] = "atmos"
     atmos.thread_modules[#atmos.thread_modules+1] = "atmos.lang.run"
