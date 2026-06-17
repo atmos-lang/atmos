@@ -263,10 +263,10 @@ do {
         }
     }
     print 'off'
-    emit(:X, false)    ;; body above toggles off
+    emit :X [false]    ;; body above toggles off
     await 1s
     print 'on'
-    emit(:X, true)     ;; body above toggles on
+    emit :X [true]     ;; body above toggles on
     await 1s
 }
 

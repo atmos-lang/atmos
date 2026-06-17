@@ -71,8 +71,8 @@ done; see strike-through/DONE marks below.)
   [:escape]`, `&&`, `!`, `until`, single-arg `emit`).
 - [DONE] `doc/exs/exp-28-toggle.atm` — already value-event (`emit :E [1]`,
   reads `e@1`).
-- [ ] `tst/guide.atm` (6.4 toggle) — STILL two-arg: lines 266 + 269
-  `emit(:X, false)` / `emit(:X, true)` -> `emit :X [false]` / `emit :X [true]`.
+- [DONE] `tst/guide.atm` (6.4 toggle) — lines 266 + 269 converted to
+  `emit :X [false]` / `emit :X [true]`.
 
 ### atmos-lang — leftover test migrations
 - [DONE] `tst/await.lua:114` — now `emit :X [10]`.
