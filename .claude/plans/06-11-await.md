@@ -79,8 +79,17 @@ done; see strike-through/DONE marks below.)
 - [DONE] `tst/expr.lua` two-arg cases — now NEGATIVE tests asserting the
   single-arg rule (`emit(:X,10)` -> "expected single argument"; `await(10s,x)`
   -> error); `await(:X until e1,e2)` is valid `until`-preds.
-- [ ] toggle-filter combinator: confirm the filter slot routes through the
-  combinator lowering (NOT yet verified in `src/await.lua`/`prim.lua`).
+- [ ] toggle-filter combinator: VERIFIED NOT wired (2026-06-17). Both filter
+  slots use generic `parser` (`prim.lua:220` block-form, `prim.lua:243`
+  call-form), so `&&`/`||`/`!` compile as Lua booleans (not
+  `{tag='and'/'or'/'not'}`), and `:any`/`:all` pools + `until`/`while` are
+  unrecognized. Currently masked: filters only use plain tags
+  (`expr.lua:1485,1494,1503`, `exec.lua:2494,2507`).
+  - FIX: route both filter slots through `parser_await` (as `await` / `loop
+    on` / `watching` do at `prim.lua:188,193,651,692`).
+  - DISAMBIGUATION: the filter is a comma-list while `until`/`while` preds are
+    also comma-separated -> REQUIRE PARENS around any filter element that
+    carries `until`/`while` preds.
 
 ### lua-atmos — user's domain
 - [DONE] `until`/`while` runtime — CONFIRMED present at `run.lua:495`
