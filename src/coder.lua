@@ -82,6 +82,10 @@ function coder (e)
             return "X.eq(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '=!=' then
             return "(not X.eq(" .. coder(e.e1) .. ',' .. coder(e.e2) .. '))'
+        elseif e.op.str == '=>=' then
+            return "X.gte(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
+        elseif e.op.str == '=<=' then
+            return "X.gte(" .. coder(e.e2) .. ',' .. coder(e.e1) .. ')'
         elseif e.op.str == '++' then
             return "X.cat(" .. coder(e.e1) .. ',' .. coder(e.e2) .. ')'
         elseif e.op.str == '??' then
