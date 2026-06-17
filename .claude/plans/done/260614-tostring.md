@@ -120,4 +120,4 @@ actual output:
 - [x] regenerate `assertx` expectations in `tst/` — `@{...}` -> `[...]` /
   `:tag [...]` across `x.lua`, `exec.lua`, `streams.lua`, `tasks.lua`
   (`lexer.lua:42` kept: it is lexer INPUT, not output)
-- [ ] full suite green: `cd tst && lua5.4 all.lua` (user runs)
+- [x] full suite green: `cd tst && lua5.4 all.lua` (user runs)
