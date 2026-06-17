@@ -2127,9 +2127,9 @@ pattern `Patt` as follows:
 |-----------|-------------|----------------|----------|
 | Boolean   | `true`      | any event      | `e`      |
 |           | `false`     | never          | —        |
-| Value     | `:T [...]`  | `e =<= pat`    | `e`      |
+| Value     | `:T [...]`  | `pat =>= e`    | `e`      |
 |           | `x`         | `e ?? x`       | `e`      |
-| Time      | `5s`        | timeout        | overrun  |
+| Time      | `AsBms`     | timeout        | overrun  |
 |           | `:clock`    | clock tick     | delta    |
 | Tasks     | `t`         | `t` ends       | `v,t`    |
 |           | `:any ts`   | any pool end   | `v,t,ts` |
@@ -2140,7 +2140,7 @@ pattern `Patt` as follows:
 | Logical   | `!p`        | not `p`        | `e`      |
 |           | `p1 && p2`  | all subs       | `e`      |
 |           | `p1 \|\| p2`| any sub        | `e`      |
-| Meta      | `mt`        | via `__atmos`  | `e / res`|
+| Meta      | `meta`      | via `__atmos`  | `e / res`|
 
 Note that some patterns may modify the final result:
 

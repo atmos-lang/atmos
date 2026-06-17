@@ -47,10 +47,15 @@ Compile to the lua-atmos value-event runtime:
 
 ## REMAINING
 
+(Re-checked 2026-06-17 against live files — most prior items were already
+done; see strike-through/DONE marks below.)
+
 ### atmos-lang — docs
-- [ ] Manual combinator subsection (`doc/manual.md`, after `### Await`):
-  `||`/`&&`/`!` combinators, parens + first-arg rule, value-event `{tag=}`
-  model, single-arg emit, `until`/`while` preds. (all three originals)
+- [MOSTLY DONE] Manual combinators are documented in the `### Await` pattern
+  table (Logical group `!p`/`&&`/`||`, `until`/`while` preds, value-event
+  matching `e =<= pat` / `e ?? x`) plus examples (`manual.md:~2130-2175`).
+  - [ ] only gap: explicit prose for the *parens + first-arg rule* (when a
+    combinator needs `await(...)` vs juxtaposition `await :X`).
 - [DONE] Manual: reviewed `every`(->`loop on`) / `watching` / `par_*` examples
   — all v0.7 value-event already; renamed capture var `loop it on :X` ->
   `loop e on :X` (manual:1862) to avoid clashing with the `it` keyword.
@@ -61,28 +66,30 @@ Compile to the lua-atmos value-event runtime:
 - NOTE: the `### Await` match-slot review lives in `06-11-spawn-on.md`.
 
 ### atmos-lang — stale example/source files
-(not run by `all.lua` so the suite stays green, but now-invalid value-event
-syntax; EXACT before->after edits are in `done/06-05-awaits.md`)
-- [ ] `doc/exs/exp-26-await.atm` — `await(:key,:escape)` -> `await :escape`,
-  `emit(10,20)` -> `emit(:P @{x=10,y=20})`, multi-value read -> `e.x`/`e.y`.
-- [ ] `doc/exs/exp-28-toggle.atm` — `emit(:E,1)` -> `emit :E @{1}`, read `e[1]`.
-- [ ] `tst/guide.atm` (6.4 toggle) — `emit(:X,false)` -> `emit :X @{false}`.
+(not run by `all.lua` so the suite stays green)
+- [DONE] `doc/exs/exp-26-await.atm` — already value-event (`await :Key
+  [:escape]`, `&&`, `!`, `until`, single-arg `emit`).
+- [DONE] `doc/exs/exp-28-toggle.atm` — already value-event (`emit :E [1]`,
+  reads `e@1`).
+- [ ] `tst/guide.atm` (6.4 toggle) — STILL two-arg: lines 266 + 269
+  `emit(:X, false)` / `emit(:X, true)` -> `emit :X [false]` / `emit :X [true]`.
 
-### atmos-lang — leftover test migrations (line lists in `done/06-and-or-not.md`)
-- [ ] `tst/await.lua:114`, `tst/expr.lua:1196` two-arg emit (tosource).
-- [ ] remaining literal-payload emits + DELAYED table-var emits.
-- [ ] toggle-filter combinator: route the filter slot through the combinator
-  lowering too (plan said to — verify it's wired).
+### atmos-lang — leftover test migrations
+- [DONE] `tst/await.lua:114` — now `emit :X [10]`.
+- [DONE] `tst/expr.lua` two-arg cases — now NEGATIVE tests asserting the
+  single-arg rule (`emit(:X,10)` -> "expected single argument"; `await(10s,x)`
+  -> error); `await(:X until e1,e2)` is valid `until`-preds.
+- [ ] toggle-filter combinator: confirm the filter slot routes through the
+  combinator lowering (NOT yet verified in `src/await.lua`/`prim.lua`).
 
-### lua-atmos — user's domain (some BLOCKING)
-- [ ] `until`/`while` runtime — RECONCILE: `06-and-or-not` marked `await_where`
-  BLOCKED on a runtime `where` branch, but `06-05-awaits` notes the runtime
-  RENAMED `where`->`until` + added `while` (`run.lua:538`). Confirm the runtime
-  has `until`/`while`; if so the blocker is RESOLVED and the compiler's wiring
-  just needs a green run.
-- [ ] bare-pool guard: `await(ts)` HANGS (pool has no `.tag`); add error + test.
-- [ ] clock non-table emit regression: pin the `emit(5)`/`emit(true)` nil-deref
-  guard (`run.lua:627`).
+### lua-atmos — user's domain
+- [DONE] `until`/`while` runtime — CONFIRMED present at `run.lua:495`
+  (`tag=='until' or tag=='while'`, results at 514/516). The old BLOCKING
+  reconcile is resolved; compiler wiring is green.
+- [ ] bare-pool guard: `await(ts)` HANGS (pool has no `.tag`; `run.lua:471`
+  falls through). Add error + test. NOT done.
+- [ ] clock/non-table emit guard: `emit(5)`/`emit(true)` nil-deref. Line ref
+  was stale (`627` is now emit-target code); needs runtime re-locate. UNVERIFIED.
 - [ ] streams sanity check; optional `S.emitter` value-event pin test.
 
 ## Format note (evolution — do not regress)
