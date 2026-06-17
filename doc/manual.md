@@ -12,11 +12,12 @@
     * Keywords
     * Symbols
     * Operators
-        - `==` `!=` `===` `=!=` `??` `!?`
+        - `==` `!=` `??` `!?`
         - `>` `<` `>=` `<=`
         - `+` `-` `*` `/` `%` `**`
         - `!` `||` `&&`
         - `#` `++` `?>` `!>`
+        - `===` `=!=` `=>=` `=<=`
     * Identifiers
         - `[A-Za-z_][A-Za-z0-9_]*`
     * Literals
@@ -493,13 +494,14 @@ The following symbols are designated in Atmos:
 The following operators are supported in Atmos:
 
 ```
-    ==   !=   ===  =!=  ??   !?     ;; comparison
+    ==   !=  ??   !?                ;; equivalence
     >    <    >=   <=               ;; relational
     +    -    *    /    %    **     ;; arithmetic
     !    ||   &&                    ;; logical
     #                               ;; length
     ++                              ;; concatenation
     ?>   !>                         ;; membership
+    ===  =!=  =>=  =<=              ;; structural comparison
 ```
 
 Operators are used in [operation](#operations) expressions.
@@ -1282,13 +1284,14 @@ set `z` = 10            ;; OK
 
 Atmos provides the [operators](#operators) as follows:
 
-- comparison: `==` `!=` `===` `=!=` `??` `!?`
+- equivalence: `==` `!=` `??` `!?`
 - relational: `>` `<` `>=` `<=`
 - arithmetic: `+` `-` `*` `/` `%` `**`
 - logical: `!` `||` `&&`
 - length: `#`
 - concatenation: `++`
 - membership: `?>` `!>`
+- structural comparison: `===` `=!=` `=>=` `=<=`
 
 Unary operators (`-`, `!` and `#`) use prefix notation, while binary operators
 (all others, including binary `-`) use infix notation:
@@ -1316,7 +1319,7 @@ Note that some operators have a [different syntax](#lua-vs-atmos-subtleties) in
 Lua.
 
 Next, we decribe the operations that Atmos modifies or introduces:
-    (`===` `=!=`), (`??` `!?`), (`#`), (`++`), and (`?>` `!>`).
+    (`??` `!?`), (`#`), (`++`), (`?>` `!>`), and (`===` `=!=` `=>=` `=<=`).
 
 Examples:
 
@@ -1330,52 +1333,16 @@ Examples:
 
 [lua-operators]: https://www.lua.org/manual/5.4/manual.html#3.4
 
-### Deep Equality
-
-The operators `===` and `=!=` ("deep equal" and "not deep equal") check if
-their operands have or not structural equality.
-Therefore, tables are not only compared by reference, but also by their stored
-values.
-To check if `a === b` is true, the following tests are made in order:
-
-1. if `a == b`, then `a === b` is `true` (e.g., `'x' === 'x'`)
-2. if `type(a) != type(b)`, then `a === b` is `false` (e.g., `10 === 'x'`)
-3. if `a` and `b` are not tables, then `a === b` is `false` (e.g., functions `f === g`)
-4. if all key-value pairs `ka=va` in `a` are equal to all `kb=vb` in `b` (and vice-versa), then `a === b` is `true`
-    - the keys are compared with `==`
-    - the values are compared with `===`
-
-Note that the [Lua metatables][lua-metatables] of the values being compared
-must also be equal.
-
-The operator `=!=` is the negation of `===`.
-
-Examples:
-
-<!-- exs/exp-09-deep-equality.atm -->
-
-```
-[1,2,3] === [1,2,3]       ;; --> true
-\{} =!= []                ;; --> true (different types)
-[v=[]] =!= [v=[]]         ;; --> false
-[@([])=1] === [@([])=1]   ;; --> false (keys are not `==`)
-\{} === \{}               ;; --> false (func refs are not `==`)
-```
-
-[lua-metatables]: https://www.lua.org/manual/5.4/manual.html#2.4
-
 ### Equivalence
 
 The operators `??` and `!?` ("is" and "is not") check the equivalence between
 their operands.
 If any of the following conditions are met, then `a ?? b` is true:
 
-- `a === b` (e.g., `'x' ?? 'x'`)
-- `type(a) === b` (e.g., `10 ?? :number`)
-- `a.tag === b` (e.g., `:X [] ?? :X`)
-- `b` is "dot" prefix of `a` (e.g., `'x.y.z' ?? 'x.y'`)
-
-Note that the comparisons use [deep equality](#deep-equality).
+- `a == b` (e.g., `10 ?? 10`)
+- `type(a) == b` (e.g., `[] ?? :table`)
+- `b` is "dot prefix" of `a` (e.g., `'x.y.z' ?? 'x.y'`)
+- `b` is "dot prefix" of `a.tag` (e.g., `:X.Y [] ?? :X`)
 
 The operator `!?` is the negation of `??`.
 
@@ -1384,10 +1351,10 @@ Examples:
 <!-- exs/exp-09-equivalence.atm -->
 
 ```
+\{} ?? :function    ;; --> true
+nil ?? nil          ;; --> true
+:X [] ?? :X.Y       ;; --> false
 [] ?? []            ;; --> false
-task(\{}) ?? :task  ;; --> true
-10 ?? nil           ;; --> false
-:X.Y [] ?? :X       ;; --> true
 ```
 
 ### Length
@@ -1470,6 +1437,73 @@ Examples:
  1 ?> [10,20,30]       ;; false
 :x ?> [x=10,y=20]      ;; true
 ```
+
+### Structural Comparison
+
+Atmos also provides operations to compare values *structurally*, inspecting
+the actual contents of tables recursively.
+They split into deep *ordering* (`=>=` `=<=`) and deep *equality* (`===`
+`=!=`).
+
+#### Deep Ordering
+
+The operators `=>=` and `=<=` ("sup" and "sub") check if one operand is
+structurally more or less general than the other.
+
+They are especially useful to check containment between two tables, i.e., if
+one table holds all fields and values of the other.
+
+To check the result of `a =>= b`, the following tests are made in order:
+
+1. if `type(a) != type(b)`, then `a =>= b` is `false` (e.g., `10 =>= nil`)
+2. if the [Lua metatables][lua-metatables] of `a` and `b` differ, then
+   `a =>= b` is `false`
+3. if `a == b`, then `a =>= b` is `true` (e.g., `10 =>= 10`)
+4. if `a` and `b` are strings, then `a =>= b` is `true` if `a` is a "dot
+   prefix" of `b` (e.g., `'x' =>= 'x.y'`)
+5. if `a` and `b` are tables, then `a =>= b` is `true` if every pair `ka=va` in
+   `a` satisfies `va =>= b[ka]`
+6. otherwise `a =>= b` is `false` (e.g., `10 =>= 20`)
+
+The operator `=<=` is the reverse of `=>=`, i.e., `a =<= b` is equivalent to
+`b =>= a`.
+
+Examples:
+
+<!-- exs/exp-09-deep-comparison.atm -->
+
+```
+10      =>= 10      ;; --> true
+10      =>= 20      ;; --> false (scalars compare by equality)
+:x      =>= :x.y    ;; --> true  (:x supertypes :x.y)
+[]      =>= [1,2,3] ;; --> true  (looser table supertypes richer)
+[1,2,3] =<= []      ;; --> true  (reverse of the above)
+```
+
+#### Deep Equality
+
+The operators `===` and `=!=` ("deep equal" and "not deep equal") check if
+their operands have or not structural equality.
+Therefore, tables are not only compared by reference, but also by their stored
+values.
+
+To check if `a === b` is true, both `a =>= b` and `a =<= b` must be true.
+
+The operator `=!=` is the negation of `===`.
+
+Examples:
+
+<!-- exs/exp-09-deep-equality.atm -->
+
+```
+[1,2,3] === [1,2,3]       ;; --> true
+\{} =!= []                ;; --> true (different types)
+[v=[]] =!= [v=[]]         ;; --> false
+[@([])=1] === [@([])=1]   ;; --> false (keys are not `==`)
+\{} === \{}               ;; --> false (func refs are not `==`)
+```
+
+[lua-metatables]: https://www.lua.org/manual/5.4/manual.html#2.4
 
 ## Indexing
 

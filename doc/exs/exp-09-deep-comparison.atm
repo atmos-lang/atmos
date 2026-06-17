@@ -1,0 +1,5 @@
+print <-- 10      =>= 10      ;; --> true
+print <-- 10      =>= 20      ;; --> false (scalars compare by equality)
+print <-- :x      =>= :x.y    ;; --> true  (:x supertypes :x.y)
+print <-- []      =>= [1,2,3] ;; --> true  (looser table supertypes richer)
+print <-- [1,2,3] =<= []      ;; --> true  (reverse of the above)
