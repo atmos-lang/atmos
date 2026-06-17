@@ -217,7 +217,7 @@ function parser_1_prim ()
                 local tag = accept_err(nil, 'tag')
                 local filter = {}
                 if accept('with') then -- optional filter pattern
-                    filter = parser_list_1(',', '{', parser)
+                    filter = parser_list_1(',', '{', function () return parser_await('{') end)
                 end
                 local blk = parser_block()
                 return {
@@ -240,7 +240,7 @@ function parser_1_prim ()
                 -- optional trailing filter pattern (stops at first non-comma)
                 local filter = {}
                 if accept('with') then
-                    filter = parser_list_1(',', function () return false end, parser)
+                    filter = parser_list_1(',', function () return false end, function () return parser_await(function () return false end) end)
                 end
                 return parser_7_out({ tag='call', f=cmd, es=concat(call.es,filter) })
             end

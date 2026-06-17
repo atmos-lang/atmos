@@ -74,12 +74,18 @@ do
     ]])
 end
 
--- PARENS DISAMBIGUATION (pending fix design : expected values TBD).
--- The filter is a comma-list while `until`/`while` preds are also
--- comma-separated, so a filter element using `until`/`while` must be
--- parenthesized. Fill these once the parser change is settled:
---   "toggle t(false) with :a until c, :b"    -> parse error (parens required)
---   "toggle t(false) with (:a until c), :b"  -> two filters
+do
+    -- `until`/`while` in a filter SWALLOWS trailing commas as predicates
+    -- (no parens disambiguation : documented, accepted behavior)
+    local src = "toggle t(false) with :a until c, :b"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"until\", @(1)=:a, @(2)=func (it) {\nc\n}, @(3)=func (it) {\n:b\n}])")
+end
 
 print '--- TOGGLE FILTER : EXEC ---'
 
