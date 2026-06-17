@@ -1470,7 +1470,7 @@ The operator `=<=` is the reverse of `=>=`, i.e., `a =<= b` is equivalent to
 
 Examples:
 
-<!-- exs/exp-09-deep-comparison.atm -->
+<!-- exs/exp-09-deep-ordering.atm -->
 
 ```
 10      =>= 10      ;; --> true
