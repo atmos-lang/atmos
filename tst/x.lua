@@ -70,6 +70,39 @@ do
     assertx(out, "false\ntrue\ntrue\nfalse\n")
 end
 
+print '--- GTE ---'
+
+do
+    -- `=>=` : X.gte(a,b) : a is a supertype of b
+    -- scalars compare by equality (NOT numeric ordering);
+    -- tags by prefix (`:x` supertypes `:x.y`); tables structurally
+    -- (the emptier/looser table supertypes the richer one)
+    local src = [[
+        print(10 =>= 10)
+        print(10 =>= 20)
+        print(:x =>= :x.y)
+        print(:x.y =>= :x)
+        print([] =>= [1,2,3])
+        print([1,2,3] =>= [])
+    ]]
+    print("Testing...", "gte 1")
+    local out = atm_test(src)
+    assertx(out, "true\nfalse\ntrue\nfalse\ntrue\nfalse\n")
+
+    -- `=<=` : X.gte(b,a) : the flipped relation (no `X.lte` exists)
+    local src = [[
+        print(10 =<= 10)
+        print(10 =<= 20)
+        print(:x =<= :x.y)
+        print(:x.y =<= :x)
+        print([] =<= [1,2,3])
+        print([1,2,3] =<= [])
+    ]]
+    print("Testing...", "lte 1")
+    local out = atm_test(src)
+    assertx(out, "true\nfalse\nfalse\ntrue\nfalse\ntrue\n")
+end
+
 print '--- CAT ---'
 
 do
