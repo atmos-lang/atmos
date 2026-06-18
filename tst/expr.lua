@@ -271,6 +271,16 @@ do
     assert(check('<eof>'))
     assert(X.tostring(e) == "{idx={tag=num, tk={lin=1, sep=1, str=1, tag=num}}, t={tag=acc, tk={lin=1, sep=1, str=x, tag=id}}, tag=index}")
 
+    -- `@` chains across a newline like `.`/`::` (parser_2_suf exemption)
+    local src = "t\n@1"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assert(tosource(e) == 't@(1)')
+
     local src = "x.a"
     print("Testing...", src)
     init()

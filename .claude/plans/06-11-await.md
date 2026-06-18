@@ -82,7 +82,8 @@ DONE (compiler):
   suffix exemption (`TK1.str=='@'`), so `t` ⏎ `@1` chains as `t@1` (was a
   parse error). Only converts former errors -> valid; no valid program
   changes meaning.
-  - [ ] optional: add a parse test pinning `t` ⏎ `@1` -> `t@1`.
+  - [DONE] parse test pinning `t` ⏎ `@1` -> `t@1` added at
+    `tst/expr.lua` (after the `x@1` case): asserts `tosource == 't@(1)'`.
 
 NEXT STEPS (docs — execute in order on resume):
 
