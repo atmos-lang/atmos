@@ -144,7 +144,7 @@ function parser_lambda ()
         end
         check_err('{')
         local blk = parser_block()
-        return { tag='func', dots=dots, pars=pars, blk=blk }
+        return { tag='proto', sub='func', dots=dots, pars=pars, blk=blk }
 
     -- lambda operator: \- \++
     else
@@ -153,7 +153,8 @@ function parser_lambda ()
             local a = { tag='id', str='a' }
             local b = { tag='id', str='b' }
             return {
-                tag  = 'func',
+                tag  = 'proto',
+                sub  = 'func',
                 dots = false,
                 pars = { a, b },
                 blk  = {
@@ -175,7 +176,8 @@ function parser_lambda ()
         elseif contains(OPS.unos, op.str) then
             local a = { tag='id', str='a' }
             return {
-                tag  = 'func',
+                tag  = 'proto',
+                sub  = 'func',
                 dots = false,
                 pars = { a },
                 blk  = {
@@ -435,8 +437,8 @@ function parser_7_out (pre)
         ret = {
             tag = 'call',
             f = {
-                tag = 'func',
-                lua = true,
+                tag = 'proto',
+                sub = 'lua',
                 pars = {},
                 blk = {
                     tag = 'block',

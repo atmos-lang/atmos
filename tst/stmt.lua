@@ -21,7 +21,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(X.tostring(s), "{dsts={{tag=acc, tk={lin=1, sep=1, str=f, tag=id}}}, src={blk={es={{ids={{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=set}")
+    assertx(X.tostring(s), "{dsts={{tag=acc, tk={lin=1, sep=1, str=f, tag=id}}}, src={blk={es={{ids={{lin=1, sep=1, str=x, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}, dots=false, pars={{lin=1, sep=1, str=v, tag=id}}, sub=func, tag=proto}, tag=set}")
 
     local src = [[
         val e = []
@@ -70,7 +70,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(X.tostring(s), "{dsts={{idx={tag=str, tk={lin=1, sep=1, str=f, tag=id}}, t={tag=acc, tk={lin=1, sep=1, str=M, tag=id}}, tag=index}}, src={blk={es={}, tag=block}, dots=false, pars={{lin=1, sep=1, str=v, tag=id}}, tag=func}, tag=set}")
+    assertx(X.tostring(s), "{dsts={{idx={tag=str, tk={lin=1, sep=1, str=f, tag=id}}, t={tag=acc, tk={lin=1, sep=1, str=M, tag=id}}, tag=index}}, src={blk={es={}, tag=block}, dots=false, pars={{lin=1, sep=1, str=v, tag=id}}, sub=func, tag=proto}, tag=set}")
     assertx(trim(tosource(s)), trim [[
         set M@("f") = func (v) {
         }
@@ -95,7 +95,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(X.tostring(s), "{ids={{lin=1, sep=1, str=f, tag=id}}, set={blk={es={}, tag=block}, dots=false, pars={}, tag=func}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}")
+    assertx(X.tostring(s), "{ids={{lin=1, sep=1, str=f, tag=id}}, set={blk={es={}, tag=block}, dots=false, pars={}, sub=func, tag=proto}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}")
 
     local src = "val func f (v) {}"
     print("Testing...", src)
@@ -505,7 +505,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(X.tostring(s), "{cases={{{tag=acc, tk={lin=1, sep=1, str=cnd, tag=id}}, {blk={es={}, tag=block}, lua=true, pars={}, tag=func}}, {else, {blk={es={{ids={{lin=1, sep=1, str=f, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}, lua=true, pars={}, tag=func}}}, tag=ifs}")
+    assertx(X.tostring(s), "{cases={{{tag=acc, tk={lin=1, sep=1, str=cnd, tag=id}}, {blk={es={}, tag=block}, pars={}, sub=lua, tag=proto}}, {else, {blk={es={{ids={{lin=1, sep=1, str=f, tag=id}}, tag=dcl, tk={lin=1, sep=1, str=val, tag=key}}}, tag=block}, pars={}, sub=lua, tag=proto}}}, tag=ifs}")
 
     local src = "if true { }"
     print("Testing...", src)
@@ -514,7 +514,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(X.tostring(s), "{cases={{{tag=bool, tk={lin=1, sep=1, str=true, tag=key}}, {blk={es={}, tag=block}, lua=true, pars={}, tag=func}}}, tag=ifs}")
+    assertx(X.tostring(s), "{cases={{{tag=bool, tk={lin=1, sep=1, str=true, tag=key}}, {blk={es={}, tag=block}, pars={}, sub=lua, tag=proto}}}, tag=ifs}")
 
     local src = "if f() { if (cnd) { val x } else { val y } }"
     print("Testing...", src)

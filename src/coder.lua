@@ -103,7 +103,7 @@ function coder (e)
         return coder(e.f) .. '(' .. coder_args(e.es) .. ')'
     elseif e.tag == 'met' then
         return coder(e.o) .. ':' .. e.met.str
-    elseif e.tag == 'func' then
+    elseif e.tag == 'proto' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
             if e.dots then
@@ -119,10 +119,13 @@ function coder (e)
                 coder(e.blk) ..
             " end"
         )
-        if e.lua then
+        if e.sub == 'lua' then
             f = '(' .. f .. ')'
         else
             f = "atm_func(" .. f .. ")"
+            if e.sub == 'task' then
+                f = "task(" .. f .. ")"
+            end
         end
         return f
     elseif e.tag == 'parens' then

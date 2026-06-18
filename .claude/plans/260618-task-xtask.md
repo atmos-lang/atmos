@@ -59,13 +59,38 @@ plan `.claude/plans/260616-task-xtask.md` §1-§2).
 - src/run.lua:5 `atm_pin_chk_set`: `X.is(t,'task')` -> `'xtask'`.
 - tst/stmt.lua tosource: dropped `false` from `spawn(false, T...)`.
 
+- `task` keyword DONE + verified (compiled snippets):
+    - global.lua: `'task'` moved into KEYS.
+    - Surface model: `task` is decl-only; instance-from-proto is the
+      plain call `xtask(T)` (xtask stays a non-keyword id). Old surface
+      `task(fn)` call form is gone.
+- AST refactor DONE + verified (behavior-preserving):
+    - Renamed func node `tag='func'` -> `tag='proto'` with a single
+      discriminator `sub` in {'lua','func','task'} (replaces both the
+      old `lua=true` and the interim `task=true` flags). Rationale: a
+      function literal IS a prototype (Lua compiles each to a Proto);
+      the three are mutually exclusive, so one field suffices.
+    - prim.lua: new `parser_proto(sub, dcl)` helper unifies func/task
+      across all 3 locations (anon expr, named `set`, val/var/pin
+      `dcl`); `::` method form gated to `sub=='func'`. 4 call sites
+      collapse to one-liners.
+    - coder.lua: sole reader -- `sub=='lua'`->raw fn; else
+      `atm_func(...)`, +`task(...)` when `sub=='task'`.
+    - tosource.lua / await.lua / parser.lua: `tag` checks ->'proto';
+      tosource keyword via `sub=='task'`.
+    - tst/stmt.lua (5 dumps) + tst/thread.lua tag check regenerated.
+
 ### Pending
 
-- `task` keyword + declaration forms (the core, not yet started).
-- tst/tasks.lua bulk sweep + negative tests (raw-func spawn now
-  rejected by runtime: "expected task prototype").
-- coder.lua `task=true` flag; aux.lua `atm_behavior`; tosource;
-  doc/manual.md; rockspec bump.
+- Test sweep (KEYWORD-FIRST style):
+    - exec.lua "task N"/"emit 2": raw `func` protos -> `task T(){}`;
+      `task(T)` instance -> `xtask(T)` / `spawn T()`.
+    - expr.lua: `task(T)` call test -> `xtask(T)` (call form gone).
+    - tst/tasks.lua bulk sweep + negative tests (raw-func spawn now
+      rejected by runtime: "expected task prototype").
+- aux.lua `atm_behavior`: bless behavior fn into proto once.
+- run.lua:5 already done (xtask).
+- doc/manual.md; rockspec bump.
 
 This plan covers §3 "Compiler" of that runtime plan, adapted to the
 CURRENT runtime API (the runtime was renamed after §3 was written).

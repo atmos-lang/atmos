@@ -44,7 +44,7 @@ function tosource (e, lbd)
         return tosource(e.f) .. '(' .. tosource_args(e.es) .. ')'
     elseif e.tag == 'met' then
         return tosource(e.o) .. '::' .. e.met.str
-    elseif e.tag == 'func' then
+    elseif e.tag == 'proto' then
         local pars = join(', ', map(e.pars, function (id) return id.str end))
         local dots = ''; do
             if e.dots then
@@ -62,7 +62,8 @@ function tosource (e, lbd)
                 return tosource_block(e.blk)
             end
         else
-            return "func (" .. pars .. dots .. ") " .. tosource_block(e.blk)
+            local kw = (e.sub == 'task') and "task" or "func"
+            return kw .. " (" .. pars .. dots .. ") " .. tosource_block(e.blk)
         end
 
     elseif e.tag == 'dcl' then

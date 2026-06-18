@@ -61,10 +61,10 @@ function parser_await (stop, base0)
     end
     local preds = parser_list_1(',', stop, parser)
     local fs = map(preds, function (e)
-        if e.tag == 'func' then
+        if e.tag == 'proto' then
             return e
         end
-        return { tag='func', lua=true, pars={{tag='id',str='it'}}, blk={tag='block', es={e}} }
+        return { tag='proto', sub='lua', pars={{tag='id',str='it'}}, blk={tag='block', es={e}} }
     end)
     return mk_tagged(k.str, concat({pat}, fs))
 end

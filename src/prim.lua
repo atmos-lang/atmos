@@ -6,7 +6,7 @@ local function spawn (lin, blk)
         tag = 'call',
         f = { tag='acc', tk={tag='id', str='do_spawn', lin=lin} },
         es = {
-            { tag='func', pars={}, blk=blk },
+            { tag='proto', sub='func', pars={}, blk=blk },
         },
     }
 end
@@ -47,6 +47,54 @@ function parser_spawn ()
         }
         local out = parser_7_out(spw)
         return out, spw
+    end
+end
+
+-- shared parser for `func`/`task` declarations across all locations:
+-- anon expression, named global `set`, and `val`/`var`/`pin` local `dcl`.
+-- `sub` is 'func' or 'task'; `dcl` is the val/var/pin token (local form).
+local function parser_proto (sub, dcl)
+    -- `func` / `task` keyword already accepted
+    if dcl then
+        -- val/var/pin func|task T () {}  (simple id -> local dcl)
+        local id = accept_err(nil, 'id')
+        accept_err('(')
+        local dots, pars = parser_dots_pars()
+        accept_err(')')
+        local blk = parser_block()
+        local src = { tag='proto', sub=sub, dots=dots, pars=pars, blk=blk }
+        return { tag='dcl', tk=dcl, ids={id}, set=src }
+    elseif accept('(') then
+        -- anon: func|task () {}
+        local dots, pars = parser_dots_pars()
+        accept_err(')')
+        local blk = parser_block()
+        return { tag='proto', sub=sub, dots=dots, pars=pars, blk=blk }
+    else
+        -- named: func|task T(){} | M.f(){} | (func only) o::f(){}
+        local id = accept_err(nil, 'id')
+        local idxs = {}
+        while accept('.') do
+            idxs[#idxs+1] = accept_err(nil, 'id')
+        end
+        local met = nil
+        if sub == 'func' and accept('::') then
+            met = accept_err(nil, 'id')
+            idxs[#idxs+1] = met
+        end
+        accept_err('(')
+        local dots, pars = parser_dots_pars()
+        accept_err(')')
+        if met then
+            table.insert(pars, 1, {tag='id',str="self"})
+        end
+        local dst = { tag='acc', tk=id }
+        for _, idx in ipairs(idxs) do
+            dst = { tag='index', t=dst, idx={tag='str',tk=idx} }
+        end
+        local blk = parser_block()
+        local src = { tag='proto', sub=sub, dots=dots, pars=pars, blk=blk }
+        return { tag='set', dsts={dst}, src=src }
     end
 end
 
@@ -224,7 +272,7 @@ function parser_1_prim ()
                     es = concat(
                         { { tag='tag', tk=tag } },
                         filter,
-                        { { tag='func', lua=true, pars={}, blk=blk } }
+                        { { tag='proto', sub='lua', pars={}, blk=blk } }
                     ),
                 }
             else
@@ -249,49 +297,8 @@ function parser_1_prim ()
     -- func, return
     elseif check('func') or check('\\') or check('return') then
         if accept('func') then
-            -- func () { ... }
-            -- func f () { ... }
-            -- func M.f () { ... }
-            -- func o::f () { ... }
-            if accept('(') then
-                local dots, pars = parser_dots_pars()
-                accept_err(')')
-                local blk = parser_block()
-                return { tag='func', dots=dots, pars=pars, blk=blk }
-            else
-                local id = accept_err(nil, 'id')
-
-                local idxs = {}
-                while accept('.') do
-                    idxs[#idxs+1] = accept_err(nil, 'id')
-                end
-
-                local met = nil
-                if accept('::') then
-                    met = accept_err(nil, 'id')
-                    idxs[#idxs+1] = met
-                end
-
-                accept_err('(')
-                local dots, pars = parser_dots_pars()
-                accept_err(')')
-
-                if met then
-                    table.insert(pars, 1, {tag='id',str="self"})
-                end
-
-                local dst = { tag='acc', tk=id }
-                for _, idx in ipairs(idxs) do
-                    dst = { tag='index', t=dst, idx={tag='str',tk=idx} }
-                end
-
-                local blk = parser_block()
-                return {
-                    tag  = 'set',
-                    dsts = { dst },
-                    src  = { tag='func', dots=dots, pars=pars, blk=blk }
-                }
-            end
+            -- func () {} | func T(){} | func M.f(){} | func o::f(){}
+            return parser_proto('func')
 
         -- lambda: \{}
         elseif check('\\') then
@@ -307,18 +314,20 @@ function parser_1_prim ()
             error "bug found"
         end
 
+    -- task () {} | task T(){} | task M.f(){}  (no `::` method form)
+    elseif accept('task') then
+        return parser_proto('task')
+
     -- var x = 10
     elseif accept('val') or accept('var') or accept('pin') then
         local tk = TK0
 
         if accept('func') then
-            local id = accept_err(nil, 'id')
-            accept_err('(')
-            local dots, pars = parser_dots_pars()
-            accept_err(')')
-            local blk = parser_block()
-            local f = { tag='func', dots=dots, pars=pars, blk=blk }
-            return { tag='dcl', tk=tk, ids={id}, set=f }
+            return parser_proto('func', tk)
+        end
+
+        if accept('task') then
+            return parser_proto('task', tk)
         end
 
         local ids = parser_ids('=')
@@ -415,7 +424,7 @@ function parser_1_prim ()
                                                 o = { tag='call',
                                                     f = { tag='met', o=set, met={tag='id',str="tap"} },
                                                     es = {
-                                                        { tag='func',
+                                                        { tag='proto', sub='func',
                                                             pars = { {tag='id',str="it"} },
                                                             blk = { tag='block',
                                                                 es = {
@@ -508,11 +517,11 @@ function parser_1_prim ()
             local cases = {}
             if check('{') then
                 local blk = parser_block()
-                local t = { tag='func', lua=true, pars={}, blk=blk }
+                local t = { tag='proto', sub='lua', pars={}, blk=blk }
                 cases[#cases+1] = { cnd, t }
                 if accept('else') then
                     local blk = parser_block()
-                    local f = { tag='func', lua=true, pars={}, blk=blk }
+                    local f = { tag='proto', sub='lua', pars={}, blk=blk }
                     cases[#cases+1] = { 'else', f }
                 end
             else
@@ -522,16 +531,16 @@ function parser_1_prim ()
                     cases[#cases+1] = { cnd, t }
                     if accept('else') then
                         local blk = parser_block()
-                        local f = { tag='func', lua=true, pars={}, blk=blk }
+                        local f = { tag='proto', sub='lua', pars={}, blk=blk }
                         cases[#cases+1] = { 'else', f }
                     end
                 else
                     local e = parser()
-                    local t = { tag='func', lua=true, pars={}, blk={tag='block', es={e}} }
+                    local t = { tag='proto', sub='lua', pars={}, blk={tag='block', es={e}} }
                     cases[#cases+1] = { cnd, t }
                     if accept('=>') then
                         local e = parser()
-                        local f = { tag='func', lua=true, pars={}, blk={tag='block', es={e}} }
+                        local f = { tag='proto', sub='lua', pars={}, blk={tag='block', es={e}} }
                         cases[#cases+1] = { 'else', f }
                     end
                 end
@@ -555,12 +564,12 @@ function parser_1_prim ()
                 local f; do
                     if check('{') then
                         local blk = parser_block()
-                        f = { tag='func', lua=true, pars={}, blk=blk }
+                        f = { tag='proto', sub='lua', pars={}, blk=blk }
                     elseif check('\\') then
                         f = parser_lambda()
                     else
                         local blk = {tag='block', es={parser()}}
-                        f = { tag='func', lua=true, pars={}, blk=blk }
+                        f = { tag='proto', sub='lua', pars={}, blk=blk }
                     end
                 end
                 ts[#ts+1] = { cnd, f }
@@ -621,12 +630,12 @@ function parser_1_prim ()
                 local f; do
                     if check('{') then
                         local blk = parser_block()
-                        f = { tag='func', lua=true, pars={}, blk=blk }
+                        f = { tag='proto', sub='lua', pars={}, blk=blk }
                     elseif check('\\') then
                         f = parser_lambda()
                     else
                         local blk = { tag='block', es={parser()} }
-                        f = { tag='func', lua=true, pars={}, blk=blk }
+                        f = { tag='proto', sub='lua', pars={}, blk=blk }
                     end
                 end
                 ts[#ts+1] = { cnd, f }
@@ -647,7 +656,7 @@ function parser_1_prim ()
         if accept('on') then
             local awt = parser_await('{')
             local blk = parser_block()
-            local cb = { tag='func', lua=true, pars=ids or {}, blk=blk }
+            local cb = { tag='proto', sub='lua', pars=ids or {}, blk=blk }
             return {
                 tag = 'call',
                 f = { tag='acc', tk={tag='id',str='loop_on'} },
@@ -673,8 +682,8 @@ function parser_1_prim ()
             end
             fs = map(fs, function (blk)
                 return {
-                    tag  = 'func',
-                    lua  = true,
+                    tag  = 'proto',
+                    sub  = 'lua',
                     pars = {},
                     blk  = blk,
                 }
@@ -693,7 +702,7 @@ function parser_1_prim ()
                 f = { tag='acc', tk={tag='id',str='watching'} },
                 es = {
                     awt,
-                    { tag='func', lua=true, pars={}, blk=blk },
+                    { tag='proto', sub='lua', pars={}, blk=blk },
                 }
             }
         else
@@ -709,7 +718,7 @@ function parser_1_prim ()
                 tk  = { tag='id', str='thread', lin=TK0.lin },
             },
             es = {
-                { tag='func', lua=true, pars={}, blk=blk },
+                { tag='proto', sub='lua', pars={}, blk=blk },
             },
         }
 
