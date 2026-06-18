@@ -86,7 +86,8 @@ DONE (compiler):
 
 NEXT STEPS (docs — execute in order on resume):
 
-1. Append this table at the end of `# SYNTAX` (after `doc/manual.md:~2734`):
+1. [DONE] Appended `## Ambiguities` table at end of `# SYNTAX`
+   (`doc/manual.md` after the BNF block).
 
 ```
 ## Ambiguities
@@ -104,8 +105,11 @@ may surprise a naive reading:
 | `\-` | `\(a,b){ a - b }` | `\(a){ -a }` | for `-` (both un/binary) the [lambda](#lambda) section picks binary |
 ```
 
-2. Add ONE back-link line to each section, each prefixed with
-   "As detailed in [Ambiguities](#ambiguities), ":
+2. [DONE] Added ONE back-link note per section, prefixed
+   "See [Ambiguities](#ambiguities): " (the table only lists cases — no
+   prose — so "listed/See", not "detailed"). Wording matches the edited
+   table (`f(:X) []`, `with :a (until c, :b)`). Sections: Lambda, Calls,
+   Pipes, Await, Toggle.
    - `### Await`  : note that `await :X || :Y` reads as `(await :X) || :Y`,
      not as `await(:X || :Y)`.
    - `### Calls`  : note that `f` ⏎ `(x)` reads as two statements `f ; (x)`,

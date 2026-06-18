@@ -763,6 +763,9 @@ val g = \{ it + 1 }     ;; function to increment argument
 print(g(f(1,2)))        ;; --> 4
 ```
 
+See [Ambiguities](#ambiguities): `\-` reads as `\(a,b){ a - b }` (not
+`\(a){ -a }`).
+
 [lua-function]: https://www.lua.org/manual/5.4/manual.html#3.4.11
 
 ## Task
@@ -1589,6 +1592,10 @@ print :ok       ;; --> ok
 type []         ;; :table
 ```
 
+See [Ambiguities](#ambiguities):
+    `f` ⏎ `(x)` reads as two statements `f ; (x)` (not `f(x)`); and
+    `f :X []` reads as `f(:X [])` (not `f(:X) []`).
+
 [lua-call]: https://www.lua.org/manual/5.4/manual.html#3.4.10
 
 ### Pipes
@@ -1621,6 +1628,9 @@ Examples:
 f <-- 10 -> g   ;; equivalent to `f(g(10))`
 t -> f(10)      ;; equivalent to `f(t,10)`
 ```
+
+See [Ambiguities](#ambiguities): `x<-y` reads as the pipe `y(x)` (not
+`x < (-y)`).
 
 ### Parenthesis
 
@@ -2190,6 +2200,9 @@ val e = await(:any ts)  ;; awaits any task to terminate
 await(:all ts)          ;; awaits all tasks (pool drains)
 ```
 
+See [Ambiguities](#ambiguities): `await :X || :Y` reads as
+`(await :X) || :Y` (not `await(:X || :Y)`).
+
 ### Emit
 
 An `emit` broadcasts an event that can awake [awaiting](#await) tasks:
@@ -2301,6 +2314,9 @@ emit(:Ok [false])
 emit(:Tick)         ;; (nop)
 emit(:Draw)         ;; --> draw
 ```
+
+See [Ambiguities](#ambiguities): `with :a until c, :b` reads as
+`with :a (until c, :b)` (not `with (:a until c), :b`).
 
 ### Watching
 
@@ -2732,3 +2748,17 @@ STR   : '.*' | ".*"                 ;; string
 CLK   : ([0-9\.]+(us|ms|s|min|h|day))+  ;; duration
 NAT   : `.*`                        ;; native expression
 ```
+
+## Ambiguities
+
+Every program has a single parse, but a few constructs resolve in a way that
+may surprise a naive reading:
+
+| #                 | case                  | what it is              | what it is **not**       |
+|-------------------|-----------------------|-------------------------|--------------------------|
+| [await](#await)   | `await :X \|\| :Y`    | `(await :X) \|\| :Y`    | `await(:X \|\| :Y)`      |
+| [calls](#calls)   | `f` ⏎ `(x)`           | `f ; (x)`               | `f(x)`                   |
+| [calls](#calls)   | `f :X []`             | `f(:X [])`              | `f(:X) []`               |
+| [pipes](#pipes)   | `x<-y`                | `y(x)`                  | `x < (-y)`               |
+| [toggle](#toggle) | `with :a until c, :b` | `with :a (until c, :b)` | `with (:a until c), :b`  |
+| [lambda](#lambda) | `\-`                  | `\(a,b){ a - b }`       | `\(a){ -a }`             |
