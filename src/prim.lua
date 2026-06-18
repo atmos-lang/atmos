@@ -653,7 +653,7 @@ function parser_1_prim ()
             local cb = { tag='func', lua=true, pars=ids or {}, blk=blk }
             return {
                 tag = 'call',
-                f = { tag='acc', tk={tag='id',str='every'} },
+                f = { tag='acc', tk={tag='id',str='loop_on'} },
                 es = { awt, cb }
             }
         else

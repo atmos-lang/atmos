@@ -10,7 +10,7 @@ var rect = @{'!', x=256/2, y=256/2, w=40, h=40}
 
 spawn {
     val pt = @{'!', x=256/2, y=220, h=20}
-    every :draw {
+    loop on :draw {
         pico.output.draw.rect(rect)
         pico.output.draw.text(text, pt)
     }
@@ -31,7 +31,7 @@ loop {
             await :mouse.button.up
             set text = "!!! DRAGGED !!!"
         } with {
-            every e in :mouse.motion {
+            loop e on :mouse.motion {
                 set rect.x = orig.x + (e.x - click.x)
                 set rect.y = orig.y + (e.y - click.y)
             }

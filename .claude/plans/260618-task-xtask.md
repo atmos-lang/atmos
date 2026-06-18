@@ -1,5 +1,27 @@
 # Compiler: `task` keyword + `xtask` (atmos-lang side)
 
+## Sidetrack: `every` -> `loop_on` emission (DONE)
+
+Runtime renamed `M.every` -> `M.loop_on` (no `every` alias in
+`init.lua`). The compiler emitted `every(...)`, undefined in the new
+runtime. The surface keyword was already `loop on`; only the emitted
+name was stale.
+
+| file              | place                  | change                       |
+|-------------------|------------------------|------------------------------|
+| src/prim.lua      | `loop on` desugar :656 | emit `loop_on` not `every`   |
+| tst/stmt.lua      | 5 tosource asserts     | `every(` -> `loop_on(`       |
+| exs/hello.atm     | :5                     | `every` -> `loop on`         |
+| exs/rx-behavior.atm | :9                   | `every` -> `loop on`         |
+| exs/clicks.atm    | 5 sites                | `every [ids] [in]` -> `loop` |
+| exs/click-drag-cancel.atm | 2 sites        | `every [ids] [in]` -> `loop` |
+
+Note: `every` is no longer a keyword (`global.lua` KEYS has only
+`loop`/`on`; lexer treats `every` as a plain id), so the stale `.atm`
+forms no longer parsed -- now migrated. `doc/manual.md` code blocks
+already use `loop on`; the `<!-- exs/exp-29-every.atm -->` marker is a
+cosmetic stale label (left as-is).
+
 ## Status
 
 PENDING -- not started. Companion to the lua-atmos runtime work, which

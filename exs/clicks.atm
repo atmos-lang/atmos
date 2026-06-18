@@ -12,7 +12,7 @@ var rect = @{'!', x=256/2, y=256/2, w=20, h=20}
 
 spawn {
     par {
-        every :draw {
+        loop on :draw {
             pico.output.draw.rect(rect)
             val pt = @{'!', x=80, y=10, h=15}
             loop _,t in txts {
@@ -21,7 +21,7 @@ spawn {
             }
         }
     } with {
-        every m in :mouse.motion {
+        loop m on :mouse.motion {
             set rect.x = m.x
             set rect.y = m.y
         }
@@ -79,7 +79,7 @@ func Buffer (src, ctl) {
     val v = await(src)
     set ret[+] = v
     watching ctl {
-        every v in src {
+        loop v on src {
             set ret[+] = v
         }
     }
@@ -104,11 +104,11 @@ par {
         set txts = @{}
     }
 } with {
-    every _,pos,n in :sdl.mouse.button.dn {
+    loop _,pos,n on :sdl.mouse.button.dn {
         set txts[+] = "dn (" ++ pos.x++','++pos.y ++"): " ++ n
     }
 } with {
-    every _,pos in :sdl.mouse.button.up {
+    loop _,pos on :sdl.mouse.button.up {
         set txts[+] = "up (" ++ pos.x++','++pos.y ++")"
     }
 }
