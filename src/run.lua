@@ -2,7 +2,7 @@ X = require "atmos.x"   -- global bc of threads/lanes
 
 function atm_pin_chk_set (chk, pin, ...)
     local t = ...
-    if X.is(t,'task') or X.is(t,'tasks') then
+    if X.is(t,'xtask') or X.is(t,'tasks') then
         if pin then
             assertn(2, (not chk) or (not t.pin),
                 "invalid assignment : expected unpinned value")

@@ -4,9 +4,8 @@ require "atmos.lang.await"
 local function spawn (lin, blk)
     return {
         tag = 'call',
-        f = { tag='acc', tk={tag='id', str='spawn', lin=lin} },
+        f = { tag='acc', tk={tag='id', str='do_spawn', lin=lin} },
         es = {
-            { tag='bool', tk={str='true'} },    -- transparent=true
             { tag='func', pars={}, blk=blk },
         },
     }
@@ -31,16 +30,15 @@ function parser_spawn ()
             err(tk, "expected call syntax")
         end
 
+        table.insert(call.es, 1, call.f)
         local f; do
             if ts then
                 table.insert(call.es, 1, ts)
                 f = 'spawn_in'
             else
-                table.insert(call.es, 1, {tag='bool',tk={str='false'}})
                 f = 'spawn'
             end
         end
-        table.insert(call.es, 2, call.f)
 
         local spw = {
             tag = 'call',
@@ -202,7 +200,7 @@ function parser_1_prim ()
         elseif check('spawn') then
             local lin = TK1.lin
             local out,spw = parser_spawn()
-            if spw.f.tk.str == 'spawn' then
+            if spw.f.tk.str ~= 'spawn_in' then
                 -- force "pin" if no "in" target
                 out = {
                     tag = 'dcl',
@@ -337,8 +335,7 @@ function parser_1_prim ()
             if check('spawn') then
                 local tk1 = TK1
                 set = parser_spawn()
-                local inv = set.es[1]
-                if inv.tag=='bool' and inv.tk.str=="true" then
+                if set.f.tk.str == 'do_spawn' then
                     err(tk, "invalid assignment : unexpected transparent task")
                 end
             elseif accept('tasks') then

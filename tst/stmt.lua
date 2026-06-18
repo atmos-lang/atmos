@@ -813,7 +813,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "pin _ = spawn(false, T, 1, 2, 3)")
+    assertx(tosource(s), "pin _ = spawn(T, 1, 2, 3)")
 
     local src = "spawn (x+10)"
     print("Testing...", src)
@@ -830,7 +830,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "val t = spawn(false, T)")
+    assertx(tosource(s), "val t = spawn(T)")
     --local ok, msg = pcall(parser)
     --assert(not ok)
     --assert(msg, "anon : line 1 : near 'spawn' : invalid spawn : expected pin declaration")

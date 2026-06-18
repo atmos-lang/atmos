@@ -22,11 +22,50 @@ forms no longer parsed -- now migrated. `doc/manual.md` code blocks
 already use `loop on`; the `<!-- exs/exp-29-every.atm -->` marker is a
 cosmetic stale label (left as-is).
 
+## Decision: error traces label instances `task`, not `xtask`
+
+The `trace()` frame label is a human-readable string only; identity is
+the metatable (`getmetatable(x)==meta_xtask`). Users write `task`/
+`spawn` in source and never type `xtask`, so traces echo their
+vocabulary. Pool frames still read `tasks`; a trace shows `task`/
+`tasks` but never `xtask`.
+
+| repo                       | action                                       |
+|----------------------------|----------------------------------------------|
+| lua-atmos (runtime)        | `run.lua:184` emit `'task'` (was `'xtask'`)  |
+| atmos-lang (this worktree) | NO change -- keep tst/exec.lua `(task)`      |
+
+The `run.lua` edit is OUTSIDE this worktree; must be applied in the
+lua-atmos worktree. Until then `tst/exec.lua` "defer 4" etc. fail
+(runtime currently emits `xtask`).
+
 ## Status
 
-PENDING -- not started. Companion to the lua-atmos runtime work, which
+IN PROGRESS. Companion to the lua-atmos runtime work, which
 is DONE and GREEN (`/x/lua-atmos/atmos`, branch `260616-task-xtask`,
 plan `.claude/plans/260616-task-xtask.md` §1-§2).
+
+### Done so far
+
+- Sidetrack `every` -> `loop_on` (src + tests + exs).
+- Trace label decision: instances read `task` (runtime `run.lua:184`).
+- Spawn emission migrated (src/prim.lua):
+    - block `spawn {}` -> `do_spawn(fn)` (helper).
+    - `spawn T()` -> `spawn(T, ...)` (dropped `false`).
+    - `spawn @ts T()` -> `spawn_in(ts, T, ...)` (unchanged).
+    - pin-wrap now triggers unless `spawn_in` (wraps `do_spawn` too,
+      for its `<close>` handle).
+    - transparent-reject detects `f.str=='do_spawn'` (boolean gone).
+- src/run.lua:5 `atm_pin_chk_set`: `X.is(t,'task')` -> `'xtask'`.
+- tst/stmt.lua tosource: dropped `false` from `spawn(false, T...)`.
+
+### Pending
+
+- `task` keyword + declaration forms (the core, not yet started).
+- tst/tasks.lua bulk sweep + negative tests (raw-func spawn now
+  rejected by runtime: "expected task prototype").
+- coder.lua `task=true` flag; aux.lua `atm_behavior`; tosource;
+  doc/manual.md; rockspec bump.
 
 This plan covers §3 "Compiler" of that runtime plan, adapted to the
 CURRENT runtime API (the runtime was renamed after §3 was written).
