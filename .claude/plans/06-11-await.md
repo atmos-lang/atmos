@@ -11,6 +11,10 @@ rationale, recipes, and per-test detail):
 - `done/06-and-or-not.md` — value-event runtime alignment + combinator lowering
   to `{tag='or'/'and'/'not'}`; the live value-event test migration.
 
+STATUS: CLOSED (2026-06-18). All compiler, test, docs, and runtime items
+done; bare-pool guard landed; non-table `emit` guard skipped; streams
+covered. See per-item marks below.
+
 This plan is the ACTIVE tracker: the shared goal + the REMAINING work.
 
 ## Goal
@@ -176,7 +180,10 @@ may surprise a naive reading:
   - [DONE] atmos-lang test: `tst/tasks.lua` "tasks 7" — `await(ts)` asserts
     the guard message via `assertfx`. Suite GREEN.
 - [SKIP] clock/non-table emit guard: `emit(5)`/`emit(true)`. Skipped.
-- [ ] streams sanity check; optional `S.emitter` value-event pin test.
+- [DONE] streams sanity check — value-event behavior already covered by live
+  `tst/streams.lua` cases (beh 2/beh 3: `fr_await` tags/clocks, `loop on :x`,
+  `e.tag`/`e@1`, `emit :X`); suite GREEN. Optional `::emitter` RUNTIME pin
+  test skipped (path is indirectly covered + parse-pinned at `streams.lua:27`).
 
 ## Format note (evolution — do not regress)
 
