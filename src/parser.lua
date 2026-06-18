@@ -263,8 +263,9 @@ function parser_2_suf (pre)
                check('toggle') or check('thread')
     local e = pre or parser_1_prim()
 
-    local ok = (not no) and is_prefix(e) and
-                (TK0.sep==TK1.sep or TK1.str=='.' or TK1.str=='::')
+    local ok = (not no) and is_prefix(e) and (
+        TK0.sep==TK1.sep or TK1.str=='@' or TK1.str=='.' or TK1.str=='::'
+    )
     if not ok then
         return e
     end
