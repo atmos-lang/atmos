@@ -2980,6 +2980,17 @@ do
     local out = atm_test(src)
     assertx(out, "false\n")
 
+    -- bare await(ts): a pool is ambiguous (any vs all), needs :any/:all
+    local src = [[
+        spawn {
+            pin ts = tasks()
+            await(ts)
+        }
+    ]]
+    print("Testing...", "tasks 7: error: bare pool needs :any/:all")
+    local out = atm_test(src)
+    assertfx(out, "invalid await : unexpected tasks pool : expected ':any' or ':all'")
+
     local src = [[
         val T = func (v) { }
         pin ts = tasks()

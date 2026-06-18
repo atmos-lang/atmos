@@ -169,7 +169,12 @@ may surprise a naive reading:
   (`tag=='until' or tag=='while'`, results at 514/516). The old BLOCKING
   reconcile is resolved; compiler wiring is green.
 - [ ] bare-pool guard: `await(ts)` HANGS (pool has no `.tag`; `run.lua:471`
-  falls through). Add error + test. NOT done.
+  falls through). Design CONFIRMED (require `:any`/`:all`; bare pool is
+  ambiguous). Plan: `lua-atmos/atmos/.claude/plans/260618-await-tasks.md`.
+  - [DONE] atmos-lang test added: `tst/tasks.lua` "tasks 7" — `await(ts)`
+    -> `anon.atm : line 3 : invalid await : unexpected task pool : expected
+    ':any' or ':all'`. NOTE: will HANG until the lua-atmos guard lands.
+  - [ ] lua-atmos guard itself (user's domain; do not edit there).
 - [ ] clock/non-table emit guard: `emit(5)`/`emit(true)` nil-deref. Line ref
   was stale (`627` is now emit-target code); needs runtime re-locate. UNVERIFIED.
 - [ ] streams sanity check; optional `S.emitter` value-event pin test.
