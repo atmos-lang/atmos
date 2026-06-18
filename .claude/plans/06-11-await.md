@@ -122,9 +122,9 @@ may surprise a naive reading:
    - `### Lambda` : note that `\-` reads as `\(a,b){ a - b }`, not as
      `\(a){ -a }`.
 
-3. Add a general pointer in the `# SYNTAX` intro (no template):
-   "See [Ambiguities](#ambiguities) for productions that resolve in ways a
-   naive reading may not expect."
+3. [DONE] Added general pointer in the `# SYNTAX` intro (after the
+   `X*`/`X+` notation paragraph): "See [Ambiguities](#ambiguities) for
+   productions that resolve in ways a naive reading may not expect."
 
 4. Anchors already verified present: `#await` `#calls` `#indexing`
    `#precedence-and-associativity` `#pipes` `#lambda` `#toggle`. New anchor
