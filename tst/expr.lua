@@ -1190,7 +1190,7 @@ do
     assertx(trim(tosource(e)), trim [[
         pin _ = func () {
             val v = 10
-            spawn(false, T, v)
+            spawn(T, v)
         }()
     ]])
 
@@ -1202,7 +1202,7 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(e)), trim [[
-        pin _ = spawn(true, {
+        pin _ = do_spawn({
         })
     ]])
 
@@ -1309,7 +1309,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "pin _ = spawn(false, T, 1, 2, 3)")
+    assertx(tosource(e), "pin _ = spawn(T, 1, 2, 3)")
     --local ok, msg = pcall(parser)
     --assertx(msg, "anon : line 1 : near 'spawn' : expected expression")
 
