@@ -54,8 +54,79 @@ done; see strike-through/DONE marks below.)
 - [MOSTLY DONE] Manual combinators are documented in the `### Await` pattern
   table (Logical group `!p`/`&&`/`||`, `until`/`while` preds, value-event
   matching `e =<= pat` / `e ?? x`) plus examples (`manual.md:~2130-2175`).
-  - [ ] only gap: explicit prose for the *parens + first-arg rule* (when a
-    combinator needs `await(...)` vs juxtaposition `await :X`).
+  - [ ] SUPERSEDED: the parens/first-arg rule is now one row of a new
+    `## Ambiguities` table — see the dedicated task below.
+
+### atmos-lang — docs : `## Ambiguities` section (PENDING — resume here)
+
+Context: a syntax sweep (lexer+parser) found the real "silent surprise"
+parses. We document only those in a new `## Ambiguities` table.
+
+Decisions (settled 2026-06-18):
+- Place a `## Ambiguities` subsection at the END of `# SYNTAX`, after the BNF
+  block (~`doc/manual.md:2734`). 4-col table: case | what it is | what it
+  could be | why.
+- INCLUDE (silent surprises): await-parens, newline-ends-call, `f :X []`
+  greedy, `<-` pipe-lexing, toggle-filter swallow, `\-` binary.
+- EXCLUDE: self-announcing errors (same-level bin, same-line stmts); design
+  choices already in *Subtleties* (`::`, `[]`, list-parens, return-parens);
+  general max-munch; `5s` clock; `.`/`...`.
+- `@` index DROPPED from ambiguities (see compiler change below — it now
+  chains across newlines like `.`/`::`, so no longer surprising). NO
+  `### Indexing` back-link.
+- Stale commented note at `manual.md:1304` (binary same-line): LEAVE as-is
+  (HTML comment, user decided not to touch).
+
+DONE (compiler):
+- [DONE] `src/parser.lua` `parser_2_suf`: added `@` to the cross-newline
+  suffix exemption (`TK1.str=='@'`), so `t` ⏎ `@1` chains as `t@1` (was a
+  parse error). Only converts former errors -> valid; no valid program
+  changes meaning.
+  - [ ] optional: add a parse test pinning `t` ⏎ `@1` -> `t@1`.
+
+NEXT STEPS (docs — execute in order on resume):
+
+1. Append this table at the end of `# SYNTAX` (after `doc/manual.md:~2734`):
+
+```
+## Ambiguities
+
+Every program has a single parse, but a few constructs resolve in a way that
+may surprise a naive reading:
+
+| case | what it is | what it could be | why |
+|------|------------|------------------|-----|
+| `await :X \|\| :Y` | `(await :X) \|\| :Y` | `await(:X \|\| :Y)` | bare [await](#await) takes one pattern; parens for combinators |
+| `f` ⏎ `(x)` | `f ; (x)` | `f(x)` | a [call](#calls) continues only on the same line (`.`/`::` access chains) |
+| `f :X []` | `f(:X [])` | `(f(:X)) []` | single constructor-arg [call](#calls) is greedy |
+| `x<-y` | `y(x)` | `x < (-y)` | `<- -> <-- -->` lex as [pipes](#pipes); space to compare |
+| `… with :a until c, :b` | `:a until (c, :b)` | `(:a until c), :b` | a [toggle](#toggle) filter's `until`/`while` eats the comma-list |
+| `\-` | `\(a,b){ a - b }` | `\(a){ -a }` | for `-` (both un/binary) the [lambda](#lambda) section picks binary |
+```
+
+2. Add ONE back-link line to each section, each prefixed with
+   "As detailed in [Ambiguities](#ambiguities), ":
+   - `### Await`  : note that `await :X || :Y` reads as `(await :X) || :Y`,
+     not as `await(:X || :Y)`.
+   - `### Calls`  : note that `f` ⏎ `(x)` reads as two statements `f ; (x)`,
+     not as `f(x)`, and that `f :X []` reads as `f(:X [])`, not as
+     `(f(:X)) []`.
+   - `### Pipes`  : note that `x<-y` reads as the pipe `x <- y`, not as
+     `x < (-y)`.
+   - `### Toggle` : note that `with :a until c, :b` reads as `:a until
+     (c, :b)`, not as `(:a until c), :b`.
+   - `### Lambda` : note that `\-` reads as `\(a,b){ a - b }`, not as
+     `\(a){ -a }`.
+
+3. Add a general pointer in the `# SYNTAX` intro (no template):
+   "See [Ambiguities](#ambiguities) for productions that resolve in ways a
+   naive reading may not expect."
+
+4. Anchors already verified present: `#await` `#calls` `#indexing`
+   `#precedence-and-associativity` `#pipes` `#lambda` `#toggle`. New anchor
+   `#ambiguities` from the section title.
+
+5. Do NOT regenerate `doc/manual-out.md` (auto-gen; defer).
 - [DONE] Manual: reviewed `every`(->`loop on`) / `watching` / `par_*` examples
   — all v0.7 value-event already; renamed capture var `loop it on :X` ->
   `loop e on :X` (manual:1862) to avoid clashing with the `it` keyword.
