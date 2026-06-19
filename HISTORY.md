@@ -1,10 +1,15 @@
 v0.7 (jun/26)
 -------------
 
-Major refactoring around symbol `@` affecting the syntax of tables, indexing,
-and clocks.
+Two major refactorings:
+
+- symbol `@` affecting the syntax of tables, indexing, and clocks
+- distinction between `task` (the prototype) vs `xtask` (the instance)
 
 - Additions:
+    - `:task` / `:xtask` / `:tasks`: prototype vs instance vs pool
+        - `task T () { ... }`: prototype
+        - `xtask(T)`: instance
     - `abort` task and tasks
     - `await` patterns:
         - any/all tasks in pools:
