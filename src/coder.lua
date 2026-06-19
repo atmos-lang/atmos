@@ -51,7 +51,7 @@ function coder (e)
     elseif e.tag == 'acc' then
         if e.tk.str == 'pub' then
             --return L(e.tk) .. "(function() print(debug.traceback());return assert(atm_me(true), 'TODO') end)().pub"
-            return L(e.tk) .. "assert(task(),'invalid pub : expected enclosing task').pub"
+            return L(e.tk) .. "assert(xtask(),'invalid pub : expected enclosing task').pub"
         elseif contains(ids, e.tk.str) then
             return L(e.tk) .. "atm_"..e.tk.str
         else

@@ -83,6 +83,15 @@ still parses (tasks special-cased in val/var/pin and as call).
     - `T()` direct-call of a prototype fails.
     - `spawn F()` / `await F()` of a plain func fails.
     - `xtask(p)` where `p` is not a prototype fails.
+      RUNTIME DEPENDENCY (blocks this test): surface `xtask(rawfunc)`
+      currently SUCCEEDS because `M.xtask` (lua-atmos run.lua:405) falls
+      back to `or T` for any function. That fallback is only meant for
+      the internal transparent-spawn path (`tra=true`). Runtime must gate
+      it to that path:
+          local f = (getmetatable(T)==meta_task and T._.f) or (tra and T)
+      Until applied, a negative test for `xtask(\{})` stays RED. A
+      placeholder negative test is already in `tst/x.lua` right after
+      "is 3" (see below).
 - Also re-check `exs/*.atm` for raw `spawn func`/`task(`/`:task`.
 
 ### 4. `src/aux.lua` `atm_behavior` (~line 63)
@@ -114,6 +123,10 @@ Verify current code; update; add/adjust a streams test if needed.
 3. `pin task T()` -- reject in parser? (protos are not pinnable).
    STILL OPEN -- decide and, if rejecting, add the check + a test.
 4. `toggle T()` on a prototype vs instances only -- lean instances.
+   STILL OPEN.
+5. Task proto DECL (the `val/var/pin task NAME` decl form, NOT the
+   `set NAME = task ...` form) should REQUIRE `NAME` to begin with an
+   uppercase letter. Add the parser check + a negative test.
    STILL OPEN.
 
 -------------------------------------------------------------------------------

@@ -1623,12 +1623,12 @@ do
     ]])
 
     local src = [[
-        val T = func (a) {
+        val T = task (a) {
             print(a)
             val b = await(:X)
             print(b)
         }
-        pin t = task(T)
+        pin t = xtask(T)
         spawn t(10)
         emit(:X)
     ]]
@@ -1637,7 +1637,7 @@ do
     assertx(out, "10\nX\n")
 
     local src = [[
-        val T = func (a) {
+        val T = task (a) {
             print(a)
             val b = await(true)
             print(b)
@@ -1727,7 +1727,7 @@ do
     local out = atm_test(src)
 
     local src = [[
-        val tk = func (v) {
+        val tk = task (v) {
             val e1 = await(true)
             print(:1, e1)
             val e2 = await(true)
@@ -1756,8 +1756,8 @@ do
     ]])
 
     local src = [[
-        spawn (func () {
-            spawn (func () {
+        spawn (task () {
+            spawn (task () {
                 throw(:X)
             }) ()
         }) ()
@@ -1767,7 +1767,7 @@ do
     warnx(out, "anon.atm : line 1 : invalid emit : invalid target\n")
 
     local src = [[
-        spawn (func () {
+        spawn (task () {
             set pub = 10
             print(pub)
         }) ()
@@ -1777,7 +1777,7 @@ do
     assertx(out, "10\n")
 
     local src = [[
-        pin t = spawn (func () {
+        pin t = spawn (task () {
             set pub = 10
         }) ()
         print(t.pub)
@@ -1790,7 +1790,7 @@ do
         print(:1)
         do {
             print(:2)
-            spawn (func () {
+            spawn (task () {
                 defer {
                     print(:defer)
                 }
@@ -1808,7 +1808,7 @@ do
         print(:1)
         do {
             print(:2)
-            pin x = spawn (func () {
+            pin x = spawn (task () {
                 defer {
                     print(:defer)
                 }
@@ -1950,7 +1950,7 @@ do
     ]]
     print("Testing...", "tasks 1")
     local out = atm_test(src)
-    assertfx(out, "table: 0x")
+    assertfx(out, "tasks: 0x")
 
     local src = [[
         pin ts = tasks()
@@ -1961,7 +1961,7 @@ do
     assertx(out, "table\n")
 
     local src = [[
-        val T = func () {
+        val T = task () {
             print(:in)
         }
         pin ts = tasks()
@@ -1973,7 +1973,7 @@ do
     assertx(out, "in\nout\n")
 
     local src = [[
-        val T = func () {
+        val T = task () {
             print(:ok)
         }
         pin ts = tasks(2)
@@ -1986,7 +1986,7 @@ do
 
     local src = [[
         var T
-        set T = func () {
+        set T = task () {
             await(true)
         }
         pin ts = tasks()
@@ -2000,7 +2000,7 @@ do
 
     local src = [[
         var T
-        set T = func (v) {
+        set T = task (v) {
             defer {
                 print(v)
             }
@@ -2019,7 +2019,7 @@ do
         do {
             pin ts = tasks()
             var T
-            set T = func (v) {
+            set T = task (v) {
                 print(v)
                 val vx = await(true)
                 print(vx)
@@ -2036,7 +2036,7 @@ do
         do {
             pin ts = tasks()
             var T
-            set T = func (v) {
+            set T = task (v) {
                 print(v)
                 val vx = await(true)
                 print(vx)
@@ -2050,7 +2050,7 @@ do
     assertx(out, "1\n")
 
     local src = [[
-        val T = func () {
+        val T = task () {
         }
         pin ts = tasks(1)
         val ok1 = spawn @ts T()
@@ -2062,7 +2062,7 @@ do
     assertx(out, "true\ttrue\n")
 
     local src = [[
-        val T = func () {
+        val T = task () {
             await(true)
         }
         pin ts = tasks(1)
@@ -2075,14 +2075,14 @@ do
     assertx(out, "true\tnil\n")
 
     local src = [[
-        val T = func () {
+        val T = task () {
             await(true)
         }
         pin ts = tasks()
         spawn @ts T()
         spawn @ts T()
         loop _,t in ts {
-            print(t ?? :task)
+            print(t ?? :xtask)
         }
     ]]
     print("Testing...", "tasks 11: iter")
@@ -2090,7 +2090,7 @@ do
     assertx(out, "true\ntrue\n")
 
     local src = [[
-        val T = func () {
+        val T = task () {
             set pub = 10
             print(pub)
             spawn {
@@ -2124,7 +2124,7 @@ do
     assertx(out, "antes\ndefer\nabort\ndepois\n")
 
     local src = [[
-        val T = func (i) {
+        val T = task (i) {
             loop on :X {
                 print(:X, i)
             }
@@ -2178,7 +2178,7 @@ print '--- AWAIT / TASK ---'
 do
     local src = [[
         spawn {
-            pin t = spawn (\{ return(10) }) ()
+            pin t = spawn (task () { return(10) }) ()
             val x = await(t)
             print(:ok, x)
         }
@@ -2189,7 +2189,7 @@ do
 
     local src = [[
         spawn {
-            pin t = spawn (\{
+            pin t = spawn (task () {
                 await(:X)
                 return(10)
             }) ()
@@ -2203,7 +2203,7 @@ do
     assertx(out, "ok\t10\n")
 
     local src = [[
-        func T (v) {
+        task T (v) {
             v * 2
         }
         spawn {
@@ -2221,7 +2221,7 @@ do
     local src = [[
         spawn {
             pin ts = tasks()
-            func T (v) {
+            task T (v) {
                 await(v)
                 print(v)
                 return(v)
@@ -2240,7 +2240,7 @@ do
     local src = [[
         spawn {
             pin ts = tasks()
-            func T (v) {
+            task T (v) {
                 await(true)
                 print(v)
                 return(v)
@@ -2336,7 +2336,7 @@ do
     ]])
 
     local src = [[
-        pin f = task(func () {})
+        pin f = xtask(task () {})
         toggle f() ; nil
     ]]
     print("Testing...", "toggle 2")
@@ -2349,12 +2349,12 @@ do
     ]])
 
     local src = [[
-        val T = func () {
+        val T = task () {
             print :1
             await(true)
             print :2
         }
-        pin t = task(T)
+        pin t = xtask(T)
 
         print :A
         toggle t (false)
@@ -2373,7 +2373,7 @@ do
     assertx(out, "A\nB\n1\nC\n2\n")
 
     local src = [[
-        val T = func () {
+        val T = task () {
             await(true)
             print(10)
         }
@@ -2392,7 +2392,7 @@ do
 
     local src = [[
         var T
-        set T = func () {
+        set T = task () {
             defer {
                 print(10)
             }
@@ -2410,7 +2410,7 @@ do
     assertx(out, "1\n2\n10\n")
 
     local src = [[
-        val T = func () {
+        val T = task () {
             nil
         }
         pin t = spawn T()
@@ -2424,8 +2424,8 @@ do
     assertx(out, "ok\n")
 
     local src = [[
-        val T = func () {
-            spawn (func () {
+        val T = task () {
+            spawn (task () {
                 await(:nil)
                 print(3)
             }) ()
@@ -2445,7 +2445,7 @@ do
     assertx(out, "1\n2\n3\n4\n")
 
     local src = [[
-        func T (v) {
+        task T (v) {
             set pub = v
             toggle on :Show {
                 print(pub)
@@ -2482,8 +2482,8 @@ do
 
     -- filter: toggled off, still reacts to events matching `with`
     local src = [[
-        val T = func () {
-            spawn (func () {
+        val T = task () {
+            spawn (task () {
                 loop on :Draw { print(:draw) }
             }) ()
             loop on :Tick { print(:tick) }
