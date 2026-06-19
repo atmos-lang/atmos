@@ -92,9 +92,9 @@ print '--- TOGGLE FILTER : EXEC ---'
 do
     -- combinator filter passes multiple events while toggled off
     local src = [[
-        val T = func () {
-            spawn (func () { loop on :Draw  { print(:draw)  } }) ()
-            spawn (func () { loop on :Click { print(:click) } }) ()
+        val T = task () {
+            spawn (task () { loop on :Draw  { print(:draw)  } }) ()
+            spawn (task () { loop on :Click { print(:click) } }) ()
             loop on :Tick { print(:tick) }
         }
         pin t = spawn T()

@@ -96,34 +96,39 @@ still parses (tasks special-cased in val/var/pin and as call).
       `assertx` block in `tst/x.lua` and confirm it passes.
 - Also re-check `exs/*.atm` for raw `spawn func`/`task(`/`:task`.
 
-### Open runtime question: root `spawn` auto-pins (task-term tests)
+### Open runtime question: task-term `pin t =` double-pin
 
 `tst/tasks.lua` "task-term 1/2/3" (former `spawn (\{}) ()` lambda-
-spawns, now `spawn (task(){}) ()`) use `pin t = spawn (...) ()` at
-ROOT level and emit a trailing `invalid assignment : expected unpinned
-value`. Mechanism: a root `spawn` defaults its parent to the `TASKS`
-pool, and spawning into a pool AUTO-PINS the instance (`t.pin=true`);
-the explicit `pin t =` then double-pins (`atm_pin_chk_set` asserts
-`not t.pin`) -> error. `val t =` would match the already-pinned
-instance and be clean.
+spawns, now `spawn (task(){}) ()`) emit a trailing
+`invalid assignment : expected unpinned value` at the `pin t = spawn
+(...) ()` line. NOT a simple root-spawn auto-pin: verified that
+  pin t = spawn T()            -- at root, ALONE -> CLEAN
+  val t = spawn T()            -- at root -> "expected pinned value"
+so a lone root spawn leaves the instance UNPINNED (pin pins it, val
+fails). The double-pin error appears ONLY in the two-spawn structure
+(a preceding awaiting `spawn { pin e = await(true) ... }` block, THEN
+`pin t = spawn (...) ()`): there `atm_pin_chk_set(pin=true)` sees
+`t.pin` already true. Exact mechanism (why the prior block leaves the
+later instance pre-pinned) is UNCLEAR -- needs runtime investigation.
 
 Tests still PASS (assertfx = `string.find`, finds `ok\txtask: 0x`
-before the trailing error), so nothing is broken -- it is a latent
-question, not a failure. DECISION NEEDED:
-  - if root `spawn` SHOULD auto-pin -> switch those tests to `val t =`.
-  - if the auto-pin is unintended -> fix runtime, keep `pin t =`.
-Confirm alongside the `xtask` gate above. Left as `pin` for now (not
-masked with `val`).
+before the trailing error), so nothing is broken -- latent question,
+not a failure. Confirm alongside the `xtask` gate above. Left as `pin`
+for now (not masked with `val`).
 
-### 4. `src/aux.lua` `atm_behavior` (~line 63)
+### 4. `src/aux.lua` `atm_behavior` -- DONE
 
-Reached by behavior streams `pin x* = <stream>` (table-set path in
-prim.lua emits `atm_behavior(_x, x, stream)` + `spawn_in`). New runtime
-`spawn_in(tsks, t, …)` needs `t : task` PROTOTYPE. So bless the
-behavior fn into a proto ONCE at module level:
-    local Tp = task(fn)        -- once
-    ... spawn_in(tsks, Tp, …)  -- per spawn
-Verify current code; update; add/adjust a streams test if needed.
+The local `T` (behavior task body) is a raw function; new `spawn_in`
+needs a task PROTOTYPE. Fixed by blessing once per call before the
+loop:
+    function atm_behavior (id, tsks, tab, ss)
+        local Tp = task(T)
+        for k,s in pairs(ss) do spawn_in(tsks, Tp, id, tab, k, s) end
+    end
+Blessed at CALL time (not module level) so the runtime `task` global
+is guaranteed available. Verified: streams.lua "beh 3" (table behavior
+`pin x* = [s1, s2]`) emits `x.1/x.2` correctly. The tosource test
+"pin x* = 10" expected `spawn(true,{...})` -> updated to `do_spawn({...})`.
 (NOTE: the non-table behavior path in prim.lua already emits
 `do_spawn` via the `spawn` helper -- no proto needed there.)
 

@@ -120,7 +120,7 @@ do
     ]]
     print("Testing...", "task 3: coro/proto/xtask")
     local out = atm_test(src)
-    assertfx(out, "func: 0x.*task: 0x.*thread: 0x.*xtask: 0x")
+    assertfx(out, "function: 0x.*task: 0x.*thread: 0x.*xtask: 0x")
 
     local src = [[
         yield()
@@ -1360,7 +1360,7 @@ print '--- PIN ---'
 
 do
     local src = [[
-        val T = \{}
+        val T = task () {}
         val t = spawn T()
     ]]
     print("Testing...", "pin 1")
@@ -1783,7 +1783,7 @@ end
 do
     local src = [[
         spawn (
-            func () {
+            task () {
                 defer {
                     print(:defer)
                 }
@@ -1797,7 +1797,7 @@ do
 
     local src = [[
         spawn (
-            func () {
+            task () {
                 defer {
                     print(:defer)
                 }
