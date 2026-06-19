@@ -61,10 +61,17 @@ function parser_await (stop, base0)
     end
     local preds = parser_list_1(',', stop, parser)
     local fs = map(preds, function (e)
+        -- TODO: in both branches we assume simple-exprs bodies (no await/etc)
         if e.tag == 'proto' then
+            assert(e.sub == 'func')
             return e
+        else
+            return {
+                tag='proto', sub='lua',
+                pars = {{tag='id',str='it'}},
+                blk = {tag='block', es={e}},
+            }
         end
-        return { tag='proto', sub='lua', pars={{tag='id',str='it'}}, blk={tag='block', es={e}} }
     end)
     return mk_tagged(k.str, concat({pat}, fs))
 end
