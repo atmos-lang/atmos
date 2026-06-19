@@ -1242,6 +1242,23 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "xtask(T)")
 
+    local src = "task(T)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local _,msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '<eof>' : expected '{'")
+
+    local src = "task (a) { a }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "task (a) {\na\n}")
+
     local src = "tasks(10)"
     print("Testing...", src)
     init()

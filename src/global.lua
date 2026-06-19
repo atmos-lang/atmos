@@ -35,7 +35,7 @@ KEYS = {
     'pin', 'set', 'spawn', 'task', 'tasks', 'test', 'thread', 'toggle', 'true',
     'val', 'var', 'watching', 'where', 'with',
     -- 'abort', 'break', 'escape', 'it', 'pub', 'return', 'skip',
-    -- 'throw', 'until', 'while'
+    -- 'throw', 'until', 'while', 'xtask'
 }
 
 OPS = {

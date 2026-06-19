@@ -89,10 +89,31 @@ still parses (tasks special-cased in val/var/pin and as call).
       the internal transparent-spawn path (`tra=true`). Runtime must gate
       it to that path:
           local f = (getmetatable(T)==meta_task and T._.f) or (tra and T)
-      Until applied, a negative test for `xtask(\{})` stays RED. A
-      placeholder negative test is already in `tst/x.lua` right after
-      "is 3" (see below).
+      Until applied, a negative test for `xtask(\{})` stays RED. The
+      negative test "is 3b" is in `tst/x.lua` right after "is 3" but its
+      `assertx` is COMMENTED OUT (`--[=[ ... ]=]`) so the suite is green.
+      TODO: once the runtime gate above lands, UNCOMMENT the "is 3b"
+      `assertx` block in `tst/x.lua` and confirm it passes.
 - Also re-check `exs/*.atm` for raw `spawn func`/`task(`/`:task`.
+
+### Open runtime question: root `spawn` auto-pins (task-term tests)
+
+`tst/tasks.lua` "task-term 1/2/3" (former `spawn (\{}) ()` lambda-
+spawns, now `spawn (task(){}) ()`) use `pin t = spawn (...) ()` at
+ROOT level and emit a trailing `invalid assignment : expected unpinned
+value`. Mechanism: a root `spawn` defaults its parent to the `TASKS`
+pool, and spawning into a pool AUTO-PINS the instance (`t.pin=true`);
+the explicit `pin t =` then double-pins (`atm_pin_chk_set` asserts
+`not t.pin`) -> error. `val t =` would match the already-pinned
+instance and be clean.
+
+Tests still PASS (assertfx = `string.find`, finds `ok\txtask: 0x`
+before the trailing error), so nothing is broken -- it is a latent
+question, not a failure. DECISION NEEDED:
+  - if root `spawn` SHOULD auto-pin -> switch those tests to `val t =`.
+  - if the auto-pin is unintended -> fix runtime, keep `pin t =`.
+Confirm alongside the `xtask` gate above. Left as `pin` for now (not
+masked with `val`).
 
 ### 4. `src/aux.lua` `atm_behavior` (~line 63)
 
@@ -128,6 +149,27 @@ Verify current code; update; add/adjust a streams test if needed.
    `set NAME = task ...` form) should REQUIRE `NAME` to begin with an
    uppercase letter. Add the parser check + a negative test.
    STILL OPEN.
+
+### Known limitation: no surface bless `task(f) -> :task`
+
+You CANNOT turn an existing function value `f` into a task prototype
+at surface level. `task` is a keyword, so `task(f)` reads `(f)` as the
+anonymous-proto PARAM LIST and then demands a `{ body }` (`task(f)`
+alone -> "expected '{'"). It is ambiguous with `task (a,b) { ... }`
+and `task(f){...}` (a proto whose single param is `f`) -- there is no
+syntactic room to also mean "bless f". Symmetric note: once the
+`xtask` runtime gate lands (see §3), `xtask(f)` from a raw func also
+fails, so NEITHER proto-from-func nor instance-from-func is surface-
+expressible. This is intentional: task-ness is DECLARED, never
+retrofitted onto a plain `func`.
+
+Escapes / non-issues:
+- rare bless-an-existing-function: native ``\`task(f)\``` (calls the
+  runtime constructor directly -- verified works).
+- compiler-internal blessing (e.g. `atm_behavior`, §4) just emits Lua
+  `task(fn)` directly -- no surface form needed.
+- if ever wanted at surface, it must be a DISTINCT non-keyword builtin
+  (e.g. `proto(f)`), not a reuse of `task(...)`. Likely unwarranted.
 
 -------------------------------------------------------------------------------
 
