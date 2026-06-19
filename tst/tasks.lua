@@ -122,6 +122,17 @@ do
     local out = atm_test(src)
     assertfx(out, "function: 0x.*task: 0x.*thread: 0x.*xtask: 0x")
 
+    -- `val/var task NAME (...) {...}` declaration form (vs `val NAME = task ...`)
+    local src = [[
+        val task T (a) { print(:val, a) }
+        var task U (a) { print(:var, a) }
+        spawn T(1)
+        spawn U(2)
+    ]]
+    print("Testing...", "task 4: val/var task decl")
+    local out = atm_test(src)
+    assertx(out, "val\t1\nvar\t2\n")
+
     local src = [[
         yield()
     ]]
@@ -167,6 +178,34 @@ do
         ==> ERROR:
          |  [C]:-1 (loop)
          v  [string "anon.atm"]:1 (throw)
+        ==> invalid spawn : expected task prototype
+    ]])
+
+    -- direct-call of a prototype fails (a task proto is not callable)
+    local src = [[
+        val T = task () { }
+        T()
+    ]]
+    print("Testing...", "spawn neg: direct-call proto fails")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (loop)
+         v  [string "anon.atm"]:2 (throw)
+        ==> attempt to call a table value (local 'T')
+    ]])
+
+    -- await of a plain func fails (await spawns it -> rejects raw func)
+    local src = [[
+        val F = func () { }
+        spawn { await F() }
+    ]]
+    print("Testing...", "spawn neg: await plain func fails")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (loop)
+         v  [string "anon.atm"]:2 (throw)
         ==> invalid spawn : expected task prototype
     ]])
 

@@ -6,8 +6,11 @@ of that runtime plan, adapted to the CURRENT runtime API.
 
 ## Status: IN PROGRESS
 
-Source compiler changes are DONE and locally verified. Remaining work
-is the TEST SWEEP + `atm_behavior` + docs/rockspec. See RESUME HERE.
+Source compiler changes DONE. TEST SWEEP DONE -- FULL SUITE GREEN
+(lexer/expr/exec/x/tasks/toggle/streams/thread/cmd). `atm_behavior`
+(step 4) DONE. Remaining: docs (§5), rockspec (§6), open questions (§7),
+and the deferred runtime items (xtask gate + "is 3b" uncomment;
+task-term double-pin).
 
 -------------------------------------------------------------------------------
 
@@ -80,8 +83,13 @@ still parses (tasks special-cased in val/var/pin and as call).
   (`spawn(task(func(){…}))`) where the test should pass, or convert to
   a NEGATIVE test asserting the error.
 - ADD negative tests:
-    - `T()` direct-call of a prototype fails.
-    - `spawn F()` / `await F()` of a plain func fails.
+    - `T()` direct-call of a prototype fails. DONE (tasks.lua "spawn
+      neg: direct-call proto fails").
+    - `spawn F()` / `await F()` of a plain func fails. DONE: `spawn` via
+      "spawn nil" (170); `await F()` via tasks.lua "spawn neg: await
+      plain func fails".
+    - ALSO ADDED: `val/var task NAME (...){}` decl-form coverage
+      (tasks.lua "task 4: val/var task decl").
     - `xtask(p)` where `p` is not a prototype fails.
       RUNTIME DEPENDENCY (blocks this test): surface `xtask(rawfunc)`
       currently SUCCEEDS because `M.xtask` (lua-atmos run.lua:405) falls
