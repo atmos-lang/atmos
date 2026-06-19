@@ -109,4 +109,28 @@ do
     print("Testing...", "toggle filter combinator")
     local out = atm_test(src)
     assertx(out, "tick\ndraw\nclick\ntick\n")
+
+    -- toggle a whole tasks pool: gate/un-gate all members
+    local src = [[
+        val T = task (v) {
+            loop {
+                await(true)
+                print(v)
+            }
+        }
+        pin ts = tasks()
+        spawn @ts T(1)
+        spawn @ts T(2)
+        emit(:X)
+        toggle ts(false)
+        print("---")
+        emit(:X)
+        emit(:X)
+        print("---")
+        toggle ts(true)
+        emit(:X)
+    ]]
+    print("Testing...", "toggle pool target")
+    local out = atm_test(src)
+    assertx(out, "1\n2\n---\n---\n1\n2\n")
 end
