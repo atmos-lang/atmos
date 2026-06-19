@@ -14,7 +14,7 @@ do
     assert(e.tag == 'call')
     assert(e.f.tk.str == 'thread')
     assert(e.es[1].tag == 'proto')
-    assert(e.es[1].lua == true)
+    assert(e.es[1].sub == 'lua')
     assert(#e.es[1].pars == 0)
     assertx(tosource(e), "thread({\n10\n})")
 

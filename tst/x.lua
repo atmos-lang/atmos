@@ -166,13 +166,14 @@ do
     local src = [[
         print([] ?? :table)
         print(1s ?? :number)
-        print(task\{} ?? :task)
+        print(task () {} ?? :task)
+        print(xtask(task () {}) ?? :xtask)
         pin xs = tasks()
         print(xs ?? :tasks)
     ]]
     print("Testing...", "is 3")
     local out = atm_test(src)
-    assertx(out, "true\ntrue\ntrue\ntrue\n")
+    assertx(out, "true\ntrue\ntrue\ntrue\ntrue\n")
 
     local src = [[
         print([] ?? [])
