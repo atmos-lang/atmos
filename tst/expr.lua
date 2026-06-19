@@ -1233,14 +1233,14 @@ do
     assert(check('<eof>'))
     assertx(X.tostring(e), "{es={{tag=acc, tk={lin=1, sep=1, str=f, tag=id}}}, f={tag=acc, tk={lin=1, sep=1, str=coro, tag=id}}, tag=call}")
 
-    local src = "task(T)"
+    local src = "xtask(T)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "task(T)")
+    assertx(tosource(e), "xtask(T)")
 
     local src = "tasks(10)"
     print("Testing...", src)

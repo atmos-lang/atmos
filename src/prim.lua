@@ -50,54 +50,6 @@ function parser_spawn ()
     end
 end
 
--- shared parser for `func`/`task` declarations across all locations:
--- anon expression, named global `set`, and `val`/`var`/`pin` local `dcl`.
--- `sub` is 'func' or 'task'; `dcl` is the val/var/pin token (local form).
-local function parser_proto (sub, dcl)
-    -- `func` / `task` keyword already accepted
-    if dcl then
-        -- val/var/pin func|task T () {}  (simple id -> local dcl)
-        local id = accept_err(nil, 'id')
-        accept_err('(')
-        local dots, pars = parser_dots_pars()
-        accept_err(')')
-        local blk = parser_block()
-        local src = { tag='proto', sub=sub, dots=dots, pars=pars, blk=blk }
-        return { tag='dcl', tk=dcl, ids={id}, set=src }
-    elseif accept('(') then
-        -- anon: func|task () {}
-        local dots, pars = parser_dots_pars()
-        accept_err(')')
-        local blk = parser_block()
-        return { tag='proto', sub=sub, dots=dots, pars=pars, blk=blk }
-    else
-        -- named: func|task T(){} | M.f(){} | (func only) o::f(){}
-        local id = accept_err(nil, 'id')
-        local idxs = {}
-        while accept('.') do
-            idxs[#idxs+1] = accept_err(nil, 'id')
-        end
-        local met = nil
-        if sub == 'func' and accept('::') then
-            met = accept_err(nil, 'id')
-            idxs[#idxs+1] = met
-        end
-        accept_err('(')
-        local dots, pars = parser_dots_pars()
-        accept_err(')')
-        if met then
-            table.insert(pars, 1, {tag='id',str="self"})
-        end
-        local dst = { tag='acc', tk=id }
-        for _, idx in ipairs(idxs) do
-            dst = { tag='index', t=dst, idx={tag='str',tk=idx} }
-        end
-        local blk = parser_block()
-        local src = { tag='proto', sub=sub, dots=dots, pars=pars, blk=blk }
-        return { tag='set', dsts={dst}, src=src }
-    end
-end
-
 local lits = { {'nil','true','false','...'}, {'num','str','nat','clk'} }
 
 function parser_1_prim ()
@@ -295,10 +247,52 @@ function parser_1_prim ()
         end
 
     -- func, return
-    elseif check('func') or check('\\') or check('return') then
-        if accept('func') then
-            -- func () {} | func T(){} | func M.f(){} | func o::f(){}
-            return parser_proto('func')
+    elseif check('task') or check('func') or check('\\') or check('return') then
+        if accept('task') or accept('func') then
+            -- func () { ... }
+            -- func f () { ... }
+            -- func M.f () { ... }
+            -- func o::f () { ... }
+            local sub = TK0.str
+            if accept('(') then
+                local dots, pars = parser_dots_pars()
+                accept_err(')')
+                local blk = parser_block()
+                return { tag='proto', sub=sub, dots=dots, pars=pars, blk=blk }
+            else
+                local id = accept_err(nil, 'id')
+
+                local idxs = {}
+                while accept('.') do
+                    idxs[#idxs+1] = accept_err(nil, 'id')
+                end
+
+                local met = nil
+                if accept('::') then
+                    met = accept_err(nil, 'id')
+                    idxs[#idxs+1] = met
+                end
+
+                accept_err('(')
+                local dots, pars = parser_dots_pars()
+                accept_err(')')
+
+                if met then
+                    table.insert(pars, 1, {tag='id',str="self"})
+                end
+
+                local dst = { tag='acc', tk=id }
+                for _, idx in ipairs(idxs) do
+                    dst = { tag='index', t=dst, idx={tag='str',tk=idx} }
+                end
+
+                local blk = parser_block()
+                return {
+                    tag  = 'set',
+                    dsts = { dst },
+                    src  = { tag='proto', sub=sub, dots=dots, pars=pars, blk=blk }
+                }
+            end
 
         -- lambda: \{}
         elseif check('\\') then
@@ -314,20 +308,19 @@ function parser_1_prim ()
             error "bug found"
         end
 
-    -- task () {} | task T(){} | task M.f(){}  (no `::` method form)
-    elseif accept('task') then
-        return parser_proto('task')
-
     -- var x = 10
     elseif accept('val') or accept('var') or accept('pin') then
         local tk = TK0
 
-        if accept('func') then
-            return parser_proto('func', tk)
-        end
-
-        if accept('task') then
-            return parser_proto('task', tk)
+        if accept('task') or accept('func') then
+            local sub = TK0.str
+            local id = accept_err(nil, 'id')
+            accept_err('(')
+            local dots, pars = parser_dots_pars()
+            accept_err(')')
+            local blk = parser_block()
+            local f = { tag='proto', sub=sub, dots=dots, pars=pars, blk=blk }
+            return { tag='dcl', tk=tk, ids={id}, set=f }
         end
 
         local ids = parser_ids('=')

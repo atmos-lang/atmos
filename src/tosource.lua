@@ -62,8 +62,8 @@ function tosource (e, lbd)
                 return tosource_block(e.blk)
             end
         else
-            local kw = (e.sub == 'task') and "task" or "func"
-            return kw .. " (" .. pars .. dots .. ") " .. tosource_block(e.blk)
+            local proto = (e.sub == 'task') and "task" or "func"
+            return proto .. " (" .. pars .. dots .. ") " .. tosource_block(e.blk)
         end
 
     elseif e.tag == 'dcl' then
