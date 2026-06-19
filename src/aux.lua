@@ -60,7 +60,7 @@ end
 
 function atm_behavior (id, tsks, tab, ss)
     for k,s in pairs(ss) do
-        spawn_in(tsks, T, id, tab, k, s)
+        spawn_in(tsks, task(T), id, tab, k, s)
     end
 end
 

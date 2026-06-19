@@ -21,7 +21,7 @@ do
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
         var x
-        spawn(true, {
+        do_spawn({
             10::tap(\(it){
                 set x = it
             })::emitter("x")::to()
