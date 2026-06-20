@@ -25,8 +25,13 @@ Prerequisites — these language plans MUST land before cutting v0.7:
 - [ ] `06-11-spawn-on.md` — `spawn on` (step 4) + await-docs review
 
 Next actions, in order: finish the two prereq plans -> §1 tests -> §2 docs ->
-§3 rockspec -> §5 release branch -> §6 publish -> §7 remote verify -> §8
+§3 rockspec -> §4.1 migrate `.atm` apps (sdl-birds/sdl-rocks to `v0.4`) ->
+§5 release branch -> §6 publish -> §7 remote verify (incl. apps) -> §8
 announce.
+
+App migration (NEW, requested 2026-06-20): the atmos-lang org `.atm` apps
+sdl-birds + sdl-rocks need the v0.7 SYNTAX migration (Appendix A); they are
+distinct from the lua-atmos `.lua` apps already done. Tracked in §4.1.
 
 ## Context
 
@@ -99,12 +104,52 @@ v0.7 syntax (sigil remap, clock units, single-arg events, combinators).
 
 ### 4. Test examples (Phase 1 — local install)
 
-NOTE: in v0.7 the environments/apps live in separate repos (env-sdl/-pico/
--socket/-iup + sdl-*/pico-* apps), released & verified under the lua-atmos
-plan §7. Here, only the COMPILER's own `exs/` are in scope.
+NOTE: the lua-atmos `.lua` apps (env-sdl/-pico/-socket/-iup + their apps)
+were migrated under the lua-atmos v0.7 plan (RUNTIME API: `loop_on`,
+`xtask`, `do_spawn`).
+SEPARATE from that, the atmos-lang org ships its OWN `.atm` apps that must
+be migrated to v0.7 SYNTAX (sigil remap, clock units, single-arg events).
+These ARE in scope here (§4.1).
 
 - [ ] Inventory `exs/*.atm`; identify env-independent ones
 - [ ] Run the core (non-env) examples and confirm output
+
+#### 4.1 Migrate the `.atm` apps to v0.7 syntax
+
+atmos-lang org repos, depend on compiler v0.7 + env-sdl (`.lua` runtime
+already at v0.7):
+
+| repo      | branch | new branch | files to migrate              |
+| --------- | ------ | ---------- | ----------------------------- |
+| sdl-birds | main   | v0.4       | birds-01..11.atm, README.md   |
+| sdl-rocks | master | v0.4       | battle/main/ts.atm, README.md |
+
+Highest existing branch is `v0.3`; +0.1 per repo -> `v0.4`.
+Leave the untracked `x.atm` scratch files alone.
+Apps have NO rock: run from the repo via `./atmos <f>.atm`.
+
+Migration = the v0.6 -> v0.7 SYNTAX changes (see Appendix A).
+Per file: compile `atmos <f>.atm` (must emit Lua, no error), then
+smoke-run under a display.
+
+Landmines (NOT mechanical sed):
+
+- `:clock` dt is now MICROSECONDS, not ms: re-derive `v/1000` and
+  `ms*0.5` arithmetic in birds-11 / battle.
+- `&&` `||` `!` are now EVENT combinators: boolean-logic uses
+  (`(a==c) && (b==d)`, `b1.pub.alive && ...`) must become `and`/`or`/`not`.
+- `every` keyword removed -> `loop on` / `loop _,e on` / `loop _,i in`.
+
+Per-repo checklist:
+
+- [ ] sdl-birds: tables `@{}`->`[]`, clock `@1/@.500/@.100`, `every`,
+      `await/emit` events, pool `spawn [birds]` + `emit [b]`, bool `&&`
+- [ ] sdl-rocks: tables `@{}`->`[]`, clock `@.500/@1`, `every`,
+      `await/emit`, `toggle :X {}` -> `toggle on`, index `points[winner]`
+- [ ] Update both README.md (app/atmos/env versions; `main.lua` ->
+      `main.atm` run line)
+- [ ] Commit on `v0.4`, push; ff `main`/`master`; verify
+      `main == v0.4 == origin`
 
 ### 5. Commit, push main, create release branch
 
@@ -131,8 +176,13 @@ sudo luarocks --lua-version=5.4 install atmos-lang 0.7   # pins atmos ~> 0.7
 ```
 
 - [ ] Re-run the core `exs/` examples against the installed rock
+- [ ] Apps (NO rock): checkout the version branch, run, then
+      `git checkout main`/`master`:
+    - [ ] sdl-birds (`v0.4`): `birds-11.atm`
+    - [ ] sdl-rocks (`v0.4`): `main.atm`
 - Gotcha: `--force` remove wipes your local dev `make`; restore with
   `luarocks make` afterwards if you keep developing.
+- Gotcha: env-sdl needs its font in cwd (`tiny.ttf` for sdl-rocks).
 
 ### 8. Announce (manual)
 
@@ -148,3 +198,67 @@ sudo luarocks --lua-version=5.4 install atmos-lang 0.7   # pins atmos ~> 0.7
 - Per-repo release plans; `main` fast-forwarded to the version branch.
 - Phase-2 (local `luarocks make`) != remote (published rock) — always do a
   clean install verify (§7).
+
+## Appendix A — v0.6 -> v0.7 `.atm` syntax cheat-sheet
+
+Used by §4.1 to migrate the apps.
+Grounded in `tst/*.lua`, `done/06-06-*.md`, `done/06-11-*.md`, lexer/parser.
+Forms marked CONFIRM-ON-COMPILE must be checked by compiling each file.
+
+| # | construct | v0.6 | v0.7 |
+| - | ------------- | ------------------------ | -------------------------- |
+| 1 | table literal | `@{ x=1 }` / `@{ a }`     | `[ x=1 ]` / `[ a ]`        |
+| 2 | computed key  | `@{ [k]=v }`             | `[ @(k)=v ]` (bare `@i`)   |
+| 3 | index expr    | `t[i+1]`                 | `t@(i+1)`                  |
+| 4 | index id/lit  | `t[k]` / `t[5]`          | `t@k` / `t@5`              |
+| 5 | field         | `t.x`                    | `t.x` (unchanged)          |
+| 6 | tip           | (n/a)                    | `t@#` last / `t@+` append  |
+| 7 | clock lit     | `@5` / `@.500` / `@.100` | `5s` / `500ms` / `100ms`   |
+| 8 | clock compound| `@1:30.500`              | `1min30s500ms`             |
+| 9 | clock var     | `@(x)`                   | `x * 1s` (or `* 1ms`)      |
+|10 | clock dt val  | ms (per `:clock`)        | MICROSECONDS — re-derive   |
+|11 | every (evt)   | `every :X { }`           | `loop on :X { }`           |
+|12 | every (bind)  | `every _,e in :X { }`    | `loop _,e on :X { }`       |
+|13 | every (data)  | `every _,i in xs { }`    | `loop _,i in xs { }`       |
+|14 | await evt 2-arg | `await(E, 'P')`        | single-arg pattern (verify)|
+|15 | await clock   | `await @1` / `await @.5` | `await 1s` / `await 500ms` |
+|16 | await task    | `await(t)`               | `await(t)` (unchanged)     |
+|17 | emit payload  | `emit('Show', false)`    | value-event `{tag=…}` form |
+|18 | emit bare tag | `emit :collided`         | `emit :collided` (verify)  |
+|19 | watching evt  | `watching E, 'P' { }`    | `watching E { }` (1-arg)   |
+|20 | spawn pool    | `spawn [birds] B(...)`   | `spawn @birds B(...)`      |
+|21 | emit target   | `emit [b1] :collided`    | `emit @b1 (:collided)`     |
+|22 | pool ctor     | `tasks(5)`               | `tasks()` (verify arity)   |
+|23 | bool logic    | `a && b` / `a \|\| b` / `!a` | `a and b`/`a or b`/`not a` |
+|24 | evt combinator| `:X && :Y` (in pattern)  | `:X && :Y` (-> and/or/not) |
+|25 | toggle block  | `toggle :Show { }`       | `toggle on :Show { }`      |
+|26 | toggle task   | `toggle t(false)`        | `toggle t(false)` (same)   |
+|27 | spawn block   | `spawn { }`              | `spawn { }` (unchanged)    |
+|28 | func/task def | `func F(){}` / `task T(){}` | unchanged (no wrap)     |
+|29 | where/do/par  | `where{}` `do{}` `par{}with{}` | unchanged             |
+|30 | escape        | `do :T { escape(:T,v) }` | unchanged                  |
+|31 | pipes/set     | `--> f` / `set x.y=`     | unchanged (`set t@k=` #4)  |
+
+CRITICAL rows: 10 (µs), 23/24 (`&&` is now an event combinator, so
+boolean uses MUST switch to `and`/`or`/`not`), 11-13 (`every` removed).
+Rows 14/17/18/21/22 to be pinned exactly while compiling the first file.
+
+## Appendix B — release conventions (folded from old plans)
+
+From lua-atmos `06-08-release-v0.7.md` + `release.md` "Release Learnings".
+Still relevant to atmos-lang v0.7:
+
+- MIGRATION step BEFORE README: when core has breaking changes, each
+  downstream repo needs an explicit "migrate to vX" pass, not just a
+  version bump.
+- Version branches are PER-REPO and INDEPENDENT: next unused `vN` for
+  that repo (apps here: `v0.3` -> `v0.4`), NOT lockstep with the compiler.
+- Apps have NO rockspec: run from the repo on the version branch.
+- `main` fast-forward is easy to forget: develop+commit on `vN`, push,
+  THEN `git checkout main && git merge --ff-only vN && git push`; verify
+  `main == vN == origin` before calling a repo done.
+- Phase-1 (`luarocks make`, local) != Phase-2 (`luarocks install`, remote
+  published rock): always do the clean remote verify (§7).
+- Mechanical-sed pitfall: spaced `every (` / `spawn (` are missed by a
+  `\bevery\(` pattern; match `\s*` before `(` and re-verify by compiling.
+- After running an app, `git checkout main`/`master`.

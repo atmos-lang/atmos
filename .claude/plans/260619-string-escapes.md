@@ -76,6 +76,18 @@ elseif e.tag == 'str' then
 
 ## Status
 
-- [ ] lexer: add `multi` + `quo` to str token
-- [ ] coder: branch raw-emit vs `%q`
-- [ ] handle lone-trailing-`\` error
+- [x] lexer: add `multi=(n1>=3)` + `quo=c` to str token (`lexer.lua:247`)
+- [x] coder: branch raw-emit vs `%q` (`coder.lua:60`)
+- [x] tests: `tst/exec.lua` `\n` decode + quote-via-multi-line
+- [x] fix token-shape expectations: `tst/lexer.lua:167-172`, `tst/expr.lua:112/114/116`
+- [ ] lone-trailing-`\` guard — deferred (errors in generated Lua, same
+      unsupported case as `\"`; revisit if needed)
+- [ ] doc/manual.md: document single-line escapes vs raw multi-line
+
+## Verified (targeted compiles)
+
+- `print("a\nb")`   -> `a` NL `b` NL          (\n decoded)
+- `print("x\ty")`   -> tab decoded
+- `print("\x41")`   -> `A`                     (hex via Lua, free)
+- `print("""a\nb""")` -> literal `a\nb`        (multi-line stays raw)
+- `print(trim(""" " """))` -> `"`             (supported quote form)
