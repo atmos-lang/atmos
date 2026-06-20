@@ -134,9 +134,11 @@ These ARE in scope here (§4.1).
       `pico.get.mouse()` now REQUIRES a mode arg in pico-sdl (`l_get_mouse`
       -> `C_mode_t(L,2)`); changed to `pico.get.mouse('!')`. (cf. user
       reworked click-drag-cancel coords to `pico.cv.rect('!', ['%', ..])`.)
-- [ ] Run the core (non-env) examples and confirm output (`./atmos exs/<f>`)
-- [ ] Pico exs need env-pico installed to run; `clicks.atm` likely needs
-      author fixes beyond syntax (mixed sdl/pico refs, half-built logic)
+- [x] Ran ALL 5 exs + confirmed output (2026-06-20):
+    - core: `hello.atm` (µs `env.now`), `rx.atm` (1/2/3, 33),
+      `rx-behavior.atm` (infinite behavior stream, ^C to stop) — all OK.
+    - pico: `click-drag-cancel.atm` + `clicks.atm` run OK (no crash) with
+      env-pico installed.
 
 #### 4.1 Migrate the `.atm` apps to v0.7 syntax
 

@@ -1185,24 +1185,27 @@ val x = (2 * z) where {
 print(x)    ;; --> 22
 ```
 
-### Functions
+### Prototypes
 
-Atmos supports global declarations for [functions](#function):
+Atmos supports declarations for [functions](#function) and [tasks](#tasks):
 
 ```
-Func : `func´ ID {`.´ ID} [`::´ ID] `(´ ID* [`...´] `)´ Block
+Proto : [`val´] (`func´|`task`) ID `(´ ID* [`...´] `)´ Block
+      | `func´ ID {`.´ ID} [`::´ ID] `(´ ID* [`...´] `)´ Block
 ```
 
-<!--
-For local declarations, it is possible to assign anonymous
-[function](#function) constructors to a local variable.
--->
+The optional `val` modifier makes the declaration local only.
 
-There are three variations of declarations, which are based on
-[Lua functions][lua-function]:
+The first format supports functions and tasks:
 
 - `func f (<pars>) { <body> }`:
     equivalent to `set f = func (<pars>) { <body> }`
+- `val func f (<pars>) { <body> }`:
+    equivalent to `val f = func (<pars>) { <body> }`
+
+The second format for functions also support two other variations based on
+[Lua functions][lua-function]:
+
 - `func t.x.y.f (<pars>) { <body> }`:
     equivalent to `set t.x.y.f = func (<pars>) { <body> }`
 - `func o::f (<pars>) { <body> }`:
@@ -1217,6 +1220,11 @@ func add (x, y) {
     x + y
 }
 print(add(1,2))     ;; --> 3
+
+val task T (x) {
+    await :X
+    x
+}
 ```
 
 ```
