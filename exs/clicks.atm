@@ -58,7 +58,7 @@ spawn {
         }
         emit :x.mouse.button.dn [n=n, x=dn.x, y=dn.y]
         par_and {
-            val pos = pico.get.mouse()
+            val pos = pico.get.mouse('!')
             if pos.left {
                 val up = await :mouse.button.up
                 set pos.x, pos.y = (up.x, up.y)
@@ -86,7 +86,7 @@ func Buffer (src, ctl) {
     ret
 }
 
-task Debounce (src, ctl) {
+func Debounce (src, ctl) {
     await(src)
     loop {
         watching src {
