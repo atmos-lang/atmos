@@ -1,8 +1,8 @@
 val env = require "atmos.env.clock"
 
 print(env.now)
-watching @5 {
-    loop on @.500 {
+watching 5s {
+    loop on 500ms {
         print("Hello World!")
     }
 }

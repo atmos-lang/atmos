@@ -2,8 +2,8 @@ require "atmos.env.clock"
 
 val S = require "atmos.streams"
 
-pin x* = S.zip (S.from(@1), S.from(1))
-    ::map \{it[2]}
+pin x* = S.zip (S.fr_await(1s), S.from(1))
+    ::map \{it@2}
     ;;::to()      ;; 1 / 2 / 3
 
 loop on :x {

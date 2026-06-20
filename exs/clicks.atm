@@ -3,18 +3,18 @@ val pico = require "pico"
 require "atmos.env.pico"
 val S = require "atmos.streams"
 
-pico.zet.window @{ title="pico-Atmos: Clicks" }
-pico.zet.dim @{'!', w=256, h=256}
+pico.zet.window [ title="pico-Atmos: Clicks" ]
+pico.zet.dim ['!', w=256, h=256]
 
-var txts = @{}
+var txts = []
 
-var rect = @{'!', x=256/2, y=256/2, w=20, h=20}
+var rect = ['!', x=256/2, y=256/2, w=20, h=20]
 
 spawn {
     par {
         loop on :draw {
             pico.output.draw.rect(rect)
-            val pt = @{'!', x=80, y=10, h=15}
+            val pt = ['!', x=80, y=10, h=15]
             loop _,t in txts {
                 pico.output.draw.text(t, pt)
                 set pt.y = pt.y + 15
@@ -45,27 +45,27 @@ spawn {
     ;;      - imediato apos dn se estado up
     ;;;
     loop {
-        val _,dn = await :mouse.button.dn
+        val dn = await :mouse.button.dn
         var n = 1
         watching :mouse.motion {
             loop {
                 watching :mouse.button.dn {
-                    await @.250
+                    await 250ms
                     break()
                 }
                 set n = n + 1
             }
         }
-        emit :x.mouse.button.dn @{ n=n, x=dn.x, y=dn.y }
+        emit :x.mouse.button.dn [n=n, x=dn.x, y=dn.y]
         par_and {
             val pos = pico.get.mouse()
             if pos.left {
-                val _,up = await :mouse.button.up
+                val up = await :mouse.button.up
                 set pos.x, pos.y = (up.x, up.y)
             }
-            emit :x.mouse.button.up @{x=pos.x, y=pos.y}
+            emit :x.mouse.button.up [x=pos.x, y=pos.y]
         } with {
-            await @.250
+            await 250ms
         }
     }
 }
@@ -75,18 +75,18 @@ spawn {
 ;; TODO: await(stream)
 
 func Buffer (src, ctl) {
-    val ret = @{}
+    val ret = []
     val v = await(src)
-    set ret[+] = v
+    set ret@+ = v
     watching ctl {
         loop v on src {
-            set ret[+] = v
+            set ret@+ = v
         }
     }
     ret
 }
 
-func Debounce (src, ctl) {
+task Debounce (src, ctl) {
     await(src)
     loop {
         watching src {
@@ -120,20 +120,20 @@ par {
 ;;;
 
 val clear =
-    S.fr_await(Debounce, @{'or',:mouse.button.dn,:mouse.button.up}, @1)
-        ::tap \{ set txts = @{} }
+    S.fr_await(Debounce, (:mouse.button.dn || :mouse.button.up), 1s)
+        ::tap \{ set txts = [] }
 
-val dn = 
+val dn =
     S.fr_await(:x.mouse.button.dn)
         ::tap \{
-            set txts[+] = "dn (" ++ it.x++','++it.y ++"): " ++ it.n
+            set txts@+ = "dn (" ++ it.x++','++it.y ++"): " ++ it.n
         }
 
 val up =
     S.fr_await(:x.mouse.button.up)
         ::tap \{
-            set txts[+] = "up (" ++ it.x++','++it.y ++")"
+            set txts@+ = "up (" ++ it.x++','++it.y ++")"
         }
 
-S.from@{clear,dn,up}::xpar()::to()
+S.from [clear,dn,up]::xpar()::to()
 await(false)
