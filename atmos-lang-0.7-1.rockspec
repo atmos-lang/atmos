@@ -26,11 +26,22 @@ description = {
         - An `await` primitive suspends a task and waits for events.
         - An `emit` primitive signals events and awakes awaiting tasks.
 
-    Atmos is inspired by synchronous programming languages like Céu
-    and Esterel.
+    Atmos also complements its core synchronous concurrency model with
+    Functional Streams (à la ReactiveX) and Multithreading Parallelism
+    (via LuaLanes):
+
+    - Functional Streams:
+        - Interoperability with tasks & events.
+        - Safe finalization of stateful streams.
+    - Asynchronous Parallelism:
+        - A `thread` primitive offloads computations to isolated OS threads.
+        - Safe abortion and finalization for threads.
 
     Atmos compiles to Lua and relies on lua-atmos for its
     concurrency runtime.
+
+    Atmos is inspired by synchronous programming languages like Céu
+    and Esterel.
    ]],
    homepage = "https://github.com/atmos-lang/atmos",
    license = "MIT",
