@@ -109,11 +109,11 @@ do
     lexer_init("anon", src)
     lexer_next()
     local e1 = parser()
-    assertx(X.tostring(e1), "{tag=str, tk={lin=1, sep=1, str=xxx, tag=str}}")
+    assertx(X.tostring(e1), "{tag=str, tk={chr=', lin=1, multi=false, sep=1, str=xxx, tag=str}}")
     local e2 = parser()
-    assertx(X.tostring(e2), "{tag=str, tk={lin=2, sep=2, str=1\n2\n, tag=str}}")
+    assertx(X.tostring(e2), "{tag=str, tk={chr=', lin=2, multi=true, sep=2, str=1\n2\n, tag=str}}")
     local e3 = parser()
-    assertx(X.tostring(e3), "{tag=str, tk={lin=5, sep=5, str= s , tag=str}}")
+    assertx(X.tostring(e3), "{tag=str, tk={chr=', lin=5, multi=false, sep=5, str= s , tag=str}}")
 
     local src = "```f()```"
     print("Testing...", "native 1")

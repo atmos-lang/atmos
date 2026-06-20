@@ -37,6 +37,20 @@ do
     local out = atm_test(src)
     assertx(out, "Hello\nWorld\n")
 
+    local src = [[
+        print("a\nb")
+    ]]
+    print("Testing...", "string escape \\n")
+    local out = atm_test(src)
+    assertx(out, "a\nb\n")
+
+    local src = [[
+        print(trim(""" " """))
+    ]]
+    print("Testing...", "string quote via multi-line")
+    local out = atm_test(src)
+    assertx(out, "\"\n")
+
     local src = "print(!false)"
     print("Testing...", src)
     local out = atm_test(src)

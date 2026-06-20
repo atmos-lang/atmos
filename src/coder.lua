@@ -58,8 +58,16 @@ function coder (e)
             return L(e.tk) .. tosource(e)
         end
     elseif e.tag == 'str' then
-        --return L(e.tk) .. "trim(" .. string.format("%q", e.tk.str) .. ")"
-        return L(e.tk) .. string.format("%q", e.tk.str)
+        -- single-line source literals are emitted raw between their original
+        -- quotes so Lua decodes the escapes (\n \r \t \xHH ...).
+        -- multi-line strings (raw, like Lua [[ ]]) and compiler-synthesized
+        -- strings (no `chr`) are re-encoded safely via %q.
+        if e.tk.multi then
+            return L(e.tk) .. string.format("%q", e.tk.str)
+        else
+            local chr = e.tk.chr or "'"
+            return L(e.tk) .. chr .. e.tk.str .. chr
+        end
     elseif e.tag == 'nat' then
         return L(e.tk) .. e.tk.str
     elseif e.tag == 'clk' then

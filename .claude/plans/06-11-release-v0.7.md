@@ -235,8 +235,8 @@ Forms marked CONFIRM-ON-COMPILE must be checked by compiling each file.
 |18 | emit bare tag | `emit :collided`         | `emit :collided` (verify)  |
 |19 | watching evt  | `watching E, 'P' { }`    | `watching E { }` (1-arg)   |
 |20 | spawn pool    | `spawn [birds] B(...)`   | `spawn @birds B(...)`      |
-|21 | emit target   | `emit [b1] :collided`    | `emit @b1 (:collided)`     |
-|22 | pool ctor     | `tasks(5)`               | `tasks()` (verify arity)   |
+|21 | emit target   | `emit [b1] :collided`    | `emit @b1 :collided` (parens optional for bare tag; `emit @t (e)` for exprs) |
+|22 | pool ctor     | `tasks(5)`               | `tasks(5)` UNCHANGED (arity kept) |
 |23 | bool logic    | `a && b` / `a \|\| b` / `!a` | UNCHANGED (codegen -> Lua and/or/not) |
 |24 | evt combinator| `:X && :Y` (in pattern)  | `:X && :Y` UNCHANGED (lowers to {tag}) |
 |25 | toggle block  | `toggle :Show { }`       | `toggle on :Show { }`      |
@@ -247,8 +247,9 @@ Forms marked CONFIRM-ON-COMPILE must be checked by compiling each file.
 |30 | escape        | `do :T { escape(:T,v) }` | unchanged                  |
 |31 | pipes/set     | `--> f` / `set x.y=`     | unchanged (`set t@k=` #4)  |
 
-CRITICAL rows: 10 (µs), 23/24 (`&&` is now an event combinator, so
-boolean uses MUST switch to `and`/`or`/`not`), 11-13 (`every` removed).
+CRITICAL rows: 10 (µs), 11-13 (`every` removed -> `loop on`), 28
+(`func`->`task` for spawned protos). NOTE row 23/24: `&&`/`||`/`!` are
+UNCHANGED in source (do NOT rewrite to `and`/`or`/`not`).
 Rows 14/17/18/21/22 to be pinned exactly while compiling the first file.
 
 ## Appendix B — release conventions (folded from old plans)

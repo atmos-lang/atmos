@@ -244,7 +244,7 @@ local function _lexer_ (str)
                     v = v .. pos
                 end
             end
-            coroutine.yield { tag='str', str=v, lin=lin,sep=sep }
+            coroutine.yield { tag='str', str=v, chr=c, multi=(n1>=3), lin=lin,sep=sep }
 
         -- eof
         elseif c == '\0' then
