@@ -69,7 +69,7 @@ once those land — combinators, `spawn on`, etc.)
 
 ### 1. Run tests
 
-- [ ] Automatic: `cd tst && lua5.4 all.lua` (all pass)
+- [x] Automatic: `cd tst && lua5.4 all.lua` (all pass, incl. task/xtask sweep)
 - Manual:
     - [ ] README.md examples
     - [ ] doc/guide.md examples
@@ -82,25 +82,29 @@ v0.7 syntax (sigil remap, clock units, single-arg events, combinators).
 
 - [ ] README.md — add `v0.7` to version list; stable link `v0.6` -> `v0.7`;
       Install `install atmos-lang 0.7`; About in sync
-- [ ] HISTORY.md — v0.7 entry (confirm date)
+- [x] HISTORY.md — v0.7 entry incl. task/xtask split (2026-06-19)
 - [ ] doc/guide.md — sigil/clock/await examples current
 - [ ] doc/manual.md — migrated this cycle (sigil + `At` grammar); spot-check,
       then regen `doc/manual-out.md` (`cd doc && lua5.4 manual.lua manual.md
       > manual-out.md`) — never edit `manual-out.md` by hand
-- [ ] rockspec `detailed` synced with README "About" (see §3)
+      - PENDING task/xtask edits PROPOSED (see `260620-task.md`): Task
+        chapter `task(f)`->`task T(){}` + `xtask(T)`, type list `+xtask`,
+        drop `task` from the call-syntax comment
+- [x] rockspec `detailed` synced (Streams/`thread` block, `loop on`)
 
-### 3. Rockspec `atmos-lang-0.7-1.rockspec`
+### 3. Rockspec `atmos-lang-0.7-1.rockspec` -- DONE (2026-06-20)
 
-- [ ] Copy from `atmos-lang-0.6-1.rockspec`
-- [ ] `version` -> `"0.7-1"`
-- [ ] `branch` -> `"v0.7"`
-- [ ] dependency `atmos ~> 0.6` -> `atmos ~> 0.7`
-- [ ] `detailed` synced with README "About"
-- [ ] Move old rockspec to `old/`
+- [x] `atmos-lang-0.7-1.rockspec` (branch `v0.7`, dep `atmos ~> 0.7`)
+- [x] `atmos-lang-dev-4.rockspec` (branch `main`, dep `atmos` unpinned)
+- [x] both: `await.lua` module added; desc `every` -> `loop on`;
+      `lua >= 5.4`; Streams/`thread` block (mirrors runtime `atmos-0.7-2`)
+- [x] superseded `0.6-1` + `dev-3` moved to `old/`; committed + pushed
 - [ ] Install locally (Phase 1):
       `sudo luarocks make atmos-lang-0.7-1.rockspec --lua-version=5.4`
 - Convention (from the v0.7 cycle): keep BOTH a pinned `0.7-1` rockspec
-  (branch `v0.7`) and a `-dev-1` rockspec (git `main`/HEAD).
+  (branch `v0.7`) and a `-dev-N` rockspec (git `main`/HEAD).
+- See `done/260618-task-xtask.md` for the task/xtask compiler details;
+  `260620-task.md` for remaining task/xtask DEFERRALS (parser + runtime).
 
 ### 4. Test examples (Phase 1 — local install)
 
@@ -136,14 +140,18 @@ Landmines (NOT mechanical sed):
 
 - `:clock` dt is now MICROSECONDS, not ms: re-derive `v/1000` and
   `ms*0.5` arithmetic in birds-11 / battle.
-- `&&` `||` `!` are now EVENT combinators: boolean-logic uses
-  (`(a==c) && (b==d)`, `b1.pub.alive && ...`) must become `and`/`or`/`not`.
 - `every` keyword removed -> `loop on` / `loop _,e on` / `loop _,i in`.
+- `spawn` needs a task PROTOTYPE: a `func F(){}` that is later spawned
+  must be declared `task F(){}` (runtime error otherwise: "invalid spawn
+  : expected task prototype"). Verified on birds-01.
+- NOTE: `&&` `||` `!` are UNCHANGED in `.atm` source (codegen maps them
+  to Lua `and`/`or`/`not`); do NOT rewrite them. (Verified on the
+  birds-01 pilot: `assert((a==c) and (b==d))` is rejected.)
 
 Per-repo checklist:
 
 - [ ] sdl-birds: tables `@{}`->`[]`, clock `@1/@.500/@.100`, `every`,
-      `await/emit` events, pool `spawn [birds]` + `emit [b]`, bool `&&`
+      `await/emit` events, pool `spawn [birds]` + `emit [b]`
 - [ ] sdl-rocks: tables `@{}`->`[]`, clock `@.500/@1`, `every`,
       `await/emit`, `toggle :X {}` -> `toggle on`, index `points[winner]`
 - [ ] Update both README.md (app/atmos/env versions; `main.lua` ->
@@ -229,12 +237,12 @@ Forms marked CONFIRM-ON-COMPILE must be checked by compiling each file.
 |20 | spawn pool    | `spawn [birds] B(...)`   | `spawn @birds B(...)`      |
 |21 | emit target   | `emit [b1] :collided`    | `emit @b1 (:collided)`     |
 |22 | pool ctor     | `tasks(5)`               | `tasks()` (verify arity)   |
-|23 | bool logic    | `a && b` / `a \|\| b` / `!a` | `a and b`/`a or b`/`not a` |
-|24 | evt combinator| `:X && :Y` (in pattern)  | `:X && :Y` (-> and/or/not) |
+|23 | bool logic    | `a && b` / `a \|\| b` / `!a` | UNCHANGED (codegen -> Lua and/or/not) |
+|24 | evt combinator| `:X && :Y` (in pattern)  | `:X && :Y` UNCHANGED (lowers to {tag}) |
 |25 | toggle block  | `toggle :Show { }`       | `toggle on :Show { }`      |
 |26 | toggle task   | `toggle t(false)`        | `toggle t(false)` (same)   |
 |27 | spawn block   | `spawn { }`              | `spawn { }` (unchanged)    |
-|28 | func/task def | `func F(){}` / `task T(){}` | unchanged (no wrap)     |
+|28 | spawned proto | `func Bird(){}` + `spawn Bird()` | `task Bird(){}` (spawn needs a task proto, NOT a bare func) |
 |29 | where/do/par  | `where{}` `do{}` `par{}with{}` | unchanged             |
 |30 | escape        | `do :T { escape(:T,v) }` | unchanged                  |
 |31 | pipes/set     | `--> f` / `set x.y=`     | unchanged (`set t@k=` #4)  |

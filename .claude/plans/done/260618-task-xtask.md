@@ -4,17 +4,24 @@ Companion to the lua-atmos runtime work (DONE/GREEN at
 `/x/lua-atmos/atmos`, branch `260616-task-xtask`). Covers §3 "Compiler"
 of that runtime plan, adapted to the CURRENT runtime API.
 
-## Status: IN PROGRESS
+## Status: COMPLETE (core compiler migration)
 
 Source compiler changes DONE. TEST SWEEP DONE -- FULL SUITE GREEN
 (lexer/expr/exec/x/tasks/toggle/streams/thread/cmd). `atm_behavior`
-(step 4) DONE. Remaining: docs (§5), rockspec (§6), open questions (§7),
-and the deferred runtime items (xtask gate + "is 3b" uncomment;
-task-term double-pin).
+(§4) DONE. Spawn emission, `task` keyword, AST refactor (`tag='proto'`
+/`sub`), negative tests -- all DONE (see §1-4 + DONE history below).
+
+EXTRACTED OUT of this plan:
+- rockspec -> release plan `06-11-release-v0.7.md` §3 (DONE there).
+- docs (manual), exs/*.atm audit, open parser questions (§7), the
+  `xtask(rawfunc)` runtime gate + "is 3b" uncomment, and the task-term
+  double-pin question -> `260620-task.md` (live deferrals tracker).
+
+This file is the FROZEN record of the completed migration.
 
 -------------------------------------------------------------------------------
 
-## RESUME HERE -- NEXT STEPS (ordered, explicit)
+## MIGRATION STEPS (all DONE -- frozen record)
 
 ### 0. Environment (do this first on the new machine)
 
@@ -90,39 +97,12 @@ still parses (tasks special-cased in val/var/pin and as call).
       plain func fails".
     - ALSO ADDED: `val/var task NAME (...){}` decl-form coverage
       (tasks.lua "task 4: val/var task decl").
-    - `xtask(p)` where `p` is not a prototype fails.
-      RUNTIME DEPENDENCY (blocks this test): surface `xtask(rawfunc)`
-      currently SUCCEEDS because `M.xtask` (lua-atmos run.lua:405) falls
-      back to `or T` for any function. That fallback is only meant for
-      the internal transparent-spawn path (`tra=true`). Runtime must gate
-      it to that path:
-          local f = (getmetatable(T)==meta_task and T._.f) or (tra and T)
-      Until applied, a negative test for `xtask(\{})` stays RED. The
-      negative test "is 3b" is in `tst/x.lua` right after "is 3" but its
-      `assertx` is COMMENTED OUT (`--[=[ ... ]=]`) so the suite is green.
-      TODO: once the runtime gate above lands, UNCOMMENT the "is 3b"
-      `assertx` block in `tst/x.lua` and confirm it passes.
-- Also re-check `exs/*.atm` for raw `spawn func`/`task(`/`:task`.
+    - `xtask(p)` where `p` is not a prototype fails -- BLOCKED on the
+      lua-atmos `xtask(rawfunc)` runtime gate; test "is 3b" written but
+      COMMENTED OUT. -> moved to `260620-task.md` §4.
+- exs/*.atm task/xtask audit -> moved to `260620-task.md` §2.
 
-### Open runtime question: task-term `pin t =` double-pin
-
-`tst/tasks.lua` "task-term 1/2/3" (former `spawn (\{}) ()` lambda-
-spawns, now `spawn (task(){}) ()`) emit a trailing
-`invalid assignment : expected unpinned value` at the `pin t = spawn
-(...) ()` line. NOT a simple root-spawn auto-pin: verified that
-  pin t = spawn T()            -- at root, ALONE -> CLEAN
-  val t = spawn T()            -- at root -> "expected pinned value"
-so a lone root spawn leaves the instance UNPINNED (pin pins it, val
-fails). The double-pin error appears ONLY in the two-spawn structure
-(a preceding awaiting `spawn { pin e = await(true) ... }` block, THEN
-`pin t = spawn (...) ()`): there `atm_pin_chk_set(pin=true)` sees
-`t.pin` already true. Exact mechanism (why the prior block leaves the
-later instance pre-pinned) is UNCLEAR -- needs runtime investigation.
-
-Tests still PASS (assertfx = `string.find`, finds `ok\txtask: 0x`
-before the trailing error), so nothing is broken -- latent question,
-not a failure. Confirm alongside the `xtask` gate above. Left as `pin`
-for now (not masked with `val`).
+### Open runtime question: task-term double-pin -> `260620-task.md` §5
 
 ### 4. `src/aux.lua` `atm_behavior` -- DONE
 
@@ -140,49 +120,15 @@ is guaranteed available. Verified: streams.lua "beh 3" (table behavior
 (NOTE: the non-table behavior path in prim.lua already emits
 `do_spawn` via the `spawn` helper -- no proto needed there.)
 
-### 5. `doc/manual.md` (NEVER manual-out.md)
+### 5. docs (manual) -> `260620-task.md` §1 (content) + release plan §2
 
-- keyword lists: add `task`; drop `task` from the reserved comment.
-- value/ref type lists: add `xtask`.
-- Task chapter: split prototype (`task`) vs instance (`xtask`);
-  show `task T(){}`, `spawn T()`, `pin t = xtask(T)`, `t ?? :xtask`.
+### 6. `*.rockspec` -- DONE -> release plan `06-11-release-v0.7.md` §3
 
-### 6. `*.rockspec` -- bump the lua-atmos dependency to the new major.
+### 7. open parser questions + `task(f)`-bless limitation
+       -> `260620-task.md` §3 (and its Reference)
 
-### 7. Resolve open questions (parser-level)
-
-1. `::` method form for `task` -- REJECTED (helper gates `::` to
-   `sub=='func'`). Done.
-2. Anonymous `task (...) { ... }` expression -- INCLUDED. Done.
-3. `pin task T()` -- reject in parser? (protos are not pinnable).
-   STILL OPEN -- decide and, if rejecting, add the check + a test.
-4. `toggle T()` on a prototype vs instances only -- lean instances.
-   STILL OPEN.
-5. Task proto DECL (the `val/var/pin task NAME` decl form, NOT the
-   `set NAME = task ...` form) should REQUIRE `NAME` to begin with an
-   uppercase letter. Add the parser check + a negative test.
-   STILL OPEN.
-
-### Known limitation: no surface bless `task(f) -> :task`
-
-You CANNOT turn an existing function value `f` into a task prototype
-at surface level. `task` is a keyword, so `task(f)` reads `(f)` as the
-anonymous-proto PARAM LIST and then demands a `{ body }` (`task(f)`
-alone -> "expected '{'"). It is ambiguous with `task (a,b) { ... }`
-and `task(f){...}` (a proto whose single param is `f`) -- there is no
-syntactic room to also mean "bless f". Symmetric note: once the
-`xtask` runtime gate lands (see §3), `xtask(f)` from a raw func also
-fails, so NEITHER proto-from-func nor instance-from-func is surface-
-expressible. This is intentional: task-ness is DECLARED, never
-retrofitted onto a plain `func`.
-
-Escapes / non-issues:
-- rare bless-an-existing-function: native ``\`task(f)\``` (calls the
-  runtime constructor directly -- verified works).
-- compiler-internal blessing (e.g. `atm_behavior`, §4) just emits Lua
-  `task(fn)` directly -- no surface form needed.
-- if ever wanted at surface, it must be a DISTINCT non-keyword builtin
-  (e.g. `proto(f)`), not a reuse of `task(...)`. Likely unwarranted.
+(Resolved here: `::` on `task` REJECTED; anonymous `task (...) {...}`
+INCLUDED. Open: `pin task` reject, `toggle` on proto, uppercase decl.)
 
 -------------------------------------------------------------------------------
 
