@@ -76,13 +76,21 @@ elseif e.tag == 'str' then
 
 ## Status
 
-- [x] lexer: add `multi=(n1>=3)` + `quo=c` to str token (`lexer.lua:247`)
-- [x] coder: branch raw-emit vs `%q` (`coder.lua:60`)
+DONE (full suite green: `cd tst && lua5.4 all.lua`):
+
+- [x] lexer: add `chr=c` + `multi=(n1>=3)` to str token (`lexer.lua:247`)
+- [x] coder: single-line raw-emit (`chr or "'"`) vs multi `%q` (`coder.lua:60`)
+- [x] synthetic str tokens (no `chr`) fall back safely to `'...'`
 - [x] tests: `tst/exec.lua` `\n` decode + quote-via-multi-line
-- [x] fix token-shape expectations: `tst/lexer.lua:167-172`, `tst/expr.lua:112/114/116`
-- [ ] lone-trailing-`\` guard — deferred (errors in generated Lua, same
-      unsupported case as `\"`; revisit if needed)
+- [x] token-shape expectations: `tst/lexer.lua:167-172`, `tst/expr.lua:112/114/116`
+- [x] coder comment aligned with code (option B)
+
+PENDING:
+
 - [ ] doc/manual.md: document single-line escapes vs raw multi-line
+      (wording proposed; postponed by user)
+- [ ] lone-trailing-`\` guard — deferred (errors in generated Lua, same
+      unsupported family as `\"`; revisit only if it bites)
 
 ## Verified (targeted compiles)
 

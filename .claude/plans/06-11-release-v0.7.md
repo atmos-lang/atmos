@@ -29,9 +29,10 @@ Next actions, in order: finish the two prereq plans -> §1 tests -> §2 docs ->
 §5 release branch -> §6 publish -> §7 remote verify (incl. apps) -> §8
 announce.
 
-App migration (NEW, requested 2026-06-20): the atmos-lang org `.atm` apps
-sdl-birds + sdl-rocks need the v0.7 SYNTAX migration (Appendix A); they are
-distinct from the lua-atmos `.lua` apps already done. Tracked in §4.1.
+App migration (requested 2026-06-20): the atmos-lang org `.atm` apps
+sdl-birds + sdl-rocks migrated to v0.7 SYNTAX (Appendix A) and RUN OK
+(2026-06-20). READMEs updated. REMAINING: cut the `v0.4` branch per repo
+(commit + push + ff `main`/`master`) — user-run. Tracked in §4.1.
 
 ## Context
 
@@ -150,12 +151,17 @@ Landmines (NOT mechanical sed):
 
 Per-repo checklist:
 
-- [ ] sdl-birds: tables `@{}`->`[]`, clock `@1/@.500/@.100`, `every`,
-      `await/emit` events, pool `spawn [birds]` + `emit [b]`
-- [ ] sdl-rocks: tables `@{}`->`[]`, clock `@.500/@1`, `every`,
-      `await/emit`, `toggle :X {}` -> `toggle on`, index `points[winner]`
-- [ ] Update both README.md (app/atmos/env versions; `main.lua` ->
-      `main.atm` run line)
+- [x] sdl-birds: all 11 (birds-01..11) migrated + RUN OK (2026-06-20).
+      tables `@{}`->`[]`, `func`->`task`, `loop us on :clock`+µs-merge,
+      `loop on :sdl.draw`, `spawn @birds`, `emit @b :collided`,
+      `:sdl [type=…,name=…]` events, `escape(:Track,b)`. `&&`/`||` KEPT.
+- [x] sdl-rocks: main/battle/ts.atm migrated + RUN OK (2026-06-20).
+      + `watching :any ships` (returns ship's RETURN value -> Ship ends
+      `return(pub.tag)`, Battle `match s`); `await (dt*1ms)`;
+      `await Move_T(...)` (spawn+await sugar); `par_or`/`match`/`ifs`/`++`
+      kept; `points[winner]`->`points@winner`.
+- [x] Updated both README.md (atmos-lang `0.7` + env-sdl `0.2`;
+      `git checkout v0.4`; birds `birds-11.atm`, rocks `main.atm`).
 - [ ] Commit on `v0.4`, push; ff `main`/`master`; verify
       `main == v0.4 == origin`
 
