@@ -263,14 +263,15 @@ function parser_1_prim ()
                 local id = accept_err(nil, 'id')
 
                 local idxs = {}
-                while accept('.') do
-                    idxs[#idxs+1] = accept_err(nil, 'id')
-                end
-
                 local met = nil
-                if accept('::') then
-                    met = accept_err(nil, 'id')
-                    idxs[#idxs+1] = met
+                if sub == 'func' then
+                    while accept('.') do
+                        idxs[#idxs+1] = accept_err(nil, 'id')
+                    end
+                    if accept('::') then
+                        met = accept_err(nil, 'id')
+                        idxs[#idxs+1] = met
+                    end
                 end
 
                 accept_err('(')
@@ -312,7 +313,7 @@ function parser_1_prim ()
     elseif accept('val') or accept('var') or accept('pin') then
         local tk = TK0
 
-        if accept('task') or accept('func') then
+        if tk.str=='val' and (accept('task') or accept('func')) then
             local sub = TK0.str
             local id = accept_err(nil, 'id')
             accept_err('(')

@@ -122,10 +122,10 @@ do
     local out = atm_test(src)
     assertfx(out, "function: 0x.*task: 0x.*thread: 0x.*xtask: 0x")
 
-    -- `val/var task NAME (...) {...}` declaration form (vs `val NAME = task ...`)
+    -- `val task NAME (...) {...}` declaration form (vs `val NAME = task ...`)
     local src = [[
         val task T (a) { print(:val, a) }
-        var task U (a) { print(:var, a) }
+        val task U (a) { print(:var, a) }
         spawn T(1)
         spawn U(2)
     ]]

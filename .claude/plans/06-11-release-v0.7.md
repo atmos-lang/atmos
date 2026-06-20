@@ -115,8 +115,28 @@ SEPARATE from that, the atmos-lang org ships its OWN `.atm` apps that must
 be migrated to v0.7 SYNTAX (sigil remap, clock units, single-arg events).
 These ARE in scope here (§4.1).
 
-- [ ] Inventory `exs/*.atm`; identify env-independent ones
-- [ ] Run the core (non-env) examples and confirm output
+- [x] Inventory `exs/*.atm` (5 files) + migrated to v0.7 (2026-06-20):
+    - core (env-clock): `hello.atm`, `rx.atm`, `rx-behavior.atm` — clock
+      literals, `S.from(clock)`->`S.fr_await(1s)`, `@{}`->`[]`, `it[2]`->`it@2`
+    - pico (env-pico): `click-drag-cancel.atm` — grounded on env-pico
+      `click-drag-cancel.lua` twin (`await(:X until pred)`,
+      `await(:key.dn [key='Escape'])`)
+    - `clicks.atm` — UNFINISHED scratch (no twin); live code migrated
+      best-effort, dead `;;;` block left as-is. Findings:
+      `S.fr_await(fn, args...)` needs fn = a plain `func` (it wraps with
+      `task()` internally via `fr_spawn`); a `task` proto falls to the
+      pattern branch -> `await(proto, args)` -> "invalid event pattern".
+      So `Debounce` stays `func`. Combinator `(:a || :b)`, `S.from [..]`
+      call-sugar, value-event `emit :tag [..]` used.
+      (`atmos/streams.lua` also ships `S.debounce`/`S.buffer` built-ins.)
+      STATUS: v0.7 SYNTAX migration COMPLETE — compiles + runs (table form
+      `['!', x=..]` verified -> `{[1]='!', x=..}`). Click-path C abort fixed:
+      `pico.get.mouse()` now REQUIRES a mode arg in pico-sdl (`l_get_mouse`
+      -> `C_mode_t(L,2)`); changed to `pico.get.mouse('!')`. (cf. user
+      reworked click-drag-cancel coords to `pico.cv.rect('!', ['%', ..])`.)
+- [ ] Run the core (non-env) examples and confirm output (`./atmos exs/<f>`)
+- [ ] Pico exs need env-pico installed to run; `clicks.atm` likely needs
+      author fixes beyond syntax (mixed sdl/pico refs, half-built logic)
 
 #### 4.1 Migrate the `.atm` apps to v0.7 syntax
 
@@ -161,8 +181,11 @@ Per-repo checklist:
       kept; `points[winner]`->`points@winner`.
 - [x] Updated both README.md (atmos-lang `0.7` + env-sdl `0.2`;
       `git checkout v0.4`; birds `birds-11.atm`, rocks `main.atm`).
-- [ ] Commit on `v0.4`, push; ff `main`/`master`; verify
-      `main == v0.4 == origin`
+- [~] Branch `v0.4` per repo (commit + push + ff + verify):
+    - [x] sdl-rocks: master==v0.4==origin @ bee3893 (DONE 2026-06-20).
+    - [~] sdl-birds: v0.4==origin/v0.4 @ 11c00f6 (pushed); `main` @ 3beeb63
+          NOT yet ff'd. PENDING: `git checkout main && git merge --ff-only
+          v0.4 && git push` (then `git checkout v0.4`).
 
 ### 5. Commit, push main, create release branch
 
