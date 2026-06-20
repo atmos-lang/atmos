@@ -28,13 +28,11 @@
         - `;; *` `;;; * ;;;`
 * TYPES & VALUES
     * Table
-        - `[ * ]` `:X [ * ]`
+        - `[]` `:X []`
     * Function
-        - `func (*) { * }` `\(*) { * }`
-    * Task
-        - `task` `xtask` `pub`
+        - `func` `\{}`
     * Tasks
-        - `tasks`
+        - `task` `xtask` `tasks` `pub`
 * EXPRESSIONS
     * Chunks
         - `;` `do` `escape` `defer` `test`
@@ -1155,7 +1153,7 @@ do {
 print(x)                ;; --> nil (`x` is global)
 
 do {
-    pin t = task(T)
+    pin t = spawn T()
 }                       ;; `t` is aborted
 
 do {
@@ -2109,7 +2107,7 @@ task T (id) {
     set pub = id
 }
 pin ts = tasks()
-val t1 = spawn @ts T(:t1)  ;; --> t1, started
+val t1 = spawn @ts T(:t1)   ;; --> t1, started
 print(t1.pub)               ;; --> t1
 
 spawn {
@@ -2121,7 +2119,7 @@ pin t = spawn {}            ;; ERR: cannot assign
 
 ### Await
 
-An `await` suspends a [task](#task) until a matching [emit](#emit) occurs:
+An `await` suspends a [task](#tasks) until a matching [emit](#emit) occurs:
 
 ```
 Await : `await´ `(´ Patt `)´
