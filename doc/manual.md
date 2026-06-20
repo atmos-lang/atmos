@@ -32,7 +32,7 @@
     * Function
         - `func (*) { * }` `\(*) { * }`
     * Task
-        - `task` `pub`
+        - `task` `xtask` `pub`
     * Tasks
         - `tasks`
 * EXPRESSIONS
@@ -338,7 +338,7 @@ worth mentioning:
     - Atmos: `return (10)`, `break()` (parenthesis)
         - Atmos uses the same call syntax with parenthesis in all expressions
           that resemble statements or calls (`await`, `break`, `do`, `emit`,
-          `escape`, `return`, `task`, `tasks`, `throw`, `until`, and `while`).
+          `escape`, `return`, `tasks`, `throw`, `until`, `while`, and `xtasks`).
         - The reason is to enforce an uniform syntax across all expressions.
         - Some workarounds: `return 'ok'`, `return <- 10`
 - Method call:
@@ -616,14 +616,14 @@ Atmos supports and mimics the semantics of the standard [Lua types][lua-types]:
     `nil`, `boolean`, `number`, `string`,
     `function`, `userdata`, `thread`, and `table`.
 
-Atmos also supports the `task` and `tasks` types.
+Atmos also supports the `task`, `xtask`, and `tasks` types.
 
 Atmos differentiates between *value* and *reference* types:
 
 - Value types are built from the [basic literals](#literals):
     `nil`, `boolean`, `number`, and `string`.
 - Reference types are built from constructors:
-    `function`, `userdata`, `thread`, `table`, `task`, and `tasks`.
+    `function`, `userdata`, `thread`, `table`, `task`, `xtask`, and `tasks`.
 
 [lua-types]: https://www.lua.org/manual/5.4/manual.html#2.1
 
@@ -804,7 +804,7 @@ val y = task(T)         ;; ERR: first assignment requires `pin`
 ```
 
 ```
-func T () {
+task T () {
     defer {
         print "aborted"
     }
@@ -837,7 +837,7 @@ Examples:
 <!-- exs/val-06-pub.atm -->
 
 ```
-func T (n) {
+task T (n) {
     set pub = n
 }
 val t = spawn T(10)
@@ -861,7 +861,7 @@ Examples:
 <!-- exs/val-06-transparent.atm -->
 
 ```
-func T () {
+task T () {
     set pub = 10
     spawn {
         set pub = 20
@@ -1412,7 +1412,7 @@ Examples:
 ```
 
 ```
-func T () { await(false) }
+task T () { await(false) }
 pin xs = tasks()
 pin ys = tasks()
 val x = spawn @xs T()
@@ -2104,7 +2104,7 @@ Examples:
 <!-- exs/exp-25-spawn.atm -->
 
 ```
-func T (id) {
+task T (id) {
     print(id, 'started')
     set pub = id
 }
@@ -2186,7 +2186,7 @@ emit :OK
 ```
 
 ```
-func T (v) {
+task T (v) {
     v * 2
 }
 val v = await T(10)
@@ -2228,7 +2228,7 @@ Examples:
 <!-- exs/exp-27-emit.atm -->
 
 ```
-func T () {
+task T () {
     val x = spawn X()
     val e = <...>
     emit @(:global) (e) ;; global broadcast

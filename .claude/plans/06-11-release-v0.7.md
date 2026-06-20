@@ -85,12 +85,11 @@ v0.7 syntax (sigil remap, clock units, single-arg events, combinators).
       Install `install atmos-lang 0.7`; About in sync
 - [x] HISTORY.md — v0.7 entry incl. task/xtask split (2026-06-19)
 - [ ] doc/guide.md — sigil/clock/await examples current
-- [ ] doc/manual.md — migrated this cycle (sigil + `At` grammar); spot-check,
-      then regen `doc/manual-out.md` (`cd doc && lua5.4 manual.lua manual.md
-      > manual-out.md`) — never edit `manual-out.md` by hand
-      - PENDING task/xtask edits PROPOSED (see `260620-task.md`): Task
-        chapter `task(f)`->`task T(){}` + `xtask(T)`, type list `+xtask`,
-        drop `task` from the call-syntax comment
+- [~] doc/manual.md — sigil + `At` grammar migrated earlier; task/xtask
+      content DONE (`260620-task.md` §1: Task/Spawn chapters, type lists,
+      `xtask()`="me", all embedded examples). STILL TODO: spot-check the
+      rest, then regen `doc/manual-out.md` (`cd doc && lua5.4 manual.lua
+      manual.md > manual-out.md`) — never edit `manual-out.md` by hand
 - [x] rockspec `detailed` synced (Streams/`thread` block, `loop on`)
 
 ### 3. Rockspec `atmos-lang-0.7-1.rockspec` -- DONE (2026-06-20)
