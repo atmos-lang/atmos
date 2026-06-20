@@ -175,6 +175,21 @@ do
     local out = atm_test(src)
     assertx(out, "true\ntrue\ntrue\ntrue\ntrue\n")
 
+    -- RED until runtime gate lands: surface xtask(rawfunc) must reject a
+    -- non-prototype (M.xtask `or T` fallback should be `or (tra and T)`).
+    local src = [[
+        xtask(\{})
+        print :ok
+    ]]
+    print("Testing...", "is 3b: xtask non-proto fails")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (loop)
+         v  [string "anon.atm"]:1 (throw)
+        ==> invalid xtask : expected task prototype
+    ]])
+
     local src = [[
         print([] ?? [])
         print([1,2,3] === [1,2,3])

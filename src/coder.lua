@@ -60,8 +60,9 @@ function coder (e)
     elseif e.tag == 'str' then
         -- single-line source literals are emitted raw between their original
         -- quotes so Lua decodes the escapes (\n \r \t \xHH ...).
-        -- multi-line strings (raw, like Lua [[ ]]) and compiler-synthesized
-        -- strings (no `chr`) are re-encoded safely via %q.
+        -- multi-line strings (raw, like Lua [[ ]]) are re-encoded via %q.
+        -- compiler-synthesized strings have no `chr` and are always bare
+        -- identifiers, so the `chr or "'"` fallback wraps them safely.
         if e.tk.multi then
             return L(e.tk) .. string.format("%q", e.tk.str)
         else

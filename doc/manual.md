@@ -565,6 +565,8 @@ A `string` literal is a sequence of characters enclosed by an odd number
 of matching double (`"`) or single (`'`) quotes.
 Atmos supports multi-line strings when using multiple quote delimiters.
 
+`TODO: single/multi-line differences, quoting, etc`
+
 A `native` literal is a sequence of characters enclosed by an odd number
 of matching back quotes (`` ` ``).
 Atmos supports multi-line native literals when using multiple quote delimiters.
@@ -583,8 +585,6 @@ false               ;; boolean literal
 1.25                ;; number literal
 `x:f {"lua"}`       ;; native literal
 ```
-
-`TODO: multi-line strings trim`
 
 [lua-lexical]: https://www.lua.org/manual/5.4/manual.html#3.1
 
