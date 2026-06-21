@@ -834,17 +834,12 @@ spawn {                     ;; fires a transparent task
 }
 ```
 
-Note that the references to tasks and pools must be first assigned to `pin`
-[declarations](#local-variables), which attaches them to their enclosing
-blocks.
-Unassigned tasks and pools are automatically attached to their enclosing
-blocks.
-Therefore, when a block terminates or aborts, all pinned tasks and pools (with
-their holding tasks) also abort automatically.
-
-Examples:
-
-<!-- exs/val-XX-todo.atm -->
+A task or pool is always attached to a block, which on termination,
+automatically aborts its owned tasks and pools (with their holding tasks).
+A [pin](#local-variables) assignment, which is mandatory for pools, attaches
+the reference to the declaration block.
+By default, an unassigned `spawn` attaches the task to the current enclosing
+block.
 
 A transparent task has no own identity and is owned by its enclosing
 non-transparent task.
@@ -854,6 +849,10 @@ owner.
 Many other structured constructs of Atmos rely on transparent tasks:
     [watching](#watching) and
     [par, par_and, par_or](#parallels).
+
+Examples:
+
+<!-- exs/val-XX-todo.atm -->
 
 ```
 task T (i) {

@@ -6,7 +6,7 @@ pico.zet.window [ title="pico-Atmos: Click, Drag, Cancel" ]
 pico.zet.dim ['!', w=256, h=256]
 
 var text = ""
-var rect = pico.cv.rect('!', ['%', x=0.5, y=0.5, w=0.15, h=0.15])
+var rect = pico.cv.rect('!') <- ['%', x=0.5, y=0.5, w=0.15, h=0.15]
 
 spawn {
     val pt = ['%', x=0.5, y=0.9, h=0.1]
