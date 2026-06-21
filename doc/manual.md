@@ -614,7 +614,8 @@ Atmos supports and mimics the semantics of the standard [Lua types][lua-types]:
     `nil`, `boolean`, `number`, `string`,
     `function`, `userdata`, `thread`, and `table`.
 
-Atmos also supports the `task`, `xtask`, and `tasks` types.
+Atmos also provides three new types related to tasks:
+    `task`, `xtask`, and `tasks`.
 
 Atmos differentiates between *value* and *reference* types:
 
@@ -665,14 +666,14 @@ val t = [      ;; all 3 formats:
     v = "x",
     20, 30
 ]
-print(t ?? :table)          ;; --> true
+print(type(t))              ;; --> 'table'
 print(t.idx, t@("v"), t@2)  ;; --> 10, x, 30
 ```
 
 <!-- exs/val-02-vector.atm -->
 
 ```
-val vs = [1, 2, 3]     ;; a vector of numbers
+val vs = [1, 2, 3]      ;; a vector of numbers
 print(vs@2)             ;; --> 2
 print(vs ?? :table)     ;; --> true
 set vs@(#vs+1) = 4      ;; [1, 2, 3, 4]
@@ -730,8 +731,12 @@ Examples:
 val f = func (x, y) {     ;; function to add arguments
     x + y
 }
+print(type(f)       ;; --> 'function'
 print(f(1,2))       ;; --> 3
 ```
+
+Atmos also provides conventional [prototype declarations](#prototypes) for
+functions and [tasks](#tasks).
 
 ### Lambda
 
@@ -759,6 +764,7 @@ Examples:
 
 ```
 val g = \{ it + 1 }     ;; function to increment argument
+print(g ?? :function)   ;; --> true
 print(g(f(1,2)))        ;; --> 4
 ```
 
@@ -767,54 +773,78 @@ See [Ambiguities](#ambiguities): `\-` reads as `\(a,b){ a - b }` (not
 
 [lua-function]: https://www.lua.org/manual/5.4/manual.html#3.4.11
 
-## Task
+## Tasks
 
-The `task` reference type represents [tasks](#task).
-
-A task constructor `task(f)` receives a [function](#function) and instantiates
-a task:
+Tasks have three associated reference types:
+    a `task` prototype,
+    an `xtask` instance, and
+    a `tasks` pool:
 
 ```
-Task : `task´ `(´ Expr `)´
+Task  : `task´ `(´ ID* [`...´] `)´ Block
+Tasks : `tasks´ `(´ [Expr] `)´
+
+Spawn : `spawn` [At] Expr `(´ Expr* `)`
+      | `spawn` Block
 ```
 
-The given function becomes the body of the task.
+A `task` prototype specifies an execution body and follows the same rules of
+[function constructors](#function).
 
-Although the task is instantiated, it is only started by a subsequent
-[spawn](#spawn) operation.
+The `tasks` constructor creates pool of tasks, which groups related tasks as
+a collection.
+The optional numeric argument specifies that it holds at most `n` tasks.
+If the limit is omitted, the pool is unbounded.
+If the pool becomes full, further spawns fail and return `nil`.
 
-A task must be first assigned to a `pin` [declaration](#local-variables) and
-becomes attached to the enclosing block.
-Therefore, when the block terminates or aborts, the task also aborts
-automatically.
+A `spawn` receives a task prototype or a [block](#blocks), and starts it as a
+task instance:
+
+- The format `spawn @ts T(...)` receives an optional pool to hold the task, a
+  task prototype, and a list of arguments to pass to the body about to start.
+  The operation returns a reference to spawned task instance.
+- The format `spawn { ... }` starts a block as transparent task with no
+  associated reference.
 
 Examples:
 
-<!-- exs/val-06-task.atm -->
+<!-- exs/val-XX-todo.atm -->
 
 ```
-func T (...) { ... }    ;; a task prototype
-print(T ?? :function)   ;; --> true
-pin t = task(T)         ;; an instantiated task
-print(t ?? :task)       ;; --> true
-val x = t               ;; OK: second assignment
-val y = task(T)         ;; ERR: first assignment requires `pin`
-```
-
-```
-task T () {
-    defer {
-        print "aborted"
-    }
-    await(false)
+val T = task (n) {          ;; task to await n seconds
+    await(n * 1s)
+    print "timeout"
 }
+print(type(T))              ;; --> 'task'
+pin t1 = spawn T(10)        ;; fires an instance
+print(type(t1))             ;; --> 'xtask'
 
-do {
-    pin t = task(T)
-    spawn t()
-}               ;; --> aborted
-print "end"     ;; --> end
+pin ts = tasks(10)          ;; `ts` holds at most 10 task instances
+print(type(ts))             ;; --> 'tasks'
+val t2 = spawn @ts T(1)     ;; `t2` lives in `ts`
+print(t2 ?? :xtask)         ;; --> true
+
+spawn {                     ;; fires a transparent task
+    await(15s)
+    print "timeout"
+}
 ```
+
+Note that the references to tasks and pools must be first assigned to `pin`
+[declarations](#local-variables), which attaches them to their enclosing
+blocks.
+Therefore, when a block terminates or aborts, all pinned tasks and pools (with
+their holding tasks) also abort automatically.
+
+A transparent task has no own identity and is owned by its enclosing
+non-transparent task.
+It is automatically pinned to the enclosing block and cannot be assigned.
+In addition, it delegates [pub](#pub) and [emit](#emit) operations to its
+owner.
+Many other structured constructs of Atmos rely on transparent tasks:
+    [watching](#watching) and
+    [par, par_and, par_or](#parallels).
+
 
 ### Pub
 
@@ -842,18 +872,6 @@ val t = spawn T(10)
 print(t.pub)        ;; --> 10
 ```
 
-### Transparent Task
-
-Atmos support some structured constructs that create transparent tasks:
-    [spawn {}](#spawn),
-    [watching](#watching), and
-    [par, par_and, par_or](#parallels).
-
-A transparent task is implicitly pinned to its enclosing lexical block and
-cannot be assigned.
-In addition, it delegates [pub](#pub) and [emit](#emit) operations to its
-enclosing lexical task.
-
 Examples:
 
 <!-- exs/val-06-transparent.atm -->
@@ -869,25 +887,25 @@ task T () {
 spawn T()
 ```
 
-## Tasks
+Examples:
 
-The `tasks` reference type represents a pool of tasks, which groups related
-tasks as a collection.
-
-A task pool constructor `tasks(n)` creates a pool that holds at most `n`
-tasks:
+<!-- exs/exp-25-spawn.atm -->
 
 ```
-Tasks : `tasks´ `(´ [Expr] `)´
+task T (id) {
+    print(id, 'started')
+    set pub = id
+}
+pin ts = tasks()
+val t1 = spawn @ts T(:t1)   ;; --> t1, started
+print(t1.pub)               ;; --> t1
+
+spawn {
+    print(:t2, 'started')   ;; t2, started
+}
+
+pin t = spawn {}            ;; ERR: cannot assign
 ```
-
-If the limit is omitted, the pool is unbounded.
-If the pool becomes full, further spawns fail and return `nil`.
-
-A pool must be first assigned to a `pin` [declaration](#local-variables) and
-becomes attached to the enclosing block.
-Therefore, when the block terminates or aborts, all tasks living in the pool
-also aborts automatically.
 
 Examples:
 
@@ -908,6 +926,37 @@ pin ts = tasks(1)           ;; bounded pool
 val t1 = spawn @ts T()      ;; success
 val t2 = spawn @ts T()      ;; failure
 print(t1, t2)               ;; --> t1, nil
+```
+
+```
+```
+
+Examples:
+
+<!-- exs/val-06-task.atm -->
+
+```
+task T (...) { ... }    ;; a task prototype
+print(T ?? :task)       ;; --> true
+pin t = xtask(T)        ;; an instantiated task
+print(t ?? :xtask)      ;; --> true
+val x = t               ;; OK: second assignment
+val y = xtask(T)        ;; ERR: first assignment requires `pin`
+```
+
+```
+task T () {
+    defer {
+        print "aborted"
+    }
+    await(false)
+}
+
+do {
+    pin t = xtask(T)
+    spawn t()
+}               ;; --> aborted
+print "end"     ;; --> end
 ```
 
 # EXPRESSIONS
@@ -2056,12 +2105,12 @@ throw :X
 
 ## Task Operations
 
-The [task](#task) and [pool of tasks](#tasks) primitives support a number of
+The [task](#tasks) and [pool of tasks](#tasks) primitives support a number of
 operations.
 
 ### Abort
 
-An `abort` receives a [task](#task) or a [tasks](#tasks) value, and immediately
+An `abort` receives a [task](#tasks) or a [tasks](#tasks) value, and immediately
 aborts it:
 
 ```
@@ -2086,43 +2135,6 @@ do {
     pin t = spawn T()
     abort(t)            ;; --> aborted
 }
-```
-
-### Spawn
-
-A `spawn` receives a [task](#task), [function](#function), or [block](#blocks)
-and starts it as a task:
-
-```
-Spawn : `spawn` [At] Expr `(´ Expr* `)`
-      | `spawn` Block
-```
-
-- The format `spawn @ts T(...)` receives an optional [pool](#tasks) to
-  hold the task, a task or function, and a list of arguments to pass to the
-  body about to start.
-  The operation returns a reference to spawned task.
-- The format `spawn { ... }` starts a [transparent task](#transparent-task)
-  body.
-
-Examples:
-
-<!-- exs/exp-25-spawn.atm -->
-
-```
-task T (id) {
-    print(id, 'started')
-    set pub = id
-}
-pin ts = tasks()
-val t1 = spawn @ts T(:t1)   ;; --> t1, started
-print(t1.pub)               ;; --> t1
-
-spawn {
-    print(:t2, 'started')   ;; t2, started
-}
-
-pin t = spawn {}            ;; ERR: cannot assign
 ```
 
 ### Await
