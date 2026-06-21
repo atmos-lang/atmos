@@ -816,13 +816,17 @@ val T = task (n) {          ;; task to await n seconds
     print "timeout"
 }
 print(type(T))              ;; --> 'task'
-pin t1 = spawn T(10)        ;; fires an instance
+pin t1 = spawn T(1)         ;; fires an instance
 print(type(t1))             ;; --> 'xtask'
 
-pin ts = tasks(10)          ;; `ts` holds at most 10 task instances
+pin ts = tasks(2)           ;; `ts` holds at most 2 task instances
 print(type(ts))             ;; --> 'tasks'
-val t2 = spawn @ts T(1)     ;; `t2` lives in `ts`
+
+val t2 = spawn @ts T(2)     ;; `t2` lives in `ts`
 print(t2 ?? :xtask)         ;; --> true
+
+spawn @ts T(3)              ;; #ts==2
+spawn @ts T(4)              ;; spawn fails
 
 spawn {                     ;; fires a transparent task
     await(15s)
@@ -833,8 +837,14 @@ spawn {                     ;; fires a transparent task
 Note that the references to tasks and pools must be first assigned to `pin`
 [declarations](#local-variables), which attaches them to their enclosing
 blocks.
+Unassigned tasks and pools are automatically attached to their enclosing
+blocks.
 Therefore, when a block terminates or aborts, all pinned tasks and pools (with
 their holding tasks) also abort automatically.
+
+Examples:
+
+<!-- exs/val-XX-todo.atm -->
 
 A transparent task has no own identity and is owned by its enclosing
 non-transparent task.
@@ -844,6 +854,26 @@ owner.
 Many other structured constructs of Atmos rely on transparent tasks:
     [watching](#watching) and
     [par, par_and, par_or](#parallels).
+
+```
+task T (i) {
+    defer {
+        print("aborted " ++ i)
+    }
+    await(false)
+}
+do {
+    pin ts = tasks()
+    spawn T(1)
+    spawn @ts T(2)
+    spawn {
+        defer {
+            print("aborted 3")
+        }
+        await(false)
+    }
+}                       ;; --> aborted 3,2,1
+```
 
 ### Pub
 
