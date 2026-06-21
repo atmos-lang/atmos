@@ -845,7 +845,6 @@ Many other structured constructs of Atmos rely on transparent tasks:
     [watching](#watching) and
     [par, par_and, par_or](#parallels).
 
-
 ### Pub
 
 A task has a single public field `pub`, which can be accessed both internally
@@ -863,100 +862,18 @@ task.
 Examples:
 
 <!-- exs/val-06-pub.atm -->
+<!-- exs/val-06-transparent.atm -->
 
 ```
 task T (n) {
     set pub = n
-}
-val t = spawn T(10)
-print(t.pub)        ;; --> 10
-```
-
-Examples:
-
-<!-- exs/val-06-transparent.atm -->
-
-```
-task T () {
-    set pub = 10
     spawn {
-        set pub = 20
+        set pub = n*2   ;; refers to owner's `pub`
     }
-    print(pub)  ;; --> 20
+    print(pub)          ;; --> 20
 }
-spawn T()
-```
-
-Examples:
-
-<!-- exs/exp-25-spawn.atm -->
-
-```
-task T (id) {
-    print(id, 'started')
-    set pub = id
-}
-pin ts = tasks()
-val t1 = spawn @ts T(:t1)   ;; --> t1, started
-print(t1.pub)               ;; --> t1
-
-spawn {
-    print(:t2, 'started')   ;; t2, started
-}
-
-pin t = spawn {}            ;; ERR: cannot assign
-```
-
-Examples:
-
-<!-- exs/val-07-tasks.atm -->
-
-```
-do {
-    pin ts = tasks()        ;; a pool of tasks
-    print(ts ?? :tasks)     ;; --> true
-    val t1 = spawn @ts T()
-    val t2 = spawn @ts T()
-    <...>
-}                           ;; aborts t1, t2, ...
-```
-
-```
-pin ts = tasks(1)           ;; bounded pool
-val t1 = spawn @ts T()      ;; success
-val t2 = spawn @ts T()      ;; failure
-print(t1, t2)               ;; --> t1, nil
-```
-
-```
-```
-
-Examples:
-
-<!-- exs/val-06-task.atm -->
-
-```
-task T (...) { ... }    ;; a task prototype
-print(T ?? :task)       ;; --> true
-pin t = xtask(T)        ;; an instantiated task
-print(t ?? :xtask)      ;; --> true
-val x = t               ;; OK: second assignment
-val y = xtask(T)        ;; ERR: first assignment requires `pin`
-```
-
-```
-task T () {
-    defer {
-        print "aborted"
-    }
-    await(false)
-}
-
-do {
-    pin t = xtask(T)
-    spawn t()
-}               ;; --> aborted
-print "end"     ;; --> end
+pin t = spawn T(10)
+print(t.pub)            ;; --> 20
 ```
 
 # EXPRESSIONS
