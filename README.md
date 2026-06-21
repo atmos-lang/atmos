@@ -8,6 +8,7 @@
 ***Structured Event-Driven Concurrency***
 
 [
+    [`v0.7`](https://github.com/atmos-lang/atmos/tree/v0.7)      |
     [`v0.6`](https://github.com/atmos-lang/atmos/tree/v0.6)      |
     [`v0.5`](https://github.com/atmos-lang/atmos/tree/v0.5)      |
     [`v0.4`](https://github.com/atmos-lang/atmos/tree/v0.4)      |
@@ -15,7 +16,7 @@
     [`v0.2`](https://github.com/atmos-lang/atmos/tree/v0.2_0.2.1)
 ]
 
-Stable branch is [`v0.6`](https://github.com/atmos-lang/atmos/tree/v0.6).
+Stable branch is [`v0.7`](https://github.com/atmos-lang/atmos/tree/v0.7).
 
 [
     [About](#about)                 |
@@ -38,7 +39,7 @@ programming with two main functionalities:
     - A `task` primitive with deterministic scheduling provides predictable
       behavior and safe abortion.
     - Structured primitives compose concurrent tasks with lexical scope (e.g.,
-      `watching`, `every`, `par_or`).
+      `watching`, `loop`, `par_or`).
     - A `tasks` container primitive holds attached tasks and controls their
       lifecycle.
     - A `pin` declaration attaches a task or tasks to its enclosing lexical
@@ -85,8 +86,8 @@ During 5 seconds, displays `Hello World!` every second:
 ```
 require "atmos.env.clock"
 
-watching @5 {
-    every @1 {
+watching 5s {
+    loop on 1s {
         print "Hello World!"
     }
 }
@@ -97,7 +98,7 @@ applications.
 The program body is a task in Atmos that behaves as follows:
 
 - The `watching` command will execute its block during 5 seconds.
-- The `every` loop will execute its block every second.
+- The `loop on` will execute its block every second.
 - Once the `watching` terminates, the body reaches its end, and the program
   exits cleanly.
 
@@ -106,7 +107,7 @@ The program body is a task in Atmos that behaves as follows:
 ## Luarocks
 
 ```
-sudo luarocks --lua-version=5.4 install atmos-lang 0.6
+sudo luarocks --lua-version=5.4 install atmos-lang 0.7
 atmos <lua-path>/atmos/lang/exs/hello.atm
 ```
 

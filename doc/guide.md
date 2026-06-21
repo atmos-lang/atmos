@@ -359,10 +359,10 @@ spawn {
     }
 }
 print 'off'
-emit(:X, false)    ;; body above toggles off
+emit(:X [false])   ;; body above toggles off
 await 1s
 print 'on'
-emit(:X, true)     ;; body above toggles on
+emit(:X [true])    ;; body above toggles on
 await 1s
 ```
 
@@ -419,7 +419,7 @@ Only this task awakes and generates an uncaught error:
 
 ```
 func T (id) {
-    await(:X, id)
+    await(:X [id])
     throw :error
 }
 
@@ -428,7 +428,7 @@ spawn @ts T(1)
 spawn @ts T(2)
 spawn @ts T(3)
 
-emit(:X, 2)
+emit(:X [2])
 ```
 
 The stack trace identifies that the task lives in `ts` in line 6 and spawns in
