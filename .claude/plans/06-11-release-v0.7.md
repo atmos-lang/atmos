@@ -81,15 +81,18 @@ once those land — combinators, `spawn on`, etc.)
 Check README.md / doc/guide.md / doc/manual.md / HISTORY.md all reflect
 v0.7 syntax (sigil remap, clock units, single-arg events, combinators).
 
-- [ ] README.md — add `v0.7` to version list; stable link `v0.6` -> `v0.7`;
-      Install `install atmos-lang 0.7`; About in sync
+- [x] README.md — `v0.7` in version list + stable link; Install `0.7`;
+      About `every`->`loop`; Hello World `watching 5s { loop on 1s }`
+      (2026-06-20)
 - [x] HISTORY.md — v0.7 entry incl. task/xtask split (2026-06-19)
-- [ ] doc/guide.md — sigil/clock/await examples current
-- [~] doc/manual.md — sigil + `At` grammar migrated earlier; task/xtask
-      content DONE (`260620-task.md` §1: Task/Spawn chapters, type lists,
-      `xtask()`="me", all embedded examples). STILL TODO: spot-check the
-      rest, then regen `doc/manual-out.md` (`cd doc && lua5.4 manual.lua
-      manual.md > manual-out.md`) — never edit `manual-out.md` by hand
+- [x] doc/guide.md — was mostly v0.7 already; fixed 3 value-event examples
+      `emit(:X, v)`/`await(:X, id)` -> `emit(:X [v])`/`await(:X [id])`
+      (2026-06-20). Examples still need a run-check (§1).
+- [x] doc/manual.md — spot-check CLEAN (2026-06-20): prose v0.7; all
+      embedded `doc/exs/*.atm` already v0.7 (the `@N` hits are the new
+      index syntax, not `@{}`). Regenerated `doc/manual-out.md` (2956 lines)
+      via `lua5.4 manual.lua manual.md > manual-out.md`; confirmed stale
+      v0.6 (`@{}`/`t[*]`/`pos[:x]`) replaced by v0.7 (`[]`/`t@1`/`pos@(:x)`).
 - [x] rockspec `detailed` synced (Streams/`thread` block, `loop on`)
 
 ### 3. Rockspec `atmos-lang-0.7-1.rockspec` -- DONE (2026-06-20)

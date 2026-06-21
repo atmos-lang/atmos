@@ -129,7 +129,7 @@ do
         spawn T(1)
         spawn U(2)
     ]]
-    print("Testing...", "task 4: val/var task decl")
+    print("Testing...", "task 4: val task decl")
     local out = atm_test(src)
     assertx(out, "val\t1\nvar\t2\n")
 
