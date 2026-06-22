@@ -1,5 +1,0 @@
-func T (n) {
-    set pub = n
-}
-pin t = spawn T(10)
-print(t.pub)        ;; --> 10
