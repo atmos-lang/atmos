@@ -3560,7 +3560,7 @@ do
 
     local src = [[
         spawn {
-            par_and {
+            par :all {
                 await(:X)
             } with {
                 await(:Y)
@@ -3573,13 +3573,13 @@ do
         emit(:Y)
         print(:depois)
     ]]
-    print("Testing...", "par_and 1")
+    print("Testing...", "par :all 1")
     local out = atm_test(src)
     assertx(out, "antes\nok\ndepois\n")
 
     local src = [[
         spawn {
-            par_or {
+            par :any {
                 await(:X)
             } with {
                 await(:Y)
@@ -3592,13 +3592,13 @@ do
         emit(:Y)
         print(:depois)
     ]]
-    print("Testing...", "par_or 1")
+    print("Testing...", "par :any 1")
     local out = atm_test(src)
     assertx(out, "ok\nantes\ndepois\n")
 
     local src = [[
         spawn {
-            par_or {
+            par :any {
                 await(:X)
                 print(:x)
             } with {
@@ -3616,7 +3616,7 @@ do
         emit(:Y)
         print(:depois)
     ]]
-    print("Testing...", "par_or 2")
+    print("Testing...", "par :any 2")
     local out = atm_test(src)
     assertx(out, "x\ny\nok\nantes\ndepois\n")
 
@@ -3652,7 +3652,7 @@ do
 
     local src = [[
         spawn {
-            val x = par_or {
+            val x = par :any {
                 await(false)
             } with {
                 10
@@ -3660,13 +3660,13 @@ do
             print(x)
         }
     ]]
-    print("Testing...", "par_or 3: return")
+    print("Testing...", "par :any 3: return")
     local out = atm_test(src)
     assertx(out, "10\n")
 
     local src = [[
         spawn {
-            val x,y = par_and {
+            val x,y = par :all {
                 await(true)
                 10
             } with {
@@ -3676,7 +3676,7 @@ do
             X.print(x,y)
         }
     ]]
-    print("Testing...", "par_and 3: return")
+    print("Testing...", "par :all 3: return")
     local out = atm_test(src)
     assertx(out, "10\t20\n")
 
@@ -3694,7 +3694,7 @@ do
 
     local src = [[
         spawn {
-            par_or {
+            par :any {
                 await(:X)
                 print("x")
             } with {
@@ -3710,13 +3710,13 @@ do
         emit(:X)
         print("ok")
     ]]
-    print("Testing...", "par_or 4")
+    print("Testing...", "par :any 4")
     local out = atm_test(src)
     assertx(out, "x\nor\nok\n")
 
     local src = [[
         spawn {
-            par_or {
+            par :any {
                 await(:X)
                 print("x")
             } with {
@@ -3729,17 +3729,17 @@ do
         emit(:X)
         print("ok")
     ]]
-    print("Testing...", "par_or 5")
+    print("Testing...", "par :any 5")
     local out = atm_test(src)
     assertx(out, "x\nor\nok\n")
 
     local src = [[
         spawn {
-            par_or {
+            par :any {
                 await (false)
             } with {
                 do :X {
-                    par_or {
+                    par :any {
                         await (false)
                     } with {
                         await :A
@@ -3752,7 +3752,7 @@ do
         }
         emit :A
     ]]
-    print("Testing...", "par_or 6")
+    print("Testing...", "par :any 6")
     local out = atm_test(src)
     assertx(out, "1\n2\n")
 end

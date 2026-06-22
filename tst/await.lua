@@ -126,12 +126,12 @@ do
 
     local src = [[
         spawn {
-            par_or { await(:X || :Y) } with { await(:Z) }
+            par :any { await(:X || :Y) } with { await(:Z) }
             print(:ok)
         }
         emit(:Y)
     ]]
-    print("Testing...", "op_par_or 1")
+    print("Testing...", "op_par :any 1")
     local out = atm_test(src)
     assertx(out, "ok\n")
 

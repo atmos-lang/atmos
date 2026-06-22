@@ -237,8 +237,7 @@ code.
 
 Atmos provides many compound statements built on top of tasks:
 
-- The `loop on` statement expands to a loop that awaits an event at the
-  beginning of each iteration:
+- A `loop on` awaits an event at the beginning of each iteration:
 
 ```
 loop on 1s {
@@ -246,8 +245,8 @@ loop on 1s {
 }
 ```
 
-- The `watching` statement awaits the given body to terminate, or aborts if its
-  first argument occurs:
+- A `watching` awaits the given body to terminate, or aborts when its first
+  argument occurs:
 
 ```
 watching 1s {
@@ -256,12 +255,14 @@ watching 1s {
 }
 ```
 
-- The `par`, `par_and`, `par_or` statements spawn multiple bodies and rejoin
-  after their bodies terminates: `par` never rejoins, `par_and`
-  rejoins after all terminate, `par_or` rejoins after any terminates:
+- A `par` spawns multiple bodies concurrently and rejoins depending on its tag
+  suffix:
+    - a `par :all` rejoins after all bodies terminate,
+    - a `par :any` rejoins after any body terminates, and
+    - a `par` without any suffix never rejoins.
 
 ```
-par_and {
+par :all {
     await :X
 } with {
     await :Y
@@ -553,7 +554,7 @@ val func cpu (max) {
 }
 
 val t = watching 20s {
-    par_or {
+    par :any {
         val v = thread {
             cpu(math.random(10000000000))
         }
