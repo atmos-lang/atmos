@@ -1,4 +1,4 @@
-# Plan: `spawn on` (one-shot concurrent event handler)
+# Plan: `spawn on` + `spawn @ts {}` (concurrent handlers / anon pooled task)
 
 ## Context
 
@@ -23,7 +23,11 @@ concurrent handler. Bare `on P {}` is NOT added — use `await P; ...`.
 
 ```
 spawn on P { body }   ==   spawn { await P ; body }
+spawn @ts { body }    ==   spawn_in(ts, task(){ body })
 ```
+
+Note: `spawn { }` (no pool) stays transparent `do_spawn`; `spawn @ts { }`
+(pooled, incl. `@(e)`) must be a real anonymous task, since pools hold tasks.
 
 ## Implementation
 
@@ -39,15 +43,24 @@ spawn on P { body }   ==   spawn { await P ; body }
      the `spawn { ... }` branch). The outer `check('spawn')` caller already
      forces the `pin _ =` wrap when there is no pool target — reuse it, no
      change needed.
+1b. [ ] Parser — `src/prim.lua`, `parser_spawn()` else-branch: after
+   `parser_at()` sets `ts`, before `parser_6_pip()`, add:
+   - `if ts and check('{') then`
+   - `blk = parser_block()`; build `task` proto `{tag='proto', sub='task',
+     pars={}, blk=blk}`
+   - emit `spawn_in(ts, proto)`: `es = { ts, proto }`, `f = 'spawn_in'`,
+     same `spw` shape; `out = parser_7_out(spw)`; `return out, spw`.
+   - Since `f == 'spawn_in'`, the caller skips the `pin _ =` wrap (correct).
 2. [ ] DECIDE (while implementing): binding form? `spawn e on :Y {}` like
    `loop e on :Y`, lowering to `spawn { val e = await P ; body }`.
    Plan default = BINDING-LESS; pick one and record it here.
 3. [ ] Tests (ask the user to run; do not run):
-   - `tst/stmt.lua`: a `spawn on` parse / tosource case
-   - `tst/exec.lua`: a `spawn on` exec case
+   - `tst/stmt.lua`: `spawn on` + `spawn @ts {}` parse / tosource cases
+   - `tst/exec.lua`: `spawn on` + `spawn @ts {}` exec cases
    - then sync `src/` to the installed tree, `cd tst && lua5.4 all.lua`
 4. [ ] Docs (after green): `doc/manual.md` Spawn section + the SYNTAX appendix
-   (the `on` family is already documented for `loop` / `toggle`).
+   (the `on` family is already documented for `loop` / `toggle`); document
+   the `spawn @ts {}` anon-pooled-task sugar alongside `spawn @ts T()`.
 
 ## Related (shared follow-up)
 
