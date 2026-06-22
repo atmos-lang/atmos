@@ -56,7 +56,7 @@
         - `throw` `catch`
     * Task Operations
         - `spawn` `await` `emit` `toggle`
-        - `watching` `par` `par_and` `par_or`
+        - `par` `watching`
     * Asynchronous Execution
         - `async` `thread`
 * STANDARD LIBRARIES
@@ -161,15 +161,15 @@ operations.
 
 The next example illustrates structured concurrency, abortion of tasks, and
 deterministic scheduling.
-The example uses a `par_or` to spawn two concurrent tasks:
-    one that terminates after 10 seconds, and
-    another one that increments `n` every second, showing its value on
-    termination:
+The example uses a `par` to spawn two concurrent tasks and rejoin when `:any`
+of them terminates:
+    one task is just a 10-seconds timeout, and the other
+    increments `n` every second, showing its value on termination:
 
 <!-- exs/01-counter.atm -->
 
 ```
-par_or {
+par :any {
     await 10s
 } with {
     var n = 0
@@ -182,9 +182,9 @@ par_or {
 }
 ```
 
-The [par_or](#parallels) is a structured mechanism that combines tasks in
-nested blocks and rejoins as a whole when one of them terminates, automatically
-aborting the others.
+A [par](#parallel) is a structured mechanism that combines tasks in nested
+blocks and rejoins as a whole when `:any` of them terminates (in this case),
+automatically aborting the others.
 
 The [loop on](#loop) in the second task iterates exactly 9 times before the
 first task awakes and terminates the composition.
@@ -198,7 +198,7 @@ In addition, tasks awake in the order they appear in the source code, which
 makes the scheduling order predictable.
 This rule allows us to infer that the example invariably outputs `9`, no matter
 how many times we re-execute it.
-Likewise, if the order of the two tasks inside the `par_or` were inverted, the
+Likewise, if the order of the two tasks inside the `par` were inverted, the
 example would always output `10`.
 
 [lua-coroutines]: https://www.lua.org/manual/5.4/manual.html#2.6
@@ -440,9 +440,7 @@ The following keywords are reserved in Atmos:
     nil                 ;; nil value
     on                  ;; on event clause
     par                 ;; par block
-    par_and             ;; par-and block                    (20)
-    par_or              ;; par-or block
-    pin                 ;; pin declaration
+    pin                 ;; pin declaration                  (20)
     pub                 ;; public variable
     return              ;; escape prototype
     set                 ;; assign expression
@@ -450,16 +448,16 @@ The following keywords are reserved in Atmos:
     task                ;; task prototype
     tasks               ;; task pool
     test                ;; test block
-    throw               ;; throw error                      (30)
+    throw               ;; throw error
     toggle              ;; toggle task
-    true                ;; true value
+    true                ;; true value                       (30)
     until               ;; until loop condition
     val                 ;; constant declaration
     var                 ;; variable declaration
     watching            ;; watching block
     where               ;; where block
     while               ;; while loop condition
-    with                ;; with block                       (39)
+    with                ;; with block                       (37)
 ```
 
 <!--
@@ -846,9 +844,8 @@ non-transparent task.
 It is automatically pinned to the enclosing block and cannot be assigned.
 In addition, it delegates [pub](#pub) and [emit](#emit) operations to its
 owner.
-Many other structured constructs of Atmos rely on transparent tasks:
-    [watching](#watching) and
-    [par, par_and, par_or](#parallels).
+Note that other compound constructs of Atmos, including
+[par and watching](#parallel), also rely on transparent tasks internally.
 
 Examples:
 
@@ -2282,46 +2279,22 @@ emit(:Draw)         ;; --> draw
 See [Ambiguities](#ambiguities): `with :a until c, :b` reads as
 `with :a (until c, :b)` (not `with (:a until c), :b`).
 
-### Watching
+### Parallel
 
-A `watching` spawns and awaits a block as a
-[transparent task](#transparent-task) until an [await pattern](#await) is
-satisfied, which aborts the block:
-
-```
-Watching : `watching´ Expr* Block
-```
-
-Examples:
-
-<!-- exs/exp-30-watching.atm -->
+The parallel statement spawns multiple [transparent tasks](#tasks) until they
+rejoin according to its optional suffix tag:
 
 ```
-watching 1s {
-    loop on :X {
-        print("one more :X occurred before 1 second")
-    }
-}
-```
-
-### Parallels
-
-A parallel statement spawns multiple [transparent tasks](#transparent-task):
-
-```
-Par : `par´     Block { `with´ Block }
-And : `par_and´ Block { `with´ Block }
-Or  : `par_or´  Block { `with´ Block }
+Par : `par´ [`:all´ | `:any´] Block { `with´ Block }
 ```
 
 A `par` never rejoins, even if all tasks terminate.
 
-A `par_and` rejoins only after all tasks terminate.
-It evaluates to a [table](#table) with the returns of the `n` tasks from `1` to
-`n`.
+A `par :all` rejoins only after all tasks terminate.
+It evaluates to the first return value of each terminating task.
 
-A `par_or` rejoins as soon as any task terminates, aborting the others.
-It evaluates to the terminating task value.
+A `par :any` rejoins as soon as any task terminates, aborting the others.
+It evaluates to the return values of the terminating task.
 
 Examples:
 
@@ -2345,7 +2318,7 @@ print("never reached")
 ```
 
 ```
-val v = par_or {
+val v = par :any {
     await 1s
 } with {
     await :X
@@ -2356,12 +2329,43 @@ print(v)        ;; --> ok
 ```
 
 ```
-val x,y = par_and {
+val x,y = par :all {
     await :X
 } with {
     await :Y
 }
 print(x, y)     ;; --> X, Y
+```
+
+#### Watching
+
+A `watching` spawns and awaits a block as a [transparent task](#tasks) until an
+[await pattern](#await) is satisfied, which aborts the block:
+
+```
+Watching : `watching´ Expr* Block
+```
+
+A `watching <e> { <body> }` is equivalent to a `par :any` as follows:
+
+```
+par :any {
+    await <e>
+} with {
+    <body>
+}
+```
+
+Examples:
+
+<!-- exs/exp-30-watching.atm -->
+
+```
+watching 1s {
+    loop on :X {
+        print("one more :X occurred before 1 second")
+    }
+}
 ```
 
 ## Asynchronous Execution
@@ -2695,11 +2699,9 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `toggle´ Expr `(´ Expr `)´                  ;; toggle task
       | `toggle´ `on´ Pattern Block                 ;; toggle block
 
+      | `par´ [ `:all´ | `:any´ ]                   ;; parallel
+            Block { `with´ Block }
       | `watching´ Expr* Block                      ;; watching event block
-
-      | `par´     Block { `with´ Block }            ;; parallels
-      | `par_and´ Block { `with´ Block }
-      | `par_or´  Block { `with´ Block }
 
       | `thread´ Block                              ;; OS thread
 
