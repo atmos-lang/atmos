@@ -26,6 +26,7 @@ Two major refactorings:
     - `t[-]` pop operator
 - Modifications:
     - `every` -> `loop on` (e.g., `loop v on :X`)
+    - `par_and` / `par_or` -> `par :all` / `par :any`
     - `@{...}` -> `[...]` for table constructors
     - table indexing:
         - `t[10] t[i] t[i+1]` -> `t@10 t@i t@(i+1)`

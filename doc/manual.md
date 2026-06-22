@@ -76,11 +76,11 @@ programming with two main functionalities:
 - Structured Deterministic Concurrency:
     - A `task` primitive with deterministic scheduling provides predictable
       behavior and safe abortion.
-    - Structured primitives compose concurrent tasks with lexical scope (e.g.,
-      `loop on`, `toggle`, `par_or`).
     - A `tasks` container primitive holds attached tasks and controls their
       lifecycle.
     - A `pin` declaration attaches a task or tasks to its enclosing lexical
+      scope.
+    - Structured primitives (e.g., `par`) compose concurrent tasks with lexical
       scope.
 - Event Signaling Mechanisms:
     - An `await` primitive suspends a task and waits for events.
