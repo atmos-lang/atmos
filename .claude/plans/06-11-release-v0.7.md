@@ -22,17 +22,19 @@ Prerequisites — these language plans MUST land before cutting v0.7:
 
 - [x] `done/06-11-await.md` — value-event await/emit + `||`/`&&`/`!`
       combinators (CLOSED 2026-06-18; bare-pool guard landed)
-- [ ] `06-11-spawn-on.md` — `spawn on` (step 4) + await-docs review
+- [ ] `260621-spawn-on-at.md` — `spawn on P {}` + `spawn @ts {}` (renamed
+      from `06-11-spawn-on.md`). NOT shipped (no parser/test/doc support;
+      only `loop on`/`toggle on` exist). DECISION: v0.7 BLOCKER or defer to
+      v0.7.x? It is additive, so v0.7 CAN ship without it.
 
-Next actions, in order: finish the two prereq plans -> §1 tests -> §2 docs ->
-§3 rockspec -> §4.1 migrate `.atm` apps (sdl-birds/sdl-rocks to `v0.4`) ->
-§5 release branch -> §6 publish -> §7 remote verify (incl. apps) -> §8
-announce.
+State @ 2026-06-22: §1 tests, §2 docs, §3 rockspec, §4 exs + §4.1 app
+MIGRATION are all DONE. REMAINING: the spawn-on-at decision above; §3
+local `luarocks make`; §4.1 sdl-birds `main`->`v0.4` ff; then §5 release
+branch -> §6 publish -> §7 remote verify -> §8 announce.
 
-App migration (requested 2026-06-20): the atmos-lang org `.atm` apps
-sdl-birds + sdl-rocks migrated to v0.7 SYNTAX (Appendix A) and RUN OK
-(2026-06-20). READMEs updated. REMAINING: cut the `v0.4` branch per repo
-(commit + push + ff `main`/`master`) — user-run. Tracked in §4.1.
+App migration (2026-06-20): sdl-birds + sdl-rocks migrated to v0.7 SYNTAX
+and RUN OK; READMEs updated. sdl-rocks `v0.4` branch DONE; sdl-birds ff of
+`main`->`v0.4` still PENDING (user-run). Tracked in §4.1.
 
 ## Context
 
@@ -71,10 +73,11 @@ once those land — combinators, `spawn on`, etc.)
 ### 1. Run tests
 
 - [x] Automatic: `cd tst && lua5.4 all.lua` (all pass, incl. task/xtask sweep)
-- Manual:
-    - [ ] README.md examples
-    - [ ] doc/guide.md examples
-    - [ ] doc/manual.md examples
+- Manual (compile-verified 2026-06-22; live-run optional):
+    - [x] README.md examples — hello compiles OK
+    - [x] doc/guide.md examples — 21/23 fenced blocks compile (the 2
+          non-compiling are a `<...>` placeholder + an error-output block)
+    - [x] doc/manual.md examples — embedded `doc/exs/*` all v0.7 (see §2)
 
 ### 2. Docs consistency
 
@@ -102,8 +105,10 @@ v0.7 syntax (sigil remap, clock units, single-arg events, combinators).
 - [x] both: `await.lua` module added; desc `every` -> `loop on`;
       `lua >= 5.4`; Streams/`thread` block (mirrors runtime `atmos-0.7-2`)
 - [x] superseded `0.6-1` + `dev-3` moved to `old/`; committed + pushed
-- [ ] Install locally (Phase 1):
+- [x] Install locally (Phase 1):
       `sudo luarocks make atmos-lang-0.7-1.rockspec --lua-version=5.4`
+      DONE: installed rock now emits current `do_spawn` codegen (was stale
+      `spawn(true,..)` earlier). (verified 2026-06-22)
 - Convention (from the v0.7 cycle): keep BOTH a pinned `0.7-1` rockspec
   (branch `v0.7`) and a `-dev-N` rockspec (git `main`/HEAD).
 - See `done/260618-task-xtask.md` for the task/xtask compiler details;
@@ -186,24 +191,33 @@ Per-repo checklist:
       kept; `points[winner]`->`points@winner`.
 - [x] Updated both README.md (atmos-lang `0.7` + env-sdl `0.2`;
       `git checkout v0.4`; birds `birds-11.atm`, rocks `main.atm`).
-- [~] Branch `v0.4` per repo (commit + push + ff + verify):
-    - [x] sdl-rocks: master==v0.4==origin @ bee3893 (DONE 2026-06-20).
-    - [~] sdl-birds: v0.4==origin/v0.4 @ 11c00f6 (pushed); `main` @ 3beeb63
-          NOT yet ff'd. PENDING: `git checkout main && git merge --ff-only
-          v0.4 && git push` (then `git checkout v0.4`).
+- [x] Branch `v0.4` per repo (commit + push + ff + verify) — BOTH DONE:
+    - [x] sdl-rocks: master==v0.4==origin @ e4e31fe (DONE; re-verified
+          2026-06-22, incl. par :any/:all edits).
+    - [x] sdl-birds: main==v0.4==origin/main==origin/v0.4 @ 11c00f6
+          (ff DONE; re-verified 2026-06-22).
 
 ### 5. Commit, push main, create release branch
 
-- [ ] Single commit: `release: v0.7`
-- [ ] Push main; check GitHub Actions for green CI
-- [ ] Create branch `v0.7`
-- [ ] Update README links: `main` -> `v0.7`; commit + push `v0.7`
-- [ ] Return to main
+State (re-verified 2026-06-22): work is committed on `v0.7`==origin/v0.7
+@ 00aff7c; README links already `v0.7`. `main`==origin/main @ 0a8fa55 is
+~10 commits BEHIND `v0.7` (ff-able: `main` is ancestor of `v0.7`).
+
+- [x] Create branch `v0.7` (pushed)
+- [x] Update README links: `main` -> `v0.7` (done)
+- [x] Push `v0.7`; CI — check GitHub Actions green
+- [ ] ff `main` -> `v0.7` + push: `git checkout main && git merge --ff-only
+      v0.7 && git push` (then back to `v0.7`)
+- [ ] Commit the working `.claude/plans/06-11-release-v0.7.md` edits
 
 ### 6. Publish rockspec to LuaRocks
 
+NOT DONE (verified 2026-06-22): luarocks.org tops out at `0.6-1`; no `0.7`
+published yet. Upload both the pinned + dev rockspec:
+
 ```bash
 luarocks upload atmos-lang-0.7-1.rockspec
+luarocks upload atmos-lang-dev-4.rockspec
 ```
 
 ### 7. Verify LuaRocks install + examples again (Phase 2 — remote)
