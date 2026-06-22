@@ -175,8 +175,6 @@ do
     local out = atm_test(src)
     assertx(out, "true\ntrue\ntrue\ntrue\ntrue\n")
 
-    -- RED until runtime gate lands: surface xtask(rawfunc) must reject a
-    -- non-prototype (M.xtask `or T` fallback should be `or (tra and T)`).
     local src = [[
         xtask(\{})
         print :ok

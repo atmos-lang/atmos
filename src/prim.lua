@@ -666,10 +666,21 @@ function parser_1_prim ()
         end
 
     -- pars, watching
-    elseif check('par') or check('par_and') or check('par_or') or check('watching') then
-        -- par
-        if accept('par') or accept('par_and') or accept('par_or') then
-            local par = TK0.str
+    elseif check('par') or check('watching') then
+        -- par :all -> par_and (rejoin all); :any -> par_or (rejoin any)
+        if accept('par') then
+            local par = 'par'
+            local tag = accept(nil, 'tag')
+            if tag then
+                par = tag.str
+                if par == ':all' then
+                    par = 'par_and'
+                elseif par == ':any' then
+                    par = 'par_or'
+                else
+                    err(tag, "invalid par : invalid tag")
+                end
+            end
             local fs = { parser_block() }
             while accept('with') do
                 fs[#fs+1] = parser_block()

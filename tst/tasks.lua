@@ -88,6 +88,14 @@ do
     --assertx(msg, "anon : line 1 : near '.' : field error : expected prefix expression")
     --assertx(msg, "anon : line 1 : near '.' : expected expression")
     assertx(msg, "anon : line 1 : near '.' : sequence error : expected ';' or new line")
+
+    local src = "par :foo {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near ':foo' : invalid par : invalid tag")
 end
 
 -- EXEC
