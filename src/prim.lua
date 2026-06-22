@@ -667,16 +667,16 @@ function parser_1_prim ()
 
     -- pars, watching
     elseif check('par') or check('watching') then
-        -- par :all -> par_and (rejoin all); :any -> par_or (rejoin any)
+        -- par :all -> par_all (rejoin all); :any -> par_any (rejoin any)
         if accept('par') then
             local par = 'par'
             local tag = accept(nil, 'tag')
             if tag then
                 par = tag.str
                 if par == ':all' then
-                    par = 'par_and'
+                    par = 'par_all'
                 elseif par == ':any' then
-                    par = 'par_or'
+                    par = 'par_any'
                 else
                     err(tag, "invalid par : invalid tag")
                 end
