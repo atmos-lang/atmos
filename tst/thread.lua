@@ -115,7 +115,7 @@ do
 
         spawn {
             val t = watching 20s {
-                par_or {
+                par :any {
                     val v = thread {
                         loop {
                             cpu(math.random(10000000))

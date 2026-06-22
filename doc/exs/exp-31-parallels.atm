@@ -18,7 +18,7 @@ spawn {
 }
 
 spawn {
-    val v = par_or {
+    val v = par :any {
         await 1s
     } with {
         await :X
@@ -29,7 +29,7 @@ spawn {
 }
 
 spawn {
-    val x,y = par_and {
+    val x,y = par :all {
         await :X
     } with {
         await :Y

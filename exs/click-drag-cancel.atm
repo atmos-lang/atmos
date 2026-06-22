@@ -20,12 +20,12 @@ loop {
     val click = await(:mouse.button.dn until pico.vs.pos.rect(it, rect))
     val orig = x.copy(rect)
     set text = "... clicking ..."
-    par_or {
+    par :any {
         await(:key.dn [key='Escape'])
         set rect = orig
         set text = "!!! CANCELLED !!!"
     } with {
-        par_or {
+        par :any {
             await :mouse.motion
             set text = "... dragging ..."
             await :mouse.button.up

@@ -1,6 +1,6 @@
 require "atmos.env.clock"
 
-par_or {
+par :any {
     await 10s
 } with {
     var n = 0

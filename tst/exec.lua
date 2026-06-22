@@ -2746,11 +2746,11 @@ print "--- ESCAPE TCO ---"
 do
     local src = [[
         spawn {
-            par_or {
+            par :any {
                 await (false)
             } with {
                 do :X {
-                    par_or {
+                    par :any {
                         await (false)
                     } with {
                         await :A

@@ -149,7 +149,7 @@ do {
 do {
     print "-=-=- 4.3 -=-=-"
     spawn {
-        par_and {
+        par :all {
             await :X
         } with {
             await :Y

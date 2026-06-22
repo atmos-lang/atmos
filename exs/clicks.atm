@@ -57,7 +57,7 @@ spawn {
             }
         }
         emit :x.mouse.button.dn [n=n, x=dn.x, y=dn.y]
-        par_and {
+        par :all {
             val pos = pico.get.mouse('!')
             if pos.left {
                 val up = await :mouse.button.up
