@@ -808,19 +808,19 @@ task instance:
 
 Examples:
 
-<!-- exs/val-XX-todo.atm -->
+<!-- exs/val-06-tasks.atm -->
 
 ```
 val T = task (n) {          ;; task to await n seconds
     await(n * 1s)
     print "timeout"
 }
-print(type(T))              ;; --> 'task'
+print(T ?? :task)           ;; --> true
 pin t1 = spawn T(1)         ;; fires an instance
-print(type(t1))             ;; --> 'xtask'
+print(t1 ?? :xtask)         ;; --> true
 
 pin ts = tasks(2)           ;; `ts` holds at most 2 task instances
-print(type(ts))             ;; --> 'tasks'
+print(ts ?? :tasks)         ;; --> true
 
 val t2 = spawn @ts T(2)     ;; `t2` lives in `ts`
 print(t2 ?? :xtask)         ;; --> true
@@ -852,7 +852,7 @@ Many other structured constructs of Atmos rely on transparent tasks:
 
 Examples:
 
-<!-- exs/val-XX-todo.atm -->
+<!-- exs/val-07-abort.atm -->
 
 ```
 task T (i) {
@@ -890,8 +890,7 @@ task.
 
 Examples:
 
-<!-- exs/val-06-pub.atm -->
-<!-- exs/val-06-transparent.atm -->
+<!-- exs/val-08-pub.atm -->
 
 ```
 task T (n) {

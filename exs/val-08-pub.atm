@@ -1,0 +1,9 @@
+task T (n) {
+    set pub = n
+    spawn {
+        set pub = n*2   ;; refers to owner's `pub`
+    }
+    print(pub)          ;; --> 20
+}
+pin t = spawn T(10)
+print(t.pub)            ;; --> 20

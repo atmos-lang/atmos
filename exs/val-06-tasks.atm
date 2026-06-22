@@ -1,0 +1,21 @@
+val T = task (n) {          ;; task to await n seconds
+    await(n * 1s)
+    print "timeout"
+}
+print(T ?? :task)           ;; --> true
+pin t1 = spawn T(1)         ;; fires an instance
+print(t1 ?? :xtask)         ;; --> true
+
+pin ts = tasks(2)           ;; `ts` holds at most 2 task instances
+print(ts ?? :tasks)         ;; --> true
+
+val t2 = spawn @ts T(2)     ;; `t2` lives in `ts`
+print(t2 ?? :xtask)         ;; --> true
+
+spawn @ts T(3)              ;; #ts==2
+spawn @ts T(4)              ;; spawn fails
+
+spawn {                     ;; fires a transparent task
+    await(15s)
+    print "timeout"
+}
