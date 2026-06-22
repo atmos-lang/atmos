@@ -336,7 +336,7 @@ worth mentioning:
     - Atmos: `return (10)`, `break()` (parenthesis)
         - Atmos uses the same call syntax with parenthesis in all expressions
           that resemble statements or calls (`await`, `break`, `do`, `emit`,
-          `escape`, `return`, `tasks`, `throw`, `until`, `while`, and `xtasks`).
+          `escape`, `return`, `tasks`, `throw`, `until`, and `while`).
         - The reason is to enforce an uniform syntax across all expressions.
         - Some workarounds: `return 'ok'`, `return <- 10`
 - Method call:
@@ -1576,8 +1576,8 @@ Like in [Lua calls][lua-call], if there is a single
 This is valid for strings, tags, tables, lambdas, clocks, and native literals.
 
 The many call formats are also valid for the statements as follows:
-`await`, `break`, `do`, `emit`, `escape`, `return`, `task`, `tasks`, `throw`,
-`until`, and `while`.
+`await`, `break`, `do`, `emit`, `escape`, `return`, `tasks`, `throw`, `until`,
+and `while`.
 
 Examples:
 
