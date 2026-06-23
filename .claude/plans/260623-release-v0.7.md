@@ -191,10 +191,11 @@ Per-repo checklist:
       DONE.
 - [x] Branch sync verified (git-read, no commits by Claude): sdl-birds +
       sdl-rocks all 4 refs equal == origin.
-- [ ] DEV RUNS app entry points to confirm runtime (Claude must ASK, not
-      assume migrated==working): `cd sdl-birds && atmos birds-11.atm`;
-      `cd sdl-rocks && atmos main.atm` (needs `tiny.ttf` in cwd). PENDING
-      dev run.
+- [x] DEV RAN all app entry points OK (incl. §7 remote, published rock):
+      sdl-birds birds-11, sdl-rocks main, pico-birds birds-11/01,
+      pico-rocks main. Plus FIXES this session: birds watches ->
+      `until <cnd>`; rocks -> `until out_of_screen()`; `pico.zet`->
+      `pico.set`; pico full v0.6->v0.7 migration + READMEs (v0.8).
 
 GIT-SYNC RE-CHECK (all repos in /x/atmos-lang, 4 refs each):
 - pico-birds: ✅ equal @ `1171d0c` (v0.7). `.atm` still v0.6 but OUT OF
@@ -208,16 +209,18 @@ GIT-SYNC RE-CHECK (all repos in /x/atmos-lang, 4 refs each):
   migration was done in a PRIOR session, not this one (my birds-01 edits
   were redundant -> working tree clean).
 
-## §5. Commit, push main, create release branch
+## §5. Commit, push main, create release branch -- DONE
 
-- [ ] Create/update branch `v0.7` (pushed)
-- [ ] Update README links: `main` -> `v0.7`
-- [ ] Push `v0.7`; check GitHub Actions CI green
-- [ ] ff `main` -> `v0.7` + push, then back to `v0.7`; verify
-      `main == v0.7 == origin/main`
-- [ ] Commit the working `.claude/plans/260623-release-v0.7.md` edits
+- [x] Branch `v0.7` pushed
+- [x] README links `v0.7`
+- [x] ff `main` -> `v0.7` + push; verified `main == v0.7 == origin` @
+      `9e535af`
+- [x] Plan edits committed
 
-## §6. Publish rockspec to LuaRocks
+## §6. Publish rockspec to LuaRocks -- DONE
+
+- [x] Uploaded `atmos-lang-0.7-1` + `atmos-lang-dev-4` ->
+      https://luarocks.org/modules/fsantanna/atmos-lang
 
 ```bash
 luarocks upload atmos-lang-0.7-1.rockspec
@@ -226,7 +229,10 @@ luarocks upload atmos-lang-dev-<n>.rockspec
 
 Verify: `luarocks --lua-version=5.4 search atmos-lang`.
 
-## §7. Verify LuaRocks install + examples (REMOTE)
+## §7. Verify LuaRocks install + examples (REMOTE) -- DONE
+
+- [x] Clean install of published rock + ALL 4 apps run OK (sdl/pico
+      birds-11, sdl/pico rocks main).
 
 Smoke-test the PUBLISHED rock (NOT local `make`).
 
