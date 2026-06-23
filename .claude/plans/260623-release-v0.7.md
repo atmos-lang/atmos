@@ -66,10 +66,23 @@ is additive -> v0.7 CAN ship without it; confirm defer vs blocker.
 > static only.)
 
 - [x] Automatic: `cd tst && lua5.4 all.lua` (PASS @ 2026-06-23, dev-run)
-- [ ] Manual snippet COMPILE checks (dev runs; Claude reviews statically):
-    - [ ] README.md examples
-    - [ ] doc/guide.md fenced blocks (skip `<...>` placeholder + error
-          -output block)
+- [x] Manual snippet COMPILE checks (dev runs; Claude reviews statically):
+    - [x] README.md examples -- Hello World runs (dev) OK
+    - [x] doc/guide.md fenced blocks -- all v0.7; fixed 8 `func`->`task`
+          spawned protos + `spawn(\{})()`->named task + "function"->
+          "task prototype" prose
+    - [x] tst/guide.atm (runnable guide mirror) -- MIGRATED to v0.7
+          (`spawn [ts]`->`spawn @ts`, `func`->`task`, `xprint`->`X.print`)
+          + RE-SYNCED section labels to guide.md (Streams->§7.1,
+          More-about-Tasks->§5, Errors->§6) + ADDED §7.2 thread example
+          (md->atm, iters 10^7). Dev-run: full file OK end-to-end.
+    - [!] LAUNCHER BUG fixed: `./atmos` set `atmos.thread` (wrong field)
+          instead of appending `atmos.thread_modules` -> thread lane had
+          no `catch` ("attempt to call nil 'catch'"). Now matches
+          exec.lua:24-25. NOTE: append (not `= {...}`) is REQUIRED --
+          `atmos.thread_modules` aliases `run.thread_modules` (init.lua:14
+          / run.lua:814); reassigning breaks the alias. -> HISTORY.md fix.
+          INSTALLED bin/atmos picks it up only after §3 `luarocks make`.
     - [x] doc/manual.md embedded `doc/exs/*.atm` -- ran ALL 47 with
           installed rock 0.7-1. FIXED -> 44 clean + 3 run-forever loops,
           0 unexpected. Fixes applied:
