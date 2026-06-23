@@ -1,5 +1,9 @@
 X = require "atmos.x"   -- global bc of threads/lanes
 
+-- `on` is reserved, so atmos source cannot spell `S.on`; expose `S.zon`
+local ok, S = pcall(require, "atmos.streams")
+if ok then S.zon = S["on"] end
+
 function atm_pin_chk_set (chk, pin, ...)
     local t = ...
     if X.is(t,'xtask') or X.is(t,'tasks') then

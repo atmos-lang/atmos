@@ -163,21 +163,20 @@ function parser_1_prim ()
         -- await(...)
         elseif accept('await') then
             local tk = TK0
-            if check(nil,'id') then
+            -- `until`/`while` lex as ids: keep them out of the
+            -- `await T(...)` spawn sugar so `await until f` reaches
+            -- the pattern parser (synchronous predicate)
+            if check(nil,'id') and not (check('until') or check('while')) then
                 local call = parser_6_pip()
                 if call.tag ~= 'call' then
                     err(tk, "expected call syntax")
                 end
+                -- await T(...) -> await(T, ...) : the runtime await sugar
+                -- spawns a task prototype, so codegen need not emit spawn
                 return parser_7_out {
                     tag = 'call',
                     f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
-                    es  = {
-                        {
-                            tag = 'call',
-                            f   = { tag='acc', tk={tag='id', str='spawn', lin=tk.lin} },
-                            es  = concat({call.f}, call.es),
-                        }
-                    },
+                    es  = concat({call.f}, call.es),
                 }
             else
                 local awt

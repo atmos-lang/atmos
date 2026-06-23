@@ -68,6 +68,13 @@ function parser_await (stop, base0)
         } }
     end
 
+    -- await until f / await while f : no base pattern -> synchronous
+    -- predicate; the function lands at awt[1], the runtime discriminator
+    local k0 = accept('until') or accept('while')
+    if k0 then
+        return mk_tagged(k0.str, parse_pred())
+    end
+
     -- base pattern + combinators &&/||/!
     local base
     if base0 then
