@@ -63,6 +63,9 @@ Same rule per app: develop on `vN`, push, ff `main`/`master` to `vN`.
 
 ## §1. Run tests
 
+> Claude does NOT execute tests -- the developer runs them and reports
+> back. Claude only sets up commands and interprets results.
+
 - [ ] Automatic tests:
 
 ```bash

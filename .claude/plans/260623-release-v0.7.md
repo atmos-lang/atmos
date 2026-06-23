@@ -59,12 +59,17 @@ is additive -> v0.7 CAN ship without it; confirm defer vs blocker.
 
 ## §1. Run tests
 
-- [ ] Automatic: `cd tst && lua5.4 all.lua`
+> Claude does NOT execute tests -- the developer runs them and reports.
+
+- [x] Automatic: `cd tst && lua5.4 all.lua` (PASS @ 2026-06-23, dev-run)
 - [ ] Manual snippet COMPILE checks (run-check optional):
     - [ ] README.md examples
     - [ ] doc/guide.md fenced blocks (skip `<...>` placeholder + error
           -output block)
-    - [ ] doc/manual.md embedded `doc/exs/*.atm`
+    - [x] doc/manual.md embedded `doc/exs/*.atm` -- 46/47 compile;
+          `exp-09-equivalence.atm:2` `task(\{})` invalid -> `task () {}`
+          (fix PENDING)
+
 
 ## §2. Docs consistency
 
