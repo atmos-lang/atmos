@@ -462,7 +462,7 @@ The next example creates a stream that awaits occurrences of event `:V`:
 val S = require "atmos.streams"
 val X = require "atmos.x"
 spawn {
-    S.fr_await(:V)
+    S.zon(:V)
         ::tap(X.print)
         ::filter \{ (it.v % 2) == 1 }
         ::map \{ it.v }
@@ -476,7 +476,7 @@ loop i in 10 {
 ```
 
 The example spawns a dedicated task for the stream pipeline with source
-`S.fr_await(:V)`, which runs concurrently with a loop that generates events
+`S.zon(:V)`, which runs concurrently with a loop that generates events
 `:V` carrying field `v=i` on every second.
 The pipeline filters only odd occurrences of `v`, then maps to these values,
 and prints them.
@@ -501,12 +501,12 @@ The next example creates a task stream that packs awaits to `:X` and `:Y` in
 sequence:
 
 ```
-func T () {
+task T () {
     await :X
     await :Y
 }
 spawn {
-    S.fr_await(T)           ;; XY, XY, ...
+    S.zon(T)                 ;; XY, XY, ...
         ::zip(S.from(1))    ;; {XY,1}, {XY,2} , ...
         ::map \{ it@2 }     ;; 1, 2, ...
         ::take(2)           ;; 1, 2
@@ -521,7 +521,7 @@ emit :Y     ;; 2
 emit :Y
 ```
 
-In the example, `S.fr_await(T)` is a stream of complete executions of task `T`.
+In the example, `S.zon(T)` is a stream of complete executions of task `T`.
 Therefore, each item is generated only after `X` and `Y` occur in sequence.
 The pipeline is zipped with an increasing sequence of numbers, and then mapped
 to only generate the numbers.
