@@ -2094,24 +2094,24 @@ When awaking, an `await` evaluates to its matching event value.
 For the first format, a task awakes when an `emit(e)` matches the given await
 pattern `Patt` as follows:
 
-| Group     | Pattern     | matches        | returns  |
-|-----------|-------------|----------------|----------|
-| Boolean   | `true`      | any event      | `e`      |
-|           | `false`     | never          | —        |
-| Value     | `:T [...]`  | `pat =>= e`    | `e`      |
-|           | `x`         | `e ?? x`       | `e`      |
-| Time      | `AsBms`     | timeout        | overrun  |
-|           | `:clock`    | clock tick     | delta    |
-| Tasks     | `t`         | `t` ends       | `v,t`    |
-|           | `:any ts`   | any pool end   | `v,t,ts` |
-|           | `:all ts`   | all pool end   | `ts`     |
-| Condition | `\{...}`    | `f(e)` truthy  | `e / res`|
-|           | `p until c` | until all hold | `e / res`|
-|           | `p while c` | while any fail | `e`      |
-| Logical   | `!p`        | not `p`        | `e`      |
-|           | `p1 && p2`  | all subs       | `e`      |
-|           | `p1 \|\| p2`| any sub        | `e`      |
-| Meta      | `meta`      | via `__atmos`  | `e / res`|
+| Group     | Pattern       | matches       | returns   |
+|-----------|---------------|---------------|-----------|
+| Boolean   | `true`        | any event     | `e`       |
+|           | `false`       | never         | —         |
+| Value     | `:T [...]`    | `pat =>= e`   | `e`       |
+|           | `x`           | `e ?? x`      | `e`       |
+| Time      | `AsBms`       | timeout       | overrun   |
+|           | `:clock`      | clock tick    | delta     |
+| Tasks     | `t`           | `t` ends      | `v,t`     |
+|           | `:any ts`     | any pool end  | `v,t,ts`  |
+|           | `:all ts`     | all pool end  | `ts`      |
+| Stream    | `s`           | `s` ends      | `v,t`     |
+| Condition | `[p] until c` | [p] until `c` | `e / res` |
+|           | `[p] while c` | [p] while `c` | `e`       |
+| Logical   | `!p`          | not `p`       | `e`       |
+|           | `p1 && p2`    | all subs      | `e`       |
+|           | `p1 \|\| p2`  | any sub       | `e`       |
+| Meta      | `meta`        | via `__atmos` | `e / res` |
 
 Note that some patterns may modify the final result:
 
