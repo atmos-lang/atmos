@@ -63,8 +63,10 @@ Same rule per app: develop on `vN`, push, ff `main`/`master` to `vN`.
 
 ## §1. Run tests
 
-> Claude does NOT execute tests -- the developer runs them and reports
-> back. Claude only sets up commands and interprets results.
+> Claude does NOT execute ANYTHING -- no `tst/all.lua`, no `atmos`/`lua`,
+> no compile/run check (incl. `atm_loadfile`/`atm_loadstring` shims). The
+> developer runs every check and reports back; Claude only sets up
+> commands, reviews code statically, and interprets results.
 
 - [ ] Automatic tests:
 

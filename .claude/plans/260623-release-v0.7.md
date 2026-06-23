@@ -59,10 +59,14 @@ is additive -> v0.7 CAN ship without it; confirm defer vs blocker.
 
 ## §1. Run tests
 
-> Claude does NOT execute tests -- the developer runs them and reports.
+> Claude does NOT execute ANYTHING -- no tests, no `atmos`/`lua`, no
+> compile/run shims. The developer runs every check. Claude reviews
+> statically and reasons from language rules. (Some items below were
+> verified by dev-authorized runs earlier this session; from now on:
+> static only.)
 
 - [x] Automatic: `cd tst && lua5.4 all.lua` (PASS @ 2026-06-23, dev-run)
-- [ ] Manual snippet COMPILE checks (run-check optional):
+- [ ] Manual snippet COMPILE checks (dev runs; Claude reviews statically):
     - [ ] README.md examples
     - [ ] doc/guide.md fenced blocks (skip `<...>` placeholder + error
           -output block)
@@ -258,6 +262,12 @@ compiling the first file.
 - Phase-1 (`luarocks make`, local) != Phase-2 (`luarocks install`,
   remote published rock): always do the clean remote verify (§7).
 - Mechanical-sed pitfall: spaced `every (` / `spawn (` missed by
-  `\bword\(`; match `\s*` before `(` and re-verify by compiling.
+  `\bword\(`; match `\s*` before `(`; DEV re-verifies by compiling.
 - NEVER edit `doc/manual-out.md` by hand: regenerate via `manual.lua`.
 - After running an app, `git checkout main`/`master`.
+- Claude NEVER runs tests/`atmos`/`lua`/compile shims -- static review
+  only; the DEV runs every check. `func`->`task` spawn errors are caught
+  by the rule (Appx A #28), not by running.
+- `manual.lua` only builds the TOC; it does NOT inline `doc/exs/*.atm`.
+  So manual.md fenced blocks are hand-authored and DRIFT from the `.atm`
+  files -- review both. guide.md blocks likewise hand-authored.

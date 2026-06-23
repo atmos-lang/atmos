@@ -6,7 +6,7 @@ val S = require "atmos.streams"
 ;; 1.1
 do {
     print "-=-=- 1.1 -=-=-"
-    func T () {
+    task T () {
         await(false)
     }
     pin t1 = spawn T()     ;; starts `t1`
@@ -17,7 +17,7 @@ do {
 ;; 1.2
 do {
     print "-=-=- 1.2 -=-=-"
-    func T (i) {
+    task T (i) {
         await :X
         print("task " ++ i ++ " awakes from X")
     }
@@ -88,9 +88,9 @@ do {
     emit :Y
 }
 
-;; 3.3
+;; 3.2.1
 do {
-    print "-=-=- 3.3 -=-=-"
+    print "-=-=- 3.2.1 -=-=-"
     spawn {
         spawn {
             defer {
@@ -102,9 +102,9 @@ do {
     }
 }
 
-;; 3.4
+;; 3.2.1
 do {
-    print "-=-=- 3.4 -=-=-"
+    print "-=-=- 3.2.1 -=-=-"
     print '1'
     do {
         spawn {
@@ -163,14 +163,117 @@ do {
     emit 'Y'
 }
 
-;; 5. Functional Streams
+;; 5. More about Tasks
 
 ;; 5.1
 do {
     print "-=-=- 5.1 -=-=-"
+    task T () {
+        set pub = 10
+    }
+    pin t = spawn T()
+    print(t.pub) ;; 10
+}
+
+;; 5.2
+do {
+    print "-=-=- 5.2 -=-=-"
+    task T (id, ms) {
+        set pub = id
+        print(:start, id, ms)
+        await (ms * 1ms)
+        print(:stop, id, ms)
+    }
+    do {
+        pin ts = tasks()
+        loop i in 10 {
+            spawn @ts T(i, math.random(500,1500))
+        }
+        await 1s
+        loop _,t in ts {
+            print(t.pub)
+        }
+    }
+}
+
+;; 5.3
+do {
+    print "-=-=- 5.3 -=-=-"
+    task T () {
+        await :X
+        print "awakes from X"
+    }
+    pin t = spawn T()
+    toggle t(false)
+    emit :X     ;; ignored
+    print :ok
+    toggle t(true)
+    emit :X     ;; awakes
+}
+
+;; 5.3
+do {
+    print "-=-=- 5.3 -=-=-"
+    spawn {
+        toggle on :X {
+            loop on 100ms {
+                print "100ms elapses"
+            }
+        }
+    }
+    print 'off'
+    emit :X [false]    ;; body above toggles off
+    await 1s
+    print 'on'
+    emit :X [true]     ;; body above toggles on
+    await 1s
+}
+
+;; 6. Errors
+
+;; 6
+do {
+    print "-=-=- 6 -=-=-"
+    task T () {
+        spawn {
+            await :X
+            throw :Y
+        }
+        await(false)
+    }
+    spawn {
+        val ok, err = catch :Y {
+            spawn T()
+            await(false)
+        }
+        print(ok, err)
+    }
+    emit :X
+    ;; "false, Y"
+}
+
+;; 6.1
+do {
+    print "-=-=- 6.1 -=-=-"
+    task T (id) {
+        await(:X [ v=id ])
+        ;;throw :error
+    }
+    pin ts = tasks()
+    spawn @ts T(1)
+    spawn @ts T(2)
+    spawn @ts T(3)
+    emit(:X [ v=2 ])
+}
+
+;; 7. Complementary Concurrency Models
+
+;; 7.1
+do {
+    print "-=-=- 7.1 -=-=-"
     spawn {
         S.on(:X)
-            ::tap(xprint)
+            ::tap(X.print)
             ::filter \{ (it.v%2) == 1 }
             ::map \{ it.v }
             ::tap(print)
@@ -182,9 +285,9 @@ do {
     }
 }
 
-;; 5.2
+;; 7.1
 do {
-    print "-=-=- 5.2 -=-=-"
+    print "-=-=- 7.1 -=-=-"
     task T () {
         await :X
         await :Y
@@ -205,102 +308,33 @@ do {
     emit :Y
 }
 
-;; 6. More about Tasks
-
-;; 6.1
-do {
-    print "-=-=- 6.1 -=-=-"
-    func T () {
-        set pub = 10
-    }
-    pin t = spawn T()
-    print(t.pub) ;; 10
-}
-
-;; 6.2
-do {
-    print "-=-=- 6.2 -=-=-"
-    func T (id, ms) {
-        set pub = id
-        print(:start, id, ms)
-        await (ms * 1ms)
-        print(:stop, id, ms)
-    }
-    do {
-        pin ts = tasks()
-        loop i in 10 {
-            spawn [ts] T(i, math.random(500,1500))
-        }
-        await 1s
-        loop _,t in ts {
-            print(t.pub)
-        }
-    }
-}
-
-;; 6.3
-do {
-    print "-=-=- 6.3 -=-=-"
-    pin t = spawn (\{
-        await :X
-        print "awakes from X"
-    }) ()
-    toggle t(false)
-    emit :X     ;; ignored
-    print :ok
-    toggle t(true)
-    emit :X     ;; awakes
-}
-
-;; 6.4
-do {
-    print "-=-=- 6.4 -=-=-"
-    spawn {
-        toggle on :X {
-            loop on 100ms {
-                print "100ms elapses"
-            }
-        }
-    }
-    print 'off'
-    emit :X [false]    ;; body above toggles off
-    await 1s
-    print 'on'
-    emit :X [true]     ;; body above toggles on
-    await 1s
-}
-
-;; 7. Errors
-
-do {
-    print "-=-=- 7.1 -=-=-"
-    func T () {
-        spawn {
-            await :X
-            throw :Y
-        }
-        await(false)
-    }
-    spawn {
-        val ok, err = catch :Y {
-            spawn T()
-            await(false)
-        }
-        print(ok, err)
-    }
-    emit :X
-    ;; "false, Y"
-}
-
+;; 7.2
 do {
     print "-=-=- 7.2 -=-=-"
-    func T (id) {
-        await(:X [ v=id ])
-        throw :error
+    math.randomseed()
+    val func cpu (max) {
+        var sum = 0
+        loop i in max {
+            set sum = sum + i
+        }
+        sum
     }
-    pin ts = tasks()
-    spawn [ts] T(1)
-    spawn [ts] T(2)
-    spawn [ts] T(3)
-    emit(:X [ v=2 ])
+    val t = watching 20s {
+        par :any {
+            val v = thread {
+                cpu(math.random(10000000))
+            }
+            [worker="A", value=v]
+        } with {
+            val v = thread {
+                cpu(math.random(10000000))
+            }
+            [worker="B", value=v]
+        }
+    }
+    if t ?? :number {
+        print("Computation timeout...")
+    } else {
+        print(t.worker ++ " yields " ++ t.value)
+    }
 }

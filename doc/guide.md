@@ -14,10 +14,10 @@
 
 Tasks are the basic units of execution in Atmos.
 
-The `spawn` primitive starts a task from a function prototype:
+The `spawn` primitive starts a task from a task prototype:
 
 ```
-func T (...) {
+task T (...) {
     ...
 }
 pin t1 = spawn T(...)   ;; starts `t1`
@@ -37,7 +37,7 @@ The key difference is that tasks can react to each other through events.
 The `await` primitive suspends a task until a matching event occurs:
 
 ```
-func T (i) {
+task T (i) {
     await :X
     print("task " ++ i ++ " awakes on X")
 }
@@ -279,7 +279,7 @@ print "X, Y, and Z occurred"
 Each task has a special variable `pub` to expose public data to the outside:
 
 ```
-func T () {
+task T () {
     set pub = 10    ;; exposes `pub` to the outside
 }
 pin t = spawn T()
@@ -294,7 +294,7 @@ When the pool goes out of scope, all attached tasks are aborted.
 When a task terminates, it is automatically removed from the pool.
 
 ```
-func T (id, ms) {
+task T (id, ms) {
     set pub = id
     print(:start, id, ms)
     await (ms * 1ms)
@@ -334,10 +334,11 @@ A task can be toggled off (and back to on) to remain alive but unresponsive
 (and back to responsive) to upcoming events:
 
 ```
-pin t = spawn (\{
+task T () {
     await :X
     print "awakes from X"
-}) ()
+}
+pin t = spawn T()
 toggle t(false)
 emit :X     ;; ignored
 toggle t(true)
@@ -374,7 +375,7 @@ consideration the task hierarchy, i.e., a parent task catches errors from child
 tasks.
 
 ```
-func T () {
+task T () {
     spawn {
         await :X
         throw :Y
@@ -419,7 +420,7 @@ targeting the task with `id=2`.
 Only this task awakes and generates an uncaught error:
 
 ```
-func T (id) {
+task T (id) {
     await(:X [id])
     throw :error
 }
