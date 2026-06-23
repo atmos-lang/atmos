@@ -106,6 +106,13 @@ function parser_1_prim ()
                 key = parser_at()
                 accept_err('=')
                 val = parser()
+            -- keyword as literal key: [on=v]
+            elseif accept(nil,'key') then
+                local tk = TK0
+                accept_err('=')
+                local id = { tag='tag', str=':'..tk.str }
+                key = { tag='tag', tk=id }
+                val = parser()
             else
                 local e = parser()
                 if e.tag=='acc' and accept('=') then
@@ -262,10 +269,10 @@ function parser_1_prim ()
                 local met = nil
                 if sub == 'func' then
                     while accept('.') do
-                        idxs[#idxs+1] = accept_err(nil, 'id')
+                        idxs[#idxs+1] = accept_field_err()
                     end
                     if accept('::') then
-                        met = accept_err(nil, 'id')
+                        met = accept_field_err()
                         idxs[#idxs+1] = met
                     end
                 end

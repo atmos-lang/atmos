@@ -5,6 +5,7 @@ require "atmos.lang.prim"
 function check (str, tag)
     return (tag==nil or TK1.tag==tag) and (str==nil or TK1.str==str) and TK1 or nil
 end
+
 function check_no_err (str, tag)
     local tk = check(str, tag)
     if tk then
@@ -12,6 +13,7 @@ function check_no_err (str, tag)
     end
     return tk
 end
+
 function check_err (str, tag)
     local tk = check(str, tag)
     if not tk then
@@ -19,6 +21,7 @@ function check_err (str, tag)
     end
     return tk
 end
+
 function accept (str, tag)
     local tk = check(str, tag)
     if tk then
@@ -26,10 +29,16 @@ function accept (str, tag)
     end
     return tk
 end
+
 function accept_err (str, tag)
     local tk = check_err(str, tag)
     lexer_next()
     return tk
+end
+
+-- field name: keyword or identifier
+function accept_field_err ()
+    return accept(nil,'key') or accept_err(nil,'id')
 end
 
 -------------------------------------------------------------------------------
@@ -301,13 +310,13 @@ function parser_2_suf (pre)
         ret = { tag='index', t=e, idx=idx }
     elseif accept('.') then
         -- (t) .id
-        local id = accept_err(nil,'id')
+        local id = accept_field_err()
         id = { tag='tag', str=':'..id.str }
         local idx = { tag='tag', tk=id }
         ret = { tag='index', t=e, idx=idx }
     elseif accept('::') then
         -- (o) ::m
-        local id = accept_err(nil,'id')
+        local id = accept_field_err()
         local _ = check_call_arg() or check_err('(')
         ret = { tag='met', o=e, met=id }
     elseif accept('(') then

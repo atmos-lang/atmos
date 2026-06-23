@@ -83,12 +83,16 @@ escape hatch and stays valid.
 
 ## Steps
 
-1. Add `accept_name` near the `accept_*` helpers in parser.lua.
-2. parser.lua: swap `.id` (304) and `::m` (310) to `accept_name`.
-3. parser.lua: optionally relax `@id` index (254) to allow `key`.
-4. prim.lua: swap `func M.f` / `o::f` def names (265, 268).
-5. prim.lua: add a keyword-key branch to the `[k=v]` constructor (111).
-6. tosource.lua: confirm keyword member names round-trip.
+1. [DONE] Helper `accept_field` in parser.lua (after `accept_err`):
+   accepts `id`/`key`, but reports a missing `<id>` on error via
+   `check_err(nil,'id')`.
+2. [DONE] parser.lua: `.id` (304) and `::m` (310) use `accept_field`.
+3. [SKIP] `@id` index relax -- left id/num only.
+4. [DONE] prim.lua: `func M.f` / `o::f` def names (265, 268).
+5. [DONE] prim.lua: keyword-key branch in the `[k=v]` constructor.
+6. [DONE] tosource.lua: confirmed -- no change needed. Keyword fields
+   emit via the existing computed-key form (`S@(:on)`, `o::on`,
+   `@(:on)=v`), so they round-trip like ordinary fields.
 
 ## Follow-up refactors (after this plan)
 
