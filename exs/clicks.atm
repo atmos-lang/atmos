@@ -74,7 +74,7 @@ spawn {
 
 ;; TODO: await(stream)
 
-func Buffer (src, ctl) {
+task Buffer (src, ctl) {
     val ret = []
     val v = await(src)
     set ret@+ = v

@@ -148,11 +148,14 @@ The atmos-lang org ships its OWN `.atm` examples + apps that must be
 migrated to v0.7 SYNTAX (separate from the lua-atmos `.lua` runtime
 migration done under that plan).
 
-- [ ] Inventory `exs/*.atm` + migrate to v0.7 (Appendix A):
-    - core (env-clock): `hello.atm`, `rx.atm`, `rx-behavior.atm`
-    - pico (env-pico): `click-drag-cancel.atm`, `clicks.atm` (scratch)
-- [ ] Compile each: `./atmos <f>.atm`
-- [ ] Run each + confirm output (env-clock / env-pico installed)
+- [x] Inventory `exs/*.atm` + static-scan (Appendix A): 4 showcased
+      files ALREADY v0.7 clean -- `hello.atm`, `rx.atm` (`it@2` valid),
+      `rx-behavior.atm`, `click-drag-cancel.atm`. No migration needed.
+    - `clicks.atm` (scratch): v0.6 bits are inside `;;;`comment blocks;
+      active code v0.7. Tidied `func Buffer`->`task Buffer` (has await).
+- [x] Compile + run each (DEV-run OK @ 2026-06-23): `hello` (0/9x/now),
+      `rx` (1,2,3 / 33), `rx-behavior` (x 1..4), `click-drag-cancel` +
+      `clicks` (pico, no error). All 5 v0.7 clean.
 
 ### 4.1 Migrate the `.atm` apps to v0.7 syntax
 
