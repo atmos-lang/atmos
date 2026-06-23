@@ -163,10 +163,7 @@ function parser_1_prim ()
         -- await(...)
         elseif accept('await') then
             local tk = TK0
-            -- `until`/`while` lex as ids: keep them out of the
-            -- `await T(...)` spawn sugar so `await until f` reaches
-            -- the pattern parser (synchronous predicate)
-            if check(nil,'id') and not (check('until') or check('while')) then
+            if check(nil,'id') then
                 local call = parser_6_pip()
                 if call.tag ~= 'call' then
                     err(tk, "expected call syntax")
@@ -663,6 +660,9 @@ function parser_1_prim ()
             local blk = parser_block()
             return { tag='loop', ids=ids, itr=itr, blk=blk }
         end
+
+    elseif accept('until') or accept('while') then
+        return { tag='acc', tk={tag='id', str=TK0.str, lin=TK0.lin, sep=TK0.sep} }
 
     -- pars, watching
     elseif check('par') or check('watching') then

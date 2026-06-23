@@ -2,7 +2,46 @@
 
 ## Status
 
-PENDING.
+DONE (impl, extended). Pending: re-run test suite.
+
+- `src/global.lua`: `until`/`while` moved into active `KEYS`.
+- `src/prim.lua`: await guard reverted to plain `check(nil,'id')`.
+- `src/prim.lua` (`parser_1_prim`): NEW branch synthesizing an
+  id `acc` node for the `until`/`while` keywords (see Correction).
+
+## Correction (plan premise was wrong)
+
+The plan assumed loop-break clauses used `accept('until')`/
+`accept('while')`.
+They do NOT.
+Loop-break clauses depend on `until`/`while` being IDENTIFIERS:
+
+- `src/coder.lua:46` — `local ids = {'break','until','while','return'}`
+- `until(x)` parses as a call to id `until`, then the coder rewrites
+  the `acc` to `atm_until`.
+
+The only real `accept('until')`/`accept('while')` sites are await
+predicates in `src/await.lua:73,88` (tag-agnostic, survive the
+change).
+
+Making the lexer emit `key` tokens broke the loop-break path:
+`loop { until x }`, `loop { until;x }`, `loop { until(x) }`,
+`loop { while <- x }` (tst/stmt.lua 599-645).
+
+### Fix
+
+In `parser_1_prim`, when the current token is the `until`/`while`
+keyword, accept it and return an id-tagged `acc` node
+(`{tag='acc', tk={tag='id', str=kw.str, ...}}`).
+This reproduces the old identifier AST exactly, so:
+
+- `until(x)` / `while <- x` -> call -> coder `atm_until`/`atm_while`.
+- bare `until` -> `acc` -> `atm_until`.
+- `until x` -> `acc until` then `x` -> same sequence error (test 599).
+
+Await keywords are consumed by `accept` in `parser_await` BEFORE
+reaching `parser_1_prim`, so the new branch never fires in await
+context.
 
 ## Goal
 
