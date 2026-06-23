@@ -106,13 +106,6 @@ function parser_1_prim ()
                 key = parser_at()
                 accept_err('=')
                 val = parser()
-            -- keyword as literal key: [on=v]
-            elseif accept(nil,'key') then
-                local tk = TK0
-                accept_err('=')
-                local id = { tag='tag', str=':'..tk.str }
-                key = { tag='tag', tk=id }
-                val = parser()
             else
                 local e = parser()
                 if e.tag=='acc' and accept('=') then

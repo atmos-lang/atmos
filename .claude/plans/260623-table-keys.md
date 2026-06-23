@@ -89,7 +89,11 @@ escape hatch and stays valid.
 2. [DONE] parser.lua: `.id` (304) and `::m` (310) use `accept_field`.
 3. [SKIP] `@id` index relax -- left id/num only.
 4. [DONE] prim.lua: `func M.f` / `o::f` def names (265, 268).
-5. [DONE] prim.lua: keyword-key branch in the `[k=v]` constructor.
+5. [WON'T DO] keyword-key branch in `[k=v]`. Ambiguous: a table
+   literal has no leading `.`, so a leading keyword may be a key
+   (`[on=v]`) or the start of a value (`[false]`, `[await x]`,
+   `[spawn T()]`). The lexer has no 2-token lookahead to peek the
+   `=`. Keyword keys keep using the `@(:on)=v` escape hatch.
 6. [DONE] tosource.lua: confirmed -- no change needed. Keyword fields
    emit via the existing computed-key form (`S@(:on)`, `o::on`,
    `@(:on)=v`), so they round-trip like ordinary fields.
