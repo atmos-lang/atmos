@@ -2086,7 +2086,8 @@ An `await` suspends a [task](#tasks) until a matching [emit](#emit) occurs:
 ```
 Await : `await´ `(´ Patt `)´
       | `await´ ID `(´ Expr* `)´
-Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr {`,´ Expr}]
+Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr]
+      | (`until´|`while´) Expr
 ```
 
 When awaking, an `await` evaluates to its matching event value.
@@ -2119,6 +2120,9 @@ Note that some patterns may modify the final result:
 - Tasks: task result, terminating task, and task pool
 - Condition, Meta: function result (defaults to `e` if `true`)
 
+A base-less `until`/`while` (e.g. `await until c`) is a synchronous predicate
+that tests `c` immediately and re-tests it on each event.
+
 The second format `await T(...)` [spawns](#spawn) and awaits the given task to
 terminate.
 In this case, the `await` evaluates to the task final value.
@@ -2128,13 +2132,13 @@ Examples:
 <!-- exs/exp-26-await.atm -->
 
 ```
-await(false)                ;; never awakes
-await :Key [:escape]        ;; awakes on a :Key :escape event
-await 1h10min30s            ;; awakes after the given time
-await \{it && (it@1 > 10)}  ;; awakes if event index 1 > 10
-await(:X && :Y)             ;; awakes after both :X and :Y occur in any order
-await(!:X)                  ;; awakes on any non-:X event
-await(:X until it.n==3)     ;; awaits :X until its field n equals 3
+await(false)                   ;; never awakes
+await :Key [:escape]           ;; awakes on a :Key :escape event
+await 1h10min30s               ;; awakes after the given time
+await until it && (it@1 > 10)  ;; awakes if event index 1 > 10
+await(:X && :Y)                ;; awakes after both :X and :Y occur in any order
+await(!:X)                     ;; awakes on any non-:X event
+await(:X until it.n==3)        ;; awaits :X until its field n equals 3
 ```
 
 ```
