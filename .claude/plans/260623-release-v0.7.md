@@ -110,29 +110,34 @@ Check README.md / doc/guide.md / doc/manual.md / HISTORY.md + rockspec
 `detailed` all reflect v0.7 syntax (sigil remap, clock units, single-arg
 events, combinators).
 
-- [ ] README.md — `v0.7` in version list + stable link; Install `0.7`;
-      About `every`->`loop`; re-check examples
-- [ ] HISTORY.md — v0.7 entry (incl. task/xtask split). CROSS-REFERENCE
-      the RUNTIME history `/x/lua-atmos/atmos/HISTORY.md` (compiler tracks
-      runtime). NOTE: `atmos.x`/`X` lib dates to runtime v0.4 (NOT new in
-      v0.7). Add compiler-only Bug fix: `thread` via CLI launcher
-      (`atmos.thread` -> `atmos.thread_modules`).
-- [ ] doc/guide.md — walk every snippet; value-event forms
-      `emit(:X [v])` / `await(:X [id])`
-- [ ] doc/manual.md — prose + embedded `doc/exs/*.atm` v0.7; regenerate
-      `doc/manual-out.md` (NEVER edit by hand):
-      `cd doc && lua5.4 manual.lua manual.md > manual-out.md`
-- [ ] rockspec `detailed` synced (Streams/`thread` block, `loop on`)
+- [x] README.md — `v0.7` in version list + stable link; Install `0.7`;
+      About uses `loop on`; Hello World re-checked (dev-run OK)
+- [x] HISTORY.md — v0.7 entry already complete (task/xtask split, sigil
+      remap, clock µs, single-arg events, combinators). Reconciled vs
+      RUNTIME history `/x/lua-atmos/atmos/HISTORY.md` (compiler tracks
+      runtime): consistent; `atmos.x`/`X` lib dates to runtime v0.4 (NOT
+      new in v0.7).
+    - WONT-DO: compiler-only Bug fix entry for launcher
+      (`atmos.thread` -> `atmos.thread_modules`). Fix applied to `./atmos`
+      but not recorded in HISTORY (per user).
+- [x] doc/guide.md — all snippets v0.7; 8 `func`->`task` + prose fixes
+- [x] doc/manual.md — prose + embedded `doc/exs/*.atm` v0.7; `X` lib
+      documented; `:732` paren fixed. (manual-out.md NOT regenerated per
+      user.)
+- [x] rockspec `detailed` synced — already mirrors README About
+      (task/tasks/pin/par/await/emit + Streams + `thread`); no change
 
 ## §3. Rockspec (compiler)
 
-- [ ] `atmos-lang-0.7-1.rockspec` (branch `v0.7`, dep `atmos ~> 0.7`)
-- [ ] `atmos-lang-dev-<n>.rockspec` (branch `main`, dep `atmos` unpinned)
-- [ ] both: ensure `await.lua` module present; desc `every` -> `loop on`;
-      `lua >= 5.4`; Streams/`thread` block
-- [ ] move superseded rockspecs to `old/`
-- [ ] Install locally (Phase 1, LOCAL not remote):
-      `sudo luarocks make atmos-lang-0.7-1.rockspec --lua-version=5.4`
+- [x] `atmos-lang-0.7-1.rockspec` (branch `v0.7`, dep `atmos ~> 0.7`)
+- [x] `atmos-lang-dev-4.rockspec` (branch `main`, dep `atmos` unpinned)
+- [x] both: `await.lua` present; `lua >= 5.4`; 11 modules = all `src/*.lua`;
+      `detailed` mirrors README About (Streams/`thread`)
+- [x] superseded rockspecs already in `old/` (dev-1/2/3, 0.2.x-0.6); only
+      0.7-1 + dev-4 at root
+- [x] Install locally (Phase 1, LOCAL not remote): `luarocks make`
+      DONE (dev-run) -- lands the `./atmos` launcher fix in installed CLI;
+      `atmos tst/guide.atm` now runs §7.2 thread OK.
 
 See `done/260618-task-xtask.md` (task/xtask compiler details);
 `done/260620-task.md` (task/xtask DEFERRALS).
