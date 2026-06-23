@@ -3037,7 +3037,7 @@ do
     ]]
     print("Testing...", "tasks 7: error: bare pool needs :any/:all")
     local out = atm_test(src)
-    assertfx(out, "invalid await : unexpected tasks pool : expected ':any' or ':all'")
+    assertfx(out, "invalid await : unexpected tasks pool")
 
     local src = [[
         val T = task (v) { }
@@ -3699,6 +3699,42 @@ do
     print("Testing...", "watching 2")
     local out = atm_test(src)
     assertx(out, "Y\nX\n")
+
+    -- watching until <cnd>: base-less predicate, re-tested on each event,
+    -- aborts the body when the condition becomes true
+    local src = [[
+        var done = false
+        spawn {
+            watching until done {
+                await(false)
+                print(:never)
+            }
+            print(:aborted)
+        }
+        print(1)
+        emit(nil)               ;; done=false -> keep watching
+        print(2)
+        set done = true
+        emit(nil)               ;; done=true -> abort watching
+        print(3)
+    ]]
+    print("Testing...", "watching until 1")
+    local out = atm_test(src)
+    assertx(out, "1\n2\naborted\n3\n")
+
+    -- watching f: a bare function is no longer a valid await pattern
+    -- (use until/while); the runtime rejects it
+    local src = [[
+        val f = func () { true }
+        spawn {
+            watching f {
+                await(false)
+            }
+        }
+    ]]
+    print("Testing...", "watching f: error: unexpected function")
+    local out = atm_test(src)
+    assertfx(out, "invalid await : unexpected function")
 
     local src = [[
         spawn {
