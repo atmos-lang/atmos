@@ -169,7 +169,7 @@ do {
 do {
     print "-=-=- 5.1 -=-=-"
     spawn {
-        S.zon(:X)
+        S.on(:X)
             ::tap(xprint)
             ::filter \{ (it.v%2) == 1 }
             ::map \{ it.v }
@@ -190,7 +190,7 @@ do {
         await :Y
     }
     spawn {
-        S.zon(T)                 ;; XY, XY, ...
+        S.on(T)                 ;; XY, XY, ...
             ::zip(S.from(1))    ;; {XY,1}, {XY,2} , ...
             ::map \{ it@2 }     ;; 1, 2, ...
             ::take(2)           ;; 1, 2

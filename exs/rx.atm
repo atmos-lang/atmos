@@ -4,7 +4,7 @@ val S = require "atmos.streams"
 
 print "---"
 
-S.zon(100ms)
+S.on(100ms)
     ::zip(S.from [1,2,3])
     ::map(\{ it@2 })
     ::tap(print)

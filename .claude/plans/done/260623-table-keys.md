@@ -100,8 +100,11 @@ escape hatch and stays valid.
 
 ## Follow-up refactors (after this plan)
 
-- Revert the `S.zon` hack: remove the run.lua alias and rename all
-  `S.zon(` call sites back to `S.on(` (tst/streams.lua, tst/guide.atm,
-  exs/rx.atm, exs/rx-behavior.atm, exs/clicks.atm, doc/guide.md).
-- pico-lua: use `pico.set` (and any other keyword-named members)
-  directly.
+- [DONE] Reverted the `S.zon` hack: removed the run.lua alias
+  (lines 3-5) and renamed all `S.zon` call sites back to `S.on`
+  (tst/streams.lua, tst/guide.atm, exs/rx.atm, exs/rx-behavior.atm,
+  exs/clicks.atm, doc/guide.md).
+- [DONE] pico examples: renamed `pico.zet` -> `pico.set` in
+  exs/clicks.atm and exs/click-drag-cancel.atm. The `zet` alias lived
+  only in these call sites; the pico-lua side (out of worktree) is
+  assumed to expose `.set` directly, mirroring the `on`/`zon` pattern.

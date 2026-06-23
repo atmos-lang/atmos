@@ -3,8 +3,8 @@ val pico = require "pico"
 require "atmos.env.pico"
 val S = require "atmos.streams"
 
-pico.zet.window [ title="pico-Atmos: Clicks" ]
-pico.zet.dim ['!', w=256, h=256]
+pico.set.window [ title="pico-Atmos: Clicks" ]
+pico.set.dim ['!', w=256, h=256]
 
 var txts = []
 
@@ -120,17 +120,17 @@ par {
 ;;;
 
 val clear =
-    S.zon(Debounce, (:mouse.button.dn || :mouse.button.up), 1s)
+    S.on(Debounce, (:mouse.button.dn || :mouse.button.up), 1s)
         ::tap \{ set txts = [] }
 
 val dn =
-    S.zon(:x.mouse.button.dn)
+    S.on(:x.mouse.button.dn)
         ::tap \{
             set txts@+ = "dn (" ++ it.x++','++it.y ++"): " ++ it.n
         }
 
 val up =
-    S.zon(:x.mouse.button.up)
+    S.on(:x.mouse.button.up)
         ::tap \{
             set txts@+ = "up (" ++ it.x++','++it.y ++")"
         }

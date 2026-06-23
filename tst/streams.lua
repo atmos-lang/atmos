@@ -53,7 +53,7 @@ do
     print("Testing...", "beh 2")
     local src = [[
         val S = require "atmos.streams"
-        pin x* = S.zip (S.zon(1s), S.from(1))
+        pin x* = S.zip (S.on(1s), S.from(1))
             ::map \{it@2}
             ;;::to()      ;; 1 / 2 / 3
         spawn {
@@ -72,9 +72,9 @@ do
     local src = [[
         val S = require "atmos.streams"
         pin x* = [
-            S.zip (S.zon(1s), S.from(1))
+            S.zip (S.on(1s), S.from(1))
                 ::map \{it@(2)},
-            S.zip (S.zon('X'), S.from(1))
+            S.zip (S.on('X'), S.from(1))
                 ::map \{it@2},
         ]
         spawn {
