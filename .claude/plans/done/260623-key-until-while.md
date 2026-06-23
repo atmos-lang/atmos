@@ -2,7 +2,7 @@
 
 ## Status
 
-DONE (impl, extended). Pending: re-run test suite.
+DONE. All tests pass.
 
 - `src/global.lua`: `until`/`while` moved into active `KEYS`.
 - `src/prim.lua`: await guard reverted to plain `check(nil,'id')`.
