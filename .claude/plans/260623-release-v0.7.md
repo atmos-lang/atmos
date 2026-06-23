@@ -39,8 +39,10 @@ v0.7 (jun/26)
 - `loop` folds `every` (`loop ids on :Y {}`); `toggle on`
 ```
 
-Open decision: `260621-spawn-on-at.md` (`spawn on P {}` + `spawn @ts {}`)
-is additive -> v0.7 CAN ship without it; confirm defer vs blocker.
+RESOLVED: `260621-spawn-on-at.md` (`spawn on P {}` + `spawn @ts {}`) ->
+WONT-DO for v0.7 (additive; not shipping). The await(function) reject
+(lua-atmos guard) SHIPPED. Compiler-side parse-reject / `parse_pred`
+func-identifier pass-through -> WONT-DO.
 
 ## §0. Conventions (read first)
 
