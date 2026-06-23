@@ -108,6 +108,8 @@ Check ALL docs reflect the new syntax before cutting:
 
 - [ ] Add the `vX.Y` entry (additions / modifications / removals /
       fixes) -- the source of truth for "what changed".
+- [ ] CROSS-REFERENCE the lua-atmos RUNTIME HISTORY
+      (`/x/lua-atmos/atmos/HISTORY.md`)
 
 ### 2.3 doc/manual.md (+ auto-gen)
 

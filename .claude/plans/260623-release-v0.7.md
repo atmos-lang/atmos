@@ -112,7 +112,11 @@ events, combinators).
 
 - [ ] README.md — `v0.7` in version list + stable link; Install `0.7`;
       About `every`->`loop`; re-check examples
-- [ ] HISTORY.md — v0.7 entry (incl. task/xtask split)
+- [ ] HISTORY.md — v0.7 entry (incl. task/xtask split). CROSS-REFERENCE
+      the RUNTIME history `/x/lua-atmos/atmos/HISTORY.md` (compiler tracks
+      runtime). NOTE: `atmos.x`/`X` lib dates to runtime v0.4 (NOT new in
+      v0.7). Add compiler-only Bug fix: `thread` via CLI launcher
+      (`atmos.thread` -> `atmos.thread_modules`).
 - [ ] doc/guide.md — walk every snippet; value-event forms
       `emit(:X [v])` / `await(:X [id])`
 - [ ] doc/manual.md — prose + embedded `doc/exs/*.atm` v0.7; regenerate
