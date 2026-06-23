@@ -1,4 +1,4 @@
-val T = func () {
+val task T () {
     defer {
         print("aborted")
     }

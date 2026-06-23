@@ -11,7 +11,7 @@ spawn {
     print :3
     await 1h10min30s            ;; awakes after 1h 10min 30s
     print :4
-    await(\{it && (it@1>10)})   ;; awakes if event > 10
+    await until it && (it@1>10) ;; awakes if event > 10
     print :5
     await(:X && :Y)             ;; awakes after both :X and :Y occur in any order
     print :6
@@ -59,7 +59,7 @@ spawn {
 }
 emit :OK
 
-func T (v) {
+task T (v) {
     v * 2
 }
 val v = await T(10)

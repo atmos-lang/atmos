@@ -1,4 +1,4 @@
-val T = func () {
+task T () {
     await :X
     print :ok
 }

@@ -10,7 +10,7 @@ do {
 print(a)                ;; `a` is now a global
 
 do {
-    val T = \{}
+    val T = task () {}
     pin t = spawn T()   ;; attaches task T to enclosing block
     ;;<...>
 }                       ;; aborts t

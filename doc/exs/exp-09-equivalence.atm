@@ -1,4 +1,9 @@
 print <-- ([] ?? [])            ;; --> false
-print <-- task(\{}) ?? :task    ;; --> true
+print <-- task () {} ?? :task   ;; --> true
 print <-- 10 ?? nil             ;; --> false
 print <-- :X.Y [] ?? :X         ;; --> true
+
+print <-- \{} ?? :function    ;; --> true
+print <-- nil ?? nil          ;; --> true
+print <-- :X [] ?? :X.Y       ;; --> false
+print <-- [] ?? []            ;; --> false

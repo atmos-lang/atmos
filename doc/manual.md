@@ -2067,7 +2067,7 @@ Examples:
 <!-- exs/exp-24-abort.atm -->
 
 ```
-val T = func () {
+task T () {
     defer {
         print("aborted")
     }
@@ -2234,7 +2234,7 @@ Examples:
 <!-- exs/exp-28-toggle.atm -->
 
 ```
-val T = func () {
+task T () {
     await :X
     print :ok
 }
@@ -2415,10 +2415,10 @@ the following modules:
 
 `TODO: between, to*, remove/insert (vector)`
 
-- `x`
-    - `xtostring`
-    - `xprint`
-    - `xcopy`
+- `X`
+    - `X.tostring(v)` -- deep string representation of `v`
+    - `X.print(...)`  -- `print` using `X.tostring` on each argument
+    - `X.copy(v)`     -- deep copy of `v`
 
 [lua-libraries]: https://www.lua.org/manual/5.4/manual.html#6
 

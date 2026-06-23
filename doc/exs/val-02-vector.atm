@@ -2,4 +2,4 @@ val vs = [1, 2, 3]      ;; a vector of numbers
 print(vs@2)             ;; --> 2
 print(vs ?? :table)     ;; --> true
 set vs@(#vs+1) = 4      ;; [1, 2, 3, 4]
-xprint(vs)
+X.print(vs)

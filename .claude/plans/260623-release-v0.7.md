@@ -66,9 +66,25 @@ is additive -> v0.7 CAN ship without it; confirm defer vs blocker.
     - [ ] README.md examples
     - [ ] doc/guide.md fenced blocks (skip `<...>` placeholder + error
           -output block)
-    - [x] doc/manual.md embedded `doc/exs/*.atm` -- 46/47 compile;
-          `exp-09-equivalence.atm:2` `task(\{})` invalid -> `task () {}`
-          (fix PENDING)
+    - [x] doc/manual.md embedded `doc/exs/*.atm` -- ran ALL 47 with
+          installed rock 0.7-1. FIXED -> 44 clean + 3 run-forever loops,
+          0 unexpected. Fixes applied:
+        - A. `exp-09-equivalence:2` `task(\{})` -> `task () {}` DONE
+        - B. `xprint`/`x.*` -> `X.print`/`X.*` (legit lib at lua-atmos
+          `atmos/x.lua`, required in run.lua; API is capital `X`:
+          `X.tostring`/`X.print`/`X.copy`). Files: `exp-08-set`,
+          `exp-13-ppp`, `exp-11-concatenation`, `val-02-vector`. Also
+          documented `X` in manual.md STANDARD LIBRARIES. DONE
+        - C. `spawn/await func` -> `task` proto (Appx A #28): `exp-02-
+          blocks`, `exp-05-locals`, `exp-11-concatenation`, `exp-11-
+          length`, `exp-24-abort`, `exp-26-await`, `exp-28-toggle` DONE
+        - D. `await(\{pred})` -> `await until \{ pred }` (predicate form,
+          per tst/tasks.lua:782) in `exp-26-await`. DONE
+        - WONT-DO: `lex-01-literals` native lit `` `x:f{"lua"}` ``
+          references undefined Lua `x` -- syntax demo only (manual
+          inlines source, never runs it).
+        - EXPECTED throws: `exp-03-escape` (Z), `exp-23-exceptions` (X).
+        - NOTE: NEVER regenerate `manual-out.md` (per user).
 
 
 ## §2. Docs consistency

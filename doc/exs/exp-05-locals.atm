@@ -11,7 +11,7 @@ do {
 print(x)                ;; --> nil (`x` is global)
 
 do {
-    func T () {
+    task T () {
         defer {
             print 't aborted'
         }
