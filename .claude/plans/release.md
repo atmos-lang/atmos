@@ -179,11 +179,25 @@ Per file: compile `./atmos <f>.atm`, then smoke-run under a display.
 
 Per-repo checklist:
 
-- [ ] Migrate all `.atm` files (Appendix A) + RUN OK
+- [ ] Migrate all `.atm` files (Appendix A)
+- [ ] DEV RUNS the app entry point to confirm runtime OK (Claude NEVER
+      runs -- Claude must ASK the dev to run, e.g. `atmos birds-11.atm`,
+      `atmos main.atm`). Record the result.
 - [ ] Update README.md (atmos-lang `X.Y` + env version; `git checkout
       vN`; entry-point file)
 - [ ] Branch `vN`: commit + push + ff `main`/`master` + verify
       `main == vN == origin`
+
+GIT-SYNC RE-CHECK (run for EVERY app repo before calling it done):
+
+- [ ] `git fetch` FIRST -- local checkouts go STALE; a repo may already
+      be migrated on origin (don't re-migrate what origin already has).
+- [ ] Verify all 4 refs are EQUAL: local default-branch, local `vN`,
+      `origin/default`, `origin/vN` (same short hash).
+- [ ] A `vN` branch can exist yet point at UNMIGRATED `.atm` (branch
+      pointer != migrated content). Also grep `.atm` @ HEAD for v0.6
+      syntax (`@\{`, `spawn \[`, `@\.[0-9]`); beware false-positives like
+      the word "every" in comments.
 
 ## §5. Commit, push main, create release branch
 
@@ -270,3 +284,10 @@ sdl-rocks    <n>          <n>
 - NEVER edit `doc/manual-out.md` by hand: regenerate via `manual.lua`.
 - Migration is NOT pure sed: re-derive clock arithmetic, watch keyword
   removals, and `func` -> `task` for spawned prototypes.
+- App repos may ALREADY be migrated on origin while the LOCAL checkout is
+  stale: ALWAYS `git fetch` and verify all 4 refs equal (local default,
+  local `vN`, origin/default, origin/`vN`) BEFORE migrating -- else you
+  redo finished work. A `vN` branch pointer can still hold UNMIGRATED
+  `.atm`, so also grep HEAD for v0.6 syntax.
+- DEV runs the app entry points; Claude must explicitly ASK to test the
+  repos (don't assume migrated == working -- prompt the run).

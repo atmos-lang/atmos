@@ -180,10 +180,31 @@ Landmines (NOT mechanical sed):
 
 Per-repo checklist:
 
-- [ ] sdl-birds: migrate all (birds-01..11) + README + RUN OK
-- [ ] sdl-rocks: migrate main/battle/ts.atm + README + RUN OK
-- [ ] Branch `v0.4` per repo: commit + push + ff `main`/`master` + verify
-      `== origin`
+- [x] sdl-birds: ALREADY migrated to v0.4 on origin (local was stale).
+      4 refs equal @ `11c00f6` (main==v0.4==origin/main==origin/v0.4).
+      birds-01 HEAD confirms v0.7 (`task Bird`, `loop us on :clock`,
+      `sdl.window [`). DONE.
+- [x] sdl-rocks: ALREADY migrated to v0.4 on origin. 4 refs equal @
+      `e4e31fe`. main/battle/ts clean (the `every` hits were comments).
+      DONE.
+- [x] Branch sync verified (git-read, no commits by Claude): sdl-birds +
+      sdl-rocks all 4 refs equal == origin.
+- [ ] DEV RUNS app entry points to confirm runtime (Claude must ASK, not
+      assume migrated==working): `cd sdl-birds && atmos birds-11.atm`;
+      `cd sdl-rocks && atmos main.atm` (needs `tiny.ttf` in cwd). PENDING
+      dev run.
+
+GIT-SYNC RE-CHECK (all repos in /x/atmos-lang, 4 refs each):
+- pico-birds: ✅ equal @ `1171d0c` (v0.7). `.atm` still v0.6 but OUT OF
+  §4.1 SCOPE (pico ecosystem, separate plan).
+- pico-rocks: ✅ equal @ `263f41e` (master ff'd to v0.7). `.atm` still
+  v0.6 -- OUT OF SCOPE. (re-checked per user)
+- iup-7guis: WONT-DO -- stale on v0.3, no v0.7 migration.
+- atmos (this repo): main `0a8fa55` != v0.7 `03fb114` -- POSTPONE to §5
+  (ff main->v0.7 after committing doc work).
+- NOTE: local checkouts were STALE; `git fetch` first. sdl-birds/-rocks
+  migration was done in a PRIOR session, not this one (my birds-01 edits
+  were redundant -> working tree clean).
 
 ## §5. Commit, push main, create release branch
 
@@ -296,3 +317,14 @@ compiling the first file.
 - `manual.lua` only builds the TOC; it does NOT inline `doc/exs/*.atm`.
   So manual.md fenced blocks are hand-authored and DRIFT from the `.atm`
   files -- review both. guide.md blocks likewise hand-authored.
+- App repos may ALREADY be migrated on origin while LOCAL is stale:
+  `git fetch` FIRST, then verify all 4 refs equal (local default, local
+  `vN`, origin/default, origin/`vN`) before migrating -- this cut, both
+  sdl apps were already done on origin; my birds-01 edits were redundant.
+  A `vN` pointer can still hold UNMIGRATED `.atm` (pico-* show this), so
+  grep HEAD for v0.6 too. Beware false-positive: word "every" in comments.
+- `:clock` per-tick loop is SINGLE-binding: `every _,ms in :clock` ->
+  `loop us on :clock` (env emits ONE µs number). The `_,` of Appx A #12
+  does NOT apply to `:clock`. dt now µs -> convert at use: `(us/1000)`.
+- DEV runs the app entry points; Claude must explicitly ASK to test the
+  repos (migrated+synced != verified-working -- prompt the run).
