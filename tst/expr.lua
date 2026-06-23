@@ -1399,14 +1399,14 @@ do
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near ',' : expected ')'")
 
-    local src = "await(:X until e1, e2)"
+    local src = "await(:X until e1 && e2)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\ne1\n}, @(3)=func (it) {\ne2\n}])")
+    assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\n(e1 && e2)\n}])")
 
     local src = "await :X until e"
     print("Testing...", src)
@@ -1425,6 +1425,25 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"while\", @(1)=:X, @(2)=func (it) {\ne\n}])")
+
+    -- no-base synchronous predicate: the function lands at awt[1]
+    local src = "await until e"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=func (it) {\ne\n}])")
+
+    local src = "await(while e)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await([@(:tag)=\"while\", @(1)=func (it) {\ne\n}])")
 
     local src = "await :any ts"
     print("Testing...", src)
@@ -1451,7 +1470,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await(spawn(T))")
+    assertx(tosource(e), "await(T)")
 --[=[
     assertx(trim(tosource(e)), trim [[
         do {

@@ -936,14 +936,14 @@ do
 end
 
 do
-    local src = "loop it on :X until e1, e2 {}"
+    local src = "loop it on :X until e1 && e2 {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "loop_on([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\ne1\n}, @(3)=func (it) {\ne2\n}], \\(it){\n\n})")
+    assertx(tosource(s), "loop_on([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\n(e1 && e2)\n}], \\(it){\n\n})")
 end
 
 do

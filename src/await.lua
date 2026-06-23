@@ -1,11 +1,12 @@
 -- builds the lua-atmos event-combinator table {tag=name, [1]=items[1], ...}
 -- (items used verbatim).
-local function mk_tagged (name, items)
+local function mk_tagged (name, ...)
     local es = {
         { k = { tag='tag', tk={tag='tag', str=':tag'} },
           v = { tag='str', tk={tag='str', str=name} } },
     }
-    for i, it in ipairs(items) do
+    for i=1, select('#',...) do
+        local it = select(i, ...)
         es[#es+1] = {
             k = { tag='num', tk={tag='num', str=tostring(i)} },
             v = it,
@@ -22,9 +23,9 @@ local function await_ast_logical (e)
         return await_ast_logical(e.e)
     elseif (e.tag == 'bin') and (e.op.str=='&&' or e.op.str=='||') then
         local name = (e.op.str=='&&') and 'and' or 'or'
-        return mk_tagged(name, { await_ast_logical(e.e1), await_ast_logical(e.e2) })
+        return mk_tagged(name, await_ast_logical(e.e1), await_ast_logical(e.e2))
     elseif (e.tag == 'uno') and (e.op.str == '!') then
-        return mk_tagged('not', { await_ast_logical(e.e) })
+        return mk_tagged('not', await_ast_logical(e.e))
     else
         return e
     end
@@ -34,6 +35,28 @@ end
 -- parser() errors on an empty slot. shared by await(...) / loop on / watching.
 -- base0: true -> single primary (bare `await PAT`, so `await :X || :Y` stays
 -- `(await :X) || :Y`); nil -> full expression.
+-- parses a single predicate, wrapping a non-func expression as a
+-- \it -> e function (proto). until/while take exactly ONE predicate;
+-- combine conditions with && rather than a comma list, so a trailing
+-- comma falls back to the enclosing list (toggle filters / patterns)
+
+local function parse_pred ()
+    -- TODO: we assume a simple-expr body (no await/etc)
+    local e = parser()
+    if e.tag == 'proto' then
+        -- \{...}
+        assert(e.sub == 'func')
+        return e
+    else
+        -- x > 10
+        return {
+            tag='proto', sub='lua',
+            pars = { {tag='id',str='it'} },
+            blk  = {tag='block', es={e}},
+        }
+    end
+end
+
 function parser_await (stop, base0)
     -- pool prefix: :any ts / :all ts -> {tag='tasks', mode=, tasks=ts}
     local m = accept(':any', 'tag') or accept(':all', 'tag')
@@ -59,19 +82,5 @@ function parser_await (stop, base0)
     if not k then
         return pat
     end
-    local preds = parser_list_1(',', stop, parser)
-    local fs = map(preds, function (e)
-        -- TODO: in both branches we assume simple-exprs bodies (no await/etc)
-        if e.tag == 'proto' then
-            assert(e.sub == 'func')
-            return e
-        else
-            return {
-                tag='proto', sub='lua',
-                pars = {{tag='id',str='it'}},
-                blk = {tag='block', es={e}},
-            }
-        end
-    end)
-    return mk_tagged(k.str, concat({pat}, fs))
+    return mk_tagged(k.str, pat, parse_pred())
 end

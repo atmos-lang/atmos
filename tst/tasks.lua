@@ -777,9 +777,9 @@ do
         var tk
         set tk = task (v) {
             print(v)
-            val e1 = await(func(e) { e && e@(1) })
+            val e1 = await until func(e) { e && e@(1) }
             X.print(e1)
-            val e2 = await(\{ it && it@1 })
+            val e2 = await until \{ it && it@1 }
             X.print(e2)
         }
         print(:1)
@@ -1104,9 +1104,9 @@ do
         var tk
         set tk = task (v) {
             print(v)
-            val e1 = await(func (e) { (e && (type(e)!='table'), e) })
+            val e1 = await until func (e) { (e && (type(e)!='table'), e) }
             print(:e1,e1)
-            val e2 = await(func (e) { (e && (type(e)!='table'), e) })
+            val e2 = await until func (e) { (e && (type(e)!='table'), e) }
             print(:e2,e2)
         }
         print(:1)
@@ -1236,7 +1236,7 @@ do
 
     local src = [[
         task tsk () {
-            var e = await(func (e) { (e && (e.tag==:X) && (e@(1)==10), e) })
+            var e = await until func (e) { (e && (e.tag==:X) && (e@(1)==10), e) }
             print(e.tag, e@(1))
         }
         spawn tsk()
@@ -1250,7 +1250,7 @@ do
 
     local src = [[
         task tsk () {
-            var e = await(func (e) { ((e??:X) && (e.v==10), e) })
+            var e = await until func (e) { ((e??:X) && (e.v==10), e) }
             X.print(e)
         }
         spawn tsk()
@@ -1635,7 +1635,7 @@ do
     local src = [[
         val T = task () {
             set pub = 10
-            await(func (e) { e && (e.tag==:X) && (e@(1)==pub) })
+            await until func (e) { e && (e.tag==:X) && (e@(1)==pub) }
             print(pub)
         }
         pin t = spawn T()
@@ -3128,9 +3128,9 @@ do
                 print(20)
                 print(30)
             }
-            await(func (e) { e && (e !? :xtask) })
+            await until func (e) { e && (e !? :xtask) }
             if v {
-                await(func (e) { e && (e !? :xtask) })
+                await until func (e) { e && (e !? :xtask) }
             }
         }
         print(0)
@@ -3155,9 +3155,9 @@ do
                 print(20)
                 print(30)
             }
-            await(func (e) { e && (e !? :xtask) })
+            await until func (e) { e && (e !? :xtask) }
             if v {
-                await(func (e) { e && (e !? :xtask) })
+                await until func (e) { e && (e !? :xtask) }
             }
         }
         print(0)

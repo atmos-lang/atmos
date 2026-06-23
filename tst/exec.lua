@@ -2228,6 +2228,23 @@ do
     print("Testing...", "await task 3")
     local out = atm_test(src)
     assertx(out, "20\n")
+
+    -- await T() spawns via the runtime sugar: the spawned task's
+    -- debug location must be the user's await site, not the runtime
+    local src = [[
+        task T () {
+            throw(:x)
+        }
+        await T()
+    ]]
+    print("Testing...", "await task 4 : throw : dbg loc")
+    local out = atm_test(src)
+    assertx(trim(out), trim [[
+        ==> ERROR:
+         |  [C]:-1 (loop)
+         v  [string "anon.atm"]:2 (throw) <- [string "anon.atm"]:4 (task) <- [C]:-1 (task)
+        ==> x
+    ]])
 end
 
 -- AWAIT / TASKS POOL (:any / :all)

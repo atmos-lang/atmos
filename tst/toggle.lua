@@ -75,8 +75,8 @@ do
 end
 
 do
-    -- `until`/`while` in a filter SWALLOWS trailing commas as predicates
-    -- (no parens disambiguation : documented, accepted behavior)
+    -- a single-predicate `until`/`while` stops at the comma, so a
+    -- trailing pattern joins the enclosing filter list (no swallowing)
     local src = "toggle t(false) with :a until c, :b"
     print("Testing...", src)
     init()
@@ -84,7 +84,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"until\", @(1)=:a, @(2)=func (it) {\nc\n}, @(3)=func (it) {\n:b\n}])")
+    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"until\", @(1)=:a, @(2)=func (it) {\nc\n}], :b)")
 end
 
 print '--- TOGGLE FILTER : EXEC ---'
