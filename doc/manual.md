@@ -729,7 +729,7 @@ Examples:
 val f = func (x, y) {     ;; function to add arguments
     x + y
 }
-print(type(f)       ;; --> 'function'
+print(type(f))      ;; --> 'function'
 print(f(1,2))       ;; --> 3
 ```
 
