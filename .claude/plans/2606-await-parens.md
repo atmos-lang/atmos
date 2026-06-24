@@ -1,109 +1,156 @@
-# await-parens : optional parens around the whole await pattern
+# await-parens : parenthesize await patterns + tidy parser_await
 
-## Goal
+## Goals
 
-Let `watching` and `loop on` accept a single optional pair of parens
-wrapping the *entire* await pattern, so the pattern-only syntax
-(pool prefix `:any`/`:all`, `until`/`while`) works parenthesized,
-matching what `await(...)` already supports.
+1. Let every await-pattern statement accept ONE optional pair of parens
+   wrapping the whole pattern, so pool (`:any`/`:all`), `until`/`while`
+   work parenthesized (matching what `await(...)` already does):
 
-Make these forms valid:
+   ```
+   watching (:any ts)    { ... }
+   watching (:I until c) { ... }
+   watching (until c)    { ... }
+   loop on  (:any ts)    { ... }   ;; etc.
+   ```
 
-```
-watching (:any ts)   { ... }
-watching (:all ts)   { ... }
-watching (:I until c) { ... }
-watching (until done) { ... }
-watching (while c)    { ... }
-loop on  (:any ts)   { ... }   ;; etc.
-```
+2. Make bare `await :X || :Y` an ERROR (ambiguous), while
+   `watching :X || :Y` stays fine.
 
-## Why it is not already so
+3. Simplify `parser_await`: drop the dead `stop` param, fold paren
+   handling into it, rename `base0` -> `bare`.
 
-| statement   | who strips the `(`            | mode of parser_await |
-|-------------|-------------------------------|----------------------|
-| `await(P)`  | `prim` strips, calls `(')')`  | full pattern         |
-| `watching`  | none; `(` goes to `parser()`  | expression base only |
-| `loop on`   | none; `(` goes to `parser()`  | expression base only |
+## Rules
 
-So `await(...)` already parses pool/until/while inside parens;
-`watching`/`loop on` hand the `(` to the expression parser, which
-rejects pool/until/while.
+### Opening `(` ends the pattern (like `await`)
 
-## Constraints found
+If a pattern opens with `(`, the matching `)` ends it; nothing
+pattern-related may follow.
 
-- Lexer is a single-pass coroutine: no backtracking, 1-token
-  lookahead (`TK1`).
-    - Cannot "parse, peek past `)`, then backtrack".
-- The wrapper must NOT live inside `parser_await`:
-    - that would mis-eat the inner grouping paren of the tested
-      `await((:X || :Y) && :Z)` (`tst/await.lua:42`).
-    - so the wrapper lives at the statement level only.
-- Only regression: `watching (:X) || :Y` (paren on the FIRST operand
-  of a top-level combinator).
-    - used nowhere in `src/ tst/ exs/ doc/`.
-    - becomes a loud parse error, not a silent miscompile.
-    - rewrite as `:X || :Y` or `(:X || :Y)`.
+- no parens -> trailing `until`/`while` allowed: `watching :X until c`
+- parens    -> must be inside: `watching (:X until c)`
+- `watching (:X) until c` -> NOT ok
+- `watching (:X) || :Y`   -> NOT ok
+
+### Bare `await` rejects trailing combinators
+
+`await` is an expression (can be an operand), so bare
+`await :X || :Y` is ambiguous (pattern combinator vs logical-or on the
+result). Require parens:
+
+- `await(:X || :Y)`  -> combinator pattern
+- `await(:X) || :Y`  -> logical-or on the await result
+- `await :X || :Y`   -> ERROR "ambiguous await : use parens"
+
+`watching`/`loop on` are statements (never operands), so
+`watching :X || :Y` is unambiguous and stays valid.
+
+## Why not already so / constraints
+
+| statement   | who strips `(`               | base parser           |
+|-------------|------------------------------|-----------------------|
+| `await(P)`  | `prim` strips, runs full     | full pattern          |
+| `watching`  | none; `(` -> `parser()`      | expression base only  |
+| `loop on`   | none; `(` -> `parser()`      | expression base only  |
+
+- Lexer is single-pass (coroutine): 1-token lookahead, no backtrack.
+- `stop` param of `parser_await` is DEAD: never read in the body;
+  expression end is `parser()`'s job, list end is `parser_list_1`'s.
+- Paren strip must be ONCE then delegate the base to `parser()`, so
+  nested grouping like `((:A||:B)&&:C)` stays intact. Use a `par` FLAG
+  (not recursion): consume at most one leading `(`, parse the base with
+  `parser()`, then one closing `accept_err(')')`. A recursive
+  `parser_await` would eat the inner grouping paren and drop `&& :C`;
+  the flag does not. `par` also forces `bare=false` (parens => full
+  expression base, combinators ok).
 
 ## Design
 
-Add a helper in `await.lua` (where `mk_tagged`/`parse_pred` are in
-scope) that consumes one optional wrapping paren, parses the full
-pattern inside via `parser_await(')')`, then still allows a trailing
-`until`/`while` after the close paren (back-compat with
-`watching (:X) until c`):
+`src/await.lua` — one function, `par` flag, single-exit `pat`:
 
 ```lua
-function parser_await_blk ()
-    if accept('(') then
-        local p = parser_await(')')
-        accept_err(')')
-        local k = accept('until') or accept('while')
-        return k and mk_tagged(k.str, p, parse_pred()) or p
+function parser_await (bare)
+    local par = accept('(')
+    if par then bare = false end
+
+    local pat
+    local m = accept(':any','tag') or accept(':all','tag')
+    if m then
+        pat = { tag='table', es={ ...tasks-table (unchanged)... } }
+    else
+        local k0 = accept('until') or accept('while')
+        if k0 then
+            pat = mk_tagged(k0.str, parse_pred())
+        else
+            local base = bare and parser_1_prim() or parser()
+            pat = await_ast_logical(base)
+            local k = accept('until') or accept('while')
+            if k then pat = mk_tagged(k.str, pat, parse_pred()) end
+            -- bare await: trailing &&/|| is ambiguous -> require parens
+            if bare and (check('&&') or check('||')) then
+                err(TK1, "ambiguous await : use parens")
+            end
+        end
     end
-    return parser_await('{')
+
+    if par then accept_err(')') end
+    return pat
 end
 ```
 
-`watching` and `loop on` call `parser_await_blk()` in place of
-`parser_await('{')`.
+(`accept_err(')')` so `watching (:X {` is a real error.)
 
-## Traces (must hold)
+`src/prim.lua` — call sites:
 
-| input                       | result   | note                |
-|-----------------------------|----------|---------------------|
-| `watching :X`               | ok       | no paren, unchanged |
-| `watching (:X)`             | ok       | unchanged           |
-| `watching (:X \|\| :Y)`     | ok       | unchanged           |
-| `watching ((:A\|\|:B)&&:C)` | ok       | inner via parser()  |
-| `watching (:X) until c`     | ok       | trailing until      |
-| `watching (:any ts)`        | ok NEW   | pool inside parens  |
-| `watching (:all ts)`        | ok NEW   | pool inside parens  |
-| `watching (:I until c)`     | ok NEW   | until inside parens |
-| `watching (until done)`     | ok NEW   | base-less inside    |
-| `watching (while c)`        | ok NEW   | base-less inside    |
-| `watching (:X) \|\| :Y`     | ERR      | regress; rewrite    |
+| place        | from                                    | to                  |
+|--------------|-----------------------------------------|---------------------|
+| await else   | `if accept('(') ... else ... end` (12L) | `parser_await(true)`|
+| watching     | `parser_await('{')`                     | `parser_await(false)`|
+| loop on      | `parser_await('{')`                     | `parser_await(false)`|
+| toggle x2    | `parser_await('{')` / `(func)`          | `parser_await()`    |
 
-Same table for `loop on`.
+## Behavior table (must hold)
+
+| input                       | result | note                |
+|-----------------------------|--------|---------------------|
+| `await :X`                  | ok     | single primary      |
+| `await(:X)`                 | ok     |                     |
+| `await(:X \|\| :Y)`         | ok     | combinator pattern  |
+| `await(:X) \|\| :Y`         | ok     | logical-or on result|
+| `await :X \|\| :Y`          | ERR    | ambiguous           |
+| `await((:X\|\|:Y)&&:Z)`     | ok     | inner via parser()  |
+| `watching :X \|\| :Y`       | ok     | statement           |
+| `watching (:X)`             | ok     |                     |
+| `watching ((:A\|\|:B)&&:C)` | ok     | inner via parser()  |
+| `watching (:any ts)`        | ok NEW | pool in parens      |
+| `watching (:I until c)`     | ok NEW | until in parens     |
+| `watching (until c)`        | ok NEW | base-less in parens |
+| `watching (:X) until c`     | ERR    | `)` ends pattern    |
+| `watching (:X) \|\| :Y`     | ERR    | `)` ends pattern    |
+
+Same as `watching` for `loop on`. `toggle` comes along via the unified
+`parser_await` (single parenthesized filter items now accepted; the
+unused `(:X)||:Y` filter-item form errors).
 
 ## Files
 
-| file          | place                          | change                  |
-|---------------|--------------------------------|-------------------------|
-| src/await.lua | after `parser_await`           | add `parser_await_blk`  |
-| src/prim.lua  | `watching` branch (~702)       | call `parser_await_blk` |
-| src/prim.lua  | `loop on` branch (~647)        | call `parser_await_blk` |
-| doc/manual.md | Watching / Loop-on / Await     | note optional parens    |
+| file          | place                       | change                       |
+|---------------|-----------------------------|------------------------------|
+| src/await.lua | `parser_await`              | `par` flag + paren + bare guard; drop `stop`; `base0`->`bare` |
+| src/prim.lua  | await / watching / loop / toggle | update 5 call sites    |
+| doc/manual.md | Ambiguities (~2722), ~2168  | bare `await \|\|` is an error|
+| doc/manual.md | Watching / Loop-on / Await  | note optional parens         |
+| tst/stmt.lua  | new `--- AWAIT PARENS ---` after `--- LOOP ON ---` (~980) | watching/loop-on parens parse = bare AST; strict-rule errors (`assertfx`) |
+| tst/toggle.lua| after filter tests (~90)    | toggle `with (...)` parens forms (`tosource`) |
+| tst/await.lua | top + header comment (4-9)  | bare `await \|\|` errors; `await(:X)\|\|:Y` / `await(:X\|\|:Y)` ok; fix stale comment |
 
-## Out of scope
-
-- `toggle` filter lists (comma-separated): leave as is for now.
-- `await(...)` itself: already works; untouched.
+Test style: parser-level (`parse` -> `tosource` equality, or `assertfx`
+for the error cases). User runs the suite; do not execute.
 
 ## Status
 
-- [ ] add `parser_await_blk` in `await.lua`
-- [ ] wire `watching` branch in `prim.lua`
-- [ ] wire `loop on` branch in `prim.lua`
-- [ ] manual note
-- [ ] verify with sample `.atm` files
+- [ ] rewrite `parser_await`: `par` flag + paren + bare-combinator guard
+- [ ] drop `stop`, rename `base0` -> `bare`
+- [ ] update 5 call sites in `prim.lua`
+- [ ] manual: Ambiguities + optional-parens notes
+- [ ] tests: stmt.lua (watching/loop-on), toggle.lua, await.lua
+- [ ] verify with `scratchpad/baseline.sh` (7 ERR -> PASS)
