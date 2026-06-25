@@ -2085,9 +2085,9 @@ An `await` suspends a [task](#tasks) until a matching [emit](#emit) occurs:
 
 ```
 Await : `await´ `(´ Patt `)´
-      | `await´ ID `(´ Expr* `)´
-Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr]
-      | (`until´|`while´) Expr
+      | `await´ ID Expr*
+Patt  : [`(´] [`:any´|`:all´] Expr [(`until´|`while´) Expr]
+      | (`until´|`while´) Expr [`)´]
 ```
 
 When awaking, an `await` evaluates to its matching event value.
@@ -2164,9 +2164,6 @@ spawn @ts T()
 val e = await(:any ts)  ;; awaits any task to terminate
 await(:all ts)          ;; awaits all tasks (pool drains)
 ```
-
-See [Ambiguities](#ambiguities): `await :X || :Y` reads as
-`(await :X) || :Y` (not `await(:X || :Y)`).
 
 ### Emit
 
@@ -2347,7 +2344,7 @@ A `watching` spawns and awaits a block as a [transparent task](#tasks) until an
 [await pattern](#await) is satisfied, which aborts the block:
 
 ```
-Watching : `watching´ Expr* Block
+Watching : `watching´ Patt Block
 ```
 
 A `watching <e> { <body> }` is equivalent to a `par :any` as follows:
@@ -2726,7 +2723,6 @@ may surprise a naive reading:
 
 | #                 | case                  | what it is              | what it is **not**       |
 |-------------------|-----------------------|-------------------------|--------------------------|
-| [await](#await)   | `await :X \|\| :Y`    | `(await :X) \|\| :Y`    | `await(:X \|\| :Y)`      |
 | [calls](#calls)   | `f` ⏎ `(x)`           | `f ; (x)`               | `f(x)`                   |
 | [calls](#calls)   | `f :X []`             | `f(:X [])`              | `f(:X) []`               |
 | [pipes](#pipes)   | `x<-y`                | `y(x)`                  | `x < (-y)`               |
