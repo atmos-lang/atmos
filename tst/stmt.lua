@@ -978,3 +978,107 @@ do
     assert(check('<eof>'))
     assertx(tosource(s), "watching([@(:tag)=\"tasks\", @(:mode)=\"all\", @(:tasks)=ts], {\n\n})")
 end
+
+print '--- AWAIT PARENS ---'
+
+-- A single optional pair of parens may wrap a whole await pattern, so the
+-- pattern-only syntax (pool :any/:all, until/while) becomes parenthesizable
+-- -- matching await(...). `(PAT)` parses to the same AST as `PAT`. An opening
+-- `(` ends the pattern: nothing pattern-related may follow `)`. These FAIL
+-- until the fix lands (TDD).
+
+do
+    local src = "watching (:any ts) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "watching([@(:tag)=\"tasks\", @(:mode)=\"any\", @(:tasks)=ts], {\n\n})")
+end
+
+do
+    local src = "watching (:I until c) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "watching([@(:tag)=\"until\", @(1)=:I, @(2)=func (it) {\nc\n}], {\n\n})")
+end
+
+do
+    local src = "watching (until c) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "watching([@(:tag)=\"until\", @(1)=func (it) {\nc\n}], {\n\n})")
+end
+
+do
+    local src = "loop on (:any ts) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "loop_on([@(:tag)=\"tasks\", @(:mode)=\"any\", @(:tasks)=ts], {\n\n})")
+end
+
+do
+    local src = "loop on (:I until c) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "loop_on([@(:tag)=\"until\", @(1)=:I, @(2)=func (it) {\nc\n}], {\n\n})")
+end
+
+do
+    local src = "loop on (until c) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "loop_on([@(:tag)=\"until\", @(1)=func (it) {\nc\n}], {\n\n})")
+end
+
+do
+    local src = "watching (:X) until c {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok = pcall(parser)
+    assert(not ok)
+end
+
+do
+    local src = "watching (:X) || :Y {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok = pcall(parser)
+    assert(not ok)
+end
+
+do
+    local src = "loop on (:X) until c {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok = pcall(parser)
+    assert(not ok)
+end

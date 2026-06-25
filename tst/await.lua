@@ -4,9 +4,26 @@ require "atmos.lang.exec"
 -- AWAIT COMBINATOR OPERATORS: &&  ||  !
 --
 -- Combinator operators inside `await` require the parenthesized form
--- `await(...)`. The bare form `await :X || :Y` is a user logic error:
--- it compiles as `(await :X) || :Y` (logical OR on the await result).
--- Not enforced -- documented as a rule.
+-- `await(...)`. The bare form `await :X || :Y` is ambiguous (pattern
+-- combinator vs logical-or on the await result) and is now an ERROR:
+-- use `await(:X || :Y)` (combinator) or `await(:X) || :Y` (logical-or).
+
+-- BARE AWAIT REJECTS TRAILING COMBINATORS (FAILS until the fix lands).
+do
+    local src = [[
+        spawn { await :X || :Y }
+    ]]
+    print("Testing...", "op_bare_or_err 1")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 1 : near '||' : use parentheses to disambiguate")
+
+    local src = [[
+        spawn { await :X && :Y }
+    ]]
+    print("Testing...", "op_bare_and_err 1")
+    local out = atm_test(src)
+    assertx(out, "anon.atm : line 1 : near '&&' : use parentheses to disambiguate")
+end
 
 do
     local src = [[

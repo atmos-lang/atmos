@@ -87,6 +87,32 @@ do
     assertx(tosource(e), "toggle(t, false, [@(:tag)=\"until\", @(1)=:a, @(2)=func (it) {\nc\n}], :b)")
 end
 
+-- a filter item may be wrapped in one optional pair of parens, so the
+-- pattern-only syntax (pool :any/:all, until/while) is parenthesizable,
+-- matching await(...). `(PAT)` == `PAT`. FAILS until the fix lands (TDD).
+
+do
+    local src = "toggle on :X with (:any ts) { }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "toggle(:X, [@(:tag)=\"tasks\", @(:mode)=\"any\", @(:tasks)=ts], {\n\n})")
+end
+
+do
+    local src = "toggle t(false) with (:a until c)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"until\", @(1)=:a, @(2)=func (it) {\nc\n}])")
+end
+
 print '--- TOGGLE FILTER : EXEC ---'
 
 do
