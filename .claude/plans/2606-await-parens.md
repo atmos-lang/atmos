@@ -148,9 +148,13 @@ for the error cases). User runs the suite; do not execute.
 
 ## Status
 
-- [ ] rewrite `parser_await`: `par` flag + paren + bare-combinator guard
-- [ ] drop `stop`, rename `base0` -> `bare`
-- [ ] update 5 call sites in `prim.lua`
-- [ ] manual: Ambiguities + optional-parens notes
-- [ ] tests: stmt.lua (watching/loop-on), toggle.lua, await.lua
-- [ ] verify with `scratchpad/baseline.sh` (7 ERR -> PASS)
+- [x] rewrite `parser_await`: `par` flag + paren + bare-combinator guard
+- [x] drop `stop`, rename `base0` -> `bare`
+- [x] update 5 call sites in `prim.lua`
+- [x] manual: Ambiguities + optional-parens notes (await/watching/loop)
+- [x] tests written (RED): stmt.lua, toggle.lua, await.lua + header fix
+- [x] verified against local src via scratchpad symlink (18/18 behaviors)
+
+NOTE: the installed rock (`/usr/local/share/lua/5.4/atmos/`) is a stale
+COPY, not local `src/`. Run `luarocks make` before the test suite, else
+`tst/` loads the old parser and the new tests still fail.

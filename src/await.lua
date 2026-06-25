@@ -57,37 +57,59 @@ local function parse_pred ()
     end
 end
 
-function parser_await (stop, base0)
+-- bare: true -> single-primary base (bare `await PAT`); a trailing &&/|| is
+-- then ambiguous and rejected. false/nil -> full-expression base.
+-- One optional pair of parens wraps the whole pattern, so pool/until/while
+-- become parenthesizable (matching await(...)). An opening `(` ends the
+-- pattern; inside parens the base is a full expression.
+function parser_await (bare)
+    local par = accept('(')
+    if par then
+        bare = false
+    end
+
+    local pat
+
     -- pool prefix: :any ts / :all ts -> {tag='tasks', mode=, tasks=ts}
     local m = accept(':any', 'tag') or accept(':all', 'tag')
     if m then
-        return { tag='table', es={
+        pat = { tag='table', es={
             { k={tag='tag', tk={tag='tag', str=':tag'}},   v={tag='str', tk={tag='str', str='tasks'}} },
             { k={tag='tag', tk={tag='tag', str=':mode'}},  v={tag='str', tk={tag='str', str=m.str:sub(2)}} },
             { k={tag='tag', tk={tag='tag', str=':tasks'}}, v=parser() },
         } }
-    end
-
-    -- await until f / await while f : no base pattern -> synchronous
-    -- predicate; the function lands at awt[1], the runtime discriminator
-    local k0 = accept('until') or accept('while')
-    if k0 then
-        return mk_tagged(k0.str, parse_pred())
-    end
-
-    -- base pattern + combinators &&/||/!
-    local base
-    if base0 then
-        base = parser_1_prim()
     else
-        base = parser()
-    end
-    local pat = await_ast_logical(base)
+        -- await until f / await while f : no base pattern -> synchronous
+        -- predicate; the function lands at awt[1], the runtime discriminator
+        local k0 = accept('until') or accept('while')
+        if k0 then
+            pat = mk_tagged(k0.str, parse_pred())
+        else
+            -- base pattern + combinators &&/||/!
+            local base
+            if bare then
+                base = parser_1_prim()
+            else
+                base = parser()
+            end
+            pat = await_ast_logical(base)
 
-    -- optional until/while predicates (each non-func wrapped as \{ e })
-    local k = accept('until') or accept('while')
-    if not k then
-        return pat
+            -- optional until/while predicates (each non-func wrapped as \{ e })
+            local k = accept('until') or accept('while')
+            if k then
+                pat = mk_tagged(k.str, pat, parse_pred())
+            end
+
+            -- bare `await :X || :Y` is ambiguous (pattern combinator vs
+            -- logical-or on the await result): require parentheses
+            if bare and (check('&&') or check('||')) then
+                err(TK1, "use parentheses to disambiguate")
+            end
+        end
     end
-    return mk_tagged(k.str, pat, parse_pred())
+
+    if par then
+        accept_err(')')
+    end
+    return pat
 end

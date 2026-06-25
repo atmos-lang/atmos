@@ -176,16 +176,7 @@ function parser_1_prim ()
                     es  = concat({call.f}, call.es),
                 }
             else
-                local awt
-                if accept('(') then
-                    -- await(PAT) : full pattern (combinators + until/while)
-                    awt = parser_await(')')
-                    accept_err(')')
-                else
-                    -- await PAT : juxtaposition base is a single primary, so
-                    -- `await :X || :Y` stays `(await :X) || :Y`; pool/until ok
-                    awt = parser_await(nil, true)
-                end
+                local awt = parser_await(true)
                 return {
                     tag = 'call',
                     f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
@@ -211,7 +202,7 @@ function parser_1_prim ()
                 local tag = accept_err(nil, 'tag')
                 local filter = {}
                 if accept('with') then -- optional filter pattern
-                    filter = parser_list_1(',', '{', function () return parser_await('{') end)
+                    filter = parser_list_1(',', '{', function () return parser_await(false) end)
                 end
                 local blk = parser_block()
                 return {
@@ -234,7 +225,7 @@ function parser_1_prim ()
                 -- optional trailing filter pattern (stops at first non-comma)
                 local filter = {}
                 if accept('with') then
-                    filter = parser_list_1(',', function () return false end, function () return parser_await(function () return false end) end)
+                    filter = parser_list_1(',', function () return false end, function () return parser_await(false) end)
                 end
                 return parser_7_out({ tag='call', f=cmd, es=concat(call.es,filter) })
             end
@@ -644,7 +635,7 @@ function parser_1_prim ()
         local tk = TK0
         local ids = check(nil,'id') and parser_ids('in') or nil
         if accept('on') then
-            local awt = parser_await('{')
+            local awt = parser_await(false)
             local blk = parser_block()
             local cb = { tag='proto', sub='lua', pars=ids or {}, blk=blk }
             return {
@@ -699,7 +690,7 @@ function parser_1_prim ()
             }
         -- watching
         elseif accept('watching') then
-            local awt = parser_await('{')
+            local awt = parser_await(false)
             local blk = parser_block()
             return {
                 tag = 'call',
