@@ -38,6 +38,10 @@ Two major refactorings:
         - `@.100` -> `100ms` (`== 100000`)
         - `@1:x` -> `1min + x*1s`
 
+PATCHES
+
+- `v0.7-2`: desugar `loop-on` into `loop-await`
+
 v0.6 (mar/26)
 -------------
 

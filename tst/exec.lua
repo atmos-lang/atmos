@@ -1353,6 +1353,24 @@ do
     local out = atm_test(src)
     assertx(out, "ok\n")
     warn(false, "TODO: should be an error")
+
+    local src = [[
+        spawn {
+            val x = loop it on :X {
+                print(2)
+                if it.n == 2 {
+                    break(it.n * 5)
+                }
+                print(99)
+            }
+            print(x)
+        }
+        emit :X [n=1]
+        emit :X [n=2]
+    ]]
+    print("Testing...", "loop 13 : break value in loop on")
+    local out = atm_test(src)
+    assertx(out, "2\n99\n2\n10\n")
 end
 
 -- CATCH / THROW
