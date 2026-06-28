@@ -644,14 +644,22 @@ function parser_1_prim ()
         local tk = TK0
         local ids = check(nil,'id') and parser_ids('in') or nil
         if accept('on') then
+            -- loop { val IDS = await(PAT) ; BODY }
             local awt = parser_await('{')
             local blk = parser_block()
-            local cb = { tag='proto', sub='lua', pars=ids or {}, blk=blk }
-            return {
+            local call = {
                 tag = 'call',
-                f = { tag='acc', tk={tag='id',str='loop_on'} },
-                es = { awt, cb }
+                f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
+                es  = { awt },
             }
+            local bnd = (not ids) and call or {
+                tag = 'dcl',
+                tk  = {tag='key', str='val', lin=tk.lin},
+                ids = ids,
+                set = call
+            }
+            table.insert(blk.es, 1, bnd)
+            return { tag='loop', ids=nil, itr=nil, blk=blk }
         else
             local itr = nil
             if accept('in') then

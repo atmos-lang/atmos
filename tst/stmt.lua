@@ -866,8 +866,9 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        loop_on(:X, {
-        })
+        loop {
+        await(:X)
+        }
     ]])
 end
 
@@ -880,8 +881,9 @@ do
     local s = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(s)), trim [[
-        loop_on(:X, \(it){
-        })
+        loop {
+        val it = await(:X)
+        }
     ]])
 end
 
@@ -943,7 +945,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "loop_on([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\n(e1 && e2)\n}], \\(it){\n\n})")
+    assertx(tosource(s), "loop {\nval it = await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\n(e1 && e2)\n}])\n}")
 end
 
 do
@@ -954,7 +956,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "loop_on([@(:tag)=\"while\", @(1)=:X, @(2)=func (it) {\ne\n}], \\(it){\n\n})")
+    assertx(tosource(s), "loop {\nval it = await([@(:tag)=\"while\", @(1)=:X, @(2)=func (it) {\ne\n}])\n}")
 end
 
 do
@@ -965,7 +967,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "loop_on([@(:tag)=\"tasks\", @(:mode)=\"any\", @(:tasks)=ts], {\n\n})")
+    assertx(tosource(s), "loop {\nawait([@(:tag)=\"tasks\", @(:mode)=\"any\", @(:tasks)=ts])\n}")
 end
 
 do

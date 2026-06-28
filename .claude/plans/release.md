@@ -96,6 +96,7 @@ Check ALL docs reflect the new syntax before cutting:
 - [ ] doc/manual.md  (regenerate `doc/manual-out.md`, never edit it)
 - [ ] HISTORY.md
 - [ ] rockspec `detailed`
+- [ ] `atmos` CLI -- bump `VERSION = "vX.Y"` (line 3)
 
 ### 2.1 README.md
 
