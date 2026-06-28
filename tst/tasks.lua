@@ -3800,3 +3800,35 @@ do
     local out = atm_test(src)
     assertx(out, "1\n2\n")
 end
+
+-- BUG (260628-target-bug): `emit @N` must be identity-based and skip
+-- transparent tasks. A `spawn {}` block is transparent (do_spawn, tra=true),
+-- but the runtime `fto` level-walk counts it, so @2 lands one level short.
+-- Identity-based: @2 from `Inner` (nested under the transparent spawn-block)
+-- skips the block, reaches `Mid`'s parent and the top-level `par`.
+-- Expected (fixed): "ok\n". Current (buggy): "" (par ends on the emit branch).
+-- Stays red until the `fto` fix lands in lua-atmos (see runtime plan).
+do
+    local src = [[
+        task Inner () {
+            await :go
+            emit @2 :h
+        }
+        task Mid () {
+            spawn {
+                await Inner()
+            }
+            await(false)
+        }
+        spawn Mid()
+        par:any {
+            await :h
+            print("ok")
+        } with {
+            emit :go
+        }
+    ]]
+    print("Testing...", "emit target : transparent spawn-block")
+    local out = atm_test(src)
+    assertx(out, "ok\n")
+end
