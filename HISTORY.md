@@ -40,7 +40,7 @@ Two major refactorings:
 
 PATCHES
 
-- `v0.7-2`: desugar `loop-on` into `loop-await`
+- `v0.7-2`: desugar `loop-on` into `loop-await`, bump `atmos` version to `v0.7`
 
 v0.6 (mar/26)
 -------------
