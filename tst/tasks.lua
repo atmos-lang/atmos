@@ -167,6 +167,74 @@ do
     local out = atm_test(src)
     assertx(out, "true\n")
 
+    -- ancestor alias: a nested task may hold its parent ("me" passed down)
+    local src = [[
+        val T = task (t) {
+            val x = t
+            print(x ?? :xtask)
+        }
+        val U = task () {
+            spawn T(task)
+            await(false)
+        }
+        spawn U()
+    ]]
+    print("Testing...", "task 7: ancestor alias in nested task")
+    local out = atm_test(src)
+    assertx(out, "true\n")
+
+    -- non-ancestor alias: emit during T's synchronous startup wakes
+    -- sibling S while T is still unpinned (spawn has not returned);
+    -- S may not alias T (not an ancestor, not yet owned)
+    local src = [[
+        var g = nil
+        val S = task () {
+            await(:go)
+            val x = g
+        }
+        val T = task () {
+            set g = task
+            emit @(:global) (:go)
+            await(false)
+        }
+        spawn S()
+        spawn T()
+    ]]
+    print("Testing...", "task 8: non-ancestor alias rejected")
+    local out = atm_test(src)
+    assertfx(out, "invalid assignment : expected pinned value")
+
+    -- "me" as emit payload: the running task travels inside the event
+    -- (table constructors are unchecked borrows, unlike direct alias)
+    local src = [[
+        val S = task () {
+            val e = await(:X)
+            print(e@1 ?? :xtask)
+            print((e@1).pub)
+        }
+        val T = task () {
+            set pub = 10
+            emit @(:global) (:X [task])
+            await(false)
+        }
+        spawn S()
+        spawn T()
+    ]]
+    print("Testing...", "task 8b: me as emit payload")
+    local out = atm_test(src)
+    assertx(out, "true\n10\n")
+
+    -- pin of "me" (or an ancestor) is an ownership cycle: rejected
+    local src = [[
+        val T = task () {
+            pin x = task
+        }
+        spawn T()
+    ]]
+    print("Testing...", "task 9: pin me rejected")
+    local out = atm_test(src)
+    assertfx(out, "invalid assignment : unexpected parent task")
+
     local src = [[
         yield()
     ]]
@@ -1483,7 +1551,7 @@ do
         ==> ERROR:
          |  [C]:-1 (loop)
          v  [string "anon.atm"]:2 (throw)
-        ==> invalid assignment : expected unpinned value
+        ==> invalid assignment : unexpected pinned value
     ]])
 
     local src = [[

@@ -1,15 +1,38 @@
 X = require "atmos.x"   -- global bc of threads/lanes
 
+-- t is the running task or one of its ancestors: structured
+-- concurrency guarantees it is alive for this whole scope
+local function atm_is_up (t)
+    local x = xtask()
+    while x do
+        if x == t then
+            return true
+        end
+        x = x._.up
+    end
+    return false
+end
+
 function atm_pin_chk_set (chk, pin, ...)
     local t = ...
     if X.is(t,'xtask') or X.is(t,'tasks') then
         if pin then
-            assertn(2, (not chk) or (not t.pin),
-                "invalid assignment : expected unpinned value")
+            if chk then
+                assertn(2, (not t.pin),
+                    "invalid assignment : unexpected pinned value")
+                -- pin is ownership + abort-on-close: taking an ancestor
+                -- (or "me") would abort upward on termination
+                assertn(2, (not atm_is_up(t)),
+                    "invalid assignment : unexpected parent task")
+            end
             t.pin = true
         else
-            assertn(2, (not chk) or t.pin,
-                "invalid assignment : expected pinned value")
+            -- aliasing "me" or an ancestor is always valid:
+            -- it necessarily outlives the current scope
+            if chk then
+                assertn(2, t.pin or atm_is_up(t),
+                    "invalid assignment : expected pinned value")
+            end
         end
     end
     return ...
