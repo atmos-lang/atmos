@@ -1,3 +1,9 @@
+v0.8 (???/??)
+-------------
+
+- Additions:
+    - `task` as expression: current running task
+
 v0.7 (jun/26)
 -------------
 

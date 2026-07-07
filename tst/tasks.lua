@@ -141,6 +141,32 @@ do
     local out = atm_test(src)
     assertx(out, "val\t1\nvar\t2\n")
 
+    -- bare `task` = running instance ("me")
+    local src = [[
+        val T = task () {
+            val me = task
+            print(me ?? :xtask)
+            print(me == xtask())
+        }
+        spawn T()
+    ]]
+    print("Testing...", "task 5: bare task = me")
+    local out = atm_test(src)
+    assertx(out, "true\ntrue\n")
+
+    -- separator lock: `task` ends the statement; the next line must
+    -- not be read as a named proto header `task print(...)`
+    local src = [[
+        val T = task () {
+            val t = task
+            print(t ?? :xtask)
+        }
+        spawn T()
+    ]]
+    print("Testing...", "task 6: bare task separator lock")
+    local out = atm_test(src)
+    assertx(out, "true\n")
+
     local src = [[
         yield()
     ]]

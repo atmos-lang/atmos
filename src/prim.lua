@@ -250,6 +250,13 @@ function parser_1_prim ()
             -- func M.f () { ... }
             -- func o::f () { ... }
             local sub = TK0.str
+
+            -- bare `task` = running instance ("me"): not a proto
+            -- header when no same-line `(` or name follows
+            if sub=='task' and not ((check('(') or check(nil,'id')) and TK0.sep==TK1.sep) then
+                return { tag='call', f={tag='acc', tk={tag='id',str='xtask',lin=TK0.lin}}, es={} }
+            end
+
             if accept('(') then
                 local dots, pars = parser_dots_pars()
                 accept_err(')')

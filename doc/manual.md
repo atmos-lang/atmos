@@ -784,6 +784,8 @@ Tasks : `tasks´ `(´ [Expr] `)´
 
 Spawn : `spawn` [At] Expr `(´ Expr* `)`
       | `spawn` Block
+
+XTask : `task´
 ```
 
 A `task` prototype specifies an execution body and follows the same rules of
@@ -804,12 +806,16 @@ task instance:
 - The format `spawn { ... }` starts a block as transparent task with no
   associated reference.
 
+A `task` expression evaluates to the currently running (non-transparent) task
+instance:
+
 Examples:
 
 <!-- exs/val-06-tasks.atm -->
 
 ```
 val T = task (n) {          ;; task to await n seconds
+    print(task ?? :xtask)   ;; --> true
     await(n * 1s)
     print "timeout"
 }

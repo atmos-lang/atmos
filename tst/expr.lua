@@ -1250,6 +1250,53 @@ do
     local _,msg = pcall(parser)
     assertx(msg, "anon : line 1 : near '<eof>' : expected '{'")
 
+    -- bare `task` = running instance ("me") -> desugars to xtask()
+    local src = "task"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "xtask()")
+
+    -- separator lock: `(` on next line does not bind as proto header
+    local src = "task\n(T)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(tosource(e), "xtask()")
+
+    -- separator lock: `;` behaves like `\n`
+    local src = "task;(T)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(tosource(e), "xtask()")
+
+    -- separator lock: id on next line does not bind as proto name
+    local src = "task\nT()"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assertx(tosource(e), "xtask()")
+
+    -- named proto unchanged: same-line id after `task`
+    local src = "task T (a) { a }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "set T = task (a) {\na\n}")
+
     local src = "task (a) { a }"
     print("Testing...", src)
     init()
