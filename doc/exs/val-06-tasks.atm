@@ -1,4 +1,5 @@
 val T = task (n) {          ;; task to await n seconds
+    print(task ?? :xtask)   ;; --> true
     await(n * 1s)
     print "timeout"
 }

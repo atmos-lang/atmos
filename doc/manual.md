@@ -704,6 +704,9 @@ print(p ?? :table)      ;; --> true
 print(p ?? :Pos)        ;; --> true
 ```
 
+See [Ambiguities](#ambiguities):
+    `:X` ⏎ `[]` reads as two statements `:X ; []` (not constructor `:X []`).
+
 ## Function
 
 The `function` reference type represents [Lua functions][lua-function].
@@ -766,8 +769,8 @@ print(g ?? :function)   ;; --> true
 print(g(f(1,2)))        ;; --> 4
 ```
 
-See [Ambiguities](#ambiguities): `\-` reads as `\(a,b){ a - b }` (not
-`\(a){ -a }`).
+See [Ambiguities](#ambiguities):
+    `\-` reads as `\(a,b){ a - b }` (not `\(a){ -a }`).
 
 [lua-function]: https://www.lua.org/manual/5.4/manual.html#3.4.11
 
@@ -876,6 +879,9 @@ do {
     }
 }                       ;; --> aborted 3,2,1
 ```
+
+See [Ambiguities](#ambiguities):
+    `task` ⏎ `(x)` reads as two statements `task ; (x)` (not prototype `task(x)`).
 
 ### Pub
 
@@ -1633,8 +1639,8 @@ f <-- 10 -> g   ;; equivalent to `f(g(10))`
 t -> f(10)      ;; equivalent to `f(t,10)`
 ```
 
-See [Ambiguities](#ambiguities): `x<-y` reads as the pipe `y(x)` (not
-`x < (-y)`).
+See [Ambiguities](#ambiguities):
+    `x<-y` reads as the pipe `y(x)` (not `x < (-y)`).
 
 ### Parenthesis
 
@@ -2171,8 +2177,8 @@ val e = await(:any ts)  ;; awaits any task to terminate
 await(:all ts)          ;; awaits all tasks (pool drains)
 ```
 
-See [Ambiguities](#ambiguities): `await :X || :Y` reads as
-`(await :X) || :Y` (not `await(:X || :Y)`).
+See [Ambiguities](#ambiguities):
+    `await :X || :Y` reads as `(await :X) || :Y` (not `await(:X || :Y)`).
 
 ### Emit
 
@@ -2286,8 +2292,8 @@ emit(:Tick)         ;; (nop)
 emit(:Draw)         ;; --> draw
 ```
 
-See [Ambiguities](#ambiguities): `with :a until c, :b` reads as
-`with :a (until c, :b)` (not `with (:a until c), :b`).
+See [Ambiguities](#ambiguities):
+    `with :a until c, :b` reads as `with :a (until c, :b)` (not `with (:a until c), :b`).
 
 ### Parallel
 
@@ -2640,7 +2646,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
 
       | (`val´ | `var` | `pin`) ID* [`=´ Expr]      ;; local declarations
       | Expr `where´ `{´ (ID* `=´ Expr)* `}´        ;; where clause
-      | `func´ ID {`.´ ID} [`::´ ID]                ;; function declaration
+      | (`func´|`task´) ID {`.´ ID} [`::´ ID]       ;; function/task declaration
                `(´ ID* [`...´] `)´
                Block
       | `return´ `(´ Expr* `)´                      ;; return from function
@@ -2656,11 +2662,11 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
                     | ID `=´ Expr
                     | Expr
 
-      | `func´ `(´ ID* [`...´] `)´ Block            ;; anon function
+      | (`func´|`task´) `(´ ID* [`...´] `)´ Block   ;; anon function/task
       | `\` [ID | `(` ID* `)´] Block                ;; lambda notation
 
-      | `task´ `(´ Expr `)´                         ;; task
-      | `task´ `(´ [Expr] `)´                       ;; tasks pool
+      | `task´                                      ;; running task
+      | `tasks´ `(´ [Expr] `)´                      ;; tasks pool
       | `abort´ `(´ Expr `)´                        ;; abortion
 
       | OP Expr                                     ;; pre ops
@@ -2733,8 +2739,10 @@ may surprise a naive reading:
 | #                 | case                  | what it is              | what it is **not**       |
 |-------------------|-----------------------|-------------------------|--------------------------|
 | [await](#await)   | `await :X \|\| :Y`    | `(await :X) \|\| :Y`    | `await(:X \|\| :Y)`      |
+| [table](#table)   | `:X` ⏎ `[]`           | `:X ; []`               | `:X []`                  |
 | [calls](#calls)   | `f` ⏎ `(x)`           | `f ; (x)`               | `f(x)`                   |
 | [calls](#calls)   | `f :X []`             | `f(:X [])`              | `f(:X) []`               |
 | [pipes](#pipes)   | `x<-y`                | `y(x)`                  | `x < (-y)`               |
+| [tasks](#tasks)   | `task` ⏎ `(x)`        | `task ; (x)`            | `task(x)`                |
 | [toggle](#toggle) | `with :a until c, :b` | `with :a (until c, :b)` | `with (:a until c), :b`  |
 | [lambda](#lambda) | `\-`                  | `\(a,b){ a - b }`       | `\(a){ -a }`             |

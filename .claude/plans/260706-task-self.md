@@ -140,17 +140,27 @@ print(me ?? :xtask)          ;; --> true
       (2026-07-06)
 - [x] `src/run.lua` `atm_pin_chk_set`: allow val/var/set alias when
       the value is the running task (`t==xtask()`) -- `val me = task`
-      failed the "expected pinned value" check since an unassigned
-      spawn leaves `pin=false`; mutating the flag was rejected (spawn
-      runs the body synchronously, would break `pin t = spawn T()`
-      at the call site) (2026-07-06)
+      failed the "expected pinned value" check. CORRECTED rationale:
+      EVERY spawn ends up pinned (pin var, pool, or the forced
+      `pin _ =` wrapper for unassigned spawns, whose chk=false skips
+      asserts but still sets `t.pin=true`); the flag is only false
+      DURING the body's synchronous startup (before spawn returns) --
+      exactly where bare `task` runs. Mutating the flag from inside
+      was rejected: would break the call-site wrapper's "expected
+      unpinned value" assert (2026-07-06)
 - [x] `src/run.lua` generalized to `atm_is_up` up-chain walk:
       val/var/set may alias "me" OR any ancestor (structured
       concurrency: ancestors outlive the scope); `pin` additionally
       REJECTS me/ancestors (pin = ownership + abort-on-close ->
-      upward abort cycle). Tests 7 (ancestor alias ok), 8 (sibling
-      alias rejected), 9 (pin me rejected) (2026-07-06)
-- [ ] run test suite: `cd tst && lua5.4 all.lua` (user)
+      upward abort cycle). Tests 7 (ancestor alias ok), 8
+      (non-ancestor alias rejected: emit during startup wakes a
+      sibling while T is still unpinned), 9 (pin me rejected)
+      (2026-07-06)
+- [x] test suite GREEN (user, 2026-07-07)
+- [x] `doc/exs/val-06-tasks.atm`: synced with manual example
+      (`print(task ?? :xtask)`); regen `manual-out.md` after user's
+      manual restructuring (XTask production, moved paragraph)
+      (2026-07-07)
 
 ## Won't do
 
