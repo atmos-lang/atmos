@@ -88,6 +88,28 @@ do
         }
     ]])
 
+    -- dotted task declaration: assigns into a table field
+    local src = "task M.T (v) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(trim(tosource(s)), trim [[
+        set M@("T") = task (v) {
+        }
+    ]])
+
+    -- `::` methods remain func-only
+    local src = "task o::f (v) {}"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local _,msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '::' : expected '('")
+
     local src = "val func f () { }"
     print("Testing...", src)
     init()

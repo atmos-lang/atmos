@@ -1194,7 +1194,7 @@ Atmos supports declarations for [functions](#function) and [tasks](#tasks):
 
 ```
 Proto : [`val´] (`func´|`task`) ID `(´ ID* [`...´] `)´ Block
-      | `func´ ID {`.´ ID} [`::´ ID] `(´ ID* [`...´] `)´ Block
+      | (`func´|`task`) ID {`.´ ID} [`::´ ID] `(´ ID* [`...´] `)´ Block
 ```
 
 The optional `val` modifier makes the declaration local only.
@@ -1206,12 +1206,12 @@ The first format supports functions and tasks:
 - `val func f (<pars>) { <body> }`:
     equivalent to `val f = func (<pars>) { <body> }`
 
-The second format for functions also support two other variations based on
+The second format supports two other variations based on
 [Lua functions][lua-function]:
 
-- `func t.x.y.f (<pars>) { <body> }`:
-    equivalent to `set t.x.y.f = func (<pars>) { <body> }`
-- `func o::f (<pars>) { <body> }`:
+- `task t.x.y.f (<pars>) { <body> }`:
+    equivalent to `set t.x.y.f = task (<pars>) { <body> }`
+- `func o::f (<pars>) { <body> }` (only for `func`):
     equivalent to `set o.f = func (self, <pars>) { <body> }`
 
 Examples:
@@ -2646,7 +2646,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
 
       | (`val´ | `var` | `pin`) ID* [`=´ Expr]      ;; local declarations
       | Expr `where´ `{´ (ID* `=´ Expr)* `}´        ;; where clause
-      | (`func´|`task´) ID {`.´ ID} [`::´ ID]       ;; function/task declaration
+      | (`func´|`task´) ID {`.´ ID} [`::´ ID]       ;; declaration (`::´ func only)
                `(´ ID* [`...´] `)´
                Block
       | `return´ `(´ Expr* `)´                      ;; return from function

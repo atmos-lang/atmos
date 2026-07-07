@@ -75,11 +75,14 @@ spawn M.T(10)               ;; --> 10
 
 ## Progress
 
-- [ ] `src/prim.lua` dot-loop hoist
-- [ ] `tst/stmt.lua` parse tests
-- [ ] `tst/tasks.lua` behavior test
-- [ ] `doc/manual.md` Prototypes + appendix
-- [ ] `HISTORY.md` v0.8 bullet
+- [x] `src/prim.lua` dot-loop hoist (2026-07-07)
+- [x] `tst/stmt.lua` parse tests: `task M.T` tosource,
+      `task o::f` error (2026-07-07)
+- [x] `tst/tasks.lua` behavior test 4b: dotted decl + spawn
+      (2026-07-07)
+- [x] `doc/manual.md`: Prototypes grammar split in 3 formats +
+      prose; appendix comment "(`::´ func only)" (2026-07-07)
+- [x] `HISTORY.md` v0.8 bullet (2026-07-07)
 - [ ] run test suite (user)
 
 ## Won't do

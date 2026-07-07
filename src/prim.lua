@@ -267,14 +267,12 @@ function parser_1_prim ()
 
                 local idxs = {}
                 local met = nil
-                if sub == 'func' then
-                    while accept('.') do
-                        idxs[#idxs+1] = accept_field_err()
-                    end
-                    if accept('::') then
-                        met = accept_field_err()
-                        idxs[#idxs+1] = met
-                    end
+                while accept('.') do
+                    idxs[#idxs+1] = accept_field_err()
+                end
+                if sub=='func' and accept('::') then
+                    met = accept_field_err()
+                    idxs[#idxs+1] = met
                 end
 
                 accept_err('(')

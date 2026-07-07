@@ -141,6 +141,16 @@ do
     local out = atm_test(src)
     assertx(out, "val\t1\nvar\t2\n")
 
+    -- dotted task declaration: `task M.T` assigns into a table
+    local src = [[
+        val M = []
+        task M.T (v) { print(v) }
+        spawn M.T(10)
+    ]]
+    print("Testing...", "task 4b: dotted task decl")
+    local out = atm_test(src)
+    assertx(out, "10\n")
+
     -- bare `task` = running instance ("me")
     local src = [[
         val T = task () {
