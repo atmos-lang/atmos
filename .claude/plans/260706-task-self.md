@@ -119,9 +119,7 @@ print(me ?? :xtask)          ;; --> true
   the grammar (lift the `XTask` production deferred in
   `done/260620-task.md` §1, adapted to `task` spelling), with a "me"
   example.
-- Regen `doc/manual-out.md` via
-  `cd doc && lua5.4 manual.lua manual.md > manual-out.md`
-  (never edit by hand).
+- NEVER edit or regen `doc/manual-out.md` (user handles regen).
 - Note in `done/260620-task.md` §1 that this plan supersedes the
   "`xtask()`=me WONT DO" decision.
 
@@ -156,11 +154,21 @@ print(me ?? :xtask)          ;; --> true
       (non-ancestor alias rejected: emit during startup wakes a
       sibling while T is still unpinned), 9 (pin me rejected)
       (2026-07-06)
+- [x] test 8b: "me" as emit payload `emit @(:global) (:X [task])` --
+      table constructors are unchecked borrows (2026-07-07)
+- [x] user refactor of `atm_pin_chk_set`: `chk` guards hoisted;
+      messages renamed to "unexpected pinned value" / "unexpected
+      parent task"; tests 9 and pin-3 synced (2026-07-07)
 - [x] test suite GREEN (user, 2026-07-07)
 - [x] `doc/exs/val-06-tasks.atm`: synced with manual example
       (`print(task ?? :xtask)`); regen `manual-out.md` after user's
       manual restructuring (XTask production, moved paragraph)
       (2026-07-07)
+
+## Moved out
+
+- Dotted task declarations `task T.Task` (no `::`) -- split to
+  `260707-task-dot.md`.
 
 ## Won't do
 
