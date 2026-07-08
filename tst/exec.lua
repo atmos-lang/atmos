@@ -475,6 +475,15 @@ do
     print("Testing...", "set 3: multi")
     local out = atm_test(src)
     assertx(out, "10\tnil\tnil\n")
+
+    local src = [[
+        var death_count, level = (2, 1)
+        set death_count = death_count + 1
+        print(death_count, level)
+    ]]
+    print("Testing...", "set 4: var multi")
+    local out = atm_test(src)
+    assertx(out, "3\t1\n")
 end
 
 -- TABLE / INDEX / VECTOR
