@@ -6,7 +6,7 @@ local function spawn (lin, blk)
         tag = 'call',
         f = { tag='acc', tk={tag='id', str='do_spawn', lin=lin} },
         es = {
-            { tag='proto', sub='func', pars={}, blk=blk },
+            { tag='proto', sub='lua', pars={}, blk=blk },
         },
     }
 end

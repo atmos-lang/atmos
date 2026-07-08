@@ -68,8 +68,17 @@ Remove the `atm_func` wrapper from the `spawn {}` desugar so
       await(t) for return). return pre+pos show the PROBLEM: value
       lost (nil), T survives; others deliver 10 in both timings
       (2026-07-08)
-- [ ] confirm outputs with suite run (user)
-- [ ] `src/prim.lua`: unwrap spawn block (check coder `sub='lua'`)
-- [ ] flip escape-1 assert to "end\n" only
-- [ ] docs + HISTORY
+- [x] outputs confirmed: suite GREEN with all 8 characterization
+      asserts (user, 2026-07-08)
+- [x] `src/prim.lua` spawn() helper: `sub='lua'` -- coder emits a
+      plain function, no `atm_func` wrapper (coder.lua:131)
+      (2026-07-08)
+- [x] `tst/throw.lua`: return pre/pos flipped to "10\nend\n"
+      (2026-07-08)
+- [x] `doc/manual.md` transparent-task paragraph: escapes ignore
+      the transparent task; `HISTORY.md` v0.8 Modifications bullet
+      (2026-07-08)
+- [x] fallout: tasks.lua "return 2" relied on return-ends-the-block
+      as a feature (block result via return) -- rewritten to use the
+      last-expression result instead (2026-07-08)
 - [ ] run test suite (user)

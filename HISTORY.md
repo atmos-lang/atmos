@@ -5,6 +5,9 @@ v0.8 (???/??)
     - `task` as expression: current running task
     - `task` dot declarations: `task M.T (...)`
 
+- Fixes:
+    - `return` crosses transparent `spawn`
+
 v0.7 (jun/26)
 -------------
 

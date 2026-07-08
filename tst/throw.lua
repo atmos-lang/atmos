@@ -4,15 +4,15 @@ require "atmos.lang.exec"
 -- characterization: see plans/260708-spawn-return.md
 --  - pre: escape runs during sync startup (before any await)
 --  - pos: escape runs after an await (woken by an emit)
--- break/throw/escape cross the transparent block and land in the
--- owner WITH their values (structured: resumer frame on pre,
--- 'atm_error' rethrow at the owner's await point on pos); return
--- is caught by the spawn block's OWN atm_func wrapper and ends
--- only the block, losing the value (PROBLEM)
+-- all four cross the transparent block and land in the owner
+-- WITH their values (structured: resumer frame on pre,
+-- 'atm_error' rethrow at the owner's await point on pos); the
+-- spawn block has no atm_func wrapper (prim.lua spawn() sub='lua')
+-- precisely so that return joins break/throw/escape
 
 do
-    -- return / pre: swallowed; T survives (:alive), value lost --
-    -- await(t) sees nil. DESIRED: T dies with 10 -> "10\nend\n"
+    -- return / pre: crosses to the owner, T terminates with 10
+    -- (":alive" never prints)
     local src = [[
         val T = task () {
             spawn {
@@ -28,9 +28,9 @@ do
     ]]
     print("Testing...", "spawn-return pre")
     local out = atm_test(src)
-    assertx(out, "alive\nnil\nend\n")
+    assertx(out, "10\nend\n")
 
-    -- return / pos: same problem after an await
+    -- return / pos: same, at the owner's await point
     local src = [[
         val T = task () {
             spawn {
@@ -48,7 +48,7 @@ do
     ]]
     print("Testing...", "spawn-return pos")
     local out = atm_test(src)
-    assertx(out, "alive\nnil\nend\n")
+    assertx(out, "10\nend\n")
 
     -- break / pre: owner's loop breaks with the value
     local src = [[

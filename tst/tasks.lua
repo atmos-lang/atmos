@@ -3052,11 +3052,13 @@ do
     local out = atm_test(src)
     assertx(out, "suspended\t[1]\ndead\t[1]\t[2]\n")
 
+    -- a transparent block's result is its LAST EXPRESSION -- `return`
+    -- would cross to the owner now (see tst/throw.lua spawn-return)
     local src = [[
         spawn {
             spawn {
                 await(true)
-                return(10)
+                10
             }
             (func (it) { print(it.ret) }) (await(true))
         }
