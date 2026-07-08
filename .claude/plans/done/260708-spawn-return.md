@@ -81,4 +81,4 @@ Remove the `atm_func` wrapper from the `spawn {}` desugar so
 - [x] fallout: tasks.lua "return 2" relied on return-ends-the-block
       as a feature (block result via return) -- rewritten to use the
       last-expression result instead (2026-07-08)
-- [ ] run test suite (user)
+- [x] test suite GREEN (user, 2026-07-08)
