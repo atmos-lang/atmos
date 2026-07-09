@@ -19,7 +19,7 @@ local function L (tk)
 end
 
 local function is_stmt (e)  -- cannot generate lua expressions (local, '=')
-    return (e.tag=='dcl' and not e.spw) or e.tag=='set' or e.tag=='defer'
+    return (e.tag=='dcl' and (not e.spw)) or e.tag=='set' or e.tag=='defer'
 end
 
 function coder_stmts (es, noret)
