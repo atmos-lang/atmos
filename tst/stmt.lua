@@ -875,6 +875,15 @@ do
     lexer_next()
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near 'val' : invalid assignment : unexpected transparent task")
+
+    local src = "pin t = spawn T() where { r = [] }"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "pin t = func () {\nval r = []\nspawn(T)\n}()")
 end
 
 print '--- LOOP ON ---'

@@ -338,8 +338,9 @@ function parser_1_prim ()
         if accept('=') then
             if check('spawn') then
                 local tk1 = TK1
-                set = parser_spawn()
-                if set.f.tk.str == 'do_spawn' then
+                local spw
+                set, spw = parser_spawn()
+                if spw.f.tk.str == 'do_spawn' then
                     err(tk, "invalid assignment : unexpected transparent task")
                 end
             elseif accept('tasks') then

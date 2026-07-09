@@ -2702,6 +2702,22 @@ do
     print("Testing...", src)
     local out = atm_test(src)
     assertx(out, "30\n")
+
+    local src = [[
+        val T = task (v) {
+            print(v)
+            val e = await(true)
+            print(e)
+        }
+        pin t = spawn T(x+y) where {
+            x = 10
+            y = 20
+        }
+        emit(:done)
+    ]]
+    print("Testing...", "pin spawn where")
+    local out = atm_test(src)
+    assertx(out, "30\ndone\n")
 end
 
 -- ERROR / LINE NUMBER

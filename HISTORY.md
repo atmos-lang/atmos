@@ -7,6 +7,7 @@ v0.8 (???/??)
 
 - Fixes:
     - `return` crosses transparent `spawn`
+    - `spawn` with `where` clause
 
 v0.7 (jun/26)
 -------------
