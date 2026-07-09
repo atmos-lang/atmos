@@ -829,7 +829,7 @@ See [Ambiguities](#ambiguities):
 Tasks have three associated reference types:
     a `task` prototype,
     an `xtask` instance, and
-    a `tasks` pool:
+    a `tasks` pool.
 
 ```
 Task  : `task´ `(´ ID* [`...´] `)´ Block
@@ -891,12 +891,11 @@ spawn {                     ;; fires a transparent task
 }
 ```
 
-A task or pool is always attached to a block, which on termination,
-automatically aborts its owned tasks and pools (with their holding tasks).
+A task or pool is always lexically attached to an enclosing task or block,
+which on termination, automatically aborts its owned tasks and pools.
 A [pin](#local-variables) assignment, which is mandatory for pools, attaches
 the reference to the declaration block.
-By default, an unassigned `spawn` attaches the task to the current enclosing
-block.
+By default, an unassigned `spawn` attaches the new task to the enclosing task.
 
 A transparent task has no own identity and is owned by its enclosing
 non-transparent task.

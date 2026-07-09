@@ -564,6 +564,25 @@ do
     local out = atm_test(src)
     assertfx(out, "invalid assignment : expected pinned value")
 
+    -- await T() crosses a task boundary: T's tail spawn U flows out as a
+    -- return value, but T terminates first and aborts U (defer marks the
+    -- exact moment, before the outer pin owns it). awaiting the corpse in
+    -- sequence returns at once (dead xtask), so ":after" still prints.
+    local src = [[
+        val U = task () {
+            defer { print(:U_gone) }
+            await(false)
+        }
+        val T = task () {
+            spawn U()
+        }
+        pin t = await T()
+        print(t ?? :xtask)
+    ]]
+    print("Testing...", "spawn 5c")
+    local out = atm_test(src)
+    assertx(out, "U_gone\ntrue\n")
+
     local src = [[
         val t = task () { print(:ok) }
         val f = func () {
