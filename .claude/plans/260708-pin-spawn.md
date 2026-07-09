@@ -75,11 +75,18 @@ In `coder_stmts` (`src/coder.lua:25-36`):
 
 ## Semantics / edge cases
 
+Safety argument: the path from a tail `spawn` to the consuming
+`pin` is fully synchronous — no `await`/`yield` can occur in
+between, so the scheduler never observes the unpinned task.
+This is the same window that already exists today in
+`pin t = spawn T()` (guarded by test "task 8").
+
 | case                                   | before                     | after                                  |
 | -------------------------------------- | -------------------------- | -------------------------------------- |
 | `pin t = if x => spawn T()`            | t=nil, task aborted        | t=task (or nil), owned by outer block  |
 | `pin t = match ... => spawn T()`       | same bug                   | works (same `ifs` machinery)           |
 | `pin t = do { ... spawn T() }`         | same bug                   | works                                  |
+| `pin t = if x => if y => spawn A() => spawn B()` | same bug         | works (rule applies at every tail)     |
 | `if x { spawn T() }` (statement)       | task aborted at branch end | task unpinned, lives with parent task  |
 | `loop { ... spawn T() }` (tail)        | aborted at iteration end   | unchanged (noret path)                 |
 | `spawn T()` at top level (tail)        | implicit pin               | unchanged (noret path)                 |
@@ -89,6 +96,22 @@ In `coder_stmts` (`src/coder.lua:25-36`):
 The `var` case errors at runtime because non-pin dcls emit
 `atm_pin_chk_set(true, false, ...)`, which rejects unpinned
 fresh tasks — consistent with direct `var t = spawn T()`.
+
+### Derived patterns (work for free, worth manual examples)
+
+| pattern                                          | note                                        |
+| ------------------------------------------------ | ------------------------------------------- |
+| `val f = func () { spawn T() }` + `pin t = f()`  | task factory: function returns unpinned task, caller pins |
+| `f(do { spawn T() })`                            | ownership transfer: `pin` inside callee accepts fresh task |
+| `pin t = catch :X { spawn T() }`                 | consistent: catch body is a value block     |
+
+Factory caveat to document: the returned task must land in a
+`pin` before the next await; the runtime already enforces this
+dynamically ("expected pinned value").
+
+Task body tail is a trap, worth a manual note:
+`val T = task () { spawn U() }` — U attaches to T's dying
+block, so the returned reference is an already-aborted task.
 
 ## Notes
 
@@ -101,8 +124,10 @@ fresh tasks — consistent with direct `var t = spawn T()`.
 
 - `set t = spawn T()`: impossible with `<close>` encoding of
   pins; keep as parse error.
-- `spawn T()` as call argument (`f(spawn T())`): separate
-  feature; `spawn ... in ts` already covers pass-around cases.
+- Operand position: `x and spawn T()`, `f(spawn T())`,
+  `[spawn A(), spawn B()]` — not at a block tail; separate
+  design; workaround is always a block (`if x => spawn T()`,
+  `f(do { spawn T() })`).
 - Loop-tail spawn flowing as value: loop bodies are `noret`;
   out of scope.
 
