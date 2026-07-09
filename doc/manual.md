@@ -848,6 +848,28 @@ the reference to the declaration block.
 By default, an unassigned `spawn` attaches the task to the current enclosing
 block.
 
+As an exception, a `spawn` as the last statement of a block in value position
+remains an expression:
+the task flows out of the block unpinned, and the consumer of the value takes
+ownership, as if the `spawn` were its direct assignment.
+This allows conditional spawns and task factories:
+
+```
+pin t = if x => spawn T()   ;; t is the task (or nil), owned by this block
+
+func fact () {
+    spawn T()               ;; flows out unpinned
+}
+pin u = fact()              ;; caller takes ownership
+```
+
+The unpinned task must reach a `pin` before the next `await`, which the
+runtime enforces on assignments (`expected pinned value`).
+Note that a `spawn` at the tail of a `task` body attaches to the terminating
+body itself:
+the spawned task may still awake during the event broadcast in course, but is
+then aborted with the terminating task, before it can be pinned.
+
 A transparent task has no own identity and is owned by its enclosing
 non-transparent task.
 It is automatically pinned to the enclosing block and cannot be assigned.

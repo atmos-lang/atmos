@@ -197,12 +197,15 @@ function parser_1_prim ()
             local lin = TK1.lin
             local out,spw = parser_spawn()
             if spw.f.tk.str ~= 'spawn_in' then
-                -- force "pin" if no "in" target
+                -- force "pin" if no "in" target;
+                -- "spw" marks real spawns (not transparent do_spawn) so that
+                -- the coder unwraps them at value-position block tails
                 out = {
                     tag = 'dcl',
                     tk  = {tag='key',str='pin',lin=lin},
                     ids = { {tag='id',str='_'} },
                     set = out,
+                    spw = (spw.f.tk.str=='spawn') and spw or nil,
                 }
             end
             return out

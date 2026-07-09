@@ -89,7 +89,7 @@ This is the same window that already exists today in
 | `pin t = if x => if y => spawn A() => spawn B()` | same bug         | works (rule applies at every tail)     |
 | `if x { spawn T() }` (statement)       | task aborted at branch end | task unpinned, lives with parent task  |
 | `loop { ... spawn T() }` (tail)        | aborted at iteration end   | unchanged (noret path)                 |
-| `spawn T()` at top level (tail)        | implicit pin               | unchanged (noret path)                 |
+| `spawn T()` at top level (tail)        | implicit pin               | unwraps (program body is value block); equivalent: aborted at program end |
 | `spawn {}` at tail                     | implicit pin               | unchanged (transparent task)           |
 | `var t = if x => spawn T()`            | t=nil                      | runtime error "expected pinned value"  |
 
@@ -111,7 +111,9 @@ dynamically ("expected pinned value").
 
 Task body tail is a trap, worth a manual note:
 `val T = task () { spawn U() }` — U attaches to T's dying
-block, so the returned reference is an already-aborted task.
+block; it may still awake during the in-flight broadcast, then
+dies with T before anyone can pin it (decision: new timing
+accepted; "emit scope 13" updated).
 
 ## Notes
 
@@ -133,6 +135,22 @@ block, so the returned reference is an already-aborted task.
 
 ## Progress
 
-- [ ] src/prim.lua : mark implicit spawn dcl
-- [ ] src/coder.lua : tail unwrap in coder_stmts
-- [ ] doc/manual.md : document tail-spawn rule
+- [x] src/prim.lua : mark implicit spawn dcl
+- [x] src/coder.lua : tail unwrap in coder_stmts
+- [x] doc/manual.md : document tail-spawn rule
+- [x] compile-checked all edge cases (no tests run)
+- [x] update "spawn 5" expectation + add "spawn 5b" (pin works)
+- [x] update "emit scope 13": task-tail spawn new timing
+- [x] run test suite (user): all tests pass (2026-07-09)
+
+## Next
+
+- [ ] move this plan to `.claude/plans/done/`
+
+No pending implementation items.
+Possible follow-ups (out of scope, would be new plans):
+
+- operand-position spawn (`x and spawn T()`, `f(spawn T())`,
+  `[spawn A(), spawn B()]`)
+- manual examples for factory / ownership-transfer patterns
+  (currently only the tail-spawn section)

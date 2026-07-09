@@ -19,17 +19,20 @@ local function L (tk)
 end
 
 local function is_stmt (e)  -- cannot generate lua expressions (local, '=')
-    return e.tag=='dcl' or e.tag=='set' or e.tag=='defer'
+    return (e.tag=='dcl' and not e.spw) or e.tag=='set' or e.tag=='defer'
 end
 
 function coder_stmts (es, noret)
+    -- an implicit "pin _ = spawn" (e.spw) at the tail of a value-position
+    -- block is unwrapped to its plain spawn call: the task flows out
+    -- unpinned and the consumer takes ownership (pin/chk at destination)
     local function f (e, i)
         if noret or i<#es or is_stmt(e) then
             return "; " .. coder(e)
         else
             -- TCO breaks atmos stack trace
             return "; local _no_tco_ <close> = nil" -- prevents TCO
-                .. "; return " .. coder(e)
+                .. "; return " .. coder(e.spw and e.set or e)
         end
     end
     return join('', map(es,f))

@@ -508,6 +508,7 @@ do
     local out = atm_test(src)
     assert(out == "ok\n")
 
+    -- tail spawn flows as value: var cannot own it, pin can
     local src = [[
         val t = task () {
         }
@@ -516,8 +517,18 @@ do
     ]]
     print("Testing...", "spawn 5")
     local out = atm_test(src)
-    --assertfx(out, "anon.atm : line 3 : near 'spawn' : expected expression")
-    assertfx(out, "nil\n")
+    --assertfx(out, "nil\n")
+    assertfx(out, "invalid assignment : expected pinned value")
+
+    local src = [[
+        val t = task () {
+        }
+        pin co = if true => spawn t() => nil
+        print(co ?? :xtask)
+    ]]
+    print("Testing...", "spawn 5b")
+    local out = atm_test(src)
+    assertfx(out, "true\n")
 
     local src = [[
         val t = task () { print(:ok) }
@@ -1034,9 +1045,9 @@ do
     local src = [[
         var T1 = task () {
             await(true)
-            spawn (task () {                ;; GC = task (no more)
-                val xevt = await(true)
-                print(:1)
+            spawn (task () {                ;; tail spawn: unpinned, lives
+                val xevt = await(true)      ;; through the in-flight emit
+                print(:1)                   ;; before dying with T1
                 var v = xevt
             } )()
         }
@@ -1057,7 +1068,8 @@ do
     ]]
     print("Testing...", "emit scope 13")
     local out = atm_test(src)
-    assertx(out, "ok\n")
+    --assertx(out, "ok\n")
+    assertx(out, "1\nok\n")
 end
 
 print "--- EMIT / ALIEN ---"
