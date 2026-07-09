@@ -526,9 +526,43 @@ do
         pin co = if true => spawn t() => nil
         print(co ?? :xtask)
     ]]
-    print("Testing...", "spawn 5b")
+    print("Testing...", "spawn 5b.1")
     local out = atm_test(src)
     assertfx(out, "true\n")
+
+    local src = [[
+        task T () {
+            await :X
+            print :ok
+        }
+        pin _ = if true => spawn T()
+        emit :X
+    ]]
+    print("Testing...", "spawn 5b.2")
+    local out = atm_test(src)
+    assertfx(out, "ok\n")
+
+    local src = [[
+        task T () {
+            await :X
+            print :no
+        }
+        pin _ = if false => spawn T()
+        emit :X
+        print :ok
+    ]]
+    print("Testing...", "spawn 5b.3")
+    local out = atm_test(src)
+    assertfx(out, "ok\n")
+
+    local src = [[
+        task T () {
+        }
+        val x = if true => spawn T()
+    ]]
+    print("Testing...", "spawn 5b.4")
+    local out = atm_test(src)
+    assertfx(out, "invalid assignment : expected pinned value")
 
     local src = [[
         val t = task () { print(:ok) }

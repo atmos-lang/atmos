@@ -6,8 +6,9 @@ v0.8 (???/??)
     - `task` dot declarations: `task M.T (...)`
 
 - Fixes:
-    - `return` crosses transparent `spawn`
-    - `spawn` with `where` clause
+    - `return` crosses (ignores) transparent `spawn`
+    - `spawn T()` supports `where` clauses
+    - `spawn T()` survives as last expression
 
 v0.7 (jun/26)
 -------------
