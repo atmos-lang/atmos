@@ -284,7 +284,6 @@ function parser_2_suf (pre)
     local ret
 
     if accept('@') then
-        local chk = check'#' or check '+'
         local tk0 = TK0 -- @
         local idx = parser_at(true)         -- @(e) | @num | @id (or false)
         if not idx then
@@ -303,9 +302,6 @@ function parser_2_suf (pre)
             else
                 err(TK1, "expected name, number, or '('")
             end
-        end
-        if chk and e.tag~='acc' then
-            err(tk0, "invalid tip index : expected variable prefix")
         end
         ret = { tag='index', t=e, idx=idx }
     elseif accept('.') then
