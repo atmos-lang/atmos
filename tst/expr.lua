@@ -298,6 +298,7 @@ do
     local ok, msg = pcall(parser)
     assert(not ok and msg=="anon : line 1 : near '<eof>' : expected ')'")
 
+--[=[
     -- tip markers `@#` / `@+` require a variable receiver
     for _, src in ipairs{ "t.x@#", "f()@#", "t.x@+", "f()@+" } do
         print("Testing...", src)
@@ -307,6 +308,7 @@ do
         local ok, msg = pcall(parser)
         assert(not ok and msg=="anon : line 1 : near '@' : invalid tip index : expected variable prefix")
     end
+]=]
 
     -- bare index must be a name or number (keyword rejected)
     local src = "t@true"
@@ -317,8 +319,9 @@ do
     local ok, msg = pcall(parser)
     assert(not ok and msg=="anon : line 1 : near 'true' : expected name, number, or '('")
 
-    -- tip markers: t@# (last) == t@(#t) ; t@+ (next) == t@(#t+1)
-    for _, p in ipairs{ {"t@#","t@(#t)"}, {"t@+","t@(#t+1)"} } do
+    -- tip markers: t@# (last) == t@(#t) ; t@+ (next) == t@(#t+1);
+    -- any prefix is accepted, expanding twice (t.x@# == t.x@(#t.x))
+    for _, p in ipairs{ {"t@#","t@(#t)"}, {"t@+","t@(#t+1)"}, {"t.x@#","t.x@(#t.x)"}, {"t.x@+","t.x@(#t.x+1)"}, {"f()@#","f()@(#f())"}, {"f()@+","f()@(#f()+1)"} } do
         print("Testing...", p[1])
         init()
         lexer_init("anon", p[1])
