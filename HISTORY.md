@@ -2,6 +2,8 @@ v0.8 (???/??)
 -------------
 
 - Additions:
+    - `await` patterns:
+        - `T()` also in `loop on`, `watching`
     - `task` as expression: current running task
     - `task` dot declarations: `task M.T (...)`
 

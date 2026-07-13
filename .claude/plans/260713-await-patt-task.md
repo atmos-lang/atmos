@@ -70,27 +70,53 @@ combinator table : `run.await` / `:any`/`:all` expect task instances.
 
 Inside a `||`, a bare `T()` would be *called*, not spawned-then-awaited.
 
-## Approach (Option B — spawn-and-await thunk)
+## BLOCKER : run.await has no lazy task-spawn (revises approach)
 
-Model a promoted `await T(...)` as a thunk that spawns-then-awaits, so it
-drops into the existing combinator machinery as an ordinary sub-item.
+Earlier assumption "task drops into the run.await combinator table
+unchanged" is FALSE :
 
-1. Recognize a task-prototype call in pattern position
-    - in `parser_await`, when the base parses to a `call`, wrap it as a
-      spawn-and-await thunk node (runtime still decides prototype-vs-call
-      via `X.is`)
-    - juxtaposition base must also see the call : widen the base parse so
-      `await T(...)` in bare form consumes the `(...)`
+- `run.watching(awt, f)` = `par_any(\() -> M.await(awt), f)`
+  (`lua-atmos/run.lua:916`) : `awt` is evaluated BEFORE the call
+- combinator subs recurse through `M.await` (`run.lua:508-509`), whose
+  ONLY lazy-spawn hook is `S.is` (streams, `run.lua:553`)
+- a task prototype passed as a combinator operand is **never spawned**
+- lua-atmos (external dep) is not editable from this repo
 
-2. Lower to a thunk, not a verbatim call
-    - coder emits `\() -> await(spawn(T, ...))`
-    - `await_ast_logical` keeps it verbatim inside `&&`/`||`/`!`; the
-      thunk lands as a combinator sub, so the spawn happens inside the
-      branch and cascades closed when the branch loses
+Consequences :
 
-3. Keep the fast path
-    - degenerate `await T(...)` with no combinators stays the direct
-      `await(T, ...)` sugar (no separate spawn) so nothing regresses
+- a table `{or, T, :X}` will not spawn `T`
+- an eager task INSTANCE in `watching(inst, f)` leaks if `f` ends first
+  (instance is a child of `me`, not the par branch)
+
+## Approach (Option B — par-lowering, revised)
+
+The spawn must land INSIDE a par branch, at the coder/prim level, using
+the existing `await(T, ...)` sugar — no lua-atmos change.
+
+| pattern            | lower to                                       |
+|--------------------|------------------------------------------------|
+| `await T()` solo   | keep existing sugar (works)                    |
+| `loop on T() {b}`  | `loop { await(T,...) ; b }` (sugar per iter)   |
+| `watching T() {b}` | `par_any(\()->await(T,...), \()->b)`           |
+| `T() || :X`        | `par_any(\()->await(T,...), \()->await(:X))`   |
+| `T() && :X`        | `par_all(...)`                                 |
+
+Rule : lower a pattern to `par_any`/`par_all` ONLY when it contains a
+task-call operand; pure-event patterns stay `run.await` tables (tests
+depend on it).
+
+## DECISION : solo + pools first (scope)
+
+Chosen (iii) : support only
+
+- `await T()` solo — existing sugar
+- `watching T() {}` — `par_any(\()->await(T,...), \()->body)`
+- `loop on T() {}` — `loop { await(T,...) ; body }`
+- `:any` / `:all` pools — already await task INSTANCES (orthogonal, done)
+
+DEFER mixed task+event combinators (`T() || :X`) and `!`/`until`/`while`
+around a task-call : those need par-lowering + the event-semantics
+caveat (`par_any(:X,:Y)` != `run.await{or,:X,:Y}`). Revisit later.
 
 ## Resolved
 
@@ -150,11 +176,37 @@ Rejected Option A (pin pre-spawned instance to enclosing block) : looser
 lifetime — a losing `T` lingers until the whole block ends, surprising in
 `loop { await T() || :X }`.
 
-## Open questions
+## Ambiguity check (Option B) : no new ambiguity
 
-- Interaction with `2606-await-parens` rules (bare vs parenthesized
-  patterns) : `await T(...) || :X` bare form must obey the same
-  ambiguity rule as `await :X || :Y`.
+Chosen : promote only bare `await T()` (existing sugar) plus
+`watching` / `loop on` / `:any`,`:all` pools. `await(...)` stays
+**value-await** — so hazard (b) `await(g())` is untouched.
+
+- (a) `await :X || :Y` -> `(await :X) || :Y` is the FIRST row of the
+  manual Ambiguities table (`doc/manual.md:2733`) : pre-existing,
+  inherited unchanged by `T()`.
+- (b) `await(g())` : NOT introduced — B leaves parenthesized await as
+  value-await.
+
+Promotion is a sugar **extension**, not a new ambiguity :
+
+| form                     | today            | after B          |
+|--------------------------|------------------|------------------|
+| `await T(a)`             | spawn+await      | same             |
+| `await(g())`             | await the value  | same (unchanged) |
+| `watching T(a)`          | await the value  | spawn+await (new)|
+| `loop on T(a)`           | await the value  | spawn+await (new)|
+
+Safe because :
+
+- single parse, no two-reading (`watching`/`loop on` patterns are not
+  expressions, so no result-level `||`)
+- runtime-guarded : a non-task callee errors at `spawn`'s `X.is` check,
+  never silently mis-spawns
+
+Cost (not an ambiguity) : behavior CHANGE for `watching g()` /
+`loop on g()` that relied on value-await -> now task-only. Add a manual
+note (NOT an Ambiguities-table row).
 
 ## Files
 
@@ -171,8 +223,32 @@ combinators thunk each sub); discrimination stays runtime `X.is`.
 
 - [x] confirm scope + runtime : composition free, only lifetime matters
 - [x] decide mechanism : Option B spawn-and-await thunk
-- [ ] parser : `call` base -> thunk node (`await.lua`, `prim.lua`)
-- [ ] coder : lower thunk to `\() -> await(spawn(T, ...))`
-- [ ] preserve `await T(...)` fast path (no combinators)
-- [ ] compose with `||` / `until` / `:any`
-- [ ] `2606-await-parens` ambiguity rule for bare `await T() || :X`
+- [x] spec tests : `tst/await.lua` (Option B, 6 cases)
+- [x] `prim.lua` : `await_call_sugar` helper (factored)
+- [x] `prim.lua` : `loop on T()` -> await sugar per iter
+- [x] `prim.lua` : `watching T()` -> `par_any { await(T) } with { body }`
+- [x] `await T()` solo fast path : unchanged (already worked)
+- [x] `is_task_call` guard — exclude synthetic `atm_*` calls (fixed
+      regression `loop v on :X [10]` -> `atm_tag_do`)
+- [x] refactor : `is_task_call` moved to `await.lua`; `parser_await`
+      tags the bare-call node `is_task=true`; consumers branch on the
+      flag (detection centralized, lowering stays per-consumer)
+- [ ] RUN tests : `cd tst && lua5.4 all.lua`
+- [ ] deferred : mixed task+event combinators (`T() || :X`)
+- [ ] deferred : `!` / `until` / `while` around a task-call
+- [ ] manual note : `watching`/`loop on` call = task spawn (behavior change)
+
+No coder change : reused existing `await(T,...)` sugar + `par_any`.
+
+## Tests
+
+`tst/await.lua` : section "AWAIT-PATTERN TASK PROMOTION (Option B)"
+
+| test                         | kind        | expects                        |
+|------------------------------|-------------|--------------------------------|
+| `task_promote solo 1`        | regression  | `await T(10)` -> `20`          |
+| `task_promote watching_task` | spec        | solo, `T` ends -> `T\nok`      |
+| `task_promote watching_body` | spec        | solo, body ends -> `T` aborts (no leak) |
+| `task_promote loop_on 1`     | spec        | respawn per `:step` -> 2 ticks |
+| `task_promote paren_value 1` | non-regress | `await(g())` value-await -> ok |
+| `task_promote nontask_err 1` | guard       | non-task -> spawn error        |
