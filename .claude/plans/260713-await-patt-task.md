@@ -70,27 +70,38 @@ combinator table : `run.await` / `:any`/`:all` expect task instances.
 
 Inside a `||`, a bare `T()` would be *called*, not spawned-then-awaited.
 
-## Approach (Option B — spawn-and-await thunk)
+## Approach (Option C — runtime-first : prototype as await pattern)
 
-Model a promoted `await T(...)` as a thunk that spawns-then-awaits, so it
-drops into the existing combinator machinery as an ordinary sub-item.
+Make the task prototype a first-class awaitable in lua-atmos `M.await`
+itself (alongside the stream case `run.lua:553`), plus a
+`{tag='spawn', T, args...}` carrier pattern for calls with args.
+Then the compiler needs no thunk node at all.
 
-1. Recognize a task-prototype call in pattern position
-    - in `parser_await`, when the base parses to a `call`, wrap it as a
-      spawn-and-await thunk node (runtime still decides prototype-vs-call
-      via `X.is`)
-    - juxtaposition base must also see the call : widen the base parse so
-      `await T(...)` in bare form consumes the `(...)`
+See sibling plan : `/x/lua-atmos/atmos/.claude/plans/260713-await-patt-task.md`
 
-2. Lower to a thunk, not a verbatim call
-    - coder emits `\() -> await(spawn(T, ...))`
-    - `await_ast_logical` keeps it verbatim inside `&&`/`||`/`!`; the
-      thunk lands as a combinator sub, so the spawn happens inside the
-      branch and cascades closed when the branch loses
+1. lua-atmos (`run.lua` / `init.lua`)
+    - `M.await` : new `meta_task` branch -> spawn inside the awaiting
+      task/branch + recurse; relax varargs assert for this case
+    - `M.await` : new `tag=='spawn'` branch -> spawn `awt[1]` with
+      `awt[2..]` args (carrier for calls inside combinators)
+    - `init.lua` `await` sugar collapses to `run.await(run.TIME, ...)`
+
+2. Compiler : centralize `parser_await`
+    - move the `check(nil,'id')` branch from `prim.lua` `accept('await')`
+      into `parser_await`; all pattern consumers (`await`, `watching`,
+      `loop on`, `toggle with`, `:any`) share it
+    - base0 (bare form) widens `parser_1_prim` to also consume a
+      same-line call suffix; still no binops, so bare
+      `await T() || :X` stays `(await T()) || :X` (2606 rule)
+    - lower a pattern-position call : bare `T` stays verbatim
+      (prototype is directly awaitable); `T(a,b)` lowers to the
+      `{tag='spawn', T, a, b}` carrier table
 
 3. Keep the fast path
-    - degenerate `await T(...)` with no combinators stays the direct
-      `await(T, ...)` sugar (no separate spawn) so nothing regresses
+    - degenerate `await T(a,b)` with no combinators stays the direct
+      `await(T, a, b)` spread (varargs reach spawn directly)
+    - decide fate of `parser_7_out` (`await T() -> f` pipe-out) : the
+      old id branch applied it, the pattern path never does
 
 ## Resolved
 
@@ -123,32 +134,29 @@ The ONE real issue is scope/pinning :
 
 `dbg` frame is cosmetic (error location only).
 
-## Decision : spawn-and-await thunk (Option B)
+## Decision : runtime-first (Option C)
 
-`pin` = ownership + abort-on-close (`src/run.lua:16-38`) : a pinned task
-dies when its owning **block** closes.
+Move the prototype case into `M.await` itself : `or`/`and` subs recurse
+through `M.await` inside **transparent branch tasks**
+(`run.lua:508-509`, `889`), so a prototype sub is spawned in-branch
+automatically — `M.me(true)` is the branch task, the spawn parents
+there, and when the branch loses `meta_par.__close` cascades and aborts
+`T` (`run.lua:57-59`).
 
-The leak exists because we pre-spawn the instance (parented to `me`) and
-drop it verbatim in the combinator table. Instead, model the promoted
-`await T(...)` as a **spawn-and-await thunk** :
-
-```
-\() -> await(spawn(T, ...))
-```
-
-so the spawn happens **inside** the combinator branch — mirroring the
-stream case `run.lua:553-554` (`S.is` spawns a wrapper task inside
-`M.await`). When another branch wins, `par_any` closes the losing branch
-and its child `T` cascades closed via `__close` (`run.lua:58-59`).
-
-- `T` is aborted the moment the await resolves (tight, structured)
-- no explicit `pin`, no leak
-- drops into `or`/`and` unchanged (they already wrap each sub in a thunk,
-  `run.lua:508-509`)
+- lifetime identical to the thunk plan, with **zero compiler thunks**
+- `watching T()` / `loop on T()` get it free (both funnel into
+  `M.await` : `run.lua:921`, `854`)
+- args inside combinators use the `{tag='spawn', T, a, b}` carrier
+  (prototypes are non-callable); bare `T` drops in verbatim
 
 Rejected Option A (pin pre-spawned instance to enclosing block) : looser
 lifetime — a losing `T` lingers until the whole block ends, surprising in
 `loop { await T() || :X }`.
+
+Rejected Option B (compiler emits `\() -> await(T, ...)` thunks) : works
+but pushes lifetime plumbing into codegen and leaves `watching` /
+`loop on` needing their own wraps; runtime-first covers all consumers at
+one spot.
 
 ## Open questions
 
@@ -160,19 +168,21 @@ lifetime — a losing `T` lingers until the whole block ends, surprising in
 
 | file            | place                        | change                    |
 |-----------------|------------------------------|---------------------------|
-| `src/await.lua` | `parser_await`, `await_ast_logical` | recognize a `call` base -> spawn-and-await thunk node; keep verbatim in combinators |
-| `src/prim.lua`  | `await` dispatch (`164-194`) | route id-call through pattern path; keep fast path |
-| `src/coder.lua` | thunk node                   | lower to `\() -> await(spawn(T, ...))` |
+| `src/await.lua` | `parser_await`               | absorb id-call branch; widen base0 with same-line call suffix |
+| `src/await.lua` | `await_ast_logical`          | `call` leaf -> `{tag='spawn', f, es...}` carrier (bare id stays verbatim) |
+| `src/prim.lua`  | `await` dispatch (`164-194`) | delete id branch; detect solo call -> spread `await(T, ...)`; `parser_7_out` fate |
 
-No `src/run.lua` change : composition already works (instances await-able,
-combinators thunk each sub); discrimination stays runtime `X.is`.
+lua-atmos changes tracked in the sibling plan :
+`/x/lua-atmos/atmos/.claude/plans/260713-await-patt-task.md`
 
 ## Status
 
 - [x] confirm scope + runtime : composition free, only lifetime matters
-- [x] decide mechanism : Option B spawn-and-await thunk
-- [ ] parser : `call` base -> thunk node (`await.lua`, `prim.lua`)
-- [ ] coder : lower thunk to `\() -> await(spawn(T, ...))`
+- [x] decide mechanism : Option C runtime-first (prototype in `M.await`)
+- [ ] lua-atmos : `meta_task` + `{tag='spawn'}` branches (sibling plan)
+- [ ] parser : centralize id-call into `parser_await`
+- [ ] lower pattern-position call -> `{tag='spawn', ...}` carrier
 - [ ] preserve `await T(...)` fast path (no combinators)
-- [ ] compose with `||` / `until` / `:any`
+- [ ] compose with `||` / `until` / `:any` / `watching` / `loop on`
 - [ ] `2606-await-parens` ambiguity rule for bare `await T() || :X`
+- [ ] decide `parser_7_out` on `await T(...)`
