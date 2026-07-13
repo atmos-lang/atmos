@@ -2304,9 +2304,9 @@ do
                 return(v)
             }
             spawn @ts T(:a)
-            spawn @ts T(:b)
-            val v = await :all ts
-            print(:all, v==ts)
+            val b = spawn @ts T(:b)
+            val v,t,ts_ = await :all ts
+            print(:all, (v==:b) && (t==b) && (ts==ts_))
         }
         emit(true)
     ]]
