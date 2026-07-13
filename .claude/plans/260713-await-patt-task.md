@@ -121,6 +121,39 @@ solved, not deferred :
 
 Still open : `!` / `until` / `while` around a task-call.
 
+## Reuse parser_await everywhere : parse vs lower
+
+Insight : the split is PARSE (unifiable in `parser_await`) vs LOWER
+(irreducibly per-consumer). Every await-pattern site can share
+`parser_await` for parsing + task-call detection; only the lowering
+differs.
+
+| site                     | parse via parser_await   | lowering (stays per-site)          |
+|--------------------------|--------------------------|------------------------------------|
+| bare `await T()`         | yes, needs adaptation #1 | emit `await(T,...)` sugar          |
+| `await(PAT)`             | yes (already)            | value-await : IGNORE task flag     |
+| `loop on PAT`            | yes (already)            | `await(T,...)` sugar per iter      |
+| `watching PAT`           | yes (already)            | `par_any(await(T,...), BODY)`      |
+| `spawn`/`toggle` filters | yes (already)            | IGNORE task flag (no promotion)    |
+
+Two adaptations unify the PARSE half :
+
+1. base0 juxtaposition base : `parser_1_prim` -> `parser_2_suf` so it
+   eats the call postfix `(...)` (`parser.lua:318-325`). Then bare
+   `await T()` flows through `parser_await` and the `parser_6_pip`
+   special case (`prim.lua` await id-branch) is removed. `await :X || :Y`
+   still leaves `||` outside (parser_2_suf stops before level-5 `||`).
+   CAVEAT : preserve the `sep`-based ambiguities (`:X []`, `f (x)`).
+2. `parser_await` flags task-call operands `is_task=true` (as the earlier
+   refactor did). Each consumer honors or ignores per its semantics.
+
+CANNOT move into `parser_await` :
+
+- lowering shape, esp. `watching` (folds in the BODY, parsed AFTER
+  `parser_await` returns)
+- mixed `T() || :X` -> `par` is an OPERAND-level rewrite inside the
+  combinator, deeper than the top-level flag
+
 ## Resolved
 
 - Discrimination is **runtime-only**. The parser has no type info, but it
@@ -226,19 +259,84 @@ note (NOT an Ambiguities-table row).
 No `src/run.lua` (compiler) or lua-atmos change : lowering reuses the
 existing `await(T,...)` sugar + `par_any`/`par_all`.
 
-## Status
+## State to resume from
 
-Implementation REVERTED (working tree == HEAD). Analysis above stands;
-code changes undone.
+- working tree == HEAD : implementation REVERTED, nothing to undo
+- spec tests PRESENT (`tst/await.lua`, section "AWAIT-PATTERN TASK
+  PROMOTION", mixed `||`) : 2 anchors pass today, 3 promotion specs FAIL
+  until implemented, 1 guard
+- all analysis above stands (blockers, runtime, ambiguity, reuse)
 
-- [x] confirm scope + runtime : composition free, only lifetime matters
-- [x] spec tests : `tst/await.lua` (mixed `||`, 6 cases)
-- [ ] decide mixed-combinator lowering (par vs run.await semantics)
-- [ ] parser : promote task-call in `await` / `loop on` / `watching`
-- [ ] `T() || :X` : mixed combinator lowering
-- [ ] `!` / `until` / `while` around a task-call
-- [ ] RUN tests : `cd tst && lua5.4 all.lua`
-- [ ] manual note : `watching`/`loop on` call = task spawn (behavior change)
+Sanity check on the new machine :
+
+```
+git status                 # clean except .rock artifact
+cd tst && lua5.4 all.lua   # baseline green (promotion specs fail)
+```
+
+## Next steps (explicit, ordered)
+
+### STEP 0 — GATE : decide mixed-combinator lowering (blocks all code)
+
+`T() || :X` must lower to `par_any(\()->await(T), \()->await(:X))`
+(BLOCKER section : `run.await` cannot lazily spawn a task operand). But
+`par_any(await(:X), await(:Y))` != `run.await{or,:X,:Y}` (multi-task vs
+single-task, emit-reentrancy). Pick one :
+
+- (A) lower the WHOLE combinator to `par` whenever any operand is a
+  task-call ; accept the event-semantics difference (document it)
+- (B) reject mixed task+event in one combinator (parse error) ; allow
+  task-only (`T()||U()` -> par) and event-only (`run.await`)
+- (C) narrow back to solo + pools (the reverted decision)
+
+Write the choice here before coding. Everything below assumes (A).
+
+### STEP 1 — parser detection (shared)
+
+- file `src/await.lua`, `parser_await`
+- add local `is_task_call(e)` : `e.tag=='call'` and callee is a plain
+  id NOT matching `^atm_` (excludes `:X [payload]` -> `atm_tag_do`)
+- set `pat.is_task=true` on a bare task-call operand
+- for STEP 4, also detect task-calls INSIDE the combinator operands
+  (in `await_ast_logical`, `await.lua:21-32`)
+
+### STEP 2 — solo lowerings (get the easy specs green first)
+
+- `loop on T()` : `src/prim.lua` loop-on block — if `awt.is_task`, emit
+  `await(T,...)` sugar (spread `call.f` + `call.es`) as the loop await
+- `watching T()` : `src/prim.lua` watching block — if `awt.is_task`,
+  emit `par_any(\{ await(T,...) }, \{ BODY })` instead of
+  `watching(awt, body)`
+- factor helper `await_call_sugar(call, lin)` (shared with bare await)
+- REGRESSION WATCH : exclude `atm_*` callees or `loop v on :X [10]`
+  breaks (tasks.lua "every 2")
+
+### STEP 3 — unify bare await (adaptation #1, optional but desired)
+
+- `src/await.lua` : change base0 base `parser_1_prim` -> `parser_2_suf`
+- `src/prim.lua` : remove the `await` id-branch special case, route
+  through `parser_await` + `await_call_sugar`
+- verify `sep` ambiguities intact (`await :X || :Y`, `:X []`)
+
+### STEP 4 — mixed combinator (the hard part, assumes GATE=A)
+
+- operand-level : lower `T() || :X` / `T() && :X` to `par_any`/`par_all`
+  with each operand a branch (`await(T,...)` for task, `await(:X)` for
+  event)
+- only when an operand is a task-call ; pure-event stays `run.await`
+
+### STEP 5 — deferred
+
+- `!` / `until` / `while` around a task-call
+- manual note in `doc/manual.md` : `watching`/`loop on` with a call now
+  = task spawn (behavior change); NOT an Ambiguities-table row
+
+### Verify (ask the user to run — never run tests here)
+
+```
+cd tst && lua5.4 await.lua   # 6 promotion cases
+cd tst && lua5.4 all.lua     # full suite, watch tasks.lua "every"
+```
 
 ## Tests
 
