@@ -105,18 +105,21 @@ Rule : lower a pattern to `par_any`/`par_all` ONLY when it contains a
 task-call operand; pure-event patterns stay `run.await` tables (tests
 depend on it).
 
-## DECISION : solo + pools first (scope)
+## SCOPE : full mixed combinators (reverted "solo + pools first")
 
-Chosen (iii) : support only
+The earlier "solo + pools first" narrowing was REVERTED : the spec tests
+are back to the mixed form `watching T() || :X`, so mixed task+event
+combinators ARE in scope.
 
-- `await T()` solo — existing sugar
-- `watching T() {}` — `par_any(\()->await(T,...), \()->body)`
-- `loop on T() {}` — `loop { await(T,...) ; body }`
-- `:any` / `:all` pools — already await task INSTANCES (orthogonal, done)
+Consequence : the event-semantics question is RE-OPENED and must be
+solved, not deferred :
 
-DEFER mixed task+event combinators (`T() || :X`) and `!`/`until`/`while`
-around a task-call : those need par-lowering + the event-semantics
-caveat (`par_any(:X,:Y)` != `run.await{or,:X,:Y}`). Revisit later.
+- `par_any(await(:X), await(:Y))` is NOT identical to
+  `run.await{or, :X, :Y}` (multi-task vs single-task, emit-reentrancy)
+- so a mixed `T() || :X` puts `:X` under `par` — decide whether the
+  behavior difference is acceptable, or lower more carefully
+
+Still open : `!` / `until` / `while` around a task-call.
 
 ## Resolved
 
@@ -149,7 +152,12 @@ The ONE real issue is scope/pinning :
 
 `dbg` frame is cosmetic (error location only).
 
-## Decision : spawn-and-await thunk (Option B)
+## Decision : spawn-and-await thunk (Option B) — SUPERSEDED
+
+NOTE : the "drops into or/and unchanged" claim below is WRONG, refuted by
+the BLOCKER section (`run.await` has no lazy task-spawn). Kept for the
+reasoning trail; the working lowering is `par_any`/`par_all` (Approach
+table), not a thunk in the combinator table.
 
 `pin` = ownership + abort-on-close (`src/run.lua:16-38`) : a pinned task
 dies when its owning **block** closes.
@@ -208,47 +216,39 @@ Cost (not an ambiguity) : behavior CHANGE for `watching g()` /
 `loop on g()` that relied on value-await -> now task-only. Add a manual
 note (NOT an Ambiguities-table row).
 
-## Files
+## Files (target, pending mixed-lowering decision)
 
 | file            | place                        | change                    |
 |-----------------|------------------------------|---------------------------|
-| `src/await.lua` | `parser_await`, `await_ast_logical` | recognize a `call` base -> spawn-and-await thunk node; keep verbatim in combinators |
-| `src/prim.lua`  | `await` dispatch (`164-194`) | route id-call through pattern path; keep fast path |
-| `src/coder.lua` | thunk node                   | lower to `\() -> await(spawn(T, ...))` |
+| `src/await.lua` | `parser_await`               | detect/flag a bare task-call operand |
+| `src/prim.lua`  | `await` / `loop on` / `watching` | promote task-call -> `await(T,...)` sugar / `par_any`/`par_all` |
 
-No `src/run.lua` change : composition already works (instances await-able,
-combinators thunk each sub); discrimination stays runtime `X.is`.
+No `src/run.lua` (compiler) or lua-atmos change : lowering reuses the
+existing `await(T,...)` sugar + `par_any`/`par_all`.
 
 ## Status
 
-- [x] confirm scope + runtime : composition free, only lifetime matters
-- [x] decide mechanism : Option B spawn-and-await thunk
-- [x] spec tests : `tst/await.lua` (Option B, 6 cases)
-- [x] `prim.lua` : `await_call_sugar` helper (factored)
-- [x] `prim.lua` : `loop on T()` -> await sugar per iter
-- [x] `prim.lua` : `watching T()` -> `par_any { await(T) } with { body }`
-- [x] `await T()` solo fast path : unchanged (already worked)
-- [x] `is_task_call` guard — exclude synthetic `atm_*` calls (fixed
-      regression `loop v on :X [10]` -> `atm_tag_do`)
-- [x] refactor : `is_task_call` moved to `await.lua`; `parser_await`
-      tags the bare-call node `is_task=true`; consumers branch on the
-      flag (detection centralized, lowering stays per-consumer)
-- [ ] RUN tests : `cd tst && lua5.4 all.lua`
-- [ ] deferred : mixed task+event combinators (`T() || :X`)
-- [ ] deferred : `!` / `until` / `while` around a task-call
-- [ ] manual note : `watching`/`loop on` call = task spawn (behavior change)
+Implementation REVERTED (working tree == HEAD). Analysis above stands;
+code changes undone.
 
-No coder change : reused existing `await(T,...)` sugar + `par_any`.
+- [x] confirm scope + runtime : composition free, only lifetime matters
+- [x] spec tests : `tst/await.lua` (mixed `||`, 6 cases)
+- [ ] decide mixed-combinator lowering (par vs run.await semantics)
+- [ ] parser : promote task-call in `await` / `loop on` / `watching`
+- [ ] `T() || :X` : mixed combinator lowering
+- [ ] `!` / `until` / `while` around a task-call
+- [ ] RUN tests : `cd tst && lua5.4 all.lua`
+- [ ] manual note : `watching`/`loop on` call = task spawn (behavior change)
 
 ## Tests
 
-`tst/await.lua` : section "AWAIT-PATTERN TASK PROMOTION (Option B)"
+`tst/await.lua` : section "AWAIT-PATTERN TASK PROMOTION" (mixed `||`)
 
-| test                         | kind        | expects                        |
-|------------------------------|-------------|--------------------------------|
-| `task_promote solo 1`        | regression  | `await T(10)` -> `20`          |
-| `task_promote watching_task` | spec        | solo, `T` ends -> `T\nok`      |
-| `task_promote watching_body` | spec        | solo, body ends -> `T` aborts (no leak) |
-| `task_promote loop_on 1`     | spec        | respawn per `:step` -> 2 ticks |
-| `task_promote paren_value 1` | non-regress | `await(g())` value-await -> ok |
-| `task_promote nontask_err 1` | guard       | non-task -> spawn error        |
+| test                          | kind        | expects                       |
+|-------------------------------|-------------|-------------------------------|
+| `task_promote solo 1`         | regression  | `await T(10)` -> `20`         |
+| `task_promote watching_event` | spec        | `T() || :X`, `:X` wins -> `ok`|
+| `task_promote watching_task`  | spec        | `T() || :X`, `T` ends -> `T\nok` |
+| `task_promote loop_on 1`      | spec        | respawn per `:step` -> 2 ticks|
+| `task_promote paren_value 1`  | non-regress | `await(g())` value-await -> ok|
+| `task_promote nontask_err 1`  | guard       | non-task -> spawn error       |
