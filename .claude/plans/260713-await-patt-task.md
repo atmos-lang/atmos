@@ -78,12 +78,15 @@ Then the compiler needs no thunk node and no par-lowering.
 
 Sibling plan : `/x/lua-atmos/atmos/.claude/plans/260713-await-patt-task.md`
 
-1. lua-atmos (`run.lua` / `init.lua`)
-    - `M.await` : new `meta_task` branch -> spawn inside the awaiting
-      task/branch + recurse; relax varargs assert for this case
-    - `M.await` : new `tag=='spawn'` branch -> spawn `awt[1]` with
-      `awt[2..]` args (carrier for calls inside combinators)
-    - `init.lua` `await` sugar collapses to `run.await(run.TIME, ...)`
+1. lua-atmos (`run.lua` / `init.lua`) — DONE (carrier-only)
+    - `M.await` : single `tag=='spawn'` branch -> spawn `awt[1]` with
+      `awt[2..]` args, then await it (mirrors the `S.is` stream case)
+    - DECISION : CARRIER-ONLY — no `meta_task` branch. A bare prototype
+      is NOT an await pattern; the compiler always emits the carrier.
+      Varargs assert unchanged (the carrier packs args in the table).
+    - `init.lua` `await` sugar : bare `await(T, ...)` now wraps into the
+      carrier and funnels through `M.await` (single path). The
+      `function` guard is kept, so the reject-fn error is unchanged.
 
 2. Compiler : centralize `parser_await`
     - move the `check(nil,'id')` branch from `prim.lua` `accept('await')`
@@ -93,9 +96,9 @@ Sibling plan : `/x/lua-atmos/atmos/.claude/plans/260713-await-patt-task.md`
       the call postfix (`parser.lua:318-325`); still no binops, so bare
       `await T() || :X` stays `(await T()) || :X` (2606 rule)
     - CAVEAT : preserve the `sep`-based ambiguities (`:X []`, `f (x)`)
-    - lower a task-call in PROMOTION sites : bare `T` verbatim
-      (prototype directly awaitable); `T(a,b)` -> the
-      `{tag='spawn', T, a, b}` carrier table
+    - lower a task-call in PROMOTION sites : ALWAYS the carrier (bare
+      prototype is not an await pattern under carrier-only) : `T()` ->
+      `{tag='spawn', T}`, `T(a,b)` -> `{tag='spawn', T, a, b}`
     - detection : `is_task_call(e)` = `e.tag=='call'` and callee a plain
       id NOT matching `^atm_` — excludes `:X [payload]` -> `atm_tag_do`
       (REGRESSION WATCH : tasks.lua "every 2", `loop v on :X [10]`)
@@ -171,7 +174,7 @@ wanted, with zero compiler thunks.
 - `watching T()` / `loop on T()` get it free (both funnel into
   `M.await` : `run.lua:921`, `854`)
 - args inside combinators use the carrier (prototypes are non-callable);
-  bare `T` drops in verbatim
+  carrier-only : bare `T` is ALSO wrapped (`{tag='spawn', T}`)
 
 Rejected Option A (pin pre-spawned instance to enclosing block) : looser
 lifetime — a losing `T` lingers until the whole block ends, surprising in
@@ -200,12 +203,12 @@ as **value-await** — so hazard (b) `await(g())` is untouched.
 
 Promotion is a sugar **extension**, not a new ambiguity :
 
-| form                     | today            | after promotion  |
-|--------------------------|------------------|------------------|
-| `await T(a)`             | spawn+await      | same             |
-| `await(g())`             | await the value  | same (unchanged) |
-| `watching T(a)`          | await the value  | spawn+await (new)|
-| `loop on T(a)`           | await the value  | spawn+await (new)|
+| form                     | today            | after promotion       |
+|--------------------------|------------------|-----------------------|
+| `await T(a)`             | spawn+await      | same (via carrier)    |
+| `await(g())`             | await the value  | same (unchanged)      |
+| `watching T(a)`          | await the value  | spawn+await (new)     |
+| `loop on T(a)`           | await the value  | spawn+await (new)     |
 
 Safe because :
 
@@ -248,11 +251,14 @@ cd tst && lua5.4 all.lua   # baseline green (promotion specs fail)
 
 ## Next steps (explicit, ordered)
 
-### STEP 0 — lua-atmos runtime (sibling plan; blocks all compiler work)
+### STEP 0 — lua-atmos runtime (sibling plan; blocks all compiler work) — DONE
 
-- `meta_task` branch, `{tag='spawn'}` branch, relax varargs assert,
-  collapse `init.lua` sugar
-- confirm in-branch lifetime (`await T() || :X` aborts loser)
+- carrier-only : single `{tag='spawn'}` branch in `M.await` (no
+  `meta_task` branch, varargs assert unchanged); `init.lua` bare
+  `await(T, ...)` wraps into the carrier -> single `M.await` path
+- in-branch lifetime confirmed : `await T() || :X` aborts the loser
+  (proto 4 test : loser's `defer` runs on abort)
+- all proto 1-7 tests pass, no regressions
 
 ### STEP 1 — parser detection (shared)
 
@@ -314,7 +320,8 @@ cd tst && lua5.4 all.lua     # full suite, watch tasks.lua "every"
 - [x] decide mechanism : Option C runtime-first (prototype in `M.await`)
 - [x] ambiguity check : sugar extension, no new ambiguity
 - [x] spec tests written (`tst/await.lua`)
-- [ ] STEP 0 : lua-atmos branches (sibling plan)
+- [x] STEP 0 : lua-atmos runtime DONE (carrier-only, sibling plan) —
+      `tag=='spawn'` branch + sugar collapse, all proto 1-7 tests pass
 - [ ] STEP 1 : parser detection + carrier + site mode
 - [ ] STEP 2 : `watching` / `loop on` promotion
 - [ ] STEP 3 : unify bare await; `parser_7_out` decision
