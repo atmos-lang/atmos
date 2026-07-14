@@ -220,14 +220,15 @@ do
         assert(tosource(a) == tosource(b))
     end
 
-    -- bare computed key must be NUM or ID (tag/string need parens)
+    -- bare computed key accepts NUM, ID, or tag (string needs parens)
     local src = "[@:x=v]"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser)
-    assert(not ok and msg=="anon : line 1 : near ':x' : expected name, number, or '('")
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "[@(:x)=v]")
 
     local src = "[["
     print("Testing...", src)
@@ -1350,6 +1351,15 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(tosource(e), "emit_in(xs, :X)")
+
+    local src = "emit @:global (T())"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "emit_in(:global, T())")
 
     local src = "emit :X []"
     print("Testing...", src)

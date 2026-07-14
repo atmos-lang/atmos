@@ -251,7 +251,7 @@ local function check_call_arg ()
            check(nil,'nat') or check(nil,'clk')
 end
 
--- @-qualifier (after '@' is consumed): @(e) | bare @num | @id.
+-- @-qualifier (after '@' is consumed): @(e) | bare @num | @id | @:tag.
 -- shared by index, table key, pool, emit-target.
 -- ret==true : return false on no-match so the caller can continue
 -- (used by index, which then handles the @# / @+ tip markers).
@@ -260,12 +260,14 @@ function parser_at (ret)
         local e = parser()
         accept_err(')')
         return e
+    elseif accept(nil,'tag') then
+        return { tag='tag', tk=TK0 }
     elseif check(nil,'num') or check(nil,'id') then
         return parser_1_prim()
     elseif ret then
         return false
     else
-        err(TK1, "expected name, number, or '('")
+        err(TK1, "expected name, number, tag, or '('")
     end
 end
 
