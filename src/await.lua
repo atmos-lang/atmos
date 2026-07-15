@@ -1,5 +1,17 @@
--- builds the lua-atmos event-combinator table {tag=name, [1]=items[1], ...}
--- (items used verbatim).
+-- AWAIT PATTERNS
+--
+-- What await / watching / loop-on / toggle-with wait for:
+--      :X [v] | @1 | T(...) | p&&p | p||p | !p
+--      PAT until c | PAT while c | until c | while c
+--      :any ts | :all ts
+--
+-- Rules:
+--  - a call in a pattern SPAWNS a task and awaits its termination;
+--    to await a call result, use extra parens: await((f()))
+--  - the pattern is EAGER (evaluated once, at await time);
+--    until/while predicates are LAZY (re-evaluated per event)
+
+-- builds the lua-atmos combinator table {tag=name, [1]=items[1], ...}
 local function mk_tagged (name, ...)
     local es = {
         { k = { tag='tag', tk={tag='tag', str=':tag'} },
@@ -15,21 +27,17 @@ local function mk_tagged (name, ...)
     return { tag='table', es=es }
 end
 
--- task-call promotion: a call in pattern position becomes the lua-atmos
--- spawn carrier {tag='spawn', f, args...}. Any callee promotes (the
--- callee value evaluates eagerly; the runtime discriminates), except
--- atm_tag_do, the one compiler-generated call inside pattern
--- expressions (:X [payload])
+-- a call to spawn: any callee counts (the runtime discriminates),
+-- except atm_tag_do, which the compiler generates for `:X [v]`
 local function is_task_call (e)
     return e.tag=='call' and (e.f.tag~='acc' or e.f.tk.str~="atm_tag_do")
 end
 
--- Rewrites &&/||/! inside await-pattern positions into the lua-atmos table
--- format {tag='or'|'and'|'not', ...}. Descends through parens and nested
--- &&/|| trees; stops at any other node (lambdas, literals, tags).
--- Task-call leaves always promote to the spawn carrier; grouping parens
--- directly wrapping a call are the value escape: `await((f()))` calls f
--- and awaits its result, while `(a || b)` stays combinator grouping.
+-- rewrites a pattern expression into the lua-atmos table format:
+--      p&&p / p||p / !p  ->  {tag='and'|'or'|'not', ...}
+--      T(...)            ->  {tag='spawn', T, ...}
+--      (f())             ->  f() verbatim (value escape)
+--      anything else     ->  verbatim (tags, clocks, literals)
 local function await_ast_logical (e)
     if e.tag == 'parens' then
         if is_task_call(e.e) then
@@ -48,21 +56,9 @@ local function await_ast_logical (e)
     end
 end
 
--- parses a single await pattern (pool prefix, combinators, until/while).
--- shared by await / toggle-with / loop on / watching.
--- stop: nil -> juxtaposed (bare `await PAT`): a single suffixed primary, so
--- `await T(...)` eats the call but `await :X || :Y` stays `(await :X) || :Y`;
--- the base must be a call-arg token or parse into a call (bare values like
--- `await x` are invalid: values require await's argument parens).
--- non-nil -> delimited by the given token (not consumed): full expression,
--- combinators licensed since the pattern region is closed.
--- pattern position always promotes task-calls to the spawn carrier; the
--- value escape is grouping parens around the call: `await((f()))`.
--- parses a single predicate, wrapping a non-func expression as a
--- \it -> e function (proto). until/while take exactly ONE predicate;
--- combine conditions with && rather than a comma list, so a trailing
--- comma falls back to the enclosing list (toggle filters / patterns)
-
+-- until/while predicate: a \{} function, or an expression wrapped as
+-- \it -> e. Exactly ONE predicate: combine conditions with &&, since
+-- a comma belongs to the enclosing list (toggle filters)
 local function parse_pred ()
     -- TODO: we assume a simple-expr body (no await/etc)
     local e = parser()
@@ -80,6 +76,13 @@ local function parse_pred ()
     end
 end
 
+-- parses one await pattern.
+-- stop=nil : bare `await PAT` -> single suffixed primary, so combinators
+-- bind outside (`await :X || :Y` = `(await :X) || :Y`); the base must
+-- start as a call-arg token or parse into a call -- bare values need
+-- parens (`await(x)`).
+-- stop~=nil : pattern delimited by the token (not consumed) -> full
+-- expression, combinators allowed.
 function parser_await (stop)
     -- PRE shortcuts
     do
@@ -113,7 +116,7 @@ function parser_await (stop)
     end
     local pat = await_ast_logical(base)
 
-    -- optional until/while predicates (each non-func wrapped as \{ e })
+    -- optional until/while suffix
     local pred = accept('until') or accept('while')
     if pred then
         return mk_tagged(pred.str, pat, parse_pred())

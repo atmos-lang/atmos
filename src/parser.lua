@@ -245,6 +245,8 @@ local function is_prefix (e)
     )
 end
 
+-- tokens that can start a juxtaposed call argument (f "s", f [t], f :X);
+-- also gates what may start a bare await pattern (see parser_await)
 function check_call_arg ()
     return check('[') or check('\\') or
            check(nil,'str') or check(nil,'tag') or

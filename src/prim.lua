@@ -160,7 +160,7 @@ function parser_1_prim ()
                 table.insert(call.es, 1, to)
             end
             return parser_7_out(call)
-        -- await(...)
+        -- await PAT | await(PAT)
         elseif accept('await') then
             local tk = TK0
             local awt
