@@ -297,10 +297,13 @@ lua-atmos `tag=='spawn'` branch)
   manual; pattern path never supported it
 - dotted callees `await M.T()` : NOT promoted (`is_task_call` = plain
   id only); now value-await — no usage found, note kept in STEP 4
-- behavior relaxations : bare `await x` (id, no call) was "expected
-  call syntax" error, now value-await of `x` (e.g. instance var);
-  bare `await T` (prototype, no parens) now spawns with no args via
-  the `init.lua` sugar
+- behavior relaxations : REVERTED post STEP 6 — bare values are
+  invalid again, consistent with "values need parens" : the gate is
+  `check_call_arg()` before the parse OR `is_task_call(base)` after,
+  so `await x` / `await m.x` / `await T` (no call) err
+  "invalid await : unexpected expression"; use `await(x)`.
+  Paren dispatch lives back in `prim.lua` (the `(` after `await` is
+  its argument parens), parser_await keeps only the two stop modes
 
 ### STEP 4 — deferred
 
@@ -310,9 +313,12 @@ lua-atmos `tag=='spawn'` branch)
   explicit semantics decision
 - whether `await(T() || :X)` (paren form) should also promote — today
   chosen NO (value-await)
-- [x] dotted callees (`M.T()`) : RESOLVED — `is_task_call` accepts
-  `index` callees (callee is a value expression); methods (`o::f()`)
-  stay out (no first-class method reference to carry); suite green
+- [x] dotted callees (`M.T()`) : RESOLVED — `is_task_call` is now a
+  BLACKLIST (any call promotes except exact `atm_tag_do`); dotted and
+  computed callees promote, callee value eager, runtime discriminates.
+  Methods (`o::f()`) generate invalid Lua (`o:m` bare) — pre-existing
+  latent hole, identical under the old id-branch spread; not a
+  regression
 - pools `:any [T(a), U(b)]` : carrier in list items (runtime `tasks`
   branch expects a pool object — needs its own design)
 - manual note in `doc/manual.md` : `watching`/`loop on` with a call now

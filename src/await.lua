@@ -52,7 +52,8 @@ end
 -- shared by await / toggle-with / loop on / watching.
 -- stop: nil -> juxtaposed (bare `await PAT`): a single suffixed primary, so
 -- `await T(...)` eats the call but `await :X || :Y` stays `(await :X) || :Y`;
--- a leading `(` opens await's argument parens -> delimited full pattern.
+-- the base must be a call-arg token or parse into a call (bare values like
+-- `await x` are invalid: values require await's argument parens).
 -- non-nil -> delimited by the given token (not consumed): full expression,
 -- combinators licensed since the pattern region is closed.
 -- pattern position always promotes task-calls to the spawn carrier; the
@@ -92,22 +93,19 @@ function parser_await (stop)
 
     -- await until f / await while f : no base pattern -> synchronous
     -- predicate; the function lands at awt[1], the runtime discriminator
-    local k0 = accept('until') or accept('while')
-    if k0 then
-        return mk_tagged(k0.str, parse_pred())
+    local k = accept('until') or accept('while')
+    if k then
+        return mk_tagged(k.str, parse_pred())
     end
 
     -- base pattern + combinators &&/||/!
     local base
     if stop == nil then
-        if accept('(') then
-            local awt = parser_await(')')
-            accept_err(')')
-            return awt
-        elseif not (check_call_arg() or check(nil,'id')) then
-            err(TK1, "expected expression")
-        end
+        local ok = check_call_arg()
         base = parser_2_suf()
+        if not (ok or is_task_call(base)) then
+            err(TK1, "invalid await : unexpected expression")
+        end
     else
         base = parser()
     end

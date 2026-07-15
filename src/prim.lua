@@ -163,7 +163,13 @@ function parser_1_prim ()
         -- await(...)
         elseif accept('await') then
             local tk = TK0
-            local awt = parser_await()
+            local awt
+            if accept('(') then
+                awt = parser_await(')')
+                accept_err(')')
+            else
+                awt = parser_await()
+            end
             return {
                 tag = 'call',
                 f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
