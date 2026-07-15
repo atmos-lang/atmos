@@ -81,21 +81,23 @@ local function parse_pred ()
 end
 
 function parser_await (stop)
-    -- pool prefix: :any ts / :all ts -> {tag='tasks', mode=, tasks=ts}
-    local m = accept(':any', 'tag') or accept(':all', 'tag')
-    if m then
-        return { tag='table', es={
-            { k={tag='tag', tk={tag='tag', str=':tag'}},   v={tag='str', tk={tag='str', str='tasks'}} },
-            { k={tag='tag', tk={tag='tag', str=':mode'}},  v={tag='str', tk={tag='str', str=m.str:sub(2)}} },
-            { k={tag='tag', tk={tag='tag', str=':tasks'}}, v=parser() },
-        } }
-    end
+    -- PRE shortcuts
+    do
+        -- :any ts / :all ts
+        local pool = accept(':any','tag') or accept(':all','tag')
+        if pool then
+            return { tag='table', es={
+                { k={tag='tag', tk={tag='tag', str=':tag'}},   v={tag='str', tk={tag='str', str='tasks'}} },
+                { k={tag='tag', tk={tag='tag', str=':mode'}},  v={tag='str', tk={tag='str', str=pool.str:sub(2)}} },
+                { k={tag='tag', tk={tag='tag', str=':tasks'}}, v=parser() },
+            } }
+        end
 
-    -- await until f / await while f : no base pattern -> synchronous
-    -- predicate; the function lands at awt[1], the runtime discriminator
-    local k = accept('until') or accept('while')
-    if k then
-        return mk_tagged(k.str, parse_pred())
+        -- await until f / await while f
+        local pred = accept('until') or accept('while')
+        if pred then
+            return mk_tagged(pred.str, parse_pred())
+        end
     end
 
     -- base pattern + combinators &&/||/!
@@ -112,9 +114,10 @@ function parser_await (stop)
     local pat = await_ast_logical(base)
 
     -- optional until/while predicates (each non-func wrapped as \{ e })
-    local k = accept('until') or accept('while')
-    if not k then
+    local pred = accept('until') or accept('while')
+    if pred then
+        return mk_tagged(pred.str, pat, parse_pred())
+    else
         return pat
     end
-    return mk_tagged(k.str, pat, parse_pred())
 end
