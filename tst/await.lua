@@ -151,11 +151,11 @@ end
 
 -- AWAIT-PATTERN TASK PROMOTION (Option B) -- SPEC, pending implementation
 --
--- Promote `T(...)` to a spawn-and-await pattern in bare `await`,
--- `watching`, and `loop on`, so a task composes with combinators like an
--- event. Parenthesized `await(...)` stays VALUE-await (no task spawn), so
--- `await(g())` keeps awaiting g()'s returned value. See plan:
--- .claude/plans/260713-await-patt-task.md
+-- Promote `T(...)` to a spawn-and-await pattern in every pattern position
+-- (bare `await`, `await(PAT)`, `watching`, `loop on`, toggle filters), so a
+-- task composes with combinators like an event. The value escape is
+-- grouping parens around the call: `await((g()))` awaits g()'s returned
+-- value. See plan: .claude/plans/260713-await-patt-task.md
 
 do
     -- regression anchor: bare `await T()` already spawns via runtime sugar
@@ -224,13 +224,14 @@ do
     local out = atm_test(src)
     assertx(out, "tick\ntick\n")
 
-    -- non-regression (hazard-b): `await(g())` stays value-await, NOT spawn
+    -- value escape (hazard-b): grouping parens around the call keep
+    -- value-await -- `await((g()))` calls g and awaits its result
     local src = [[
         func g () {
             :X
         }
         spawn {
-            await(g())
+            await((g()))
             print(:ok)
         }
         emit(:X)

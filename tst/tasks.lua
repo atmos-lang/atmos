@@ -3489,7 +3489,7 @@ do
     local src = [[
         var T = task (n) {
             set pub = n
-            await(tostring(n))
+            await((tostring(n)))
         }
         pin ts = tasks(2)
         spawn @ts T(1)

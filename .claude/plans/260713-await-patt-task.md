@@ -132,15 +132,17 @@ PARSE unifies in `parser_await`; the PROMOTE decision stays per-site :
 
 | site                     | parse via parser_await | task-call promotion       |
 |--------------------------|------------------------|---------------------------|
-| bare `await T()`         | yes (base0 widened)    | solo spread `await(T,...)`|
-| `await(PAT)`             | yes (already)          | NO : value-await, calls stay evaluated (`await(g())` untouched) |
+| bare `await T()`         | yes (juxtaposed)       | carrier                   |
+| `await(PAT)`             | yes (delimited)        | carrier (STEP 6 : outer parens only delimit) |
 | `loop on PAT`            | yes (already)          | carrier (respawn per iter)|
 | `watching PAT`           | yes (already)          | carrier                   |
 | `:any`/`:all` pools      | yes (already)          | carrier in list items     |
-| `spawn`/`toggle` filters | yes (already)          | NO : no promotion         |
+| toggle filters           | yes (already)          | carrier (STEP 5 : uniform rule; respawn per gate pass) |
 
-=> the carrier wrap in `await_ast_logical` must be gated by a per-site
-mode flag, not unconditional.
+=> RULE (STEP 6, supersedes STEP 5's) : pattern position ALWAYS
+promotes, no exceptions; the single value escape is grouping parens
+directly around the call — `await((f()))` calls f and awaits its
+result, `(a || b)` stays combinator grouping.
 
 ## Resolved
 
@@ -308,12 +310,90 @@ lua-atmos `tag=='spawn'` branch)
   explicit semantics decision
 - whether `await(T() || :X)` (paren form) should also promote — today
   chosen NO (value-await)
-- whether `is_task_call` should accept dotted callees (`M.T()`) —
-  today plain id only, dotted stays value-await
+- [x] dotted callees (`M.T()`) : RESOLVED — `is_task_call` accepts
+  `index` callees (callee is a value expression); methods (`o::f()`)
+  stay out (no first-class method reference to carry); suite green
 - pools `:any [T(a), U(b)]` : carrier in list items (runtime `tasks`
   branch expects a pool object — needs its own design)
 - manual note in `doc/manual.md` : `watching`/`loop on` with a call now
   = task spawn (behavior change); NOT an Ambiguities-table row
+- manual note : evaluation discipline — the PATTERN side is EAGER
+  (evaluated once at await entry : payloads, combinator operands,
+  promoted-call ARGS), the `until`/`while` predicate is LAZY
+  (re-evaluated per event); nuance : a promoted call's args are eager
+  but its SPAWN is lazy (deferred into the branch, re-spawned per
+  re-await in `until` / `loop on` / toggle gates)
+
+### STEP 5 — refactor : parser_await(stop, no_promote)
+
+Collapse the three parameters into two orthogonal axes :
+
+- `stop` : nil -> juxtaposed (bare await; single suffixed primary);
+  non-nil -> delimited (full expression, combinators licensed because
+  the pattern region is closed by the stop token). Replaces `base0`,
+  which was derived; the old `stop` was DEAD (never read).
+- `no_promote` : set ONLY by the internal value-paren branch. RULE :
+  pattern position always promotes; the single value escape is await's
+  argument parens.
+
+Juxtaposed dispatch (stop==nil) :
+
+```
+:any/:all/until/while -> specials (as today)
+(                     -> parser_await(')', true) ; accept_err(')')
+check_patt_arg        -> parser_2_suf base, promoted
+else                  -> err "expected expression"
+```
+
+- `check_patt_arg()` (new, `parser.lua`) = `check_call_arg() or id` —
+  gates what may start a juxtaposed pattern; bare `await true/nil/5`
+  become parse errors (no usage; paren form remains)
+- `(` after bare await is consumed INSIDE parser_await; the `)` too
+- toggle filters now PROMOTE (uniformity) : the filter is a real await
+  pattern (gate task `M.await`s it); a task-call filter = "pass per
+  fresh termination of T" (respawn per gate loop). Predicates keep
+  `until`/`while`. COST : `with g()` value-call breaks — bind first
+  (`val p = g()` ; `with p`), same as `watching`/`loop on`.
+
+Call sites become :
+
+| site               | call                |
+|--------------------|---------------------|
+| prim await         | `parser_await()`    |
+| toggle on filter   | `parser_await('{')` |
+| toggle inst filter | `parser_await(',')` |
+| loop on            | `parser_await('{')` |
+| watching           | `parser_await('{')` |
+
+### STEP 6 — value escape via extra parens (uniform promotion)
+
+`T()` vs `f()` in pattern position looked identical but meant spawn vs
+runtime error — pattern position effectively banned value-calls.
+Resolution : unify — promotion applies EVERYWHERE, including inside
+`await(PAT)`; the value escape is grouping parens around the call.
+
+| form              | meaning                              |
+|-------------------|--------------------------------------|
+| `await f()`       | promote : spawn (task) / spawn-error |
+| `await(f())`      | promote — outer parens just delimit  |
+| `await((f()))`    | value : call `f`, await its result   |
+| `watching (g())`  | value — works in every pattern site  |
+| `await((a || b))` | grouping, still combinators          |
+
+- `await_ast_logical` : parens directly wrapping a task-call -> return
+  the call verbatim (value escape); other parens stay transparent
+- `no_promote` param DELETED — `parser_await(stop)` single param,
+  `await_ast_logical(e)` single arg
+- BEHAVIOR CHANGE : `await(g())` single-parens flips from value-await
+  to promote; manual note must cover it (hazard-b now needs `((..))`)
+- dotted/method callees (`M.f()`, `o::f()`) remain unpromoted — single
+  parens suffice there
+- tests flipped : `paren_value` -> `await((g()))`;
+  tasks.lua "tasks 21" -> `await((tostring(n)))`
+
+Rejected alternative (lazy call-or-spawn in the carrier) : runtime
+dispatch on callee type would never error on a wrong callee — silent
+misreads; the parens rule keeps intent visible in the source.
 
 ### Verify (ask the user to run — never run tests here)
 
@@ -349,3 +429,10 @@ cd tst && lua5.4 all.lua     # full suite, watch tasks.lua "every"
       won't-do; full suite green)
 - [ ] STEP 4 : `!`/`until`/`while` semantics; paren-form question;
       manual note
+- [x] STEP 5 : `parser_await(stop, no_promote)` refactor —
+      `check_patt_arg` gate, parens-inside, dead `stop` repurposed as
+      mode axis, uniform promotion incl. toggle filters (full suite
+      green)
+- [x] STEP 6 : value escape via extra parens — promotion truly
+      uniform, `no_promote` deleted, `await((f()))` escape (full
+      suite green)

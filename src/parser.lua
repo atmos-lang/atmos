@@ -251,6 +251,12 @@ local function check_call_arg ()
            check(nil,'nat') or check(nil,'clk')
 end
 
+-- tokens that may start a juxtaposed await pattern (bare `await PAT`):
+-- the juxtaposed call-arg set plus plain ids (task calls, instances)
+function check_patt_arg ()
+    return check_call_arg() or check(nil,'id')
+end
+
 -- @-qualifier (after '@' is consumed): @(e) | bare @num | @id | @:tag.
 -- shared by index, table key, pool, emit-target.
 -- ret==true : return false on no-match so the caller can continue

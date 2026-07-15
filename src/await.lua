@@ -15,27 +15,36 @@ local function mk_tagged (name, ...)
     return { tag='table', es=es }
 end
 
--- task-call promotion: a plain-id call in a promotion site becomes the
--- lua-atmos spawn carrier {tag='spawn', f, args...}; atm_* callees are
--- compiler-generated (e.g. :X [payload] -> atm_tag_do) and excluded
+-- task-call promotion: a call in pattern position becomes the lua-atmos
+-- spawn carrier {tag='spawn', f, args...}. The callee must be a value
+-- expression (plain id or index like M.T); method callees (o::f) have no
+-- first-class reference to carry. atm_* callees are compiler-generated
+-- (e.g. :X [payload] -> atm_tag_do) and excluded
 local function is_task_call (e)
-    return e.tag=='call' and e.f.tag=='acc' and not string.match(e.f.tk.str, '^atm_')
+    if e.tag ~= 'call' then
+        return false
+    end
+    return e.f.tag=='index' or (e.f.tag=='acc' and not string.match(e.f.tk.str, '^atm_'))
 end
 
 -- Rewrites &&/||/! inside await-pattern positions into the lua-atmos table
 -- format {tag='or'|'and'|'not', ...}. Descends through parens and nested
--- &&/|| trees; stops at any other node (calls, lambdas, literals, tags).
--- promote: task-call leaves become spawn carriers (watching / loop on);
--- off in value-await sites (await(PAT), spawn/toggle filters)
-local function await_ast_logical (e, promote)
+-- &&/|| trees; stops at any other node (lambdas, literals, tags).
+-- Task-call leaves always promote to the spawn carrier; grouping parens
+-- directly wrapping a call are the value escape: `await((f()))` calls f
+-- and awaits its result, while `(a || b)` stays combinator grouping.
+local function await_ast_logical (e)
     if e.tag == 'parens' then
-        return await_ast_logical(e.e, promote)
+        if is_task_call(e.e) then
+            return e.e
+        end
+        return await_ast_logical(e.e)
     elseif (e.tag == 'bin') and (e.op.str=='&&' or e.op.str=='||') then
         local name = (e.op.str=='&&') and 'and' or 'or'
-        return mk_tagged(name, await_ast_logical(e.e1, promote), await_ast_logical(e.e2, promote))
+        return mk_tagged(name, await_ast_logical(e.e1), await_ast_logical(e.e2))
     elseif (e.tag == 'uno') and (e.op.str == '!') then
-        return mk_tagged('not', await_ast_logical(e.e, promote))
-    elseif promote and is_task_call(e) then
+        return mk_tagged('not', await_ast_logical(e.e))
+    elseif is_task_call(e) then
         return mk_tagged('spawn', e.f, table.unpack(e.es))
     else
         return e
@@ -43,10 +52,14 @@ local function await_ast_logical (e, promote)
 end
 
 -- parses a single await pattern (pool prefix, combinators, until/while).
--- parser() errors on an empty slot. shared by await(...) / loop on / watching.
--- base0: true -> single suffixed primary (bare `await PAT`, so `await T(...)`
--- eats the call but `await :X || :Y` stays `(await :X) || :Y`);
--- nil -> full expression.
+-- shared by await / toggle-with / loop on / watching.
+-- stop: nil -> juxtaposed (bare `await PAT`): a single suffixed primary, so
+-- `await T(...)` eats the call but `await :X || :Y` stays `(await :X) || :Y`;
+-- a leading `(` opens await's argument parens -> delimited full pattern.
+-- non-nil -> delimited by the given token (not consumed): full expression,
+-- combinators licensed since the pattern region is closed.
+-- pattern position always promotes task-calls to the spawn carrier; the
+-- value escape is grouping parens around the call: `await((f()))`.
 -- parses a single predicate, wrapping a non-func expression as a
 -- \it -> e function (proto). until/while take exactly ONE predicate;
 -- combine conditions with && rather than a comma list, so a trailing
@@ -69,7 +82,7 @@ local function parse_pred ()
     end
 end
 
-function parser_await (stop, base0, promote)
+function parser_await (stop)
     -- pool prefix: :any ts / :all ts -> {tag='tasks', mode=, tasks=ts}
     local m = accept(':any', 'tag') or accept(':all', 'tag')
     if m then
@@ -89,12 +102,19 @@ function parser_await (stop, base0, promote)
 
     -- base pattern + combinators &&/||/!
     local base
-    if base0 then
+    if stop == nil then
+        if accept('(') then
+            local awt = parser_await(')')
+            accept_err(')')
+            return awt
+        elseif not check_patt_arg() then
+            err(TK1, "expected expression")
+        end
         base = parser_2_suf()
     else
         base = parser()
     end
-    local pat = await_ast_logical(base, promote)
+    local pat = await_ast_logical(base)
 
     -- optional until/while predicates (each non-func wrapped as \{ e })
     local k = accept('until') or accept('while')

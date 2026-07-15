@@ -163,17 +163,7 @@ function parser_1_prim ()
         -- await(...)
         elseif accept('await') then
             local tk = TK0
-            local awt
-            if accept('(') then
-                -- await(PAT) : full pattern (combinators + until/while)
-                awt = parser_await(')')
-                accept_err(')')
-            else
-                -- await PAT : juxtaposition base is a suffixed primary, so
-                -- `await :X || :Y` stays `(await :X) || :Y`; task-calls
-                -- promote to the spawn carrier
-                awt = parser_await(nil, true, true)
-            end
+            local awt = parser_await()
             return {
                 tag = 'call',
                 f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
@@ -224,7 +214,7 @@ function parser_1_prim ()
                 -- optional trailing filter pattern (stops at first non-comma)
                 local filter = {}
                 if accept('with') then
-                    filter = parser_list_1(',', function () return false end, function () return parser_await(function () return false end) end)
+                    filter = parser_list_1(',', function () return false end, function () return parser_await(',') end)
                 end
                 return parser_7_out({ tag='call', f=cmd, es=concat(call.es,filter) })
             end
@@ -641,7 +631,7 @@ function parser_1_prim ()
         local ids = check(nil,'id') and parser_ids('in') or nil
         if accept('on') then
             -- loop { val IDS = await(PAT) ; BODY }
-            local awt = parser_await('{', nil, true)
+            local awt = parser_await('{')
             local blk = parser_block()
             local call = {
                 tag = 'call',
@@ -703,7 +693,7 @@ function parser_1_prim ()
             }
         -- watching
         elseif accept('watching') then
-            local awt = parser_await('{', nil, true)
+            local awt = parser_await('{')
             local blk = parser_block()
             return {
                 tag = 'call',
