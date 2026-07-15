@@ -1530,15 +1530,16 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await(T)")
---[=[
-    assertx(trim(tosource(e)), trim [[
-        do {
-            pin atm_1 = spawn(nil, T, false)
-            await(atm_1)
-        }
-    ]])
-]=]
+    assertx(tosource(e), "await([@(:tag)=\"spawn\", @(1)=T])")
+
+    local src = "await T(1,x)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await([@(:tag)=\"spawn\", @(1)=T, @(2)=1, @(3)=x])")
 end
 
 print '--- TOGGLE ---'

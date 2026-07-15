@@ -76,7 +76,7 @@ itself (alongside the stream case `run.lua:553`), plus a
 `{tag='spawn', T, args...}` carrier pattern for calls with args.
 Then the compiler needs no thunk node and no par-lowering.
 
-Sibling plan : `/x/lua-atmos/atmos/.claude/plans/260713-await-patt-task.md`
+Sibling plan : `/x/lua-atmos/atmos/.claude/plans/done/260713-await-patt-task.md`
 
 1. lua-atmos (`run.lua` / `init.lua`) — DONE (carrier-only)
     - `M.await` : single `tag=='spawn'` branch -> spawn `awt[1]` with
@@ -230,7 +230,7 @@ note (NOT an Ambiguities-table row).
 | `src/prim.lua`  | `await` dispatch (`164-194`) | delete id branch; solo call -> spread `await(T, ...)`; `parser_7_out` fate |
 
 lua-atmos changes tracked in the sibling plan :
-`/x/lua-atmos/atmos/.claude/plans/260713-await-patt-task.md`
+`/x/lua-atmos/atmos/.claude/plans/done/260713-await-patt-task.md`
 
 ## State to resume from
 
@@ -260,28 +260,45 @@ cd tst && lua5.4 all.lua   # baseline green (promotion specs fail)
   (proto 4 test : loser's `defer` runs on abort)
 - all proto 1-7 tests pass, no regressions
 
-### STEP 1 — parser detection (shared)
+### STEP 1 — parser detection (shared) — DONE (tests green)
 
-- file `src/await.lua`, `parser_await`
-- add local `is_task_call(e)` : `e.tag=='call'` and callee is a plain
-  id NOT matching `^atm_` (excludes `:X [payload]` -> `atm_tag_do`)
-- carrier constructor : call -> `{tag='spawn', f, es...}` table AST
-- site mode flag so `await(PAT)` / filters skip promotion
+- `src/await.lua` : `is_task_call(e)` (plain-id callee, `^atm_`
+  excluded); `await_ast_logical(e, promote)` wraps task-call leaves as
+  `mk_tagged('spawn', e.f, es...)`; `parser_await` gained 3rd param
+  `promote` threaded through
+- pools `:any [T(a),U(b)]` NOT done (no test; runtime `tasks` branch
+  expects a pool object) — moved to STEP 4
 
-### STEP 2 — promotion sites (get the easy specs green first)
+### STEP 2 — promotion sites — DONE (tests green : full suite passes,
+tasks.lua "every 2" unaffected)
 
-- `watching PAT` / `loop on PAT` : task-call operands -> carrier via
-  the gated `await_ast_logical`
+- `src/prim.lua` : `watching` / `loop on` sites now
+  `parser_await('{', nil, true)`; `await(PAT)` and `toggle with`
+  filters left unpromoted (value-await preserved)
 - REGRESSION WATCH : `atm_*` exclusion or `loop v on :X [10]` breaks
   (tasks.lua "every 2")
 
-### STEP 3 — unify bare await
+### STEP 3 — unify bare await — DONE (tests green : full suite passes;
+expectations updated : `tst/expr.lua` carrier output + new args case,
+`tst/tasks.lua` `await x` relaxation; error-attribution guard added in
+lua-atmos `tag=='spawn'` branch)
 
 - `src/await.lua` : base0 base `parser_1_prim` -> `parser_2_suf`
-- `src/prim.lua` : remove the `await` id-branch, route through
-  `parser_await`; keep solo spread `await(T, ...)` fast path
-- verify `sep` ambiguities intact (`await :X || :Y`, `:X []`)
-- decide `parser_7_out` on `await T(...)`
+  (sep/is_prefix guards live inside `parser_2_suf`, `parser.lua:274-282`)
+- `src/prim.lua` : `await` id-branch REMOVED; bare form is
+  `parser_await(nil, true, true)` (promotion site), paren form
+  unchanged (no promote)
+- solo spread fast path DROPPED : under carrier-only,
+  `await({tag='spawn', T, a})` IS the single runtime path — the spread
+  was redundant
+- `parser_7_out` on `await T() -> f` : WON'T DO — no usage in tests or
+  manual; pattern path never supported it
+- dotted callees `await M.T()` : NOT promoted (`is_task_call` = plain
+  id only); now value-await — no usage found, note kept in STEP 4
+- behavior relaxations : bare `await x` (id, no call) was "expected
+  call syntax" error, now value-await of `x` (e.g. instance var);
+  bare `await T` (prototype, no parens) now spawns with no args via
+  the `init.lua` sugar
 
 ### STEP 4 — deferred
 
@@ -291,6 +308,10 @@ cd tst && lua5.4 all.lua   # baseline green (promotion specs fail)
   explicit semantics decision
 - whether `await(T() || :X)` (paren form) should also promote — today
   chosen NO (value-await)
+- whether `is_task_call` should accept dotted callees (`M.T()`) —
+  today plain id only, dotted stays value-await
+- pools `:any [T(a), U(b)]` : carrier in list items (runtime `tasks`
+  branch expects a pool object — needs its own design)
 - manual note in `doc/manual.md` : `watching`/`loop on` with a call now
   = task spawn (behavior change); NOT an Ambiguities-table row
 
@@ -322,8 +343,9 @@ cd tst && lua5.4 all.lua     # full suite, watch tasks.lua "every"
 - [x] spec tests written (`tst/await.lua`)
 - [x] STEP 0 : lua-atmos runtime DONE (carrier-only, sibling plan) —
       `tag=='spawn'` branch + sugar collapse, all proto 1-7 tests pass
-- [ ] STEP 1 : parser detection + carrier + site mode
-- [ ] STEP 2 : `watching` / `loop on` promotion
-- [ ] STEP 3 : unify bare await; `parser_7_out` decision
+- [x] STEP 1 : parser detection + carrier + site mode (pools deferred)
+- [x] STEP 2 : `watching` / `loop on` promotion (full suite green)
+- [x] STEP 3 : unify bare await (id-branch removed; `parser_7_out`
+      won't-do; full suite green)
 - [ ] STEP 4 : `!`/`until`/`while` semantics; paren-form question;
       manual note

@@ -7,6 +7,9 @@ v0.8 (???/??)
     - `task` as expression: current running task
     - `task` dot declarations: `task M.T (...)`
 
+- Modifications:
+    - tag indexing `@:x` no longer requires parens (`@(:x)`)
+
 - Fixes:
     - `return` crosses (ignores) transparent `spawn`
     - `spawn T()` supports `where` clauses

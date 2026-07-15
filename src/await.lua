@@ -15,17 +15,28 @@ local function mk_tagged (name, ...)
     return { tag='table', es=es }
 end
 
+-- task-call promotion: a plain-id call in a promotion site becomes the
+-- lua-atmos spawn carrier {tag='spawn', f, args...}; atm_* callees are
+-- compiler-generated (e.g. :X [payload] -> atm_tag_do) and excluded
+local function is_task_call (e)
+    return e.tag=='call' and e.f.tag=='acc' and not string.match(e.f.tk.str, '^atm_')
+end
+
 -- Rewrites &&/||/! inside await-pattern positions into the lua-atmos table
 -- format {tag='or'|'and'|'not', ...}. Descends through parens and nested
 -- &&/|| trees; stops at any other node (calls, lambdas, literals, tags).
-local function await_ast_logical (e)
+-- promote: task-call leaves become spawn carriers (watching / loop on);
+-- off in value-await sites (await(PAT), spawn/toggle filters)
+local function await_ast_logical (e, promote)
     if e.tag == 'parens' then
-        return await_ast_logical(e.e)
+        return await_ast_logical(e.e, promote)
     elseif (e.tag == 'bin') and (e.op.str=='&&' or e.op.str=='||') then
         local name = (e.op.str=='&&') and 'and' or 'or'
-        return mk_tagged(name, await_ast_logical(e.e1), await_ast_logical(e.e2))
+        return mk_tagged(name, await_ast_logical(e.e1, promote), await_ast_logical(e.e2, promote))
     elseif (e.tag == 'uno') and (e.op.str == '!') then
-        return mk_tagged('not', await_ast_logical(e.e))
+        return mk_tagged('not', await_ast_logical(e.e, promote))
+    elseif promote and is_task_call(e) then
+        return mk_tagged('spawn', e.f, table.unpack(e.es))
     else
         return e
     end
@@ -33,8 +44,9 @@ end
 
 -- parses a single await pattern (pool prefix, combinators, until/while).
 -- parser() errors on an empty slot. shared by await(...) / loop on / watching.
--- base0: true -> single primary (bare `await PAT`, so `await :X || :Y` stays
--- `(await :X) || :Y`); nil -> full expression.
+-- base0: true -> single suffixed primary (bare `await PAT`, so `await T(...)`
+-- eats the call but `await :X || :Y` stays `(await :X) || :Y`);
+-- nil -> full expression.
 -- parses a single predicate, wrapping a non-func expression as a
 -- \it -> e function (proto). until/while take exactly ONE predicate;
 -- combine conditions with && rather than a comma list, so a trailing
@@ -57,7 +69,7 @@ local function parse_pred ()
     end
 end
 
-function parser_await (stop, base0)
+function parser_await (stop, base0, promote)
     -- pool prefix: :any ts / :all ts -> {tag='tasks', mode=, tasks=ts}
     local m = accept(':any', 'tag') or accept(':all', 'tag')
     if m then
@@ -78,11 +90,11 @@ function parser_await (stop, base0)
     -- base pattern + combinators &&/||/!
     local base
     if base0 then
-        base = parser_1_prim()
+        base = parser_2_suf()
     else
         base = parser()
     end
-    local pat = await_ast_logical(base)
+    local pat = await_ast_logical(base, promote)
 
     -- optional until/while predicates (each non-func wrapped as \{ e })
     local k = accept('until') or accept('while')

@@ -163,35 +163,22 @@ function parser_1_prim ()
         -- await(...)
         elseif accept('await') then
             local tk = TK0
-            if check(nil,'id') then
-                local call = parser_6_pip()
-                if call.tag ~= 'call' then
-                    err(tk, "expected call syntax")
-                end
-                -- await T(...) -> await(T, ...) : the runtime await sugar
-                -- spawns a task prototype, so codegen need not emit spawn
-                return parser_7_out {
-                    tag = 'call',
-                    f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
-                    es  = concat({call.f}, call.es),
-                }
+            local awt
+            if accept('(') then
+                -- await(PAT) : full pattern (combinators + until/while)
+                awt = parser_await(')')
+                accept_err(')')
             else
-                local awt
-                if accept('(') then
-                    -- await(PAT) : full pattern (combinators + until/while)
-                    awt = parser_await(')')
-                    accept_err(')')
-                else
-                    -- await PAT : juxtaposition base is a single primary, so
-                    -- `await :X || :Y` stays `(await :X) || :Y`; pool/until ok
-                    awt = parser_await(nil, true)
-                end
-                return {
-                    tag = 'call',
-                    f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
-                    es  = { awt },
-                }
+                -- await PAT : juxtaposition base is a suffixed primary, so
+                -- `await :X || :Y` stays `(await :X) || :Y`; task-calls
+                -- promote to the spawn carrier
+                awt = parser_await(nil, true, true)
             end
+            return {
+                tag = 'call',
+                f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
+                es  = { awt },
+            }
         -- spawn {}, spawn T()
         elseif check('spawn') then
             local lin = TK1.lin
@@ -654,7 +641,7 @@ function parser_1_prim ()
         local ids = check(nil,'id') and parser_ids('in') or nil
         if accept('on') then
             -- loop { val IDS = await(PAT) ; BODY }
-            local awt = parser_await('{')
+            local awt = parser_await('{', nil, true)
             local blk = parser_block()
             local call = {
                 tag = 'call',
@@ -716,7 +703,7 @@ function parser_1_prim ()
             }
         -- watching
         elseif accept('watching') then
-            local awt = parser_await('{')
+            local awt = parser_await('{', nil, true)
             local blk = parser_block()
             return {
                 tag = 'call',

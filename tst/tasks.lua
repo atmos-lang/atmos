@@ -46,8 +46,9 @@ do
     init()
     lexer_init("anon", src)
     lexer_next()
-    local _,msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near 'await' : expected call syntax")
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "await(x)")
 
     local src = "set y = await(:X)"
     print("Testing...", src)

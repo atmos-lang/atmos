@@ -260,7 +260,7 @@ function parser_at (ret)
         local e = parser()
         accept_err(')')
         return e
-    elseif accept(nil,'tag') then
+    elseif accept(nil,'tag') then   -- separate bc of prim :X()
         return { tag='tag', tk=TK0 }
     elseif check(nil,'num') or check(nil,'id') then
         return parser_1_prim()
