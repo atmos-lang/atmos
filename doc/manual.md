@@ -2096,7 +2096,7 @@ An `await` suspends a [task](#tasks) until a matching [emit](#emit) occurs:
 
 ```
 Await : `await´ `(´ Patt `)´
-      | `await´ ID `(´ Expr* `)´
+      | `await´ Patt          ;; restricted: single pattern, no combinators
 Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr]
       | (`until´|`while´) Expr
 ```
@@ -2115,6 +2115,7 @@ pattern `Patt` as follows:
 | Time      | `AsBms`       | timeout       | overrun   |
 |           | `:clock`      | clock tick    | delta     |
 | Tasks     | `t`           | `t` ends      | `v,t`     |
+|           | `T(...)`      | spawns; ends  | `v,t`     |
 |           | `:any ts`     | any pool end  | `v,t,ts`  |
 |           | `:all ts`     | all pool end  | `ts`      |
 | Stream    | `s`           | `s` ends      | `v,t`     |
@@ -2134,9 +2135,17 @@ Note that some patterns may modify the final result:
 A base-less `until`/`while` (e.g. `await until c`) is a synchronous predicate
 that tests `c` immediately and re-tests it on each event.
 
-The second format `await T(...)` [spawns](#spawn) and awaits the given task to
-terminate.
-In this case, the `await` evaluates to the task final value.
+A call in a pattern [spawns](#spawn) the given task and awaits its
+termination, evaluating to the task final value.
+This holds in every pattern position: `await`, `watching`, `loop on`,
+and toggle filters.
+To await the result of a call instead, wrap it in parentheses:
+`await((f()))`.
+
+A pattern is evaluated eagerly, once, when the await starts, including
+the arguments of a spawned call.
+The `until`/`while` predicates are lazy, re-evaluated on each event.
+On re-await (e.g. `loop on`), a task call spawns a fresh instance.
 
 Examples:
 
@@ -2150,6 +2159,12 @@ await until it && (it@1 > 10)  ;; awakes if event index 1 > 10
 await(:X && :Y)                ;; awakes after both :X and :Y occur in any order
 await(!:X)                     ;; awakes on any non-:X event
 await(:X until it.n==3)        ;; awaits :X until its field n equals 3
+```
+
+```
+watching T() || :X {           ;; until T terminates or :X occurs
+    <...>
+}
 ```
 
 ```
@@ -2695,7 +2710,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `loop´ Block                                ;; infinite loop
       | `loop´ ID Block                             ;; numeric infinite loop
       | `loop´ ID+ `in´ Expr Block                  ;; iterator loop
-      | `loop´ ID* `on´ Pattern Block               ;; event loop
+      | `loop´ ID* `on´ Patt Block                  ;; event loop
 
       | `break´ `(´ Expr* `)´                       ;; loop break
       | `until´ `(´ Expr+ `)´
@@ -2707,20 +2722,23 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `spawn` [At] Expr `(´ Expr* `)`             ;; spawn task
       | `spawn´ Block                               ;; spawn block
 
-      | `await´ `(´ Expr* `)´                       ;; await event
-      | `await´ ID `(´ Expr* `)´                    ;; await task
+      | `await´ `(´ Patt `)´                        ;; await pattern
+      | `await´ Patt                                ;; (restricted: no combinators)
       | `emit´ [At] `(´ Expr* `)´                   ;; emit event
 
-      | `toggle´ Expr `(´ Expr `)´                  ;; toggle task
-      | `toggle´ `on´ Pattern Block                 ;; toggle block
+      | `toggle´ Expr `(´ Expr `)´ [`with´ Patt*]   ;; toggle task
+      | `toggle´ `on´ TAG [`with´ Patt*] Block      ;; toggle block
 
       | `par´ [ `:all´ | `:any´ ]                   ;; parallel
             Block { `with´ Block }
-      | `watching´ Expr* Block                      ;; watching event block
+      | `watching´ Patt Block                       ;; watching pattern block
 
       | `thread´ Block                              ;; OS thread
 
 At    : `@´ (`(´ Expr `)´ | NUM | ID)   ;; @-qualifier (index/key/pool/target)
+
+Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr]   ;; await pattern
+      | (`until´|`while´) Expr
 
 ID    : [A-Za-z_][A-Za-z0-9_]*      ;; variable identifier
 TAG   : :[A-Za-z0-9_\.]+            ;; tag

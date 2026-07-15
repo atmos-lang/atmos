@@ -434,8 +434,16 @@ cd tst && lua5.4 all.lua     # full suite, watch tasks.lua "every"
 - [x] STEP 2 : `watching` / `loop on` promotion (full suite green)
 - [x] STEP 3 : unify bare await (id-branch removed; `parser_7_out`
       won't-do; full suite green)
-- [ ] STEP 4 : `!`/`until`/`while` semantics; paren-form question;
-      manual note
+- [x] STEP 4 : all items closed —
+      `!`/`until`/`while` respawn per re-await : documented as the
+      semantics (manual "On re-await ... fresh instance");
+      paren-form promotion : resolved by STEP 6 (promotes);
+      dotted callees : resolved (blacklist);
+      pools `:any [T(a), U(b)]` : WON'T DO (separate design);
+      manual notes : DONE (`doc/manual.md` Await section + lua-atmos
+      `api.md` carrier row + sugar scope)
+- [x] docs : pattern tables aligned (manual.md `T(...)` row; api.md
+      `{tag='spawn',...}` row; guide.md untouched — no table there)
 - [x] STEP 5 : `parser_await(stop, no_promote)` refactor —
       `check_patt_arg` gate, parens-inside, dead `stop` repurposed as
       mode axis, uniform promotion incl. toggle filters (full suite
