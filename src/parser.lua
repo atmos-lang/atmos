@@ -245,16 +245,10 @@ local function is_prefix (e)
     )
 end
 
-local function check_call_arg ()
+function check_call_arg ()
     return check('[') or check('\\') or
            check(nil,'str') or check(nil,'tag') or
            check(nil,'nat') or check(nil,'clk')
-end
-
--- tokens that may start a juxtaposed await pattern (bare `await PAT`):
--- the juxtaposed call-arg set plus plain ids (task calls, instances)
-function check_patt_arg ()
-    return check_call_arg() or check(nil,'id')
 end
 
 -- @-qualifier (after '@' is consumed): @(e) | bare @num | @id | @:tag.

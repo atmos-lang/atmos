@@ -16,15 +16,12 @@ local function mk_tagged (name, ...)
 end
 
 -- task-call promotion: a call in pattern position becomes the lua-atmos
--- spawn carrier {tag='spawn', f, args...}. The callee must be a value
--- expression (plain id or index like M.T); method callees (o::f) have no
--- first-class reference to carry. atm_* callees are compiler-generated
--- (e.g. :X [payload] -> atm_tag_do) and excluded
+-- spawn carrier {tag='spawn', f, args...}. Any callee promotes (the
+-- callee value evaluates eagerly; the runtime discriminates), except
+-- atm_tag_do, the one compiler-generated call inside pattern
+-- expressions (:X [payload])
 local function is_task_call (e)
-    if e.tag ~= 'call' then
-        return false
-    end
-    return e.f.tag=='index' or (e.f.tag=='acc' and not string.match(e.f.tk.str, '^atm_'))
+    return e.tag=='call' and (e.f.tag~='acc' or e.f.tk.str~="atm_tag_do")
 end
 
 -- Rewrites &&/||/! inside await-pattern positions into the lua-atmos table
@@ -107,7 +104,7 @@ function parser_await (stop)
             local awt = parser_await(')')
             accept_err(')')
             return awt
-        elseif not check_patt_arg() then
+        elseif not (check_call_arg() or check(nil,'id')) then
             err(TK1, "expected expression")
         end
         base = parser_2_suf()

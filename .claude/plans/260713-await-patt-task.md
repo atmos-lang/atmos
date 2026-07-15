@@ -345,9 +345,10 @@ check_patt_arg        -> parser_2_suf base, promoted
 else                  -> err "expected expression"
 ```
 
-- `check_patt_arg()` (new, `parser.lua`) = `check_call_arg() or id` —
-  gates what may start a juxtaposed pattern; bare `await true/nil/5`
-  become parse errors (no usage; paren form remains)
+- juxtaposed gate = `check_call_arg() or id` (inlined at the single
+  call site; `check_call_arg` globalized) — gates what may start a
+  juxtaposed pattern; bare `await true/nil/5` become parse errors
+  (no usage; paren form remains)
 - `(` after bare await is consumed INSIDE parser_await; the `)` too
 - toggle filters now PROMOTE (uniformity) : the filter is a real await
   pattern (gate task `M.await`s it); a task-call filter = "pass per
