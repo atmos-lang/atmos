@@ -2218,7 +2218,7 @@ An `await` suspends a [task](#tasks) until a matching [emit](#emit) occurs:
 
 ```
 Await : `await´ `(´ Patt `)´
-      | `await´ ID `(´ Expr* `)´
+      | `await´ Patt            ;; restricted to tags, time, T(...)
 Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr]
       | (`until´|`while´) Expr
 ```
@@ -2236,7 +2236,8 @@ pattern `Patt` as follows:
 |           | `x`           | `e ?? x`      | `e`       |
 | Time      | `AsBms`       | timeout       | overrun   |
 |           | `:clock`      | clock tick    | delta     |
-| Tasks     | `t`           | `t` ends      | `v,t`     |
+| Tasks     | `t`           | `t` end       | `v,t`     |
+|           | `T(...)`      | task end      | `v,t`     |
 |           | `:any ts`     | any pool end  | `v,t,ts`  |
 |           | `:all ts`     | all pool end  | `ts`      |
 | Stream    | `s`           | `s` ends      | `v,t`     |
@@ -2253,12 +2254,14 @@ Note that some patterns may modify the final result:
 - Tasks: task result, terminating task, and task pool
 - Condition, Meta: function result (defaults to `e` if `true`)
 
-A base-less `until`/`while` (e.g. `await until c`) is a synchronous predicate
-that tests `c` immediately and re-tests it on each event.
+A call in a pattern (e.g., `await T()`) [spawns](#spawn) the given task and
+awaits its termination, evaluating to the task final value.
+To await the result of a call, wrap it in parentheses (e.g., `await ((f()))`).
 
-The second format `await T(...)` [spawns](#spawn) and awaits the given task to
-terminate.
-In this case, the `await` evaluates to the task final value.
+A pattern is evaluated eagerly, once, when the await starts, including the
+arguments of a spawned call.
+However, the `until`/`while` predicate is lazy, re-evaluating its condition on
+each event.
 
 Examples:
 
@@ -2344,8 +2347,8 @@ A `toggle` configures a task or block to either consider or disregard further
 [emit](#emit) operations:
 
 ```
-Toggle : `toggle´ Expr `(´ Expr `)´ [ `with´ Expr* ]
-       | `toggle´ `on´ TAG [ `with´ Expr* ] Block
+Toggle : `toggle´ Expr `(´ Expr `)´ [`with´ Patt {`,´ Patt}]
+       | `toggle´ `on´ TAG [`with´ Patt {`,´ Patt}] Block
 ```
 
 By default, tasks and blocks are toggled on, thus reacting to all events.
@@ -2363,8 +2366,8 @@ It also specifies a [tag](#literals) to toggle the block when matching an
 The emit must be in the format `emit(<tag> [<boolean>])`, which sets the
 toggle state.
 
-An optional `with` filter clause specifies an [await pattern](#await), which
-keeps the task/block responsive when matching it.
+An optional `with` filter clause specifies [await patterns](#await), which
+keep the task/block responsive when matching any.
 
 Examples:
 
@@ -2488,7 +2491,7 @@ A `watching` spawns and awaits a block as a [transparent task](#tasks) until an
 [await pattern](#await) is satisfied, which aborts the block:
 
 ```
-Watching : `watching´ Expr* Block
+Watching : `watching´ Patt Block
 ```
 
 A `watching <e> { <body> }` is equivalent to a `par :any` as follows:
@@ -2858,8 +2861,8 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
 
       | `loop´ Block                                ;; infinite loop
       | `loop´ ID Block                             ;; numeric infinite loop
-      | `loop´ ID+ `in´ Expr Block                  ;; iterator loop
-      | `loop´ ID* `on´ Pattern Block               ;; event loop
+      | `loop´ ID* `in´ Expr Block                  ;; iterator loop
+      | `loop´ ID? `on´ Patt Block                  ;; event loop
 
       | `break´ `(´ Expr* `)´                       ;; loop break
       | `until´ `(´ Expr+ `)´
@@ -2871,20 +2874,22 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `spawn` [At] Expr `(´ Expr* `)`             ;; spawn task
       | `spawn´ Block                               ;; spawn block
 
-      | `await´ `(´ Expr* `)´                       ;; await event
-      | `await´ ID `(´ Expr* `)´                    ;; await task
+      | `await´ (Patt | `(´ Patt `)´)               ;; await pattern
       | `emit´ [At] `(´ Expr* `)´                   ;; emit event
 
-      | `toggle´ Expr `(´ Expr `)´                  ;; toggle task
-      | `toggle´ `on´ Pattern Block                 ;; toggle block
+      | `toggle´ Expr `(´ Expr `)´ [`with´ Patt {`,´ Patt}] ;; toggle task
+      | `toggle´ `on´ TAG [`with´ Patt {`,´ Patt}] Block    ;; toggle block
 
       | `par´ [ `:all´ | `:any´ ]                   ;; parallel
             Block { `with´ Block }
-      | `watching´ Expr* Block                      ;; watching event block
+      | `watching´ Patt Block                       ;; watching pattern block
 
       | `thread´ Block                              ;; OS thread
 
 At    : `@´ (`(´ Expr `)´ | NUM | ID)   ;; @-qualifier (index/key/pool/target)
+
+Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr]   ;; await pattern
+      | (`until´|`while´) Expr
 
 ID    : [A-Za-z_][A-Za-z0-9_]*      ;; variable identifier
 TAG   : :[A-Za-z0-9_\.]+            ;; tag
