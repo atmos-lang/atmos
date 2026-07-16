@@ -451,3 +451,10 @@ cd tst && lua5.4 all.lua     # full suite, watch tasks.lua "every"
 - [x] STEP 6 : value escape via extra parens — promotion truly
       uniform, `no_promote` deleted, `await((f()))` escape (full
       suite green)
+
+## Done (2026-07-16)
+
+Docs reviewed and accepted as-is; won't-fix nits :
+SYNTAX `[...]` optionality in the await production, base-less
+`until`/`while` prose, respawn-per-re-await note, api.md
+top-level-only sugar caveat.
