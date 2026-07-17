@@ -2180,7 +2180,8 @@ await(:all ts)          ;; awaits all tasks (pool drains)
 ```
 
 See [Ambiguities](#ambiguities):
-    `await :X || :Y` reads as `(await :X) || :Y` (not `await(:X || :Y)`).
+    `await :X || :Y` reads as `(await :X) || :Y` (not `await(:X || :Y)`); and
+    `await :X` ⏎ `until (c)` reads as `await :X ; until(c)` (not `await(:X until (c))`).
 
 ### Emit
 
@@ -2743,6 +2744,7 @@ may surprise a naive reading:
 | #                 | case                  | what it is              | what it is **not**       |
 |-------------------|-----------------------|-------------------------|--------------------------|
 | [await](#await)   | `await :X \|\| :Y`    | `(await :X) \|\| :Y`    | `await(:X \|\| :Y)`      |
+| [await](#await)   | `await P` ⏎ `until c` | `await P ; until(c)`    | `await(P until c)`       |
 | [table](#table)   | `:X` ⏎ `[]`           | `:X ; []`               | `:X []`                  |
 | [calls](#calls)   | `f` ⏎ `(x)`           | `f ; (x)`               | `f(x)`                   |
 | [calls](#calls)   | `f :X []`             | `f(:X [])`              | `f(:X) []`               |
