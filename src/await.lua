@@ -116,8 +116,8 @@ function parser_await (stop)
     end
     local pat = await_ast_logical(base)
 
-    -- optional until/while suffix
-    local pred = accept('until') or accept('while')
+    -- optional until/while suffix (no separator in between)
+    local pred = TK0.sep==TK1.sep and (accept('until') or accept('while'))
     if pred then
         return mk_tagged(pred.str, pat, parse_pred())
     else

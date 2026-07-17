@@ -991,6 +991,17 @@ do
 end
 
 do
+    local src = "loop {\nval quit = await F()\nuntil(quit)\n}"
+    print("Testing...", "await suffix same-line 1")
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local s = parser()
+    assert(check('<eof>'))
+    assertx(tosource(s), "loop {\nval quit = await([@(:tag)=\"spawn\", @(1)=F])\nuntil(quit)\n}")
+end
+
+do
     local src = "loop on :any ts {}"
     print("Testing...", src)
     init()
