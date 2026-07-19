@@ -75,5 +75,6 @@ via the existing `proto` case (`src/coder.lua:118-142`).
 - [x] Feasibility analysis
 - [x] Tests written first (pin 4/5/6)
 - [x] Implementation (`src/prim.lua` dcl branch)
-- [ ] Tests pass (user runs `cd tst && lua5.4 tasks.lua`)
-- [ ] Manual update
+- [x] Tests pass (all tests, confirmed by user)
+- [x] Manual update (`doc/manual.md`: spawn formats + transparent
+      paragraph)

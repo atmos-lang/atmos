@@ -801,13 +801,17 @@ If the limit is omitted, the pool is unbounded.
 If the pool becomes full, further spawns fail and return `nil`.
 
 A `spawn` receives a task prototype or a [block](#blocks), and starts it as a
-task instance:
+task instance.
+It supports the following formats:
 
-- The format `spawn @ts T(...)` receives an optional pool to hold the task, a
-  task prototype, and a list of arguments to pass to the body about to start.
-  The operation returns a reference to spawned task instance.
-- The format `spawn { ... }` starts a block as transparent task with no
-  associated reference.
+- `spawn T(...)` receives a task prototype and a list of arguments to pass to
+  the body about to start.
+  The operation returns a reference to the spawned task instance.
+- `spawn @ts T(...)` receives an additional pool to hold the task.
+- `spawn { ... }` starts a block as a **transparent task** with no associated
+  reference.
+- `pin t = spawn { ... }` promotes the block to a normal task, attaching it to
+  the [local](#local-variables) `t`.
 
 A `task` expression evaluates to the currently running (non-transparent) task
 instance:
