@@ -1635,7 +1635,33 @@ do
     ]]
     print("Testing...", "pin 4")
     local out = atm_test(src)
-    assertx(out, "anon.atm : line 1 : near 'pin' : invalid assignment : unexpected transparent task")
+    assertfx(out, "xtask: 0x")
+
+    local src = [[
+        pin t = spawn {
+            set pub = 10
+            await(:X)
+        }
+        print(t.pub)
+        emit(:X)
+    ]]
+    print("Testing...", "pin 5")
+    local out = atm_test(src)
+    assertx(out, "10\n")
+
+    local src = [[
+        pin t = spawn {
+            await(:X)
+        }
+        spawn {
+            await(t)
+            print(:done)
+        }
+        emit(:X)
+    ]]
+    print("Testing...", "pin 6")
+    local out = atm_test(src)
+    assertx(out, "done\n")
 end
 
 print '--- TASK / TERMINATION ---'

@@ -335,7 +335,15 @@ function parser_1_prim ()
                 local spw
                 set, spw = parser_spawn()
                 if spw.f.tk.str == 'do_spawn' then
-                    err(tk, "invalid assignment : unexpected transparent task")
+                    -- pin t = spawn { ... } : promote the transparent
+                    -- block to an anonymous non-transparent task:
+                    --      spawn(task(atm_func(function () ... end)))
+                    if tk.str == 'pin' then
+                        spw.f.tk.str = 'spawn'
+                        spw.es[1].sub = 'task'
+                    else
+                        err(tk, "invalid assignment : unexpected transparent task")
+                    end
                 end
             elseif accept('tasks') then
                 local f = { tag='acc', tk={tag='id',str="tasks",lin=TK0.lin} }

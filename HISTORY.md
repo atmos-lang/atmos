@@ -6,6 +6,7 @@ v0.8 (???/??)
         - `T()` also in `loop on`, `watching`
     - `task` as expression: current running task
     - `task` dot declarations: `task M.T (...)`
+    - `pin t = spawn { ... }`: inline task
 
 - Modifications:
     - tag indexing `@:x` no longer requires parens (`@(:x)`)
