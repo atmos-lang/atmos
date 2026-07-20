@@ -1541,6 +1541,44 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"spawn\", @(1)=T, @(2)=1, @(3)=x])")
+
+    -- precedence: `until` groups under `||` only with explicit parens
+    local src = "await(:X || (:Y until c))"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=:X, @(2)=[@(:tag)=\"until\", @(1)=:Y, @(2)=func (it) {\nc\n}]])")
+
+    -- base-less `until c` composes as a `||` operand (task race)
+    local src = "await(T() || until c)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=[@(:tag)=\"spawn\", @(1)=T], @(2)=[@(:tag)=\"until\", @(1)=func (it) {\nc\n}]])")
+
+    -- mixing `||` and `until` at the same level requires parens
+    local src = "await(:X || :Y until c)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near 'until' : operation error : use parentheses to disambiguate")
+
+    -- bare await rejects combinators (require the parenthesized form)
+    local src = "await :X || :Y"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '<eof>' : invalid await : unexpected expression")
 end
 
 print '--- TOGGLE ---'

@@ -146,5 +146,7 @@ node (identical Lua semantics; no tosource test asserts them).
       updated `tst/expr.lua` accordingly
 - [x] Manual: grammar block updated (staged); extra prose +
       Ambiguities row removal -> WON'T DO (user's call)
-- [ ] New tests for the fixed forms (not yet added)
-- [ ] Tests pass (user runs `cd tst && lua5.4 all.lua`)
+- [x] New tests for the fixed forms (`tst/expr.lua`): both
+      compose forms + mixing error + bare-combinator error
+      (assertions verified against local `src/`)
+- [x] Tests pass (confirmed by user)
