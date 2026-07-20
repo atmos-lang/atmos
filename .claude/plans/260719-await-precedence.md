@@ -1,4 +1,10 @@
-# Plan: await-pattern parser (precedence + explicit spawn)
+# Plan: await-pattern parser (three delimited tiers) -- COMPLETE
+
+All phases done. Full test suite passes (verified against local
+`src/`, confirmed by user). Final design: three tiers
+(`await P` / `await(E)` / `await<PAT>`), calls spawn in pattern
+mode, `(f())` for value, mandatory predicate parens.
+
 
 ## Phase 1 -- precedence levels (DONE)
 

@@ -1,24 +1,28 @@
 -- AWAIT PATTERNS
 --
--- What await / watching / loop-on / toggle-with wait for:
---      :X [v] | @1 | T(...) | spawn T(...) | p&&p | p||p | !p
---      p until c | p while c | until c | while c
---      :any ts | :all ts
+-- await / watching / loop-on / toggle-with take one of three tiers,
+-- one per delimiter:
+--      bare    : await P      -- one primary (a call spawns) + optional
+--                                until (c) / while (c)
+--      value   : await(E)     -- a plain value expression (a call is a
+--                                value, not a spawn)
+--      pattern : await<PAT>   -- the combinator grammar (below)
 --
 -- Rules:
---  - a WHOLE-pattern lone call SPAWNS a task and awaits its
---    termination; as an operand a call is a value, so a task must be
---    spawned explicitly (`p || spawn T()`); to await a call result,
---    use extra parens: await((f()))
+--  - inside a pattern (bare or <>), a bare call SPAWNS a task and
+--    awaits its termination (operand or not); to await a call's value,
+--    drop to a `(f())` value leaf
 --  - the pattern is EAGER (evaluated once, at await time);
 --    until/while predicates are LAZY (re-evaluated per event)
---  - patterns parse with dedicated precedence levels:
---      1_prim : leaves (tags, clocks, values, until c, spawn T, (p))
+--  - <PAT> parses with dedicated precedence levels:
+--      1_prim : leaves -- :any/:all, until (c), (E) value, <P> group,
+--               a primary (call -> spawn)
 --      2_pre  : !p
---      3_bin  : p&&p | p||p | p until c | p while c
+--      3_bin  : p&&p | p||p | p until (c) | p while (c)
 --    level-3 combinators chain same-op only: mixing them requires
 --    parentheses, mirroring parser_5_bin for expressions
---  - implicit spawn happens once, at the top of parser_await
+--  - inside <>, values are parenthesized (predicate `until (c)`, value
+--    leaf `(E)`); a sub-pattern regroups with a nested <P>
 
 -- builds the lua-atmos combinator table {tag=name, [1]=items[1], ...};
 -- `pat` marks compiler-built patterns (vs verbatim value leaves)
