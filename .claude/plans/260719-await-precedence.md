@@ -134,6 +134,13 @@ node (identical Lua semantics; no tosource test asserts them).
 
 - [x] Bug analysis and design
 - [x] Implementation (`src/await.lua` rewritten with levels)
+- [x] Refactors: no rewrite pass (`await_ast_spawn`), leaf
+      inlined into prim, levels as globals (as `parser.lua`),
+      single parse path with bare-form post-check ("error back")
+- [x] Breaking (accepted): bare `await` + trailing value op errs
+      (`await 20min + 1s` -> use `await(20min) + 1s`); bare
+      `await :X || :Y` errs (was footgun `(await :X) || :Y`);
+      updated `tst/expr.lua` accordingly
 - [ ] Tests pass (user runs `cd tst && lua5.4 all.lua`)
 - [ ] New tests for the fixed forms
 - [ ] Manual update

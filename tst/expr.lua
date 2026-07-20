@@ -1433,14 +1433,15 @@ do
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near ',' : expected ')'")
 
+    -- bare await accepts a single primary only: value operations
+    -- err and require the delimited form `await(20min) + 1s`
     local src = "await 20min + 1s"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
-    local e = parser()
-    assert(check('<eof>'))
-    assertx(tosource(e), "(await(20min) + 1s)")
+    local ok, msg = pcall(parser)
+    assertx(msg, "anon : line 1 : near '<eof>' : invalid await : unexpected expression")
 
     local src = "await (20min + (x*1s) + 100ms)"
     print("Testing...", src)
