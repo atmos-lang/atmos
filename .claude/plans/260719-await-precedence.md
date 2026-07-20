@@ -137,10 +137,14 @@ node (identical Lua semantics; no tosource test asserts them).
 - [x] Refactors: no rewrite pass (`await_ast_spawn`), leaf
       inlined into prim, levels as globals (as `parser.lua`),
       single parse path with bare-form post-check ("error back")
+- [x] Bare check simplified to AST-only allow-list (no token
+      pre-gate): pat tables except and/or/not; leaves
+      tag/clk/str/nat/table/proto/call
 - [x] Breaking (accepted): bare `await` + trailing value op errs
       (`await 20min + 1s` -> use `await(20min) + 1s`); bare
       `await :X || :Y` errs (was footgun `(await :X) || :Y`);
       updated `tst/expr.lua` accordingly
+- [x] Manual: grammar block updated (staged); extra prose +
+      Ambiguities row removal -> WON'T DO (user's call)
+- [ ] New tests for the fixed forms (not yet added)
 - [ ] Tests pass (user runs `cd tst && lua5.4 all.lua`)
-- [ ] New tests for the fixed forms
-- [ ] Manual update

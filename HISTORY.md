@@ -10,6 +10,7 @@ v0.8 (???/??)
 
 - Modifications:
     - tag indexing `@:x` no longer requires parens (`@(:x)`)
+    - `await` precedence: bin (`&&`), pre (`!`), prim (`1h`)
 
 - Fixes:
     - `return` crosses (ignores) transparent `spawn`

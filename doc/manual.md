@@ -2100,15 +2100,20 @@ An `await` suspends a [task](#tasks) until a matching [emit](#emit) occurs:
 
 ```
 Await : `await´ `(´ Patt `)´
-      | `await´ Patt            ;; restricted to tags, time, T(...)
-Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr]
-      | (`until´|`while´) Expr
+      | `await´ Patt                    ;; restricted (tags, time, T(...))
+Patt  : Patt (`until´|`while´) Expr     ;; (3) lower precedence
+      | Patt (`&&´|`||´) Patt           ;; (3)
+      | `!´ Patt                        ;; (2)
+      | `:any´|`:all´ Expr              ;; (1)
+      | (`until´|`while´) Expr          ;; (1)
+      | `(´ Patt `)´                    ;; (1) higher precedence
+      | Expr                            ;; simple expr (:X, v, T())
 ```
 
 When awaking, an `await` evaluates to its matching event value.
 
-For the first format, a task awakes when an `emit(e)` matches the given await
-pattern `Patt` as follows:
+A task awakes when an `emit(e)` matches the given await pattern `Patt` as
+follows:
 
 | Group     | Pattern       | matches       | returns   |
 |-----------|---------------|---------------|-----------|
@@ -2729,8 +2734,13 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
 
 At    : `@´ (`(´ Expr `)´ | NUM | ID)   ;; @-qualifier (index/key/pool/target)
 
-Patt  : [`:any´|`:all´] Expr [(`until´|`while´) Expr]   ;; await pattern
+Patt  : Patt (`until´|`while´) Expr     ;; await patterns
+      | Patt (`&&´|`||´) Patt
+      | `!´ Patt
+      | `:any´|`:all´ Expr
       | (`until´|`while´) Expr
+      | `(´ Patt `)´
+      | Expr
 
 ID    : [A-Za-z_][A-Za-z0-9_]*      ;; variable identifier
 TAG   : :[A-Za-z0-9_\.]+            ;; tag
@@ -2747,7 +2757,6 @@ may surprise a naive reading:
 
 | #                 | case                  | what it is              | what it is **not**       |
 |-------------------|-----------------------|-------------------------|--------------------------|
-| [await](#await)   | `await :X \|\| :Y`    | `(await :X) \|\| :Y`    | `await(:X \|\| :Y)`      |
 | [await](#await)   | `await P` ⏎ `until c` | `await P ; until(c)`    | `await(P until c)`       |
 | [table](#table)   | `:X` ⏎ `[]`           | `:X ; []`               | `:X []`                  |
 | [calls](#calls)   | `f` ⏎ `(x)`           | `f ; (x)`               | `f(x)`                   |

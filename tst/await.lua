@@ -1,13 +1,6 @@
 local X = require "atmos.x"
 require "atmos.lang.exec"
 
--- AWAIT COMBINATOR OPERATORS: &&  ||  !
---
--- Combinator operators inside `await` require the parenthesized form
--- `await(...)`. The bare form `await :X || :Y` is a user logic error:
--- it compiles as `(await :X) || :Y` (logical OR on the await result).
--- Not enforced -- documented as a rule.
-
 do
     local src = [[
         spawn {
