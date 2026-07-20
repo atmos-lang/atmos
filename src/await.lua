@@ -46,8 +46,9 @@ end
 local function await_ast_spawn (e)
     if is_task_call(e) then
         return mk_tagged('spawn', e.f, table.unpack(e.es))
+    else
+        return e
     end
-    return e
 end
 
 -- until/while predicate: a \{} function, or an expression wrapped as
@@ -71,9 +72,9 @@ local function parse_pred ()
 end
 
 -- level 1: leaf patterns.
--- esc=true : first operand inside parens -> a lone call stays
+-- parens=true : first operand inside parens -> a lone call stays
 -- verbatim (value escape); level 3 re-wraps it if combined
-function parser_await_1_prim (esc)
+function parser_await_1_prim (parens)
     -- :any ts / :all ts
     if accept(':any','tag') or accept(':all','tag') then
         return { tag='table', pat=true, es={
@@ -115,28 +116,30 @@ function parser_await_1_prim (esc)
             e1 = { tag='bin', op=op, e1=e1, e2=parser_4_pre() }
         end
 
-        if esc then
+        if parens then
             return e1
+        else
+            return await_ast_spawn(e1)
         end
-        return await_ast_spawn(e1)
     end
 end
 
 -- level 2: !p
-function parser_await_2_pre (esc)
-    local ok = check(nil,'op') and TK1.str=='!'
-    if not ok then
-        return parser_await_1_prim(esc)
+function parser_await_2_pre (parens)
+    local ok = (check(nil,'op') and TK1.str=='!')
+    if ok then
+        accept_err(nil,'op')
+        return mk_tagged('not', parser_await_2_pre())
+    else
+        return parser_await_1_prim(parens)
     end
-    accept_err(nil,'op')
-    return mk_tagged('not', parser_await_2_pre())
 end
 
 -- level 3: p&&p | p||p | p until c | p while c.
 -- same-op chaining only: mixing errs, mirroring parser_5_bin;
 -- until/while accept no separator before them (as the suffix form)
-function parser_await_3_bin (esc)
-    local e1 = parser_await_2_pre(esc)
+function parser_await_3_bin (parens)
+    local e1 = parser_await_2_pre(parens)
     local op0 = nil
     while true do
         local op
@@ -147,13 +150,13 @@ function parser_await_3_bin (esc)
         else
             return e1
         end
-        if op0 and op0 ~= op.str then
+        if op0 and op0~=op.str then
             err(op, "operation error : use parentheses to disambiguate")
         end
         op0 = op.str
-        if esc then
+        if parens then
             e1 = await_ast_spawn(e1)
-            esc = nil
+            parens = nil
         end
         if op.str=='until' or op.str=='while' then
             e1 = mk_tagged(op.str, e1, parse_pred())
@@ -164,27 +167,30 @@ function parser_await_3_bin (esc)
     end
 end
 
--- parses one await pattern with the full grammar (levels 1-3).
--- full=false : bare `await PAT` -> the result must be a single
--- primary or spawn, with an optional until/while; combinators and
--- loose expressions err and require `await(...)`
+-- Parses one await pattern with the full grammar (levels 1-3)
+-- If full=false, check if AST is valid
 function parser_await (full)
     local pat = parser_await_3_bin()
 
     if not full then
-        -- bare `await PAT`: a single primary or spawn, with an
-        -- optional until/while; combinators and value expressions
-        -- require await(...)
+        -- await PAT:
+        --  - await :X
+        --  - await :X until f()
+        -- check if :X is valid
         local e = pat
         local top = e.pat and e.es[1].v.tk.str
         if (top=='until' or top=='while') and #e.es==3 then
+            -- await :X until f()
+            -- extract :X to check below
             e = e.es[2].v
             top = e.pat and e.es[1].v.tk.str
         end
         local ok; do
             if e.pat then
+                -- all parsed as `pat`, except these
                 ok = (top~='and') and (top~='or') and (top~='not')
             else
+                -- none parsed as expr, except these
                 ok = contains({'tag','clk','str','nat','table','proto','call'}, e.tag)
             end
         end
