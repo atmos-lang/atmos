@@ -1,152 +1,117 @@
-# Plan: dedicated await-pattern parser with precedence levels
+# Plan: await-pattern parser (precedence + explicit spawn)
 
-## Motivation (reported bugs)
+## Phase 1 -- precedence levels (DONE)
 
-```
-watching X() || true until c        ;; parses as (X()||true) until c:
-                                    ;; X aborted+respawned per event
-watching Hold(:X) || until c        ;; `until` becomes loop-break
-                                    ;; atm_until: parse/runtime error
-```
-
-Today `parser_await` (`src/await.lua`) parses patterns with the
-generic expression parser and rewrites the AST after the fact
-(`await_ast_logical`):
-
-- `until`/`while` are only whole-pattern prefix/suffix, silently
-  binding outside `||`/`&&`
-- bare `until c` is invalid as a `||` operand: `until` parses as
-  an identifier (`src/prim.lua:680-681`) and gets miscoded as the
-  loop-break `atm_until` (`src/coder.lua:49,58-59`)
-- the intended grouping `(true until c)` is a parse error
-
-The runtime already supports nested combinator tables
-(`lua-atmos/atmos/run.lua:506-512`), so this is compiler-only.
-
-## Design
-
-Replace the rewrite approach with a dedicated recursive-descent
-pattern parser, `parser_await_N_*`, mirroring the expression
-cascade `parser_1_prim`..`parser_7_out`.
-
-### Levels
+Replaced the post-parse rewrite with a leveled recursive-descent
+pattern parser in `src/await.lua`, mirroring the expression cascade.
 
 | level | function              | forms                          |
 |-------|-----------------------|--------------------------------|
-| 1     | `parser_await_1_prim` | leaf patterns (below)          |
+| 1     | `parser_await_1_prim` | leaves, `:any`/`:all`, `until c`, `(p)` |
 | 2     | `parser_await_2_pre`  | `!p`                           |
-| 3     | `parser_await_3_bin`  | `p && q` , `p || q` ,          |
-|       |                       | `p until c` , `p while c`      |
+| 3     | `parser_await_3_bin`  | `&&` `||` `until` `while` (one level, same-op only) |
 
-- Level 3 mirrors `parser_5_bin` (`src/parser.lua:376-388`):
-  same-op chaining only; mixing `&&`/`||`/`until`/`while`
-  without parens errs "use parentheses to disambiguate"
-- `&&`/`||` rhs recurses level 2; `until`/`while` rhs is an
-  expression via `parser()` (wrapped `\it -> e`, as `parse_pred`)
+Outcome (shipped, `214a36e`):
 
-### Prims (level 1)
+- both reported bugs fixed:
+  `X() || (true until c)` and `Hold(:X) || until c` parse
+- mixing combinators without parens errs, as `parser_5_bin`
+- bare `await` accepts a single primary/spawn (+ optional
+  `until`/`while`); combinators and value ops require `await(...)`
+- grammar block in `doc/manual.md`
 
-| prim                  | result                                 |
-|-----------------------|----------------------------------------|
-| `:X [v]`              | tag (+ payload), as today              |
-| `@1` / `@(e)`         | clock                                  |
-| `:any e` / `:all e`   | pool shortcut (today's PRE shortcut)   |
-| `until c` / `while c` | bare predicate, = `true until c`;      |
-|                       | now valid as a `||`/`&&` operand       |
-| `T(...)` / `f :X`     | call -> `{tag='spawn', ...}`           |
-| `(PAT)`               | grouping: recurse level 3              |
-| `(expr)`              | value escape: lone call or plain expr  |
-|                       | stays verbatim (generalizes `(f())`)   |
+## Phase 2 -- explicit spawn for operands (ACTIVE)
 
-Bare ids/literals remain parens-only (`await(x)`), as today.
+### Problem
 
-### Resulting behavior
+A call in a pattern is overloaded: `T()` spawns-and-awaits, while a
+value-await needs the `((f()))` escape.
+This overload is the sole reason for the `parens`/deferred-spawn
+machinery in `parser_await` (the `parens` flag, the operand
+`await_ast_spawn`, the double-paren escape).
+
+### Rule
+
+A bare call implicitly spawns ONLY when it is the entire pattern
+(the statement-head positions).
+As an operand of any combinator, a bare call is a value; a task
+requires an explicit `spawn` prefix.
+
+| form                         | meaning            | today       |
+|------------------------------|--------------------|-------------|
+| `await T()`                  | spawn + await task | same        |
+| `watching T()`               | spawn + await      | same        |
+| `loop on T()`                | spawn + await      | same        |
+| `toggle .. T()`              | spawn + await      | same        |
+| `await(f())`                 | value-await        | was spawn   |
+| `await(spawn T())`           | spawn + await      | was `await(T())` |
+| `await(spawn T() || :X)`     | task races `:X`    | new         |
+| `:any [spawn T(), spawn U()]`| pool of tasks      | needs spawn |
+
+### Why it simplifies
+
+Operands become unambiguous (bare call = value, `spawn` = task),
+which removes:
+
+- the `parens` flag threaded through levels 1-3
+- the operand `await_ast_spawn` promotion in the bin loop
+- the `((f()))` value escape (inside `(...)` a call is already a
+  value; `await(f())` IS the value-await)
+
+`spawn` becomes an explicit prim (like `:any` / `until`).
+The only implicit spawn is a single post-parse check at each entry
+point: "if the whole pattern is a lone call -> spawn it".
+
+### Parens
+
+Parens are grouping and do not change task-vs-value meaning, EXCEPT
+an extra paren layer around a call is the value-escape:
+
+- outer delimiter (`await(...)`): stripped by `prim.lua`, so
+  `await(T())` == `await T()`
+- nested `(p)` where `p` is a pattern: grouping, returns `p`
+- nested `(call)` / `(value)`: value-escape, stays a `parens` node
+  (never spawns) -- keeps the `((f()))` escape
+
+Implicit spawn is decided once, at the top of `parser_await`:
+if the whole pattern is a BARE, unwrapped lone call -> spawn it.
+A `parens`-wrapped call fails this check, so `((T()))` is a value.
+Operands never implicit-spawn.
 
 ```
-watching X() || true until c    ;; ERROR: use parentheses
-watching X() || (true until c)  ;; ok, explicit
-watching (X() || true) until c  ;; ok, explicit (respawn opt-in)
-watching Hold(:X) || until c    ;; ok: until-prim as operand
+await T()          ;; bare lone call -> spawn
+await(T())         ;; outer stripped -> lone call -> spawn
+await((T()))       ;; nested (T()) -> parens node -> VALUE
+await(T() || :X)   ;; operand call -> value; spawn for a task
+await(spawn T())   ;; explicit task
 ```
 
-### Settled design points
+### Steps
 
-- Parens ambiguity: a lone call in parens = value escape
-  (today's rule); grouping only matters for combinators
-- Predicate extent: `until c1 && c2` swallows `&&` into the
-  predicate (matches `parse_pred` doc); resume pattern
-  combinators by closing the group: `(p until c) || q`
-- acc-`until` hack (`src/prim.lua:680-681`) stays for loop-break
-  statements; patterns no longer route through it
+- [x] `parser_await_1_prim`: add `spawn` prim -> `{tag='spawn', ...}`
+      (keep the `(` branch: pattern -> grouping, else parens-wrap)
+- [x] remove the `parens` flag from levels 1-3 and the bin-loop
+      `await_ast_spawn` (operands stay as parsed: bare call = value)
+- [x] `parser_await` top: single implicit-spawn for a bare lone
+      call (verified against local `src/`)
+- [x] update tests that used implicit operand spawn: `tst/await.lua`
+      `watching T() || :X` -> `watching spawn T() || :X` (2 tests,
+      runtime-verified); `tst/expr.lua` operand-value assertions.
+      Full scan: no other implicit-operand-spawn in tests/examples
+- [ ] `doc/manual.md`: grammar + the implicit/explicit spawn rule
 
-## Steps
+### Costs (breaking)
 
-- [ ] `src/await.lua`: implement `parser_await_1_prim`,
-      `parser_await_2_pre`, `parser_await_3_bin`
-    - entry `parser_await(stop)` dispatches to level 3
-    - keep `:any`/`:all` and bare `until`/`while` as prims
-    - build combinator tables directly via `mk_tagged`
-      (replaces `await_ast_logical` rewrite)
-    - keep bare-await gating (`stop==nil`): base must start as
-      call-arg token or parse into a call
-- [ ] error message for mixed ops:
-      "operation error : use parentheses to disambiguate"
-      (same as `parser_5_bin`)
-- [ ] verify call sites: `await`, `watching`, `toggle with`
-      (stop=','), `loop on`, `every` -- all via `parser_await`
-- [ ] `doc/manual.md` (await patterns section):
-    - pattern grammar with the 3 levels
-    - no-mixing rule and parens grouping
-    - `until c` operand form; value-escape rule
-
-## Compatibility
-
-- unchanged: `p until c` (single base), prefix `until c`,
-  `:any`/`:all`, `(f())` escape, `((x))` unwrapping, tag
-  payloads, clocks, bare-await form, mixed `||`/`&&` error
-  (same message, same near-token)
-- breaking (intended): unparenthesized `p || q until c` and
-  `p && q until c` now err instead of silently meaning
-  `(p || q) until c` (no test used these forms)
-- relaxed (intended): value ops now bind tighter than pattern
-  combinators, so `await(a + b || c)` is valid (was: mixing
-  error) -- levels imply value-vs-pattern precedence
-- new: `p until a until b` chains (same-op rule)
-- corner: `(a, b)` es-lists no longer parse in pattern leaf
-  base position (no test/example uses them in patterns)
-
-## Final leaf rule (Option B)
-
-`await_ast_logical` removed: the grammar carries the semantics.
-The whole leaf rule is `await_ast_spawn`: a bare task call
-spawns; anything else is a value leaf. Parens escape by
-construction (`(f())` is a parens node, not a bare call) -- no
-unwrap pass. AST difference: escaped leaves keep their `parens`
-node (identical Lua semantics; no tosource test asserts them).
+- composed task patterns gain `spawn`
+  (`T() || ..`, `!T()`, `:any [T()]`)
+- `T()` is context-dependent: task when it is the whole pattern,
+  value as an operand
+- unchanged: bare `await T()`, `((f()))` value-escape
 
 ## Won't do
 
-- implicit precedence between `until` and `||`/`&&` (violates
-  the no-precedence rule)
+- make `spawn` obligatory everywhere (taxes the common
+  `await T()`; reverts the phase-1 compose intent)
+- implicit precedence between `until` and `||`/`&&`
 - runtime changes (nested tables already supported)
 
-## Progress
-
-- [x] Bug analysis and design
-- [x] Implementation (`src/await.lua` rewritten with levels)
-- [x] Refactors: no rewrite pass (`await_ast_spawn`), leaf
-      inlined into prim, levels as globals (as `parser.lua`),
-      single parse path with bare-form post-check ("error back")
-- [x] Bare check simplified to AST-only allow-list (no token
-      pre-gate): pat tables except and/or/not; leaves
-      tag/clk/str/nat/table/proto/call
-- [x] Breaking (accepted): bare `await` + trailing value op errs
-      (`await 20min + 1s` -> use `await(20min) + 1s`); bare
-      `await :X || :Y` errs (was footgun `(await :X) || :Y`);
-      updated `tst/expr.lua` accordingly
-- [x] Manual: grammar block updated (staged); extra prose +
-      Ambiguities row removal -> WON'T DO (user's call)
-- [x] New tests for the fixed forms (`tst/expr.lua`): both
-      compose forms + mixing error + bare-combinator error
-      (assertions verified against local `src/`)
-- [x] Tests pass (confirmed by user)

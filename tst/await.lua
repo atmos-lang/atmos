@@ -151,7 +151,8 @@ end
 -- value. See plan: .claude/plans/260713-await-patt-task.md
 
 do
-    -- regression anchor: bare `await T()` already spawns via runtime sugar
+    -- regression anchor: bare `await T()` is a whole-pattern lone call,
+    -- so it spawns (implicit spawn at the top of parser_await)
     local src = [[
         task T (v) {
             v * 2
@@ -165,13 +166,13 @@ do
     local out = atm_test(src)
     assertx(out, "20\n")
 
-    -- SPEC: `watching T() || :X` -- event wins, T aborted silently
+    -- SPEC: `watching spawn T() || :X` -- event wins, T aborted silently
     local src = [[
         task T () {
             await(:done)
         }
         spawn {
-            watching T() || :X {
+            watching spawn T() || :X {
                 await(:never)
             }
             print(:ok)
@@ -182,14 +183,14 @@ do
     local out = atm_test(src)
     assertx(out, "ok\n")
 
-    -- SPEC: `watching T() || :X` -- task termination wins
+    -- SPEC: `watching spawn T() || :X` -- task termination wins
     local src = [[
         task T () {
             await(:done)
             print(:T)
         }
         spawn {
-            watching T() || :X {
+            watching spawn T() || :X {
                 await(:never)
             }
             print(:ok)

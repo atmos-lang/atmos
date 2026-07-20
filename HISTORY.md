@@ -2,15 +2,16 @@ v0.8 (???/??)
 -------------
 
 - Additions:
-    - `await` patterns:
-        - `T()` also in `loop on`, `watching`
     - `task` as expression: current running task
     - `task` dot declarations: `task M.T (...)`
     - `pin t = spawn { ... }`: inline task
 
 - Modifications:
     - tag indexing `@:x` no longer requires parens (`@(:x)`)
-    - `await` precedence: bin (`&&`), pre (`!`), prim (`1h`)
+    - `await` patterns:
+        - bare `await T()` also in `loop on`, `watching`, etc
+        - non-bare `spawn T()` elsewhere (`:X || spawn T()`)
+        - precedence: bin (`&&`), pre (`!`), prim (`1h`)
 
 - Fixes:
     - `return` crosses (ignores) transparent `spawn`

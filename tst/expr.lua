@@ -1552,8 +1552,9 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=:X, @(2)=[@(:tag)=\"until\", @(1)=:Y, @(2)=func (it) {\nc\n}]])")
 
-    -- base-less `until c` composes as a `||` operand (task race)
-    local src = "await(T() || until c)"
+    -- base-less `until c` composes as a `||` operand (task race);
+    -- an operand task needs the explicit `spawn` prefix
+    local src = "await(spawn T() || until c)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1561,6 +1562,16 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=[@(:tag)=\"spawn\", @(1)=T], @(2)=[@(:tag)=\"until\", @(1)=func (it) {\nc\n}]])")
+
+    -- a bare operand call is a VALUE, not a spawn
+    local src = "await(T() || :X)"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=T(), @(2)=:X])")
 
     -- mixing `||` and `until` at the same level requires parens
     local src = "await(:X || :Y until c)"
