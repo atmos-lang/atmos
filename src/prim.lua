@@ -165,7 +165,7 @@ function parser_1_prim ()
             local tk = TK0
             local awt
             if accept('(') then
-                awt = parser_await(')')
+                awt = parser_await(true)
                 accept_err(')')
             else
                 awt = parser_await()
@@ -200,7 +200,7 @@ function parser_1_prim ()
                     filter = parser_list_1 (
                         ',',
                         '{',
-                        function () return parser_await('{') end
+                        function () return parser_await(true) end
                     )
                 end
                 local blk = parser_block()
@@ -227,7 +227,7 @@ function parser_1_prim ()
                     filter = parser_list_1 (
                         ',',
                         function () return false end,
-                        function () return parser_await(',') end
+                        function () return parser_await(true) end
                     )
                 end
                 return parser_7_out({ tag='call', f=cmd, es=concat(call.es,filter) })
@@ -653,7 +653,7 @@ function parser_1_prim ()
         local ids = check(nil,'id') and parser_ids('in') or nil
         if accept('on') then
             -- loop { val IDS = await(PAT) ; BODY }
-            local awt = parser_await('{')
+            local awt = parser_await(true)
             local blk = parser_block()
             local call = {
                 tag = 'call',
@@ -715,7 +715,7 @@ function parser_1_prim ()
             }
         -- watching
         elseif accept('watching') then
-            local awt = parser_await('{')
+            local awt = parser_await(true)
             local blk = parser_block()
             return {
                 tag = 'call',

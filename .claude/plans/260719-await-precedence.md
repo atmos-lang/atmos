@@ -102,9 +102,27 @@ watching Hold(:X) || until c    ;; ok: until-prim as operand
 ## Compatibility
 
 - unchanged: `p until c` (single base), prefix `until c`,
-  `:any`/`:all`, `(f())` escape, tag payloads, clocks
-- breaking (intended): unparenthesized `p || q until c` now errs
-  instead of silently meaning `(p || q) until c`
+  `:any`/`:all`, `(f())` escape, `((x))` unwrapping, tag
+  payloads, clocks, bare-await form, mixed `||`/`&&` error
+  (same message, same near-token)
+- breaking (intended): unparenthesized `p || q until c` and
+  `p && q until c` now err instead of silently meaning
+  `(p || q) until c` (no test used these forms)
+- relaxed (intended): value ops now bind tighter than pattern
+  combinators, so `await(a + b || c)` is valid (was: mixing
+  error) -- levels imply value-vs-pattern precedence
+- new: `p until a until b` chains (same-op rule)
+- corner: `(a, b)` es-lists no longer parse in pattern leaf
+  base position (no test/example uses them in patterns)
+
+## Final leaf rule (Option B)
+
+`await_ast_logical` removed: the grammar carries the semantics.
+The whole leaf rule is `await_ast_spawn`: a bare task call
+spawns; anything else is a value leaf. Parens escape by
+construction (`(f())` is a parens node, not a bare call) -- no
+unwrap pass. AST difference: escaped leaves keep their `parens`
+node (identical Lua semantics; no tosource test asserts them).
 
 ## Won't do
 
@@ -115,5 +133,7 @@ watching Hold(:X) || until c    ;; ok: until-prim as operand
 ## Progress
 
 - [x] Bug analysis and design
-- [ ] Implementation
+- [x] Implementation (`src/await.lua` rewritten with levels)
+- [ ] Tests pass (user runs `cd tst && lua5.4 all.lua`)
+- [ ] New tests for the fixed forms
 - [ ] Manual update
