@@ -2221,21 +2221,37 @@ do {
 An `await` suspends a [task](#tasks) until a matching [emit](#emit) occurs:
 
 ```
-Await : `await´ `(´ Patt `)´
-      | `await´ Patt                    ;; restricted (tags, time, T(...))
-Patt  : Patt (`until´|`while´) Expr     ;; (3) lower precedence
-      | Patt (`&&´|`||´) Patt           ;; (3)
-      | `!´ Patt                        ;; (2)
-      | `:any´|`:all´ Expr              ;; (1)
-      | (`until´|`while´) Expr          ;; (1)
-      | `(´ Patt `)´                    ;; (1) higher precedence
-      | Expr                            ;; simple expr (:X, v, T())
+Await : `await´ Patt
+Patt  : Bare | `<´ Full `>´                 ;; bare or full patterns
+Bare  : [`:any´ | `:all´] Expr [ Pred ]
+      | Pred
+Full  : Full Pred                           ;; (3) lower precedence
+      | Full (`&&´ | `||´) Full             ;; (3)
+      | `!´ Full                            ;; (2)
+      | (`:any´ | `:all´) Expr              ;; (1)
+      | Pred                                ;; (1)
+      | `<´ Full `>´                        ;; (1)
+      | Expr                                ;; (1) higher precedence
+Pred  : (`until´ | `while´) `(´ Expr `)´
 ```
+
+The bare form accepts one of the following atomic patterns, with an optional
+predicate:
+
+- a value or event to match (`:X`, `:X [v]`, `x`, `true`)
+- a clock duration (`1h`)
+- a task to spawn (`T()`)
+- a pool (`:any ts`, `:all ts`)
+- a base-less predicate alone (`until (c)`)
+
+The full combinators (`!`, `&&`, `||`, and the `until`/`while` suffix) require
+the `<...>` form, with angle brackets (instead of parenthesis) as delimiters.
+Like [expressions](#precedence-and-associativity), combinators share one
+precedence level and require brackets for disambiguation.
 
 When awaking, an `await` evaluates to its matching event value.
 
-A task awakes when an `emit(e)` matches the given await pattern `Patt` as
-follows:
+A task awakes when an `emit(e)` matches the given await pattern as follows:
 
 | Group     | Pattern       | matches       | returns   |
 |-----------|---------------|---------------|-----------|
@@ -2263,9 +2279,11 @@ Note that some patterns may modify the final result:
 - Tasks: task result, terminating task, and task pool
 - Condition, Meta: function result (defaults to `e` if `true`)
 
-A call in a pattern (e.g., `await T()`) [spawns](#spawn) the given task and
-awaits its termination, evaluating to the task final value.
-To await the result of a call, wrap it in parentheses (e.g., `await ((f()))`).
+A bare call (e.g., `await T()`, or as an operand `await<T() || :X>`)
+[spawns](#spawn) the given task and awaits its termination, evaluating to the
+task final value.
+To await the result of a call instead of spawning it, use the value form:
+`await(f())` at top level, or `(f())` as a leaf inside `<>`.
 
 A pattern is evaluated eagerly, once, when the await starts, including the
 arguments of a spawned call.
@@ -2277,13 +2295,13 @@ Examples:
 <!-- exs/exp-26-await.atm -->
 
 ```
-await(false)                   ;; never awakes
-await :Key [:escape]           ;; awakes on a :Key :escape event
-await 1h10min30s               ;; awakes after the given time
-await until it && (it@1 > 10)  ;; awakes if event index 1 > 10
-await(:X && :Y)                ;; awakes after both :X and :Y occur in any order
-await(!:X)                     ;; awakes on any non-:X event
-await(:X until it.n==3)        ;; awaits :X until its field n equals 3
+await(false)                    ;; never awakes
+await :Key [:escape]            ;; awakes on a :Key :escape event
+await 1h10min30s                ;; awakes after the given time
+await until (it && (it@1 > 10)) ;; awakes if event index 1 > 10
+await <:X && :Y>                ;; awakes after both :X and :Y in any order
+await <!:X>                     ;; awakes on any non-:X event
+await <:X until (it.n==3)>      ;; awaits :X until its field n equals 3
 ```
 
 ```
@@ -2306,13 +2324,14 @@ print(v)                ;; --> 20
 pin ts = tasks()
 spawn @ts T()
 spawn @ts T()
-val e = await(:any ts)  ;; awaits any task to terminate
-await(:all ts)          ;; awaits all tasks (pool drains)
+val e = await :any ts   ;; awaits any task to terminate
+await :all ts           ;; awaits all tasks (pool drains)
 ```
 
 See [Ambiguities](#ambiguities):
-    `await :X || :Y` reads as `(await :X) || :Y` (not `await(:X || :Y)`); and
-    `await :X` ⏎ `until (c)` reads as `await :X ; until(c)` (not `await(:X until (c))`).
+    a bare `await :X || :Y` is invalid (combinators need `await<:X || :Y>`);
+    and `await :X` ⏎ `until (c)` reads as `await :X ; until(c)` (not
+    `await<:X until (c)>`).
 
 <a name="emit"/>
 
@@ -2431,7 +2450,8 @@ emit(:Draw)         ;; --> draw
 ```
 
 See [Ambiguities](#ambiguities):
-    `with :a until c, :b` reads as `with :a (until c, :b)` (not `with (:a until c), :b`).
+    `with :a until (c), :b` reads as `with :a (until (c), :b)` (not
+    `with <:a until (c)>, :b`).
 
 <a name="parallel"/>
 
@@ -2504,13 +2524,13 @@ A `watching` spawns and awaits a block as a [transparent task](#tasks) until an
 Watching : `watching´ Patt Block
 ```
 
-A `watching <e> { <body> }` is equivalent to a `par :any` as follows:
+A `watching P { B }` is equivalent to a `par :any` as follows:
 
 ```
 par :any {
-    await <e>
+    await P
 } with {
-    <body>
+    B
 }
 ```
 
@@ -2884,7 +2904,7 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
       | `spawn` [At] Expr `(´ Expr* `)`             ;; spawn task
       | `spawn´ Block                               ;; spawn block
 
-      | `await´ (Patt | `(´ Patt `)´)               ;; await pattern
+      | `await´ Patt                                ;; await pattern
       | `emit´ [At] `(´ Expr* `)´                   ;; emit event
 
       | `toggle´ Expr `(´ Expr `)´ [`with´ Patt {`,´ Patt}] ;; toggle task
@@ -2898,13 +2918,17 @@ Expr  : `do´[TAG]  Block                            ;; explicit block
 
 At    : `@´ (`(´ Expr `)´ | NUM | ID)   ;; @-qualifier (index/key/pool/target)
 
-Patt  : Patt (`until´|`while´) Expr     ;; await patterns
-      | Patt (`&&´|`||´) Patt
-      | `!´ Patt
-      | `:any´|`:all´ Expr
-      | (`until´|`while´) Expr
-      | `(´ Patt `)´
+Patt  : Bare | `<´ Full `>´             ;; bare or full pattern
+Bare  : [`:any´|`:all´] Expr [Pred]     ;; bare: one primary + predicate
+      | Pred                            ;; base-less predicate
+Full  : Full Pred                       ;; <> combinators (one level)
+      | Full (`&&´|`||´) Full
+      | `!´ Full
+      | (`:any´|`:all´) Expr
+      | Pred
+      | `<´ Full `>´
       | Expr
+Pred  : (`until´|`while´) `(´ Expr `)´  ;; until/while predicate
 
 ID    : [A-Za-z_][A-Za-z0-9_]*      ;; variable identifier
 TAG   : :[A-Za-z0-9_\.]+            ;; tag
@@ -2923,11 +2947,12 @@ may surprise a naive reading:
 
 | #                 | case                  | what it is              | what it is **not**       |
 |-------------------|-----------------------|-------------------------|--------------------------|
-| [await](#await)   | `await P` ⏎ `until c` | `await P ; until(c)`    | `await(P until c)`       |
+| [await](#await)   | `await 20min + 1s`    | `(await 20min) + 1s`    | `await(20min + 1s)`      |
+| [await](#await)   | `await P` ⏎ `until (c)` | `await P ; until(c)`   | `await<P until (c)>`     |
 | [table](#table)   | `:X` ⏎ `[]`           | `:X ; []`               | `:X []`                  |
 | [calls](#calls)   | `f` ⏎ `(x)`           | `f ; (x)`               | `f(x)`                   |
 | [calls](#calls)   | `f :X []`             | `f(:X [])`              | `f(:X) []`               |
 | [pipes](#pipes)   | `x<-y`                | `y(x)`                  | `x < (-y)`               |
 | [tasks](#tasks)   | `task` ⏎ `(x)`        | `task ; (x)`            | `task(x)`                |
-| [toggle](#toggle) | `with :a until c, :b` | `with :a (until c, :b)` | `with (:a until c), :b`  |
+| [toggle](#toggle) | `with :a until (c), :b` | `with :a (until (c), :b)` | `with <:a until (c)>, :b` |
 | [lambda](#lambda) | `\-`                  | `\(a,b){ a - b }`       | `\(a){ -a }`             |
