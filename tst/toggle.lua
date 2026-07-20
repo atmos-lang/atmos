@@ -11,7 +11,7 @@ print '--- TOGGLE FILTER : PARSE ---'
 
 do
     -- call form : && combinator
-    local src = "toggle t(false) with :a && :b"
+    local src = "toggle t(false) with <:a && :b>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -21,7 +21,7 @@ do
     assertx(tosource(e), "toggle(t, false, [@(:tag)=\"and\", @(1)=:a, @(2)=:b])")
 
     -- call form : || combinator
-    local src = "toggle t(false) with :a || :b"
+    local src = "toggle t(false) with <:a || :b>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -31,7 +31,7 @@ do
     assertx(tosource(e), "toggle(t, false, [@(:tag)=\"or\", @(1)=:a, @(2)=:b])")
 
     -- call form : ! combinator
-    local src = "toggle t(false) with !:a"
+    local src = "toggle t(false) with <!:a>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -51,7 +51,7 @@ do
     assertx(tosource(e), "toggle(t, false, [@(:tag)=\"tasks\", @(:mode)=\"any\", @(:tasks)=ts])")
 
     -- call form : combinator mixed with a plain tag in the list
-    local src = "toggle t(false) with :a && :b, :c"
+    local src = "toggle t(false) with <:a && :b>, :c"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -61,7 +61,7 @@ do
     assertx(tosource(e), "toggle(t, false, [@(:tag)=\"and\", @(1)=:a, @(2)=:b], :c)")
 
     -- block form : combinator
-    local src = "toggle on :X with :a || :b { }"
+    local src = "toggle on :X with <:a || :b> { }"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -77,7 +77,7 @@ end
 do
     -- a single-predicate `until`/`while` stops at the comma, so a
     -- trailing pattern joins the enclosing filter list (no swallowing)
-    local src = "toggle t(false) with :a until c, :b"
+    local src = "toggle t(false) with :a until (c), :b"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -99,7 +99,7 @@ do
         }
         pin t = spawn T()
         emit(:Tick)                            ;; on  -> tick
-        toggle t (false) with :Draw || :Click  ;; off, both pass
+        toggle t (false) with <:Draw || :Click>  ;; off, both pass
         emit(:Draw)                            ;; passes -> draw
         emit(:Click)                           ;; passes -> click
         emit(:Tick)                            ;; gated

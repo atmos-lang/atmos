@@ -160,16 +160,10 @@ function parser_1_prim ()
                 table.insert(call.es, 1, to)
             end
             return parser_7_out(call)
-        -- await PAT | await(PAT)
+        -- await P | await(E) | await<PAT>
         elseif accept('await') then
             local tk = TK0
-            local awt
-            if accept('(') then
-                awt = parser_await(true)
-                accept_err(')')
-            else
-                awt = parser_await()
-            end
+            local awt = parser_await()
             return {
                 tag = 'call',
                 f   = { tag='acc', tk={tag='id', str='await', lin=tk.lin} },
@@ -200,7 +194,7 @@ function parser_1_prim ()
                     filter = parser_list_1 (
                         ',',
                         '{',
-                        function () return parser_await(true) end
+                        function () return parser_await() end
                     )
                 end
                 local blk = parser_block()
@@ -227,7 +221,7 @@ function parser_1_prim ()
                     filter = parser_list_1 (
                         ',',
                         function () return false end,
-                        function () return parser_await(true) end
+                        function () return parser_await() end
                     )
                 end
                 return parser_7_out({ tag='call', f=cmd, es=concat(call.es,filter) })
@@ -653,7 +647,7 @@ function parser_1_prim ()
         local ids = check(nil,'id') and parser_ids('in') or nil
         if accept('on') then
             -- loop { val IDS = await(PAT) ; BODY }
-            local awt = parser_await(true)
+            local awt = parser_await()
             local blk = parser_block()
             local call = {
                 tag = 'call',
@@ -715,7 +709,7 @@ function parser_1_prim ()
             }
         -- watching
         elseif accept('watching') then
-            local awt = parser_await(true)
+            local awt = parser_await()
             local blk = parser_block()
             return {
                 tag = 'call',

@@ -17,7 +17,7 @@ spawn {
 }
 
 loop {
-    val click = await(:mouse.button.dn until pico.vs.pos.rect(it, rect))
+    val click = await :mouse.button.dn until (pico.vs.pos.rect(it, rect))
     val orig = x.copy(rect)
     set text = "... clicking ..."
     par :any {

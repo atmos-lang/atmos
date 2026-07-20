@@ -969,7 +969,7 @@ do
 end
 
 do
-    local src = "loop it on :X until e1 && e2 {}"
+    local src = "loop it on :X until (e1 && e2) {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -980,7 +980,7 @@ do
 end
 
 do
-    local src = "loop it on :X while e {}"
+    local src = "loop it on :X while (e) {}"
     print("Testing...", src)
     init()
     lexer_init("anon", src)

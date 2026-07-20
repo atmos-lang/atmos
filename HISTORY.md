@@ -10,8 +10,10 @@ v0.8 (???/??)
     - tag indexing `@:x` no longer requires parens (`@(:x)`)
     - `await` patterns:
         - bare `await T()` also in `loop on`, `watching`, etc
-        - non-bare `spawn T()` elsewhere (`:X || spawn T()`)
-        - precedence: bin (`&&`), pre (`!`), prim (`1h`)
+        - pattern expressions between `<...>`:
+            - logical combinators, predicates
+            - precedence: bin (`&&`, `until`), pre (`!`), prim (`1h`)
+            - `await <:X || until (f())>`
 
 - Fixes:
     - `return` crosses (ignores) transparent `spawn`

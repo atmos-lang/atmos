@@ -2320,8 +2320,8 @@ print '--- AWAIT / CLOCK ---'
 do
     local src = [[
         spawn {
-            await(:X until
-                x+10)
+            await <:X until
+                (x+10)>
         }
         emit :X [10]
     ]]

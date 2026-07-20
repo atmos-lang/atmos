@@ -20,7 +20,7 @@ Outcome (shipped, `214a36e`):
   `until`/`while`); combinators and value ops require `await(...)`
 - grammar block in `doc/manual.md`
 
-## Phase 2 -- explicit spawn for operands (ACTIVE)
+## Phase 2 -- explicit spawn for operands (DONE, may be superseded by Phase 3)
 
 ### Problem
 
@@ -30,12 +30,13 @@ This overload is the sole reason for the `parens`/deferred-spawn
 machinery in `parser_await` (the `parens` flag, the operand
 `await_ast_spawn`, the double-paren escape).
 
-### Rule
+### Rule (refined)
 
-A bare call implicitly spawns ONLY when it is the entire pattern
-(the statement-head positions).
-As an operand of any combinator, a bare call is a value; a task
-requires an explicit `spawn` prefix.
+Inside a pattern (bare or `<>`), a bare call SPAWNS -- operand or
+not; there is NO `spawn` keyword. To await a call's value, drop to a
+`(f())` value leaf. The value tier `await(E)` treats calls as values.
+So: `await T()` / `await<T() || :X>` spawn; `await(f())` /
+`await<(f()) || :X>` are values.
 
 | form                         | meaning            | today       |
 |------------------------------|--------------------|-------------|
@@ -108,10 +109,94 @@ await(spawn T())   ;; explicit task
   value as an operand
 - unchanged: bare `await T()`, `((f()))` value-escape
 
+## Phase 3 -- three delimited tiers (PROPOSED)
+
+Split await into three orthogonal grammars, one per delimiter, so
+value and pattern never share syntax:
+
+| tier   | form        | grammar                | notes                     |
+|--------|-------------|------------------------|---------------------------|
+| bare   | `await P`   | one primary            | lone call -> spawn (sugar)|
+| value  | `await(E)`  | value expr (`parser()`)| value-await               |
+| patt   | `await<PAT>`| pattern cascade        | combinators live here     |
+
+Applies equally to `watching< >`, `loop on< >`, `toggle .. with< >`.
+
+### Pattern grammar (inside `<>`)
+
+- leaves: `:X [v]`, clock, `:any`/`:all`, `spawn T(...)`,
+  `until c` / `while c`, `(E)` (value fallback = tier 2)
+- combinators: `!p`, `p && p`, `p || p`, `p until c`, `p while c`
+  (one level, same-op only, mixing errs)
+- grouping: NESTED `<...>` -- `()` is always a value leaf, so a
+  sub-pattern is regrouped with `<>`
+
+```
+await< :X || :Y >
+await< spawn T() || until c >
+await< (a < b) >                ;; value leaf via tier 2
+await< <:X || :Y> until c >     ;; grouping via nested <>
+await(f())                      ;; value-await, no ((..)) escape
+await T()                       ;; bare lone-call spawn
+```
+
+### What it deletes
+
+- the value-op leaf loop and its mixing check (line 109): value
+  ops live in tier 2, never at pattern level
+- the `((f()))` escape: value is plain `await(E)`
+- the `&&`/`||` overload: pattern-or in `<>`, value-or in `()`
+
+`parser_await` becomes a dispatch on the opener:
+bare -> one primary; `(` -> `parser()`; `<` -> the cascade.
+
+### Costs
+
+- new `<>` syntax; lexer special-cases `<`/`>` as delimiters right
+  after `await`/`watching`/`loop on`/`toggle .. with`
+- `<` reads as less-than at a glance
+- broad (mechanical) migration: `await(:X||:Y)` -> `await<:X||:Y>`,
+  `watching T()||:X` -> `watching< spawn T()||:X >`
+- `await(T())` becomes a value-await (bare `await T()` still spawns)
+
+### Predicate parens (resolved blocker)
+
+`>` is both the pattern closer and the comparison operator, so a bare
+predicate `until c` lets `parser()` eat the closing `>`
+(`<:X until c>` -> "expected expression").
+Fix: `until`/`while` predicates are ALWAYS parenthesized -- `until (c)`,
+`while (c)` -- and `parse_pred` consumes the `()` itself, bounding the
+inner parser so it never sees `>`. Uniform (bare too): `await :X
+until (c)`.
+
+### Status
+
+- [x] parser DONE + verified: three-tier dispatch, `<>` cascade,
+      nested `<>` grouping, `spawn` prim, value-op loop removed,
+      `parse_pred` mandatory parens, `:any`/`:all` bounded arg
+- [x] `src/prim.lua`: await/watching/loop-on/toggle call `parser_await()`
+- [x] MIGRATION of all 8 test files -- full suite green against
+      local `src/` (expr, await, toggle, stmt, exec, tasks, +others).
+      Bounding rule inside `<>`: predicates `until (c)`, pool args
+      `:any (E)`, value leaves `(E)`, grouping nested `<>`.
+      Also: `bool` added to bare allow-list (`await true`); bare
+      ident (`watching f`) now errs at parse, not runtime
+- [x] examples: `exs/click-drag-cancel.atm` (only breaking one) migrated
+- [x] `doc/manual.md`: three-tier grammar, escape prose, Await
+      examples, Ambiguities rows (await/toggle). `manual-out.md`
+      regenerates from `manual.md`
+    - `await(:X || :Y)` -> `await<:X || :Y>`
+    - `await(:X until c)` -> `await<:X until (c)>`
+    - `await :X until c` -> `await :X until (c)`
+    - `watching :X||:Y {` -> `watching <:X||:Y> {`
+    - `await((f()))` -> `await(f())`
+    - operand `T()` -> `spawn T()`
+
 ## Won't do
 
 - make `spawn` obligatory everywhere (taxes the common
   `await T()`; reverts the phase-1 compose intent)
 - implicit precedence between `until` and `||`/`&&`
+- braces `{ }` for patterns (clash with block bodies)
 - runtime changes (nested tables already supported)
 

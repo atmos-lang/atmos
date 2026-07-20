@@ -945,9 +945,9 @@ do
         var tk
         set tk = task (v) {
             print(v)
-            val e1 = await until func(e) { e && e@(1) }
+            val e1 = await until (func(e) { e && e@(1) })
             X.print(e1)
-            val e2 = await until \{ it && it@1 }
+            val e2 = await until (\{ it && it@1 })
             X.print(e2)
         }
         print(:1)
@@ -1273,9 +1273,9 @@ do
         var tk
         set tk = task (v) {
             print(v)
-            val e1 = await until func (e) { (e && (type(e)!='table'), e) }
+            val e1 = await until (func (e) { (e && (type(e)!='table'), e) })
             print(:e1,e1)
-            val e2 = await until func (e) { (e && (type(e)!='table'), e) }
+            val e2 = await until (func (e) { (e && (type(e)!='table'), e) })
             print(:e2,e2)
         }
         print(:1)
@@ -1405,7 +1405,7 @@ do
 
     local src = [[
         task tsk () {
-            var e = await until func (e) { (e && (e.tag==:X) && (e@(1)==10), e) }
+            var e = await until (func (e) { (e && (e.tag==:X) && (e@(1)==10), e) })
             print(e.tag, e@(1))
         }
         spawn tsk()
@@ -1419,7 +1419,7 @@ do
 
     local src = [[
         task tsk () {
-            var e = await until func (e) { ((e??:X) && (e.v==10), e) }
+            var e = await until (func (e) { ((e??:X) && (e.v==10), e) })
             X.print(e)
         }
         spawn tsk()
@@ -1830,7 +1830,7 @@ do
     local src = [[
         val T = task () {
             set pub = 10
-            await until func (e) { e && (e.tag==:X) && (e@(1)==pub) }
+            await until (func (e) { e && (e.tag==:X) && (e@(1)==pub) })
             print(pub)
         }
         pin t = spawn T()
@@ -2099,10 +2099,10 @@ do
                             await(true)
                             print(:1)
                         }) ()
-                        await(true until it==t2)
+                        await <true until (it==t2)>
                         print(:2)
                     }) ()
-                    await(true until it==t1)
+                    await <true until (it==t1)>
                     print(:3)
                 }
                 await(:X)
@@ -3325,9 +3325,9 @@ do
                 print(20)
                 print(30)
             }
-            await until func (e) { e && (e !? :xtask) }
+            await until (func (e) { e && (e !? :xtask) })
             if v {
-                await until func (e) { e && (e !? :xtask) }
+                await until (func (e) { e && (e !? :xtask) })
             }
         }
         print(0)
@@ -3352,9 +3352,9 @@ do
                 print(20)
                 print(30)
             }
-            await until func (e) { e && (e !? :xtask) }
+            await until (func (e) { e && (e !? :xtask) })
             if v {
-                await until func (e) { e && (e !? :xtask) }
+                await until (func (e) { e && (e !? :xtask) })
             }
         }
         print(0)
@@ -3902,7 +3902,7 @@ do
     local src = [[
         var done = false
         spawn {
-            watching until done {
+            watching until (done) {
                 await(false)
                 print(:never)
             }
@@ -3919,8 +3919,8 @@ do
     local out = atm_test(src)
     assertx(out, "1\n2\naborted\n3\n")
 
-    -- watching f: a bare function is no longer a valid await pattern
-    -- (use until/while); the runtime rejects it
+    -- watching f: a bare ident is not a valid await primary
+    -- (use until/while); the parser rejects it
     local src = [[
         val f = func () { true }
         spawn {
@@ -3931,7 +3931,7 @@ do
     ]]
     print("Testing...", "watching f: error: unexpected function")
     local out = atm_test(src)
-    assertfx(out, "invalid await : unexpected function")
+    assertfx(out, "invalid await : unexpected expression")
 
     local src = [[
         spawn {

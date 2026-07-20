@@ -4,7 +4,7 @@ require "atmos.lang.exec"
 do
     local src = [[
         spawn {
-            await(:X || :Y)
+            await <:X || :Y>
             print(:ok)
         }
         print(:antes)
@@ -17,7 +17,7 @@ do
 
     local src = [[
         spawn {
-            await(:X && :Y)
+            await <:X && :Y>
             print(:ok)
         }
         emit(:X)
@@ -32,7 +32,7 @@ do
 
     local src = [[
         spawn {
-            await((:X || :Y) && :Z)
+            await <<:X || :Y> && :Z>
             print(:ok)
         }
         print(:antes)
@@ -46,7 +46,7 @@ do
 
     local src = [[
         spawn {
-            await(!:X && :Y)
+            await <!:X && :Y>
             print(:ok)
         }
         print(:antes)
@@ -59,7 +59,7 @@ do
 
     local src = [[
         spawn {
-            watching :X || :Y {
+            watching <:X || :Y> {
                 await(:Z)
                 print(:no)
             }
@@ -75,7 +75,7 @@ do
 
     local src = [[
         spawn {
-            loop on :A || :B {
+            loop on <:A || :B> {
                 print(:tick)
             }
         }
@@ -89,7 +89,7 @@ do
 
     local src = [[
         spawn {
-            await(:X || 5ms)
+            await <:X || 5ms>
             print(:ok)
         }
         emit(5ms)
@@ -101,7 +101,7 @@ do
     local src = [[
         spawn {
             val a = 10
-            await(:X until a || 20)
+            await <:X until (a || 20)>
             print(:ok)
         }
         emit :X [10]
@@ -111,7 +111,7 @@ do
     assertx(out, "ok\n")
 
     local src = [[
-        spawn { await(:X || :Y && :Z) }
+        spawn { await <:X || :Y && :Z> }
     ]]
     print("Testing...", "op_mixed_err 1")
     local out = atm_test(src)
@@ -119,7 +119,7 @@ do
 
     local src = [[
         spawn {
-            par :any { await(:X || :Y) } with { await(:Z) }
+            par :any { await <:X || :Y> } with { await(:Z) }
             print(:ok)
         }
         emit(:Y)
@@ -130,7 +130,7 @@ do
 
     local src = [[
         spawn {
-            await((!:X) || :Y)
+            await <!:X || :Y>
             print(:2)
         }
         emit(:X)
@@ -166,13 +166,13 @@ do
     local out = atm_test(src)
     assertx(out, "20\n")
 
-    -- SPEC: `watching spawn T() || :X` -- event wins, T aborted silently
+    -- SPEC: `watching <T() || :X>` -- event wins, T aborted silently
     local src = [[
         task T () {
             await(:done)
         }
         spawn {
-            watching spawn T() || :X {
+            watching <T() || :X> {
                 await(:never)
             }
             print(:ok)
@@ -183,14 +183,14 @@ do
     local out = atm_test(src)
     assertx(out, "ok\n")
 
-    -- SPEC: `watching spawn T() || :X` -- task termination wins
+    -- SPEC: `watching <T() || :X>` -- task termination wins
     local src = [[
         task T () {
             await(:done)
             print(:T)
         }
         spawn {
-            watching spawn T() || :X {
+            watching <T() || :X> {
                 await(:never)
             }
             print(:ok)

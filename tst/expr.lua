@@ -1433,15 +1433,16 @@ do
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near ',' : expected ')'")
 
-    -- bare await accepts a single primary only: value operations
-    -- err and require the delimited form `await(20min) + 1s`
+    -- bare await takes a single primary; a trailing value op binds
+    -- outside: `(await 20min) + 1s`
     local src = "await 20min + 1s"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
-    local ok, msg = pcall(parser)
-    assertx(msg, "anon : line 1 : near '<eof>' : invalid await : unexpected expression")
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "(await(20min) + 1s)")
 
     local src = "await (20min + (x*1s) + 100ms)"
     print("Testing...", src)
@@ -1460,7 +1461,7 @@ do
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near ',' : expected ')'")
 
-    local src = "await(:X until e1 && e2)"
+    local src = "await <:X until (e1 && e2)>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1469,7 +1470,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\n(e1 && e2)\n}])")
 
-    local src = "await :X until e"
+    local src = "await :X until (e)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1478,7 +1479,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\ne\n}])")
 
-    local src = "await(:X while e)"
+    local src = "await <:X while (e)>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1488,7 +1489,7 @@ do
     assertx(tosource(e), "await([@(:tag)=\"while\", @(1)=:X, @(2)=func (it) {\ne\n}])")
 
     -- no-base synchronous predicate: the function lands at awt[1]
-    local src = "await until e"
+    local src = "await until (e)"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1497,7 +1498,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=func (it) {\ne\n}])")
 
-    local src = "await(while e)"
+    local src = "await <while (e)>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1515,7 +1516,7 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"tasks\", @(:mode)=\"any\", @(:tasks)=ts])")
 
-    local src = "await(:all ts)"
+    local src = "await :all ts"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1542,8 +1543,8 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"spawn\", @(1)=T, @(2)=1, @(3)=x])")
 
-    -- precedence: `until` groups under `||` only with explicit parens
-    local src = "await(:X || (:Y until c))"
+    -- precedence: `until` groups under `||` only with a nested <>
+    local src = "await <:X || <:Y until (c)>>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1552,9 +1553,9 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=:X, @(2)=[@(:tag)=\"until\", @(1)=:Y, @(2)=func (it) {\nc\n}]])")
 
-    -- base-less `until c` composes as a `||` operand (task race);
+    -- base-less `until (c)` composes as a `||` operand (task race);
     -- an operand task needs the explicit `spawn` prefix
-    local src = "await(spawn T() || until c)"
+    local src = "await <T() || until (c)>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1563,18 +1564,28 @@ do
     assert(check('<eof>'))
     assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=[@(:tag)=\"spawn\", @(1)=T], @(2)=[@(:tag)=\"until\", @(1)=func (it) {\nc\n}]])")
 
-    -- a bare operand call is a VALUE, not a spawn
-    local src = "await(T() || :X)"
+    -- in pattern mode a bare operand call SPAWNS; use (f()) for value
+    local src = "await <T() || :X>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=T(), @(2)=:X])")
+    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=[@(:tag)=\"spawn\", @(1)=T], @(2)=:X])")
 
-    -- mixing `||` and `until` at the same level requires parens
-    local src = "await(:X || :Y until c)"
+    -- (f()) as a leaf inside <> stays a value
+    local src = "await <(f()) || :X>"
+    print("Testing...", src)
+    init()
+    lexer_init("anon", src)
+    lexer_next()
+    local e = parser()
+    assert(check('<eof>'))
+    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=(f()), @(2)=:X])")
+
+    -- mixing `||` and `until` at the same level requires a nested <>
+    local src = "await <:X || :Y until (c)>"
     print("Testing...", src)
     init()
     lexer_init("anon", src)
@@ -1582,7 +1593,7 @@ do
     local ok, msg = pcall(parser)
     assertx(msg, "anon : line 1 : near 'until' : operation error : use parentheses to disambiguate")
 
-    -- bare await rejects combinators (require the parenthesized form)
+    -- bare await rejects combinators (require the <PAT> form)
     local src = "await :X || :Y"
     print("Testing...", src)
     init()

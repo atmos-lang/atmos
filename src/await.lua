@@ -38,18 +38,20 @@ local function mk_tagged (name, ...)
 end
 
 
--- until/while predicate: a \{} function, or an expression wrapped as
--- \it -> e. Exactly ONE predicate: combine conditions with &&, since
--- a comma belongs to the enclosing list (toggle filters)
-local function parse_pred ()
+-- until/while predicate: `(E)` -- a \{} function, or an expression
+-- wrapped as \it -> e. The parens are mandatory and bound the inner
+-- parser so it cannot eat a closing pattern `>`.
+local function parser_pred ()
+    accept_err('(')
     -- TODO: we assume a simple-expr body (no await/etc)
     local e = parser()
+    accept_err(')')
     if e.tag == 'proto' then
-        -- \{...}
+        -- (\{...})
         assert(e.sub == 'func')
         return e
     else
-        -- x > 10
+        -- (x > 10)
         return {
             tag='proto', sub='lua',
             pars = { {tag='id',str='it'} },
@@ -58,67 +60,52 @@ local function parse_pred ()
     end
 end
 
+local parser_await_3_bin
+
 -- level 1: leaf patterns.
--- a call stays a value here; implicit spawn is decided once, at the
--- top of parser_await, only when the whole pattern is a lone call.
--- a task operand must be spawned explicitly (`spawn T()`).
-function parser_await_1_prim ()
-    -- :any ts / :all ts
+-- in pattern mode a bare call SPAWNS (operand or not); to await a
+-- call's value, switch to a `(E)` value leaf. value operators also
+-- live in `(E)`. a nested `<P>` regroups a sub-pattern.
+local function parser_await_1_prim ()
+    -- :any ts / :all ts -- tasks arg is a bounded primary so it does
+    -- not eat a closing `>`; a computed pool needs `:any (E)`
     if accept(':any','tag') or accept(':all','tag') then
         return { tag='table', pat=true, es={
             { k={tag='tag', tk={tag='tag', str=':tag'}},   v={tag='str', tk={tag='str', str='tasks'}} },
             { k={tag='tag', tk={tag='tag', str=':mode'}},  v={tag='str', tk={tag='str', str=TK0.str:sub(2)}} },
-            { k={tag='tag', tk={tag='tag', str=':tasks'}}, v=parser() },
+            { k={tag='tag', tk={tag='tag', str=':tasks'}}, v=parser_2_suf() },
         } }
 
-    -- bare predicate: until c / while c (any event until/while c)
+    -- bare predicate: until (c) / while (c)
     elseif accept('until') or accept('while') then
-        return mk_tagged(TK0.str, parse_pred())
+        return mk_tagged(TK0.str, parser_pred())
 
-    -- explicit task spawn: spawn T(...)
-    elseif accept('spawn') then
+    -- nested pattern group: <p>
+    elseif accept('<') then
+        local p = parser_await_3_bin()
+        accept_err('>')
+        return p
+
+    -- value leaf: (E) -- a value expression (tier 2)
+    elseif accept('(') then
         local tk = TK0
-        local call = parser_2_suf()
-        if call.tag ~= 'call' then
-            err(tk, "invalid spawn : expected call")
-        end
-        return mk_tagged('spawn', call.f, table.unpack(call.es))
+        local e = parser()
+        accept_err(')')
+        return { tag='parens', tk=tk, e=e }
 
-    -- value leaf: an expression without pattern combinators
+    -- bare primary; a lone call spawns (atm_tag_do `:X [v]` is not
+    -- a task, so it stays a value leaf)
     else
-        -- (p) grouping or (e) value escape
-        local e1
-        if accept('(') then
-            local tk = TK0
-            local e = parser_await_3_bin()
-            accept_err(')')
-            if e.pat then
-                return e
-            end
-            e1 = { tag='parens', tk=tk, e=e }
-        else
-            e1 = parser_4_pre()
+        local e = parser_2_suf()
+        if e.tag=='call' and (e.f.tag~='acc' or e.f.tk.str~="atm_tag_do") then
+            return mk_tagged('spawn', e.f, table.unpack(e.es))
         end
-
-        -- generic binary ops chain same-op only (as parser_5_bin),
-        -- leaving &&/|| and until/while to level 3
-        local op0 = nil
-        while check(nil,'op') and contains(OPS.bins, TK1.str) and
-              TK1.str~='&&' and TK1.str~='||' do
-            local op = accept_err(nil,'op')
-            if op0 and op0 ~= op.str then
-                err(op, "operation error : use parentheses to disambiguate")
-            end
-            op0 = op.str
-            e1 = { tag='bin', op=op, e1=e1, e2=parser_4_pre() }
-        end
-
-        return e1
+        return e
     end
 end
 
 -- level 2: !p
-function parser_await_2_pre ()
+local function parser_await_2_pre ()
     local ok = (check(nil,'op') and TK1.str=='!')
     if ok then
         accept_err(nil,'op')
@@ -131,7 +118,7 @@ end
 -- level 3: p&&p | p||p | p until c | p while c.
 -- same-op chaining only: mixing errs, mirroring parser_5_bin;
 -- until/while accept no separator before them (as the suffix form)
-function parser_await_3_bin ()
+parser_await_3_bin = function ()
     local e1 = parser_await_2_pre()
     local op0 = nil
     while true do
@@ -148,7 +135,7 @@ function parser_await_3_bin ()
         end
         op0 = op.str
         if op.str=='until' or op.str=='while' then
-            e1 = mk_tagged(op.str, e1, parse_pred())
+            e1 = mk_tagged(op.str, e1, parser_pred())
         else
             local name = (op.str=='&&') and 'and' or 'or'
             e1 = mk_tagged(name, e1, parser_await_2_pre())
@@ -156,38 +143,41 @@ function parser_await_3_bin ()
     end
 end
 
--- Parses one await pattern with the full grammar (levels 1-3)
--- If full=false, check if AST is valid
-function parser_await (full)
-    local pat = parser_await_3_bin()
-
-    -- special "bare" case:
-    -- await T()
-    if pat.tag=='call' and (pat.f.tag~='acc' or pat.f.tk.str~="atm_tag_do") then
-        pat = mk_tagged('spawn', pat.f, table.unpack(pat.es))
+-- Parses one await pattern in one of three tiers:
+--   value : await(E)     -> a plain value expression (no spawn)
+--   patt  : await<PAT>   -> the pattern cascade (levels 1-3)
+--   bare  : await P      -> a single primary/spawn (+ optional
+--                           until/while); combinators need <PAT>
+function parser_await ()
+    -- tier 2: value -- await(E)
+    if accept('(') then
+        local e = parser()
+        accept_err(')')
+        return e
     end
 
-    -- special non-parens cases:
-    -- await PAT:
-    --  - await :X
-    --  - await :X until f()
-    -- check if :X is valid
-    if not full then
+    -- tier 3: pattern -- await<PAT> ; tier 1: bare -- await P.
+    -- calls already spawn in the leaf, so nothing to do here
+    local patt = accept('<')
+    local pat = parser_await_3_bin()
+    if patt then
+        accept_err('>')
+    end
+
+    -- bare form: reject combinators and loose values (use <PAT> / (E))
+    if not patt then
         local e = pat
         local top = e.pat and e.es[1].v.tk.str
         if (top=='until' or top=='while') and #e.es==3 then
-            -- await :X until f()
-            -- extract :X to check below
+            -- await P until c : validate the base P below
             e = e.es[2].v
             top = e.pat and e.es[1].v.tk.str
         end
         local ok; do
             if e.pat then
-                -- all parsed as `pat`, except these
                 ok = (top~='and') and (top~='or') and (top~='not')
             else
-                -- none parsed as expr, except these
-                ok = contains({'tag','clk','str','nat','table','proto','call'}, e.tag)
+                ok = contains({'tag','clk','str','nat','bool','table','proto','call'}, e.tag)
             end
         end
         if not ok then
