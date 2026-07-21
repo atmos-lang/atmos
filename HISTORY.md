@@ -19,6 +19,7 @@ v0.8 (???/??)
     - `return` crosses (ignores) transparent `spawn`
     - `spawn T()` supports `where` clauses
     - `spawn T()` survives as last expression
+    - `await T(nil,...)`: properly handles `nil` arguments
 
 v0.7 (jun/26)
 -------------

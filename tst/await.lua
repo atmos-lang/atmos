@@ -166,6 +166,23 @@ do
     local out = atm_test(src)
     assertx(out, "20\n")
 
+    -- SPEC: a nil argument must not truncate the remaining arguments
+    -- the implicit spawn round-trips the call through a combinator
+    -- table, so the arg count must not be inferred from `#`
+    local src = [[
+        task T (a, b, c) {
+            print(a)
+            print(b)
+            print(c)
+        }
+        spawn {
+            await T(nil, 10, 20)
+        }
+    ]]
+    print("Testing...", "task_promote nil_arg 1")
+    local out = atm_test(src)
+    assertx(out, "nil\n10\n20\n")
+
     -- SPEC: `watching <T() || :X>` -- event wins, T aborted silently
     local src = [[
         task T () {

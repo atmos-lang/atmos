@@ -38,6 +38,12 @@ local function mk_tagged (name, ...)
             v = it,
         }
     end
+    -- explicit count: a `nil` argument makes `#` an unreliable border,
+    -- so the runtime unpacks with `awt.n` instead
+    es[#es+1] = {
+        k = { tag='tag', tk={tag='tag', str=':n'} },
+        v = { tag='num', tk={tag='num', str=tostring(select('#',...))} },
+    }
     return { tag='table', pat=true, es=es }
 end
 

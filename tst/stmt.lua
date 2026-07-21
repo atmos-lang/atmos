@@ -976,7 +976,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "loop {\nval it = await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\n(e1 && e2)\n}])\n}")
+    assertx(tosource(s), "loop {\nval it = await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\n(e1 && e2)\n}, @(:n)=2])\n}")
 end
 
 do
@@ -987,7 +987,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "loop {\nval it = await([@(:tag)=\"while\", @(1)=:X, @(2)=func (it) {\ne\n}])\n}")
+    assertx(tosource(s), "loop {\nval it = await([@(:tag)=\"while\", @(1)=:X, @(2)=func (it) {\ne\n}, @(:n)=2])\n}")
 end
 
 do
@@ -998,7 +998,7 @@ do
     lexer_next()
     local s = parser()
     assert(check('<eof>'))
-    assertx(tosource(s), "loop {\nval quit = await([@(:tag)=\"spawn\", @(1)=F])\nuntil(quit)\n}")
+    assertx(tosource(s), "loop {\nval quit = await([@(:tag)=\"spawn\", @(1)=F, @(:n)=1])\nuntil(quit)\n}")
 end
 
 do

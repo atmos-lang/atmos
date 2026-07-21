@@ -18,7 +18,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"and\", @(1)=:a, @(2)=:b])")
+    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"and\", @(1)=:a, @(2)=:b, @(:n)=2])")
 
     -- call form : || combinator
     local src = "toggle t(false) with <:a || :b>"
@@ -28,7 +28,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"or\", @(1)=:a, @(2)=:b])")
+    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"or\", @(1)=:a, @(2)=:b, @(:n)=2])")
 
     -- call form : ! combinator
     local src = "toggle t(false) with <!:a>"
@@ -38,7 +38,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"not\", @(1)=:a])")
+    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"not\", @(1)=:a, @(:n)=1])")
 
     -- call form : pool prefix
     local src = "toggle t(false) with :any ts"
@@ -58,7 +58,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"and\", @(1)=:a, @(2)=:b], :c)")
+    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"and\", @(1)=:a, @(2)=:b, @(:n)=2], :c)")
 
     -- block form : combinator
     local src = "toggle on :X with <:a || :b> { }"
@@ -69,7 +69,7 @@ do
     local e = parser()
     assert(check('<eof>'))
     assertx(trim(tosource(e)), trim [[
-        toggle(:X, [@(:tag)="or", @(1)=:a, @(2)=:b], {
+        toggle(:X, [@(:tag)="or", @(1)=:a, @(2)=:b, @(:n)=2], {
         })
     ]])
 end
@@ -84,7 +84,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"until\", @(1)=:a, @(2)=func (it) {\nc\n}], :b)")
+    assertx(tosource(e), "toggle(t, false, [@(:tag)=\"until\", @(1)=:a, @(2)=func (it) {\nc\n}, @(:n)=2], :b)")
 end
 
 print '--- TOGGLE FILTER : EXEC ---'

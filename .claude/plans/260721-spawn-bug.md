@@ -112,8 +112,24 @@ so behaviour is still correct.
 | `lua-atmos:atmos/run.lua` | `M.await` spawn  | `table.unpack(awt,2,awt.n)`   |
 | `tst/await.lua`         | `task_promote`   | add `nil_arg 1` test          |
 
-## Status
+## Status -- COMPLETE
 
-- [ ] failing test added
-- [ ] compiler emits `n`
-- [ ] runtime uses `n`
+- [x] failing test added (`tst/await.lua`, `task_promote nil_arg 1`)
+- [x] compiler emits `n` (`mk_tagged`, for every tagged table)
+- [x] runtime uses `n` (`lua-atmos:atmos/run.lua:562`, `awt.n or #awt`)
+- [x] full suite green (user-verified)
+
+## Notes
+
+`n` is emitted for EVERY tagged table, not only `spawn`.
+Uniformity was preferred over minimal churn; the cost was updating
+20 `tosource` expectations that now carry the extra key:
+
+| file             | dumps |
+| ---------------- | ----- |
+| `tst/expr.lua`   | 11    |
+| `tst/toggle.lua` | 6     |
+| `tst/stmt.lua`   | 3     |
+
+The `:any`/`:all` (`tasks`) tables are built outside `mk_tagged` and
+have no numeric keys, so they are unaffected.

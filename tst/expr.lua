@@ -1468,7 +1468,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\n(e1 && e2)\n}])")
+    assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\n(e1 && e2)\n}, @(:n)=2])")
 
     local src = "await :X until (e)"
     print("Testing...", src)
@@ -1477,7 +1477,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\ne\n}])")
+    assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=:X, @(2)=func (it) {\ne\n}, @(:n)=2])")
 
     local src = "await <:X while (e)>"
     print("Testing...", src)
@@ -1486,7 +1486,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"while\", @(1)=:X, @(2)=func (it) {\ne\n}])")
+    assertx(tosource(e), "await([@(:tag)=\"while\", @(1)=:X, @(2)=func (it) {\ne\n}, @(:n)=2])")
 
     -- no-base synchronous predicate: the function lands at awt[1]
     local src = "await until (e)"
@@ -1496,7 +1496,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=func (it) {\ne\n}])")
+    assertx(tosource(e), "await([@(:tag)=\"until\", @(1)=func (it) {\ne\n}, @(:n)=1])")
 
     local src = "await <while (e)>"
     print("Testing...", src)
@@ -1505,7 +1505,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"while\", @(1)=func (it) {\ne\n}])")
+    assertx(tosource(e), "await([@(:tag)=\"while\", @(1)=func (it) {\ne\n}, @(:n)=1])")
 
     local src = "await :any ts"
     print("Testing...", src)
@@ -1532,7 +1532,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"spawn\", @(1)=T])")
+    assertx(tosource(e), "await([@(:tag)=\"spawn\", @(1)=T, @(:n)=1])")
 
     local src = "await T(1,x)"
     print("Testing...", src)
@@ -1541,7 +1541,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"spawn\", @(1)=T, @(2)=1, @(3)=x])")
+    assertx(tosource(e), "await([@(:tag)=\"spawn\", @(1)=T, @(2)=1, @(3)=x, @(:n)=3])")
 
     -- precedence: `until` groups under `||` only with a nested <>
     local src = "await <:X || <:Y until (c)>>"
@@ -1551,7 +1551,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=:X, @(2)=[@(:tag)=\"until\", @(1)=:Y, @(2)=func (it) {\nc\n}]])")
+    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=:X, @(2)=[@(:tag)=\"until\", @(1)=:Y, @(2)=func (it) {\nc\n}, @(:n)=2], @(:n)=2])")
 
     -- base-less `until (c)` composes as a `||` operand (task race);
     -- an operand task needs the explicit `spawn` prefix
@@ -1562,7 +1562,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=[@(:tag)=\"spawn\", @(1)=T], @(2)=[@(:tag)=\"until\", @(1)=func (it) {\nc\n}]])")
+    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=[@(:tag)=\"spawn\", @(1)=T, @(:n)=1], @(2)=[@(:tag)=\"until\", @(1)=func (it) {\nc\n}, @(:n)=1], @(:n)=2])")
 
     -- in pattern mode a bare operand call SPAWNS; use (f()) for value
     local src = "await <T() || :X>"
@@ -1572,7 +1572,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=[@(:tag)=\"spawn\", @(1)=T], @(2)=:X])")
+    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=[@(:tag)=\"spawn\", @(1)=T, @(:n)=1], @(2)=:X, @(:n)=2])")
 
     -- (f()) as a leaf inside <> stays a value
     local src = "await <(f()) || :X>"
@@ -1582,7 +1582,7 @@ do
     lexer_next()
     local e = parser()
     assert(check('<eof>'))
-    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=(f()), @(2)=:X])")
+    assertx(tosource(e), "await([@(:tag)=\"or\", @(1)=(f()), @(2)=:X, @(:n)=2])")
 
     -- mixing `||` and `until` at the same level requires a nested <>
     local src = "await <:X || :Y until (c)>"
