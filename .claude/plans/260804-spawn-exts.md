@@ -24,6 +24,15 @@
     - desugar: `spawn { if E { ... } }`
     - note: task exists even if `E` false (dies at once)
     - block form only (no `spawn if E T()` for now)
+- A': tail `spawn { ... }` as value
+    - goal: `pin t = if ok => spawn { ... }`
+    - today: excluded from tail-unwrap
+      (`src/prim.lua:185` sets `spw=nil`), t=nil
+    - approach: mark do_spawn dcl too; coder tail
+      promotes `do_spawn(lua)` -> `spawn(task())`
+      (mirrors dcl promotion `src/prim.lua:336`)
+    - caveat: statement tails lose transparency
+      (pub/emit delegate) -- decide while implementing
 - docs: `spawn @(task) T()`
     - already works, undocumented/untested
 
@@ -36,8 +45,12 @@
     - `pico-rocks/main.atm:84`
         - pause overlay dies at iteration end
 - task attachment would leak both cases
-- fix: `doc/manual.md:852`
+- fix: `doc/manual.md:852` -- DONE (user, 26-08-04)
     - "enclosing task" -> "enclosing block"
+- pending: manual nowhere states tail-spawn exception
+    - spawn at value-block tail flows to consumer
+- pending: "spawn {} cannot be val/var-assigned" dropped
+    - restate in spawn formats list
 - footgun answered by explicit escapes: B' / D / tail
 - E (warn non-tail branch spawn): won't do for now
 
@@ -68,7 +81,8 @@
     - `spawn @ts {}` beside `spawn @ts T()`
     - `spawn @t {}` / `spawn @(task) T()` owner targets
     - `spawn if E {}` guard sugar
-- fix manual `:852` (see Settled: C)
+- manual `:852` fixed (see Settled: C); tail-spawn +
+  no-val/var notes still pending
 - await-patterns doc review (`### Await`)
     - match-slot list vs `src/await.lua` (shared w/
       `done/06-11-await.md`)

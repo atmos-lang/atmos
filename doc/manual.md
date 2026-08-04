@@ -813,8 +813,8 @@ It supports the following formats:
 - `pin t = spawn { ... }` promotes the block to a normal task, attaching it to
   the [local](#local-variables) `t`.
 
-A `task` expression evaluates to the currently running (non-transparent) task
-instance:
+A `task` expression as an identifier evaluates to the currently running
+(non-transparent) task instance.
 
 Examples:
 
@@ -845,19 +845,22 @@ spawn {                     ;; fires a transparent task
 }
 ```
 
-A task or pool is always lexically attached to an enclosing task or block,
-which on termination, automatically aborts its owned tasks and pools.
-A [pin](#local-variables) assignment, which is mandatory for pools, attaches
-the reference to the declaration block.
-By default, an unassigned `spawn` attaches the new task to the enclosing task.
+A task or pool is always lexically attached to an enclosing block, which on
+termination, automatically aborts its owned tasks and pools.
+A [pin](#local-variables) assignment, which is mandatory for pools, explicitly
+attaches the reference to the declaration block.
+By default, an unassigned `spawn` attaches the new task to the enclosing block.
 
 A transparent task has no own identity and is owned by its enclosing
 non-transparent task.
-It is automatically pinned to the enclosing block and cannot be assigned.
 In addition, it delegates [pub](#pub) and [emit](#emit) operations to its
 owner.
 Note that other compound constructs of Atmos, including
 [par and watching](#parallel), also rely on transparent tasks internally.
+
+`TODO: attached to enclosing or returning block`
+
+`TODO: currently, transparent task cannot be assigned`
 
 Examples:
 
