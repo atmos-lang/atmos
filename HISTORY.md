@@ -7,6 +7,9 @@ v0.8 (???/??)
     - `pin t = spawn { ... }`: inline task
 
 - Modifications:
+    - `await :any/all`:
+        - awake requires non-empty pool
+        - awake requires previous await (no longer buffered)
     - tag indexing `@:x` no longer requires parens (`@(:x)`)
     - `await` patterns:
         - bare `await T()` also in `loop on`, `watching`, etc

@@ -2313,6 +2313,69 @@ do
     print("Testing...", "await :all ts")
     local out = atm_test(src)
     assertx(out, "a\nb\nall\ttrue\n")
+
+    -- SPEC: `await :any ts` consumes the termination:
+    -- a loop wakes once per termination, never on a stale one
+    -- (bounded to 3 iterations to fail instead of hang)
+    local src = [[
+        val task T () {
+            await :X
+        }
+        pin ts = tasks()
+        spawn @ts T()
+        spawn {
+            loop i in 3 {
+                await :any ts
+                print :ts
+            }
+        }
+        emit :X
+    ]]
+    print("Testing...", "await :any ts consume")
+    local out = atm_test(src)
+    assertx(out, "ts\n")
+
+    -- SPEC: `:any` termination is a broadcast:
+    -- ALL tasks awaiting the pool wake on each termination
+    local src = [[
+        val task T () {
+            await :X
+            1
+        }
+        pin ts = tasks()
+        spawn @ts T()
+        spawn {
+            val v = await :any ts
+            print("A" ++ v)
+        }
+        spawn {
+            val v = await :any ts
+            print("B" ++ v)
+        }
+        emit :X
+    ]]
+    print("Testing...", "await :any ts broadcast")
+    local out = atm_test(src)
+    assertx(out, "A1\nB1\n")
+
+    -- SPEC: no buffering: a death is only observable while awaiting;
+    -- an awaiter established after the death misses it and blocks
+    local src = [[
+        val task T () {
+            await :X
+        }
+        pin ts = tasks()
+        spawn @ts T()
+        emit :X
+        spawn {
+            await :any ts
+            print :late
+        }
+        emit :Y
+    ]]
+    print("Testing...", "await :any ts late")
+    local out = atm_test(src)
+    assertx(out, "")
 end
 
 print '--- AWAIT / CLOCK ---'

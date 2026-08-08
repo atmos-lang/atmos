@@ -2145,7 +2145,7 @@ A task awakes when an `emit(e)` matches the given await pattern as follows:
 | Tasks     | `t`           | `t` end       | `v,t`     |
 |           | `T(...)`      | task end      | `v,t`     |
 |           | `:any ts`     | any pool end  | `v,t,ts`  |
-|           | `:all ts`     | all pool end  | `ts`      |
+|           | `:all ts`     | all pool end  | `v,t,ts`  |
 | Stream    | `s`           | `s` ends      | `v,t`     |
 | Condition | `[p] until c` | [p] until `c` | `e / res` |
 |           | `[p] while c` | [p] while `c` | `e`       |
