@@ -10,14 +10,14 @@ Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
 - Claude authorized to run tests/atmos this cycle
 
 - next steps, in order:
-    - 1. atmos repo (on `v0.8`): commit all
-         (README, HISTORY, rockspecs+old/, doc/exs, exs, plan)
-    - 2. push `v0.8`; check CI green
-    - 3. sdl-birds: commit migration; branch `v0.5`; push;
-         ff `main` -> `v0.5`; verify 4 refs
-    - 4. sdl-rocks: same with `master` -> `v0.5`
-    - 5. local install:
-         `sudo luarocks make atmos-lang-0.8-1.rockspec --lua-version=5.4`
+    - 1. [DONE @ 2026-08-17] atmos commit `+ v0.8` = `d2884b3`
+         (only this plan file left uncommitted)
+    - 2. push `v0.8` DONE (`origin/v0.8` == `d2884b3`);
+         check CI green (PENDING)
+    - 3. [DONE @ 2026-08-17] sdl-birds -> `v0.5`
+    - 4. [DONE @ 2026-08-17] sdl-rocks -> `v0.5`
+    - 4b. [DONE @ 2026-08-17] pico-birds / pico-rocks -> `v0.9`
+    - 5. [DONE @ 2026-08-17] local install (`make` 0.8-1 OK)
     - 6. ff atmos `main` -> `v0.8` + push; verify vs origin
     - 7. publish: `luarocks upload atmos-lang-0.8-1.rockspec`
          + `atmos-lang-dev-5.rockspec`; verify search
@@ -89,8 +89,9 @@ Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
 - [x] `atmos-lang-dev-5.rockspec` (branch `main`; dep unpinned)
 - [x] modules: 11 in both == all `src/*.lua` (no new modules)
 - [x] moved `0.7-2` + `dev-4` to `old/` (git mv)
-- [ ] dev: local install
-      `sudo luarocks make atmos-lang-0.8-1.rockspec --lua-version=5.4`
+- [x] dev: local install `sudo luarocks make ... --lua-version=5.4`
+      (@ 2026-08-17: `atmos-lang 0.8-1` listed; `atmos --version`
+      = `atmos v0.8`; `exs/hello.atm` + `exs/rx.atm` run OK)
 
 ## §4. Core examples (Phase 1 -- local)
 
@@ -104,9 +105,21 @@ Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
 
 # §4.1 Migrate `.atm` apps
 
-- | repo      | branch | new branch | files                         |
-- | sdl-birds | main   | v0.5       | birds-01..11.atm, README.md   |
-- | sdl-rocks | master | v0.5       | battle/main/ts.atm, README.md |
+- | repo       | branch | new branch | files                        |
+- | sdl-birds  | main   | v0.5       | birds-01..11.atm, README.md  |
+- | sdl-rocks  | master | v0.5       | battle/main/ts.atm, README.md|
+- | pico-birds | main   | v0.9       | birds-01..11.atm, README.md  |
+- | pico-rocks | master | v0.9       | main/ts.atm, README.md       |
+- pico apps FOUND @ 2026-08-17 (were MISSING from this plan):
+    - own vN line, last released `v0.8` (pinned atmos v0.7)
+      -> next is `v0.9`; NOT the same numbering as sdl apps
+    - `.atm` migration ALREADY applied (uncommitted), runs OK
+      (`pico-birds/birds-11.atm`, `pico-rocks/main.atm`)
+    - extra churn vs sdl: env-pico 0.3 -> 0.4 API
+      (`pico.layer.image(s) (nil,k,p,..)` -> `[key=,path=,sheet=]`;
+      `draw.text` -> `.dyn("/id",..)` / `.fix`)
+- [x] pico README.md x2 bumped (@ 2026-08-17, user go-ahead):
+      `atmos-lang 0.8`; `atmos-env-pico 0.4`; `git checkout v0.9`
 - v0.8 is mostly ADDITIVE; expect light migration, but CHECK:
     - `await :any/all` semantics (non-buffered, non-empty pool):
       sdl-rocks `watching :any ships` behavior may change
@@ -127,14 +140,18 @@ Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
       rocks main; battle/ts = modules (standalone n/a)
 - [x] README.md x2: atmos-lang `0.8`; env-sdl `0.3` (repo @ v0.3);
       `git checkout v0.5`
-- [ ] branch `v0.5`: commit + push + ff default + verify 4 refs
-      (DEV: commit migration first, then branch)
+- [x] sdl x2: DONE @ 2026-08-17; 4 refs verified, trees clean
+    - sdl-birds  `main`==`v0.5`==origin x2 @ `75f7bbe`
+    - sdl-rocks `master`==`v0.5`==origin x2 @ `0996ce5`
+- [x] pico x2: DONE @ 2026-08-17; 4 refs verified, trees clean
+    - pico-birds  `main`==`v0.9`==origin x2 @ `d72bca5`
+    - pico-rocks `master`==`v0.9`==origin x2 @ `83ce521`
 
 ## §5. Commit, push main, release branch
 
 - [x] branch `v0.8` created (matches v0.6/v0.7 convention:
       release commits on branch, ff `main` after)
-    - [ ] push `v0.8` (dev)
+    - [x] push `v0.8` (@ 2026-08-17: `origin/v0.8` == `d2884b3`)
 - [x] README links `main` -> `v0.8` (stable link + list)
 - [ ] CI green on GitHub Actions
 - [ ] ff `main` -> `v0.8` + push; verify `main == v0.8 == origin`
