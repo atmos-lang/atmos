@@ -2,7 +2,7 @@
 
 Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
 
-# RESUME HERE (state @ 2026-08-17, late)
+# DONE @ 2026-08-18 (moved to `done/`)
 
 - code+docs SHIPPED: atmos `main`==`v0.8`==origin @ `2abad66`,
   CI green, `atmos-lang 0.8-1` on LuaRocks
@@ -10,8 +10,7 @@ Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
   pico x2 `v0.9`) -- pico pair was a late plan addition
 - Claude authorized to run tests/atmos this cycle
 - §7 remote verify DONE @ 2026-08-18: 5/5 exs + 4/4 apps
-- ONLY 1 ITEM LEFT: §8 announce (manual); then commit this
-  plan and move it to `done/`
+- CARRIED OUT of this plan: §8 announce (manual, user-only)
 
 - next steps, in order:
     - 1. [DONE @ 2026-08-17] atmos commit `+ v0.8` = `d2884b3`
@@ -196,7 +195,7 @@ Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
   `tiny.ttf` in cwd; envs (`env-sdl 0.3`, `env-pico 0.4`) stay
 - exact commands: see "§7 runbook" below
 
-## §8. Announce (manual)
+## §8. Announce (manual) -- STILL OPEN, user-only
 
 - [ ] Twitter / BlueSky
 - [ ] Mailing list
