@@ -11,13 +11,13 @@ spawn {
     print :3
     await 1h10min30s            ;; awakes after 1h 10min 30s
     print :4
-    await until it && (it@1>10) ;; awakes if event > 10
+    await until (it && (it@1>10)) ;; awakes if event > 10
     print :5
-    await(:X && :Y)             ;; awakes after both :X and :Y occur in any order
+    await <:X && :Y>            ;; awakes after both :X and :Y occur in any order
     print :6
-    await(!:X)                  ;; awakes on any non-:X event
+    await <!:X>                 ;; awakes on any non-:X event
     print :7
-    await(:X until it.n==3)     ;; awaits :X until its field n equals 3
+    await <:X until (it.n==3)>  ;; awaits :X until its field n equals 3
     print :8
 }
 

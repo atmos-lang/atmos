@@ -2119,7 +2119,7 @@ Pred  : (`until´ | `while´) `(´ Expr `)´
 The bare form accepts one of the following atomic patterns, with an optional
 predicate:
 
-- a value or event to match (`:X`, `:X [v]`, `x`, `true`)
+- a value or event to match (`:X`, `:X [v]`, `(x)`, `true`)
 - a clock duration (`1h`)
 - a task to spawn (`T()`)
 - a pool (`:any ts`, `:all ts`)

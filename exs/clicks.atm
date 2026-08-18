@@ -16,7 +16,7 @@ spawn {
             pico.output.draw.rect(rect)
             val pt = ['!', x=80, y=10, h=15]
             loop _,t in txts {
-                pico.output.draw.text(t, pt)
+                pico.output.draw.text.fix(t, pt)
                 set pt.y = pt.y + 15
             }
         }
@@ -78,8 +78,8 @@ task Buffer (src, ctl) {
     val ret = []
     val v = await(src)
     set ret@+ = v
-    watching ctl {
-        loop v on src {
+    watching (ctl) {
+        loop v on (src) {
             set ret@+ = v
         }
     }
@@ -89,7 +89,7 @@ task Buffer (src, ctl) {
 task Debounce (src, ctl) {
     await(src)
     loop {
-        watching src {
+        watching (src) {
             await(ctl)
             break()
         }

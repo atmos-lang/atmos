@@ -8,6 +8,7 @@
 ***Structured Event-Driven Concurrency***
 
 [
+    [`v0.8`](https://github.com/atmos-lang/atmos/tree/v0.8)      |
     [`v0.7`](https://github.com/atmos-lang/atmos/tree/v0.7)      |
     [`v0.6`](https://github.com/atmos-lang/atmos/tree/v0.6)      |
     [`v0.5`](https://github.com/atmos-lang/atmos/tree/v0.5)      |
@@ -16,7 +17,7 @@
     [`v0.2`](https://github.com/atmos-lang/atmos/tree/v0.2_0.2.1)
 ]
 
-Stable branch is [`v0.7`](https://github.com/atmos-lang/atmos/tree/v0.7).
+Stable branch is [`v0.8`](https://github.com/atmos-lang/atmos/tree/v0.8).
 
 [
     [About](#about)                 |
@@ -107,7 +108,7 @@ The program body is a task in Atmos that behaves as follows:
 ## Luarocks
 
 ```
-sudo luarocks --lua-version=5.4 install atmos-lang 0.7
+sudo luarocks --lua-version=5.4 install atmos-lang 0.8
 atmos <lua-path>/atmos/lang/exs/hello.atm
 ```
 

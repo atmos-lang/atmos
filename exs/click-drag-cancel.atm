@@ -12,7 +12,7 @@ spawn {
     val pt = ['%', x=0.5, y=0.9, h=0.1]
     loop on :draw {
         pico.output.draw.rect(rect)
-        pico.output.draw.text(text, pt)
+        pico.output.draw.text.fix(text, pt)
     }
 }
 
