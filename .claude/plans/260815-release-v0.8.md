@@ -2,12 +2,16 @@
 
 Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
 
-# RESUME HERE (state @ 2026-08-17)
+# RESUME HERE (state @ 2026-08-17, late)
 
-- ALL local work DONE: tests, docs, rockspecs, exs, app migration
-- repo is on branch `v0.8`; all release edits UNCOMMITTED
-- app repos have UNCOMMITTED migration (14/14 compile+run)
+- code+docs SHIPPED: atmos `main`==`v0.8`==origin @ `2abad66`,
+  CI green, `atmos-lang 0.8-1` on LuaRocks
+- ALL 4 app repos released + 4-refs verified (sdl x2 `v0.5`,
+  pico x2 `v0.9`) -- pico pair was a late plan addition
 - Claude authorized to run tests/atmos this cycle
+- §7 remote verify DONE @ 2026-08-18: 5/5 exs + 4/4 apps
+- ONLY 1 ITEM LEFT: §8 announce (manual); then commit this
+  plan and move it to `done/`
 
 - next steps, in order:
     - 1. [DONE @ 2026-08-17] atmos commit `+ v0.8` = `d2884b3`
@@ -18,10 +22,9 @@ Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
     - 4. [DONE @ 2026-08-17] sdl-rocks -> `v0.5`
     - 4b. [DONE @ 2026-08-17] pico-birds / pico-rocks -> `v0.9`
     - 5. [DONE @ 2026-08-17] local install (`make` 0.8-1 OK)
-    - 6. ff atmos `main` -> `v0.8` + push; verify vs origin
-    - 7. publish: `luarocks upload atmos-lang-0.8-1.rockspec`
-         + `atmos-lang-dev-5.rockspec`; verify search
-    - 8. §7 remote verify (clean install; re-run exs + apps)
+    - 6. [DONE] ff `main` -> `v0.8` @ `2abad66`; CI green
+    - 7. [DONE] publish `0.8-1`; dev-5 WON'T DO (dev-4 suffices)
+    - 8. [DONE @ 2026-08-18] §7 remote verify: 5/5 exs, 4/4 apps
     - 9. §8 announce; move this plan to `done/`
 
 ## Context
@@ -53,9 +56,8 @@ Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
 ## §0. Conventions
 
 - branch-tracking (not tags): rock pins `source.branch = v0.8`
-- two rockspecs: `atmos-lang-0.8-1.rockspec` (branch `v0.8`,
-  dep `atmos ~> 0.8`) + `atmos-lang-dev-5.rockspec` (branch `main`,
-  unpinned; supersede `dev-4` -> `old/`)
+- one new rockspec: `atmos-lang-0.8-1.rockspec` (branch `v0.8`,
+  dep `atmos ~> 0.8`); `dev-4` KEPT as-is (see §6)
 - apps bump to their OWN next `vN` (sdl apps: `v0.4` -> `v0.5`)
 - ff `main` after pushing `v0.8`; verify `main == v0.8 == origin`
 
@@ -86,9 +88,9 @@ Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
 ## §3. Rockspec (compiler)
 
 - [x] `atmos-lang-0.8-1.rockspec` (branch `v0.8`; `atmos ~> 0.8`)
-- [x] `atmos-lang-dev-5.rockspec` (branch `main`; dep unpinned)
+- [x] `dev-4` kept (branch `main`; dep unpinned); no `dev-5`
 - [x] modules: 11 in both == all `src/*.lua` (no new modules)
-- [x] moved `0.7-2` + `dev-4` to `old/` (git mv)
+- [x] moved `0.7-2` to `old/` (git mv); `dev-4` stays in root
 - [x] dev: local install `sudo luarocks make ... --lua-version=5.4`
       (@ 2026-08-17: `atmos-lang 0.8-1` listed; `atmos --version`
       = `atmos v0.8`; `exs/hello.atm` + `exs/rx.atm` run OK)
@@ -153,29 +155,101 @@ Instantiated from `release.md` @ 2026-08-15. IN PROGRESS.
       release commits on branch, ff `main` after)
     - [x] push `v0.8` (@ 2026-08-17: `origin/v0.8` == `d2884b3`)
 - [x] README links `main` -> `v0.8` (stable link + list)
-- [ ] CI green on GitHub Actions
-- [ ] ff `main` -> `v0.8` + push; verify `main == v0.8 == origin`
+- [x] CI green (run `32093583558` "Tests" success @ 2026-08-18)
+    - note: workflow triggers on `main` push, not on `v0.8`
+- [x] ff `main` -> `v0.8` + push (@ 2026-08-17):
+      `main`==`origin/main`==`v0.8`==`origin/v0.8` @ `2abad66`
 - [ ] commit this plan's edits
 
 ## §6. Publish to LuaRocks
 
-- [ ] `luarocks upload atmos-lang-0.8-1.rockspec`
-- [ ] `luarocks upload atmos-lang-dev-5.rockspec`
-- [ ] verify: `luarocks --lua-version=5.4 search atmos-lang`
+- [x] `luarocks upload atmos-lang-0.8-1.rockspec` (@ 2026-08-17)
+- [x] dev-5 WON'T DO (user @ 2026-08-17): `dev-4` already tracks
+      branch `main` with unpinned `atmos` dep; verified identical
+      to `0.8-1` in `description` + 11 modules (== all `src/*.lua`)
+      -- a new dev rev would publish zero changes
+    - `atmos-lang-dev-4.rockspec` STAYS in root (not `old/`)
+- [x] verify: `search atmos-lang` shows `0.8-1` rockspec+src
+    - runtime `atmos 0.8-1` also published (dep satisfiable)
+    - stray upload artifacts: `atmos-lang-{0.7-2,0.8-1}.src.rock`
 
 ## §7. Verify remote install (Phase 2)
 
-- [ ] dev: clean remove + `install atmos 0.8` + `install atmos-lang 0.8`
-- [ ] re-run core `exs/` on installed rock
-- [ ] apps on `v0.5` branch; then back to default branch
+- [x] clean remove + remote install DONE (@ 2026-08-18):
+    - fetched `luarocks.org/atmos-0.8-1.src.rock` +
+      `atmos-lang-0.8-1.src.rock` (true remote, not local make)
+    - `atmos 0.8-1` deps OK (`f-streams 0.2-4`);
+      `atmos-lang 0.8-1` deps OK (`atmos ~> 0.8`)
+    - 4 envs broken by `--force` remove, re-satisfied after
+    - `atmos --version` = `atmos v0.8`
+- [x] core `exs/` on installed rock (@ 2026-08-18): 5/5 OK
+    - hello (0/9x/now-us), rx (1,2,3/33), rx-behavior (ticks
+      to `x 18`, then `^C` -- infinite, interrupt is normal)
+    - clicks, click-drag-cancel OK (re-run after `^C` ate the
+      queued input the first time)
+- [x] apps 4/4 run OK on the remote rock (@ 2026-08-18):
+      sdl-birds/birds-11, sdl-rocks/main,
+      pico-birds/birds-11, pico-rocks/main
+    - ran on the DEFAULT branches, which are ff-identical to
+      `v0.5`/`v0.9` (same SHA) -- no checkout needed, none done
 - gotchas: `--force` remove wipes local make; sdl-rocks needs
-  `tiny.ttf` in cwd
+  `tiny.ttf` in cwd; envs (`env-sdl 0.3`, `env-pico 0.4`) stay
+- exact commands: see "§7 runbook" below
 
 ## §8. Announce (manual)
 
 - [ ] Twitter / BlueSky
 - [ ] Mailing list
 - [ ] Students
+
+# §7 runbook (copy-paste, one per line)
+
+## wipe local-make installs
+
+- `sudo luarocks --lua-version=5.4 remove --force atmos-lang`
+- `sudo luarocks --lua-version=5.4 remove --force atmos`
+
+## install from LuaRocks
+
+- `sudo luarocks --lua-version=5.4 install atmos 0.8`
+- `sudo luarocks --lua-version=5.4 install atmos-lang 0.8`
+
+## confirm provenance
+
+- `luarocks --lua-version=5.4 list atmos`
+- `luarocks --lua-version=5.4 list atmos-lang`
+- `atmos --version`
+
+## core exs
+
+- `cd /x/atmos-lang/atmos/exs`
+- `atmos hello.atm`
+- `atmos rx.atm`
+- `atmos rx-behavior.atm`
+- `atmos clicks.atm`
+- `atmos click-drag-cancel.atm`
+
+## apps on release branches
+
+- `cd /x/atmos-lang/sdl-birds`
+- `git checkout v0.5`
+- `atmos birds-11.atm`
+- `cd /x/atmos-lang/sdl-rocks`
+- `git checkout v0.5`
+- `atmos main.atm`
+- `cd /x/atmos-lang/pico-birds`
+- `git checkout v0.9`
+- `atmos birds-11.atm`
+- `cd /x/atmos-lang/pico-rocks`
+- `git checkout v0.9`
+- `atmos main.atm`
+
+## back to default branches
+
+- `git -C /x/atmos-lang/sdl-birds checkout main`
+- `git -C /x/atmos-lang/sdl-rocks checkout master`
+- `git -C /x/atmos-lang/pico-birds checkout main`
+- `git -C /x/atmos-lang/pico-rocks checkout master`
 
 # Appendix A -- v0.7 -> v0.8 cheat-sheet
 
