@@ -132,8 +132,10 @@ do
         print(atmos.next())
         emit(4ms)
         print(atmos.next())             ;; 6ms left
+        atmos.stop()
+        print(atmos.next())             ;; reset by stop
     ]]
     print("Testing...", "timers 9: next")
     local out = atm_test(src)
-    assertx(out, "nil\n10000\n6000\n")
+    assertx(out, "nil\n10000\n6000\nnil\n")
 end
