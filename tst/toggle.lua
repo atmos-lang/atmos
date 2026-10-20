@@ -127,10 +127,10 @@ do
         emit(:X)
         emit(:X)
         print("---")
-        toggle ts(true)
+        toggle ts(true)                         ;; emit(0, ts): awakes all
         emit(:X)
     ]]
     print("Testing...", "toggle pool target")
     local out = atm_test(src)
-    assertx(out, "1\n2\n---\n---\n1\n2\n")
+    assertx(out, "1\n2\n---\n---\n1\n2\n1\n2\n")
 end

@@ -2503,13 +2503,14 @@ do
         print(1)
         emit(:X)
         emit(:X)
+        ;; toggle on: emit(0, t) awakes await(true)
         toggle t (true)
         print(2)
         emit(:X)
     ]]
     print("Testing...", "toggle 4")
     local out = atm_test(src)
-    assertx(out, "1\n2\n10\n")
+    assertx(out, "1\n10\n2\n")
 
     local src = [[
         var T

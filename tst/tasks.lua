@@ -3521,34 +3521,43 @@ do
         spawn @ts T(2)
         loop _,t in ts {
             print(:t, t.pub)
-            emit(:2)                    ;; opens hole for 99 below
-            val ok = spawn @ts T(99)   ;; (no) must not fill hole b/c ts in the stack
-            print(ok != nil)
+            val ok1 = spawn @ts T(99)  ;; full: fails
+            emit(:2)                    ;; kills T(2), not removed yet
+            val ok2 = spawn @ts T(99)  ;; dead slot is free: passes
+            print(ok1 != nil, ok2 != nil)
+            break()                     ;; T(99) would be visited
         }
+        loop _,t in ts {                ;; dead T(2) still in ts
+            print(:t, t.pub)
+        }
+        atmos.gc()                      ;; removes dead T(2)
         loop _,t in ts {
             print(:t, t.pub)
         }
     ]]
-    print("Testing...", "tasks 21 (now ok)")
+    print("Testing...", "tasks 21: pool limit: fail then pass")
     local out = atm_test(src)
-    assertx(out, "t\t1\ntrue\nt\t2\nfalse\nt\t1\nt\t99\n")
+    assertx(out, "t\t1\nfalse\ttrue\nt\t1\nt\t2\nt\t99\nt\t1\nt\t99\n")
 
     local src = [[
         task T () {
             await(true)
         }
-        pin ts = tasks()
+        pin ts = tasks(1)
         spawn @ts T()
         spawn {
             loop _ in ts {
                 break()
             }
         }
-        print(ts._.ing)
+        emit(:X)                    ;; kills T
+        val ok1 = spawn @ts T()    ;; dead slot is free: passes
+        val ok2 = spawn @ts T()    ;; full: fails
+        print(ok1 != nil, ok2 != nil)
     ]]
-    print("Testing...", "tasks 22")
+    print("Testing...", "tasks 22: pool limit: pass then fail")
     local out = atm_test(src)
-    assertx(out, "0\n")
+    assertx(out, "true\tfalse\n")
 
     local src = [[
         task T () {
