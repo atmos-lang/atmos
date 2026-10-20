@@ -1,3 +1,23 @@
+v0.9 (???/??)
+-------------
+
+- Modifications:
+    - `:clock` synchronous emit/await (lua-atmos#25)
+        - timers expire in time order, residual time carried
+    - task termination
+        - pool removal through `atmos.gc`
+        - emitted on normal end only (abortion/error never emits)
+
+- Environments:
+    - `atmos.next()`: us to nearest timer, `nil` if none (lua-atmos#25)
+    - `atmos.gc()`: remove tasks from pools between environment steps
+        - `loop` envs call automatically
+        - `start` envs must call each callback
+
+- Fixes:
+    - terminated tasks leaked in parent pools (lua-atmos#23)
+    - `toggle ts(...)`: filter task was not closed with pool
+
 v0.8 (aug/26)
 -------------
 

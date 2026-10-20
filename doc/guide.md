@@ -169,6 +169,35 @@ In the example, the scheduling behaves as follows:
 - The second task awakes, prints `b2`, and suspends.
 - The main application prints `4`.
 
+### 3.1.1. Synchronous Timers
+
+Determinism and predictability also extend to timers because they all advance
+together due to the same clock ticks emitted by the environment.
+The scheduler guarantees that timers in concurrent tasks respect the
+specification and awake in perfect synchrony, regardless of the granularity of
+ticks:
+
+```
+spawn {
+    par :any {
+        await 30ms
+        print "30ms"        ;; never prints
+    } with {
+        await 10ms
+        print "10ms"        ;; prints
+        await 15ms
+        print "15ms"        ;; prints, aborts the other branch
+    }
+}
+emit(30ms)
+```
+
+Although the `await` in the first branch appears first in the source and
+matches the `emit`, both `await`s in the second branch expire first
+(`10+15<30`).
+The program prints `10ms` and `15ms`, but never `30ms` since the second
+branch terminates and aborts the whole `par :any` composition.
+
 ## 3.2. Lexical Hierarchy
 
 Tasks form a hierarchy based on the source position in which they are spawned.
@@ -226,7 +255,7 @@ do {
 } ;; executes defer clauses in the block and in nested tasks
 ```
 
-In the example, we attach a `spawn` and a `defer` to an explicit block.
+We attach a `spawn` and a `defer` to an explicit block.
 When the block goes out of scope, it automatically aborts the task and also
 executes the deferred statement.
 The aborted task may also have pending defers, which also execute immediately.
@@ -291,7 +320,8 @@ print(t.pub)        ;; reads `pub` of `t` (10)
 A task pool, created with the `tasks` primitive, allows that multiple tasks
 share a parent container in the hierarchy.
 When the pool goes out of scope, all attached tasks are aborted.
-When a task terminates, it is automatically removed from the pool.
+When a task terminates, it is automatically removed from the pool but only
+between environment steps.
 
 ```
 task T (id, ms) {
@@ -345,10 +375,13 @@ toggle t(true)
 emit :X     ;; awakes
 ```
 
-`TODO: explain (toggle operation)`
+Just after we spawn the task, we toggle it off, making it unresponsive to
+events.
+Therefore, the first `emit :X` is ignored by the task.
+Then, we toggle the task back to on, and the second `emit` awakes the task.
 
-In addition, Atmos provides a `toggle` statement, which awaits the given body
-to terminate, while also observing its first argument as a boolean event:
+Atmos also provides a `toggle` statement, which awaits the given body to
+terminate, while also observing its first argument as a boolean event:
 When receiving `false`, the body toggles off.
 When receiving `true`, the body toggles on.
 
@@ -476,7 +509,7 @@ loop i in 10 {
 }
 ```
 
-The example spawns a dedicated task for the stream pipeline with source
+We spawn a dedicated task for the stream pipeline with source
 `S.on(:V)`, which runs concurrently with a loop that generates events
 `:V` carrying field `v=i` on every second.
 The pipeline filters only odd occurrences of `v`, then maps to these values,
@@ -568,7 +601,7 @@ val t = watching 20s {
     }
 }
 
-if t ?? :number {
+if t ?? :number {    ;; timeout
     print("Computation timeout...")
 } else {
     print(t.worker ++ " yields " ++ t.value)

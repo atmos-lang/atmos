@@ -2262,8 +2262,8 @@ A task awakes when an `emit(e)` matches the given await pattern as follows:
 |           | `false`       | never         | —         |
 | Value     | `:T [...]`    | `pat =>= e`   | `e`       |
 |           | `x`           | `e ?? x`      | `e`       |
-| Time      | `AsBms`       | timeout       | overrun   |
-|           | `:clock`      | clock tick    | delta     |
+| Time      | `AsBms`       | timeout       | `late`    |
+|           | `:clock`      | clock tick    | `dt,late` |
 | Tasks     | `t`           | `t` end       | `v,t`     |
 |           | `T(...)`      | task end      | `v,t`     |
 |           | `:any ts`     | any pool end  | `v,t,ts`  |
@@ -2278,7 +2278,7 @@ A task awakes when an `emit(e)` matches the given await pattern as follows:
 
 Note that some patterns may modify the final result:
 
-- Time: difference between the time elapsed and expected
+- Time: `late`: time elapsed past expiry; `dt`: clock tick length
 - Tasks: task result, terminating task, and task pool
 - Condition, Meta: function result (defaults to `e` if `true`)
 

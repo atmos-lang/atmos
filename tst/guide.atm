@@ -73,6 +73,23 @@ do {
     print "4"
 }
 
+;; 3.1.1
+do {
+    print "-=-=- 3.1.1 -=-=-"
+    spawn {
+        par :any {
+            await 30ms
+            print "30ms"        ;; never prints
+        } with {
+            await 10ms
+            print "10ms"        ;; prints
+            await 15ms
+            print "15ms"        ;; prints, aborts the other branch
+        }
+    }
+    emit(30ms)
+}
+
 ;; 3.2
 do {
     print "-=-=- 3.2 -=-=-"
