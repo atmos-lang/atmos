@@ -130,7 +130,7 @@ do
                 }
             }
 
-            if t == :clock {
+            if t ?? :number {
                 print("Computation timeout...")
             } else {
                 print(t.worker ++ " yields " ++ t.value)
