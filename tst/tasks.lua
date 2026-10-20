@@ -3666,11 +3666,11 @@ do
                 }
             }
         }
-        emit(10ms)
+        emit @:global 10ms
         emit(:X)
-        emit(5ms)
+        emit @:global 5ms
         emit(:X)
-        emit(5ms)
+        emit @:global 5ms
     ]]
     print("Testing...", "every-clock")
     local out = atm_test(src)

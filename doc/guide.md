@@ -189,7 +189,7 @@ spawn {
         print "15ms"        ;; prints, aborts the other branch
     }
 }
-emit(30ms)
+emit @:global 30ms
 ```
 
 Although the `await` in the first branch appears first in the source and

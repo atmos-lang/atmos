@@ -92,7 +92,7 @@ do
             await <:X || 5ms>
             print(:ok)
         }
-        emit(5ms)
+        emit @:global 5ms
     ]]
     print("Testing...", "op_clock_or 1")
     local out = atm_test(src)

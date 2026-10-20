@@ -1762,7 +1762,7 @@ do
     ]])
 
     local src = [[
-        print(emit(1))
+        print(emit @:global(1))
     ]]
     print("Testing...", "emit 1")
     local out = atm_test(src)
@@ -2403,9 +2403,9 @@ do
             await(10s100ms)
             print(:y)
         }
-        emit 10s
+        emit @:global 10s
         print(:x)
-        emit(100ms)
+        emit @:global 100ms
     ]]
     print("Testing...", "await 2: clock")
     local out = atm_test(src)
@@ -2416,9 +2416,9 @@ do
             await(10s100ms)
             print(:y)
         }
-        emit(10s)
+        emit @:global 10s
         print(:x)
-        emit(100ms)
+        emit @:global 100ms
     ]]
     print("Testing...", "await 3: clock")
     local out = atm_test(src)
@@ -2429,13 +2429,13 @@ do
             await(1min2s3ms)
             print(:ok)
         }
-        emit(1min)
+        emit @:global 1min
         print(:1)
-        emit(2s)
+        emit @:global 2s
         print(:2)
-        emit(1ms)
+        emit @:global 1ms
         print(:3)
-        emit(2ms)
+        emit @:global 2ms
         print(:4)
     ]]
     print("Testing...", "await 4: clock")

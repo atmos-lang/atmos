@@ -12,7 +12,7 @@ do
             await(10ms)
             print(:ok)
         }
-        emit(25ms)                      ;; 2nd timer: 15ms late carried
+        emit @:global 25ms              ;; 2nd timer: 15ms late carried
     ]]
     print("Testing...", "timers 1: residual carried")
     local out = atm_test(src)
@@ -28,7 +28,7 @@ do
                 print(:b)
             }
         }
-        emit(30ms)                      ;; b expires first (10ms)
+        emit @:global 30ms              ;; b expires first (10ms)
     ]]
     print("Testing...", "timers 2: time order in one tick")
     local out = atm_test(src)
@@ -41,7 +41,7 @@ do
                 print(i)
             }
         }
-        emit(35ms)                      ;; 3 periods in one tick
+        emit @:global 35ms              ;; 3 periods in one tick
     ]]
     print("Testing...", "timers 3: periodic catch-up")
     local out = atm_test(src)
@@ -52,7 +52,7 @@ do
             print(await(10ms))
             print(await(10ms))
         }
-        emit(25ms)                      ;; late: 15ms, then 5ms
+        emit @:global 25ms              ;; late: 15ms, then 5ms
     ]]
     print("Testing...", "timers 4: late returned")
     local out = atm_test(src)
@@ -69,7 +69,7 @@ do
             }
         }
         ;; global: resets nearest timer (default target: main task)
-        emit @(:global) (25ms)          ;; pieces: 10ms (timer), 15ms (rest)
+        emit @:global 25ms              ;; pieces: 10ms (timer), 15ms (rest)
     ]]
     print("Testing...", "timers 5: clock pieces")
     local out = atm_test(src)
@@ -84,7 +84,7 @@ do
             }
             await(false)
         }
-        emit(25ms)
+        emit @:global 25ms
     ]]
     print("Testing...", "timers 6: timer born mid-tick")
     local out = atm_test(src)
@@ -95,12 +95,12 @@ do
             await(10ms)
             print(:ok)
         }
-        emit(5ms)                       ;; 5ms of 10ms
+        emit @:global 5ms               ;; 5ms of 10ms
         toggle t(false)
-        emit(20ms)                      ;; frozen: no time passes for t
+        emit @:global 20ms              ;; frozen: no time passes for t
         toggle t(true)
         print("-")
-        emit(5ms)                       ;; 10ms: expires
+        emit @:global 5ms               ;; 10ms: expires
     ]]
     print("Testing...", "timers 7: toggle freezes timer")
     local out = atm_test(src)
@@ -116,9 +116,9 @@ do
             print(:a)
         }
         toggle t(false)
-        emit(1ms)                       ;; t frozen: timer not re-reported
+        emit @:global 1ms               ;; t frozen: timer not re-reported
         toggle t(true)
-        emit(30ms)                      ;; a (10ms) before b (19ms)
+        emit @:global 30ms              ;; a (10ms) before b (19ms)
     ]]
     print("Testing...", "timers 8: toggle on re-reports timer")
     local out = atm_test(src)
@@ -130,7 +130,7 @@ do
             await(10ms)
         }
         print(atmos.next())
-        emit(4ms)
+        emit @:global 4ms
         print(atmos.next())             ;; 6ms left
         atmos.stop()
         print(atmos.next())             ;; reset by stop

@@ -61,9 +61,9 @@ do
                 print(x)
             }
         }
-        emit 1s
-        emit 1s
-        emit 1s
+        emit @:global 1s
+        emit @:global 1s
+        emit @:global 1s
     ]]
     local out = atm_test(src)
     assertx(out, "1\n2\n3\n")
@@ -82,10 +82,10 @@ do
                 print(e.tag, e@1)
             }
         }
-        emit 1s
+        emit @:global 1s
         emit :X
-        emit 1s
-        emit 1s
+        emit @:global 1s
+        emit @:global 1s
         emit :X
     ]]
     local out = atm_test(src)
