@@ -3,6 +3,7 @@ v0.9 (???/??)
 
 - Modifications:
     - `:clock` synchronous emit/await (lua-atmos#25)
+        - `emit @:global` required for clocks
         - timers expire in time order, residual time carried
     - task termination
         - pool removal through `atmos.gc`
