@@ -25,12 +25,16 @@ structured, deterministic concurrency.
       the main chunk, and transparent blocks inside them.
     - `await` inside a `func` body is a compile error.
     - Reusable waiting logic is a task awaited with `await T(...)`.
-- **Reference counting, no GC.**
-    - Leaks are accepted for cycles made only of unpinned values.
+- **Reference counting plus numeric pin scopes, no GC.**
     - `pin` is extended to all dynamic values (see Memory).
-- **Dead references.**
-    - Killed values keep a zombie header until the last reference drops.
-    - Access through a dead reference raises an error.
+    - A pinned value records the depth of its pin block and is freed,
+      guaranteed, when that block ends.
+    - A pinned value never escapes its pin block: every escape is
+      checked at runtime and raises an error at the escape point.
+    - No reference to a freed value is ever observable: no dead values,
+      no liveness check on access.
+    - Unpinned values are refcounted and may go anywhere.
+    - Leaks are accepted for cycles made only of unpinned values.
 - **Inline frames for structured constructs.**
     - `par`, `watching`, `loop on`, `toggle on` need no allocation.
     - No more lowering to lambdas or Lua closures.
@@ -63,8 +67,10 @@ structured, deterministic concurrency.
     - Top-level declarations become static C variables.
     - An unknown identifier is a compile error.
     - `func f` without `val` declares a top-level variable.
-5. **Dead access.**
-    - Recommend error on access, plus `x ?? :dead` as a safe test.
+5. **Closures capturing pinned values.**
+    - Recommend contagion: the fresh closure is pinned at the depth of
+      the captured value.
+    - Alternative: error unless the closure is explicitly pinned.
 6. **Natives referring to Atmos variables.**
     - Recommend `$x` interpolation inside native blocks.
 7. **Strings.**
@@ -75,9 +81,11 @@ structured, deterministic concurrency.
     - Recommend keep 1-based (manual, tests, `@#`, `@+`).
 9. **String patterns.**
     - Recommend no Lua patterns in v1: plain `find`, `sub`, `split`.
-10. **Killed values stored elsewhere.**
-    - Recommend: a dead entry stays in a table until overwritten.
-    - Exception: pools purge dead tasks (as lua-atmos pool gc).
+10. **Auto-pin of fresh task arguments.**
+    - Recommend postpone: unpinned arguments are already safe by
+      refcount.
+    - Auto-pin would only add a guaranteed free when the task ends and
+      break cycles through the argument.
 
 ## Language delta (relative to current Atmos)
 
@@ -101,6 +109,14 @@ structured, deterministic concurrency.
 
 - `await` is shallow (compile error inside `func`).
 - `pin` applies to any dynamic value, not only tasks and pools.
+- A pinned value cannot escape its pin block (runtime error).
+    - Today a pinned task can be aliased outside its block and is then
+      seen as `dead`; this becomes an error at the assignment.
+- Returning a pinned value from its own pin block transfers ownership.
+    - Today `func f () { pin t = spawn T() ; t }` returns a dead task;
+      it now returns a live task that the caller must pin.
+- Parameters are immutable, as the manual states.
+    - Today `set` on a parameter is silently accepted.
 - Native blocks contain C, not Lua.
 - Globals are static (see open decision 4).
 - Deep ordering drops the metatable rule (rule 2).
@@ -143,35 +159,123 @@ typedef struct {
 
 ```c
 typedef struct {
-    int32_t rc;
-    uint8_t type;
-    uint8_t dead;
-    uint8_t pinned;
+    int32_t  rc;
+    uint8_t  type;
+    uint8_t  pinned;
+    uint32_t depth;     // depth of the pin block, if pinned
 } AObj;
 ```
 
-- **Ownership convention.**
-    - Arguments are borrowed.
-    - Return values are owned (+1).
-    - Storing into a variable, frame slot, table, or closure takes a
-      reference; overwriting releases the old one.
-- **Normal release.** At `rc == 0` the object is finalized and freed.
-- **Pin.**
-    - `pin x = e` marks the value as owned by the enclosing block.
+#### Ownership convention
+
+- Arguments are borrowed.
+- Return values are owned (+1).
+- Storing into a variable, frame slot, table, or closure takes a
+  reference; overwriting releases the old one.
+- All objects keep a refcount, pinned or not. For a pinned object it
+  only matters after a transfer (see Exits).
+
+#### Block depth
+
+- Every block instance has a depth: its parent block's depth plus one.
+- The main chunk's block has depth 1. Top-level variables live there.
+- A function body is one deeper than the caller's current block.
+- A task body is one deeper than the block it is attached to: the
+  spawning block, or the block of its pool.
+- Depths are stored in frames, so a resumed task keeps its own depths,
+  whoever emitted.
+
+#### Unpinned values
+
+- Live by refcount and may be stored anywhere: emitted, thrown, put in
+  top-level variables, in other tables, in `pub`.
+- Can never reference a pinned value (see Stores), so everything
+  reachable from them is refcounted too.
+- Cycles made only of unpinned values leak (accepted).
+
+#### Pin
+
+- `pin x = e` pins the value of `e` in the current block.
+    - The value must be unique (`rc == 1`), else
+      `invalid pin : shared value`.
     - Pinning an already pinned value is an error.
-    - Pinning an ancestor task is an error (as today in `run.lua`).
-    - An unassigned `spawn` is an implicit pin to the enclosing block.
-- **Kill.** When a pinning block ends, each pinned value is killed:
-    - task: aborted, defers run;
-    - tasks pool: all tasks aborted;
-    - table: entries released;
-    - function: captures released;
-    - native: finalizer called.
-    - Then `dead = 1`, payload freed, header kept until `rc == 0`.
-- **Dead access.** Any operation on a dead object raises
-  `:error.dead`; `x ?? :dead` is the safe check.
-- **Cycles.** Killing releases children, so any cycle through a pinned
-  value is broken. Cycles of unpinned values leak (accepted).
+    - Pinning the running task or an ancestor is an error.
+    - An unassigned `spawn` is an implicit pin in the enclosing block.
+    - Tasks and pools must be pinned: `val`/`var` of an unpinned task
+      or pool is an error, as today.
+- Sets `pinned = 1` and `depth` to the block depth.
+- When the block ends, each pinned value is freed unconditionally:
+    - task: aborted (defers run), then freed;
+    - pool: all tasks aborted, then freed;
+    - table: entries released, then freed;
+    - function: captures released, then freed;
+    - native: finalizer called, then freed.
+
+#### Invariant
+
+- Every reference to a pinned value lives in its pin block or in a
+  block nested inside it, on the same chain of blocks.
+- Hence freeing at the end of the pin block never leaves a reference
+  behind. There are no dead values and no liveness check on access.
+- Along a single chain, nesting equals depth order, so one integer
+  comparison suffices.
+- Every lateral channel (between parallel branches or tasks) is an
+  escape, checked as below.
+
+#### Stores
+
+Storing a pinned value `v` with depth `p`:
+
+| Destination                                    | Rule     |
+|------------------------------------------------|----------|
+| local variable of a block at depth `d`         | `d >= p` |
+| table pinned at depth `d`                      | `d >= p` |
+| `pub` of a task pinned at depth `d`            | `d >= p` |
+| `emit` payload, target root at depth `d`       | `d >= p` |
+| `spawn` argument, task attached at depth `d`   | `d >= p` |
+| captured `var` (heap box)                      | error    |
+| unpinned table                                 | error    |
+| `throw` payload                                | error    |
+
+- A failed rule raises `invalid escape : pinned value` at the store.
+- `emit` targets `:global`, `:parent`, and `n > 0` are always outer, so
+  emitting a pinned value to them is an error.
+- `emit @:task` is allowed only if `v` is pinned in the outermost block
+  of the running task.
+- A task that receives a pinned argument inherits its depth: it cannot
+  be stored, returned, or pooled above `p`.
+- A closure that captures a pinned value is pinned at its depth (open
+  decision 5).
+- Unpinned task arguments are plain refcounted references. They are
+  safe because unpinned values cannot reference pinned ones.
+- `throw` is always an error because the pin block is unwound before
+  the `catch` receives the value.
+
+#### Exits
+
+`return`, `escape`, `break`, a block's final value, and a task's result
+carry a value `v` with depth `p` to a destination at depth `d`:
+
+- **Alias (`p <= d`).** `v` stays pinned where it is.
+- **Transfer (`p > d`).** The pin block of `v` is being exited.
+    - `v` is unpinned and flows out as a fresh value.
+    - Pinned values reachable from `v` with depth `> d` are unpinned
+      too. The traversal only visits pinned objects, since unpinned
+      ones cannot hold pinned ones.
+    - The destination decides: `pin` again, or keep it refcounted.
+      Tasks and pools must be pinned again.
+    - Safe by the invariant: every other reference lived in the exited
+      blocks and was released with them, so refcounts are exact.
+- Today `func f () { pin t = spawn T() ; t }` returns a dead task.
+  With transfer it behaves like `func f () { spawn T() }`.
+
+#### Cycles
+
+- Cycles through pinned values are freed when their pin block ends.
+  Since unpinned values cannot reference pinned ones, such cycles are
+  made only of pinned values.
+- Cycles of unpinned values leak. The remedy is `pin`, and ASan finds
+  them in tests.
 
 ### Strings and tags
 
@@ -231,7 +335,7 @@ typedef enum {
   through the cleanup chain.
 - Across C functions (calls, transparent blocks) they propagate as a
   status, and each level runs its cleanup.
-- Cleanup = run defers in reverse, release locals, kill pins.
+- Cleanup = run defers in reverse, release locals, free pins.
 - `catch` tests the status and payload and stops propagation on match.
 - Uncaught `A_ERROR` at the top prints the trace and exits.
 - Traces: each frame records Atmos file and line before calls and
@@ -248,7 +352,7 @@ typedef struct ATask {
     AObj    hdr;
     AResume resume;     // generated
     int     pc;         // resumption point
-    uint8_t status;     // running, suspended, dead
+    uint8_t status;     // running, suspended, terminated
     uint8_t toggled;    // on/off
     struct ATask* up;   // owner
     ABlock* blks;       // active nested blocks with tasks
@@ -280,7 +384,16 @@ typedef AStatus (*AResume) (ATask* t, AKind k, AVal evt);
 - **Main chunk** is a task (it may `await`).
 - **Pools.** `tasks(n)` is a list of heap tasks with an optional limit.
     - `spawn @ts` fails with `nil` when full.
-    - `#ts` counts live tasks; dead tasks are purged lazily.
+    - A task leaves its pool when it terminates; `#ts` counts live
+      tasks.
+- **Lifetime.** A task may terminate or be aborted before its pin block
+  ends. This is a valid state, not a dead reference.
+    - The frame (locals, nested blocks) is freed at termination.
+    - The header (`status`, `pub`, `ret`) lives until the pin block
+      ends, so `await t` and `t.pub` keep working.
+    - Headers of pool tasks are refcounted by their aliases. All aliases
+      live inside the pool's block, so a header is freed at the latest
+      when that block ends.
 
 ### Scheduler
 
@@ -301,9 +414,18 @@ typedef AStatus (*AResume) (ATask* t, AKind k, AVal evt);
     5. the next sibling task.
 - **Emit targets.** `:task` (default), `:parent`, `:global`, a task, or
   a level number.
-- **Reentrancy.** A reaction may emit or kill tasks not yet traversed.
-    - The traversal holds a reference to the next node.
-    - It checks `dead` before stepping into a node.
+- **Reentrancy.** A reaction may emit, or abort tasks not yet
+  traversed.
+    - The traversal holds a reference to the next task header and skips
+      terminated tasks.
+- **Deferred abort.** A reaction may abort a block whose code is still
+  on the C stack (e.g. an outer `watching` aborts the emitter).
+    - The abort only marks the block.
+    - Cleanup and deallocation run when control returns to that code,
+      which sees `A_ABORT` and unwinds.
+    - Pinned values held in its temporaries stay valid until then.
+- **Pinned payloads.** `emit` of a pinned value requires the target to
+  live inside the value's pin block (see Memory, Stores).
 - **Termination.** A finishing task stores `ret` and signals its owner,
   so `await t`, `await T()`, `:any ts`, `:all ts` match with `v,t[,ts]`.
 - **Errors in reactions** propagate through `emit` to the emitter
@@ -336,7 +458,8 @@ typedef struct {
 
 - The C wrapper attaches `fin` at creation (e.g. `fopen` with
   `fclose`). The user never declares finalizers.
-- `fin` runs on last release or on kill, exactly once.
+- `fin` runs on last release or when its pin block ends, exactly
+  once.
 
 ### Driver and environments
 
@@ -461,7 +584,13 @@ CLEANUP:
     - Leak checking on by default.
     - Cases with intended unpinned cycles opt out explicitly.
 - **Unit tests** for the runtime in C: tables, strings, refcounts,
-  kill/dead, scheduler order.
+  pin and free, transfer, scheduler order.
+- **Escape checks.** One case per row of the Stores table and per exit
+  kind, each in an allowed and a rejected variant, including parallel
+  branches and captured variables.
+- **Behavior changes.** Golden cases that observe `dead` aliases or dead
+  returns (pin and return cases in `tst/tasks.lua`) are rewritten to
+  expect the new escape errors or transfers.
 
 ## Repo layout
 
@@ -494,14 +623,20 @@ exs/        examples
 - [ ] M6 pools and targets: `tasks(n)`, `spawn @ts`, `:any ts`,
       `:all ts`, emit targets, `toggle` (both forms, `with`).
 - [ ] M7 time: clock awaits, `:clock`, timers, default driver loop.
-- [ ] M8 memory: `pin` for all values, kill, `dead`, `?? :dead`.
+- [ ] M8 memory: `pin` for all values, block depths, store checks,
+      transfer on exits, deferred abort of blocks on the C stack.
 - [ ] M9 natives and stdlib: C natives, `$x`, native box, stdlib v1, X.
 - [ ] M10 parity: golden suite green, `exs/` ported, manual rewritten.
 
 ## Risks
 
-- **Emit reentrancy.** Kills during traversal are the main source of
-  use-after-free bugs. Covered by `dead` checks and ASan.
+- **Emit reentrancy.** Aborts during traversal are the main source of
+  use-after-free bugs inside the runtime. Covered by deferred abort,
+  refcounted task headers, and ASan.
+- **Escape-check completeness.** A missed channel breaks the invariant
+  silently. Every channel in the Stores table gets dedicated tests.
+- **Escape-check cost.** Each store of a pinned value compares two
+  integers. Cheap, but on hot paths; static elision later.
 - **Refcount bugs in generated code.** Keep the ownership convention
   strict and centralize it in a few coder helpers.
 - **Semantic drift.** The golden suite is the spec; any intended change
