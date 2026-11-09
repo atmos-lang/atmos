@@ -34,6 +34,8 @@ structured, deterministic concurrency.
     - No reference to a freed value is ever observable: no dead values,
       no liveness check on access.
     - Unpinned values are refcounted and may go anywhere.
+    - Closures inherit the scope: a closure that captures pinned values
+      is pinned at the deepest of their depths.
     - Leaks are accepted for cycles made only of unpinned values.
 - **Inline frames for structured constructs.**
     - `par`, `watching`, `loop on`, `toggle on` need no allocation.
@@ -67,21 +69,17 @@ structured, deterministic concurrency.
     - Top-level declarations become static C variables.
     - An unknown identifier is a compile error.
     - `func f` without `val` declares a top-level variable.
-5. **Closures capturing pinned values.**
-    - Recommend contagion: the fresh closure is pinned at the depth of
-      the captured value.
-    - Alternative: error unless the closure is explicitly pinned.
-6. **Natives referring to Atmos variables.**
+5. **Natives referring to Atmos variables.**
     - Recommend `$x` interpolation inside native blocks.
-7. **Strings.**
+6. **Strings.**
     - Recommend interning all strings in v1.
     - Equality and table key hashing become pointer operations.
     - Revisit if concatenation-heavy code suffers.
-8. **Index base.**
+7. **Index base.**
     - Recommend keep 1-based (manual, tests, `@#`, `@+`).
-9. **String patterns.**
+8. **String patterns.**
     - Recommend no Lua patterns in v1: plain `find`, `sub`, `split`.
-10. **Auto-pin of fresh task arguments.**
+9. **Auto-pin of fresh task arguments.**
     - Recommend postpone: unpinned arguments are already safe by
       refcount.
     - Auto-pin would only add a guaranteed free when the task ends and
@@ -244,8 +242,8 @@ Storing a pinned value `v` with depth `p`:
   of the running task.
 - A task that receives a pinned argument inherits its depth: it cannot
   be stored, returned, or pooled above `p`.
-- A closure that captures a pinned value is pinned at its depth (open
-  decision 5).
+- A closure that captures pinned values inherits their scope (see
+  Functions and closures).
 - Unpinned task arguments are plain refcounted references. They are
   safe because unpinned values cannot reference pinned ones.
 - `throw` is always an error because the pin block is unwound before
@@ -308,6 +306,16 @@ typedef struct {
 ```
 
 - A captured `val` is copied into `caps`.
+- **Scope inheritance.** A closure that captures pinned values is
+  pinned at creation, at the deepest of their depths.
+    - The closure is fresh, so the pin is always valid.
+    - It is then subject to the Stores rules like any pinned value: it
+      cannot go to an unpinned table, a captured `var`, a `throw`, or an
+      outer variable.
+    - On exits it follows the transfer rule: returning it from the pin
+      block unpins it together with the captured pinned values.
+    - Task prototypes written as literals follow the same rule.
+- A closure that captures only unpinned values stays unpinned.
 - A captured `var` lives in a refcounted box shared by all closures and
   the declaring frame.
 - Stdlib and native functions use the same type, with `ncap == 0`.
@@ -443,7 +451,7 @@ typedef AStatus (*AResume) (ATask* t, AKind k, AVal evt);
 ### Natives
 
 - Native blocks are C expressions or statements.
-- `$x` refers to an Atmos variable (open decision 6).
+- `$x` refers to an Atmos variable (open decision 5).
 - A C API header gives macros to read and build values:
   `A_NUM(v)`, `A_STR(v)`, `a_num(d)`, `a_str(s)`, `a_tab()`, ...
 - Native box:
