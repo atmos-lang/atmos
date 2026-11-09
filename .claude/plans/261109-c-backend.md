@@ -1,0 +1,511 @@
+# Plan: Atmos with a C backend (new implementation, new repo)
+
+## Context
+
+A from-scratch reimplementation of Atmos that compiles to C.
+No Lua: no VM, no interpreter, no Lua syntax, no Lua libraries.
+The current implementation (this repo + lua-atmos) is the reference for
+semantics, and its test suite becomes the spec (see Tests).
+
+Goal: the simplest dynamic language that still supports Atmos'
+structured, deterministic concurrency.
+
+## Settled decisions
+
+- **C backend only.**
+    - Whole-program compilation to one C file, then `cc`.
+    - No VM, no bytecode, no interpreter.
+- **No `load`.**
+    - No runtime evaluation of source.
+    - Modules are resolved statically at compile time.
+- **No metatables, no coroutines.**
+    - Tasks are the only suspension mechanism.
+- **Stackless tasks with shallow `await`.**
+    - `await` is legal only lexically inside a task body: task prototypes,
+      the main chunk, and transparent blocks inside them.
+    - `await` inside a `func` body is a compile error.
+    - Reusable waiting logic is a task awaited with `await T(...)`.
+- **Reference counting, no GC.**
+    - Leaks are accepted for cycles made only of unpinned values.
+    - `pin` is extended to all dynamic values (see Memory).
+- **Dead references.**
+    - Killed values keep a zombie header until the last reference drops.
+    - Access through a dead reference raises an error.
+- **Inline frames for structured constructs.**
+    - `par`, `watching`, `loop on`, `toggle on` need no allocation.
+    - No more lowering to lambdas or Lua closures.
+- **Non-local exits as status codes.**
+    - Errors, `escape`, `break`, `return` all propagate as a returned
+      status, never `setjmp`/`longjmp`.
+- **Tables only, Lua-like.**
+    - One mutable table type with array part and hash part.
+    - No separate tuple type.
+    - Hash part iterates in insertion order (determinism).
+- **Native code is C.**
+    - Native blocks emit C.
+    - Native resources are boxed values with a finalizer.
+
+## Open decisions (with recommendation)
+
+1. **Compiler implementation language.**
+    - Recommend C: one self-contained binary, no runtime dependency.
+    - Alternative later: self-host in Atmos.
+2. **Numbers.**
+    - Recommend a single `double`.
+    - `print`/`tostring` show integral values without decimals (`1`, not
+      `1.0`), to keep current outputs.
+3. **Multiple values and varargs.**
+    - Recommend keep: `catch`, `await`, `escape`, `par :all`, and
+      `val a,b = ...` all rely on them.
+    - Implemented with a runtime value stack (see Calls).
+4. **Globals.**
+    - Recommend: no dynamic global table.
+    - Top-level declarations become static C variables.
+    - An unknown identifier is a compile error.
+    - `func f` without `val` declares a top-level variable.
+5. **Dead access.**
+    - Recommend error on access, plus `x ?? :dead` as a safe test.
+6. **Natives referring to Atmos variables.**
+    - Recommend `$x` interpolation inside native blocks.
+7. **Strings.**
+    - Recommend interning all strings in v1.
+    - Equality and table key hashing become pointer operations.
+    - Revisit if concatenation-heavy code suffers.
+8. **Index base.**
+    - Recommend keep 1-based (manual, tests, `@#`, `@+`).
+9. **String patterns.**
+    - Recommend no Lua patterns in v1: plain `find`, `sub`, `split`.
+10. **Killed values stored elsewhere.**
+    - Recommend: a dead entry stays in a table until overwritten.
+    - Exception: pools purge dead tasks (as lua-atmos pool gc).
+
+## Language delta (relative to current Atmos)
+
+### Kept
+
+- Literals: nil, booleans, numbers, strings, tags, clocks, natives.
+- `val`, `var`, `pin`, `set`, `where`.
+- Blocks, `do :X`, `escape`, `defer`, `test`.
+- `if`, `ifs`, `match`, all four `loop` forms, `break`, `until`, `while`.
+- `throw`, `catch` (with `true`, `false`, function, and `??` matching).
+- All operators: `??` `!?` `#` `++` `?>` `!>` `===` `=!=` `=>=` `=<=`.
+- Indexing: `t@(e)`, `t@1`, `t.x`, `t@#`, `t@+`.
+- Calls with single constructor argument, pipes, parenthesis lists.
+- `func`, lambdas (`\{ it }`), prototypes, `o::f()` as sugar for `o.f(o)`.
+- `task`, `tasks(n)`, `spawn`, `spawn @ts`, transparent `spawn {}`.
+- `await` (full pattern language), `emit @target`, `toggle`, `abort`,
+  `pub`, `par`, `par :any`, `par :all`, `watching`.
+- `X.tostring`, `X.print`, `X.copy`.
+
+### Changed
+
+- `await` is shallow (compile error inside `func`).
+- `pin` applies to any dynamic value, not only tasks and pools.
+- Native blocks contain C, not Lua.
+- Globals are static (see open decision 4).
+- Deep ordering drops the metatable rule (rule 2).
+
+### Dropped
+
+- `load` and anything that evaluates source at runtime.
+- Metatables, metamethods, `__call`/`__pairs` iteration, `__concat`.
+- The `meta` await pattern (`__atmos`).
+- Lua standard libraries (replaced by a small library, see Stdlib).
+- `thread`, `async` (v1), functional streams (v1).
+- String methods via metatable (`s::len()`).
+- Types `thread` and `userdata` (replaced by the native box).
+
+## Runtime
+
+### Values
+
+```c
+typedef enum {
+    A_NIL, A_BOOL, A_NUM, A_STR,
+    A_TAB, A_FUNC, A_TASK, A_TASKS, A_NAT
+} AType;
+
+typedef struct {
+    uint8_t type;
+    union {
+        int     b;
+        double  n;
+        AObj*   o;      // STR, TAB, FUNC, TASK, TASKS, NAT
+    } u;
+} AVal;
+```
+
+- 16-byte tagged union in v1. NaN-boxing is a later optimization.
+- Tags are interned strings (`:x == 'x'` holds as today).
+- `type(v)` returns the tag `:nil`, `:table`, `:xtask`, etc.
+
+### Memory
+
+```c
+typedef struct {
+    int32_t rc;
+    uint8_t type;
+    uint8_t dead;
+    uint8_t pinned;
+} AObj;
+```
+
+- **Ownership convention.**
+    - Arguments are borrowed.
+    - Return values are owned (+1).
+    - Storing into a variable, frame slot, table, or closure takes a
+      reference; overwriting releases the old one.
+- **Normal release.** At `rc == 0` the object is finalized and freed.
+- **Pin.**
+    - `pin x = e` marks the value as owned by the enclosing block.
+    - Pinning an already pinned value is an error.
+    - Pinning an ancestor task is an error (as today in `run.lua`).
+    - An unassigned `spawn` is an implicit pin to the enclosing block.
+- **Kill.** When a pinning block ends, each pinned value is killed:
+    - task: aborted, defers run;
+    - tasks pool: all tasks aborted;
+    - table: entries released;
+    - function: captures released;
+    - native: finalizer called.
+    - Then `dead = 1`, payload freed, header kept until `rc == 0`.
+- **Dead access.** Any operation on a dead object raises
+  `:error.dead`; `x ?? :dead` is the safe check.
+- **Cycles.** Killing releases children, so any cycle through a pinned
+  value is broken. Cycles of unpinned values leak (accepted).
+
+### Strings and tags
+
+- Immutable, refcounted, interned (weak intern table).
+- Length stored; contents NUL-terminated for C interop.
+- Tag hierarchy `??` is a dot-prefix test on the interned string.
+
+### Tables
+
+- Array part (`1..n`) plus insertion-ordered hash part.
+- Hash: open addressing index into a dense entry array.
+- Deletion leaves a tombstone, compacted on rehash.
+- `#t` is the array border, as in Lua.
+- Iteration: array part, then hash entries in insertion order.
+- `tag` field is an ordinary string key.
+- Runtime helpers: `++` on tables, `?>`, `===`, `=>=`, `X.copy`,
+  `X.tostring`.
+
+### Functions and closures
+
+```c
+typedef AStatus (*AFn) (AFunc* self, int argc, AVal* argv);
+
+typedef struct {
+    AObj  hdr;
+    AFn   fn;
+    int   ncap;
+    AVal  caps[];
+} AFunc;
+```
+
+- A captured `val` is copied into `caps`.
+- A captured `var` lives in a refcounted box shared by all closures and
+  the declaring frame.
+- Stdlib and native functions use the same type, with `ncap == 0`.
+
+### Calls and multiple values
+
+- One global value stack, as in Lua.
+- Caller pushes arguments, callee pushes results.
+- The callee returns a status; the result count is in the context.
+- On error, the stack is unwound to the frame base, releasing values.
+- Nothing on the stack survives an `await`: task temporaries live in
+  the task frame (see Compiler).
+
+### Status and non-local exits
+
+```c
+typedef enum {
+    A_OK, A_ERROR, A_ESCAPE, A_BREAK, A_RETURN, A_ABORT
+} AStatus;
+```
+
+- The payload (thrown values, escape tag and values, ...) is kept in
+  the runtime context.
+- Within one C function, `break`/`escape`/`return` compile to `goto`
+  through the cleanup chain.
+- Across C functions (calls, transparent blocks) they propagate as a
+  status, and each level runs its cleanup.
+- Cleanup = run defers in reverse, release locals, kill pins.
+- `catch` tests the status and payload and stops propagation on match.
+- Uncaught `A_ERROR` at the top prints the trace and exits.
+- Traces: each frame records Atmos file and line before calls and
+  awaits, producing the bidimensional trace (call stack plus task tree).
+
+### Tasks
+
+- **Prototype.** A `task` value is a closure whose `fn` is a resume
+  function plus a frame size.
+- **Instance.** An `xtask` is a heap object:
+
+```c
+typedef struct ATask {
+    AObj    hdr;
+    AResume resume;     // generated
+    int     pc;         // resumption point
+    uint8_t status;     // running, suspended, dead
+    uint8_t toggled;    // on/off
+    struct ATask* up;   // owner
+    ABlock* blks;       // active nested blocks with tasks
+    APatt*  await;      // current await pattern
+    AVal    pub;
+    AVal    ret;
+    // generated frame follows: params, locals, temporaries
+} ATask;
+```
+
+- **Resume signature.**
+
+```c
+typedef enum { R_START, R_EVENT, R_EXIT, R_ABORT } AKind;
+typedef AStatus (*AResume) (ATask* t, AKind k, AVal evt);
+```
+
+- `R_EVENT`: an emit matched the current await pattern.
+- `R_EXIT`: a transparent child delivered a non-local exit; the task
+  behaves as if it was raised at its current await point.
+- `R_ABORT`: the task jumps to the cleanup chain of its current `pc`.
+- **Transparent blocks** (`spawn {}`, `par` branches, `watching`,
+  `toggle on`) are task objects embedded inline in the owner's frame.
+    - No allocation.
+    - An `up` pointer gives access to the owner's locals.
+    - `return`/`break`/`throw`/`escape` cross to the owner with their
+      values, matching `tst/throw.lua` (pre and pos cases).
+    - They delegate `pub` and `emit` to the owner.
+- **Main chunk** is a task (it may `await`).
+- **Pools.** `tasks(n)` is a list of heap tasks with an optional limit.
+    - `spawn @ts` fails with `nil` when full.
+    - `#ts` counts live tasks; dead tasks are purged lazily.
+
+### Scheduler
+
+- **Spawn.** Allocate frame (or use inline slot), link into the
+  enclosing block, resume with `R_START` until the first await.
+- **Await.** Build the pattern once, eagerly (including spawned task
+  arguments); `until`/`while` predicates stay closures, called on each
+  candidate event.
+    - Patterns: boolean, value (`??`), tagged table (`=>=`), clock,
+      `:clock`, task, `T(...)`, `:any ts`, `:all ts`, `until`, `while`,
+      `!`, `&&`, `||`.
+    - `&&` keeps per-operand state inside the pattern.
+- **Emit.** Traverse the task tree in the documented order:
+    1. the active block of the task,
+    2. its nested tasks in sequence,
+    3. its single nested block,
+    4. the task itself at its await point,
+    5. the next sibling task.
+- **Emit targets.** `:task` (default), `:parent`, `:global`, a task, or
+  a level number.
+- **Reentrancy.** A reaction may emit or kill tasks not yet traversed.
+    - The traversal holds a reference to the next node.
+    - It checks `dead` before stepping into a node.
+- **Termination.** A finishing task stores `ret` and signals its owner,
+  so `await t`, `await T()`, `:any ts`, `:all ts` match with `v,t[,ts]`.
+- **Errors in reactions** propagate through `emit` to the emitter
+  (`tst/tasks.lua` "catch 1").
+- **Toggle.** `toggled = 0` skips the subtree in traversal, except
+  events matching the `with` patterns.
+    - `toggle on :T` reacts to `emit(:T [bool])`.
+- **Abort.** Resume with `R_ABORT`, depth-first, defers in reverse.
+- **Clocks.** Replicate the current synchronous timers semantics
+  (`.claude/plans/done/261019-timers.md`):
+    - `await(dur)` returns `late`;
+    - `await :clock` returns `dt, late`;
+    - one piece per timer expiry.
+
+### Natives
+
+- Native blocks are C expressions or statements.
+- `$x` refers to an Atmos variable (open decision 6).
+- A C API header gives macros to read and build values:
+  `A_NUM(v)`, `A_STR(v)`, `a_num(d)`, `a_str(s)`, `a_tab()`, ...
+- Native box:
+
+```c
+typedef struct {
+    AObj   hdr;
+    void*  ptr;
+    void (*fin) (void*);
+} ANat;
+```
+
+- The C wrapper attaches `fin` at creation (e.g. `fopen` with
+  `fclose`). The user never declares finalizers.
+- `fin` runs on last release or on kill, exactly once.
+
+### Driver and environments
+
+```c
+void    atm_init  (int argc, char** argv);
+AStatus atm_main  (void);           // run main until all suspended
+AStatus atm_emit  (AVal evt);       // external event, global target
+AStatus atm_step  (uint32_t ms);    // advance clock
+int     atm_alive (void);           // tasks still pending?
+void    atm_quit  (void);
+```
+
+- The default `main()` runs the main chunk, then sleeps until the next
+  timer deadline and steps, until no task is pending.
+- Environments (SDL, stdin, sockets) are separate C modules that call
+  `atm_emit`/`atm_step` from their own loops.
+
+### Stdlib (v1)
+
+- **base:** `print`, `type`, `tostring`, `tonumber`, `assert`, `next`.
+- **math:** `floor`, `ceil`, `abs`, `min`, `max`, `sqrt`, `sin`, `cos`,
+  `random`, `randomseed`, `huge`, `pi`.
+- **string:** `sub`, `find` (plain), `split`, `byte`, `char`, `upper`,
+  `lower`, `rep`, `format` (`%d %s %f %g %x %%`).
+- **vector:** `insert`, `remove`, `sort` (with comparator), `join`.
+- **io:** `write`, `read` (line), `open`/`close`/`lines` as native box.
+- **os:** `time`, `clock`, `exit`, `getenv`.
+- **X:** `tostring`, `print`, `copy`.
+- **atmos:** `status(t)`.
+
+## Compiler
+
+### Pipeline
+
+```
+.atm -> lexer -> parser -> resolver -> checker -> lowering -> coder -> .c
+```
+
+- CLI: `atmos f.atm [args]` compiles, builds, and runs.
+- Flags: `-c` emit C only, `-o out` build only, `-t` enable `test`.
+- `#line` directives map C diagnostics and debuggers to `.atm` lines.
+
+### Passes
+
+1. **Lexer.** Same lexicon as the manual; native blocks hold C text.
+2. **Parser.** Recursive descent, 7 precedence levels, as the manual.
+3. **Resolver.**
+    - Scopes, `val`/`var`/`pin`, static globals.
+    - Captures: copy `val`, box captured `var`.
+    - Tags interned at compile time.
+4. **Checker.**
+    - `await` only inside task bodies.
+    - `set` only on `var`, indexes, natives.
+    - `pin` rules that are static.
+5. **Lowering.**
+    - `watching P {B}` to `par :any { await P } with {B}`.
+    - `loop on P` to `loop { await P ... }`.
+    - `until`/`while` to `if`/`break`.
+    - Task bodies to A-normal form: every temporary that may be live
+      across an `await` gets a frame slot (v1: all task temporaries).
+6. **Coder.**
+    - One C function per `func`; captures in `AFunc.caps`.
+    - One resume function per task prototype and per transparent block.
+    - One frame struct per task prototype, with inline frames for its
+      transparent blocks.
+    - Each block emits a cleanup label; each await site knows its
+      cleanup chain, used for `R_ABORT` and `R_EXIT`.
+
+### Codegen sketch
+
+```
+task T (n) {
+    var i = 0
+    loop on :X {
+        set i = i + n
+    }
+}
+```
+
+```c
+typedef struct {
+    ATask t;
+    AVal  n;
+    AVal  i;
+} T_Frame;
+
+static AStatus T_resume (ATask* t, AKind k, AVal evt) {
+    T_Frame* f = (T_Frame*) t;
+    if (k == R_ABORT) {
+        goto CLEANUP;
+    }
+    switch (t->pc) {
+        case 0: break;
+        case 1: goto AWAIT_1;
+    }
+    a_set(&f->i, a_num(0));
+    while (1) {
+        a_await(t, a_patt_val(TAG_X));
+        t->pc = 1;
+        return A_OK;            // suspended
+    AWAIT_1:
+        a_set(&f->i, a_add(f->i, f->n));
+    }
+CLEANUP:
+    a_rel(&f->i);
+    a_rel(&f->n);
+    return (k == R_ABORT) ? A_ABORT : A_OK;
+}
+```
+
+## Tests
+
+- **Golden suite from the current repo.**
+    - Write a one-time extractor in this repo that dumps every
+      `atm_test(src)` case and its expected output from `tst/*.lua` into
+      `tst/cases/NNNN-name.atm` plus `.out`.
+    - Tag each case with the features it uses, so cases using dropped
+      features (Lua natives, metatables, streams, threads, deep await)
+      are moved to `tst/dropped/` or rewritten.
+- **Runner.** Compile each case, run, diff stdout and error output.
+- **Sanitizers from day one.** Build tests with `-fsanitize=address`.
+    - Leak checking on by default.
+    - Cases with intended unpinned cycles opt out explicitly.
+- **Unit tests** for the runtime in C: tables, strings, refcounts,
+  kill/dead, scheduler order.
+
+## Repo layout
+
+```
+src/        compiler (lexer, parser, resolver, checker, lower, coder)
+rt/         runtime (values, mem, str, tab, func, task, sched, std)
+rt/atmos.h  public C API for natives and environments
+env/        environments (default loop, SDL, ...)
+tst/cases/  golden tests (.atm + .out)
+tst/rt/     runtime unit tests
+doc/        manual (rewritten from the current one)
+exs/        examples
+```
+
+## Milestones
+
+- [ ] M0 skeleton: build system, `AVal`, `print`, compile `print(1+2)`.
+- [ ] M1 expressions: numbers, strings, tags, tables, all operators,
+      indexing, `if`/`ifs`/`match`, non-event loops, `where`, pipes,
+      `val`/`var`/`set`, static globals.
+- [ ] M2 functions: closures, boxes, multiple values, varargs, `return`,
+      lambdas, method sugar.
+- [ ] M3 control and errors: blocks, `defer`, `escape`, `break`,
+      `until`, `while`, `throw`, `catch`, traces with `#line`.
+- [ ] M4 tasks core: prototypes, `spawn`, `await` on values and tags,
+      default and `:global` emit, main as task, `pin` for tasks,
+      `abort`, `pub`, `status`.
+- [ ] M5 structured: transparent blocks, `par`, `par :any`, `par :all`,
+      `watching`, `loop on`, exit crossing, `await T()`, `await t`.
+- [ ] M6 pools and targets: `tasks(n)`, `spawn @ts`, `:any ts`,
+      `:all ts`, emit targets, `toggle` (both forms, `with`).
+- [ ] M7 time: clock awaits, `:clock`, timers, default driver loop.
+- [ ] M8 memory: `pin` for all values, kill, `dead`, `?? :dead`.
+- [ ] M9 natives and stdlib: C natives, `$x`, native box, stdlib v1, X.
+- [ ] M10 parity: golden suite green, `exs/` ported, manual rewritten.
+
+## Risks
+
+- **Emit reentrancy.** Kills during traversal are the main source of
+  use-after-free bugs. Covered by `dead` checks and ASan.
+- **Refcount bugs in generated code.** Keep the ownership convention
+  strict and centralize it in a few coder helpers.
+- **Semantic drift.** The golden suite is the spec; any intended change
+  must update the case and the manual together.
+- **Big single C file.** Compile time grows with programs; acceptable
+  for v1, separate compilation later.
+- **Stdlib scope creep.** Hold v1 to the list above; add on demand.
