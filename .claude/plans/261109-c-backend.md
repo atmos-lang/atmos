@@ -50,40 +50,32 @@ structured, deterministic concurrency.
 - **Native code is C.**
     - Native blocks emit C.
     - Native resources are boxed values with a finalizer.
-
-## Open decisions (with recommendation)
-
-1. **Compiler implementation language.**
-    - Recommend C: one self-contained binary, no runtime dependency.
-    - Alternative later: self-host in Atmos.
-2. **Numbers.**
-    - Recommend a single `double`.
-    - `print`/`tostring` show integral values without decimals (`1`, not
-      `1.0`), to keep current outputs.
-3. **Multiple values and varargs.**
-    - Recommend keep: `catch`, `await`, `escape`, `par :all`, and
-      `val a,b = ...` all rely on them.
+    - `$x` inside a native block refers to the Atmos variable `x`.
+- **Compiler written in C.**
+    - One self-contained binary, no runtime dependency.
+    - Self-hosting in Atmos may come later.
+- **Numbers are a single `double`.**
+    - `print`/`tostring` show integral values without decimals (`1`,
+      not `1.0`), to keep current outputs.
+- **Multiple values and varargs are kept.**
+    - `catch`, `await`, `escape`, `par :all`, and `val a,b = ...` rely
+      on them.
     - Implemented with a runtime value stack (see Calls).
-4. **Globals.**
-    - Recommend: no dynamic global table.
+- **Static globals.**
+    - No dynamic global table.
     - Top-level declarations become static C variables.
     - An unknown identifier is a compile error.
     - `func f` without `val` declares a top-level variable.
-5. **Natives referring to Atmos variables.**
-    - Recommend `$x` interpolation inside native blocks.
-6. **Strings.**
-    - Recommend interning all strings in v1.
+- **All strings are interned in v1.**
     - Equality and table key hashing become pointer operations.
     - Revisit if concatenation-heavy code suffers.
-7. **Index base.**
-    - Recommend keep 1-based (manual, tests, `@#`, `@+`).
-8. **String patterns.**
-    - Recommend no Lua patterns in v1: plain `find`, `sub`, `split`.
-9. **Auto-pin of fresh task arguments.**
-    - Recommend postpone: unpinned arguments are already safe by
-      refcount.
+- **Indexes are 1-based**, as today (manual, tests, `@#`, `@+`).
+- **No string patterns in v1.**
+    - Plain `find`, `sub`, `split` only.
+- **No auto-pin of task arguments in v1.**
+    - Unpinned arguments are already safe by refcount.
     - Auto-pin would only add a guaranteed free when the task ends and
-      break cycles through the argument.
+      break cycles through the argument. Revisit later.
 
 ## Language delta (relative to current Atmos)
 
@@ -116,7 +108,7 @@ structured, deterministic concurrency.
 - Parameters are immutable, as the manual states.
     - Today `set` on a parameter is silently accepted.
 - Native blocks contain C, not Lua.
-- Globals are static (see open decision 4).
+- Globals are static (see Settled decisions).
 - Deep ordering drops the metatable rule (rule 2).
 
 ### Dropped
@@ -451,7 +443,7 @@ typedef AStatus (*AResume) (ATask* t, AKind k, AVal evt);
 ### Natives
 
 - Native blocks are C expressions or statements.
-- `$x` refers to an Atmos variable (open decision 5).
+- `$x` refers to an Atmos variable.
 - A C API header gives macros to read and build values:
   `A_NUM(v)`, `A_STR(v)`, `a_num(d)`, `a_str(s)`, `a_tab()`, ...
 - Native box:
